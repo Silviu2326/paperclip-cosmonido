@@ -242,7 +242,7 @@ describe("CompanyEnvironments", () => {
     await flushReact();
     await flushReact();
 
-    const addEnvironmentButton = container.querySelector('[aria-label="Add environment"]');
+    const addEnvironmentButton = container.querySelector('[aria-label="Añadir entorno"]');
     expect(addEnvironmentButton).toBeTruthy();
 
     await act(async () => {
@@ -293,7 +293,7 @@ describe("CompanyEnvironments", () => {
     await flushReact();
     await flushReact();
 
-    const editButton = findAction(container, "Edit");
+    const editButton = findAction(container, "Editar");
     expect(editButton).toBeTruthy();
 
     await act(async () => {
@@ -369,7 +369,7 @@ describe("CompanyEnvironments", () => {
 
     expect(container.textContent).toContain("Secure Sandbox");
 
-    const editButton = findAction(container, "Edit");
+    const editButton = findAction(container, "Editar");
     expect(editButton).toBeTruthy();
 
     await act(async () => {

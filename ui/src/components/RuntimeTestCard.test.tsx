@@ -14,7 +14,7 @@ it("shows the installation repair directly on a missing runtime test", () => {
       adapterType: "paperclip_runner", status: "fail", testedAt: "2026-10-11T11:19:14Z",
       checks: [{ code: "acpx_runtime_package_missing", level: "error", message }],
     }} />));
-    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Runtime missing");
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("Runtime no instalado");
     expect(container.querySelector('[role="alert"]')?.textContent).toContain(message);
     expect(container.textContent).not.toContain("Check your model and provider connection");
   } finally {

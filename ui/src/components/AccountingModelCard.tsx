@@ -1,41 +1,45 @@
 import { Database, Gauge, ReceiptText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { t, useTranslation } from "@/i18n";
 
-const SURFACES = [
+function getSurfaces() {
+  return [
   {
-    title: "Inference ledger",
-    description: "Request-scoped usage and billed runs from cost_events.",
+    title: t("accountingModelCard.inferenceTitle"),
+    description: t("accountingModelCard.inferenceDescription"),
     icon: Database,
-    points: ["tokens + billed dollars", "provider, biller, model", "subscription and overage aware"],
+    points: [t("accountingModelCard.inferencePoint1"), t("accountingModelCard.inferencePoint2"), t("accountingModelCard.inferencePoint3")],
     tone: "from-sky-500/12 via-sky-500/6 to-transparent",
   },
   {
-    title: "Finance ledger",
-    description: "Account-level charges that are not one prompt-response pair.",
+    title: t("accountingModelCard.financeTitle"),
+    description: t("accountingModelCard.financeDescription"),
     icon: ReceiptText,
-    points: ["top-ups, refunds, fees", "Bedrock provisioned or training charges", "credit expiries and adjustments"],
+    points: [t("accountingModelCard.financePoint1"), t("accountingModelCard.financePoint2"), t("accountingModelCard.financePoint3")],
     tone: "from-amber-500/14 via-amber-500/6 to-transparent",
   },
   {
-    title: "Live quotas",
-    description: "Provider or biller windows that can stop traffic in real time.",
+    title: t("accountingModelCard.quotasTitle"),
+    description: t("accountingModelCard.quotasDescription"),
     icon: Gauge,
-    points: ["provider quota windows", "biller credit systems", "errors surfaced directly"],
+    points: [t("accountingModelCard.quotasPoint1"), t("accountingModelCard.quotasPoint2"), t("accountingModelCard.quotasPoint3")],
     tone: "from-emerald-500/14 via-emerald-500/6 to-transparent",
   },
-] as const;
+  ];
+}
 
 export function AccountingModelCard() {
+  const { t } = useTranslation();
+  const SURFACES = getSurfaces();
   return (
     <Card className="relative overflow-hidden border-border/70">
       <div className="absolute inset-0 bg-(image:--gradient-extract-3)" />
       <CardHeader className="relative px-5 pt-5 pb-2">
         <CardTitle className="text-sm font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Accounting model
+          {t("accountingModelCard.title")}
         </CardTitle>
         <CardDescription className="max-w-2xl text-sm leading-6">
-          Paperclip now separates request-level inference usage from account-level finance events.
-          That keeps provider reporting honest when the biller is OpenRouter, Cloudflare, Bedrock, or another intermediary.
+          {t("accountingModelCard.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="relative grid gap-3 px-5 pb-5 md:grid-cols-3">

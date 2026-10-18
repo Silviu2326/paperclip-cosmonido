@@ -282,7 +282,7 @@ describe("SidebarCompanyMenu", () => {
     expect(document.body.textContent).toContain("Editar");
     expect(document.body.textContent).toContain("Strata");
     expect(document.body.textContent).toContain("ANA");
-    expect(document.body.textContent).toContain("Create organization");
+    expect(document.body.textContent).toContain("Crear organización");
     expect(document.body.textContent).toContain("Invitar personas a Acme Labs");
     expect(document.body.textContent).not.toContain("Company settings");
     expect(document.body.textContent).toContain("Cerrar sesión");
@@ -442,7 +442,7 @@ describe("SidebarCompanyMenu", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Create organization");
+    expect(document.body.textContent).toContain("Crear organización");
     expect(document.body.textContent).not.toContain("Add company...");
 
     const editButton = Array.from(document.body.querySelectorAll("button"))
@@ -531,7 +531,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs organization switcher");
 
     const createItem = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
-      .find((element) => element.textContent?.includes("Create organization"));
+      .find((element) => element.textContent?.includes("Crear organización"));
     expect(createItem).toBeTruthy();
 
     act(() => {
@@ -609,7 +609,7 @@ describe("SidebarCompanyMenu", () => {
       await openMenu(`Open Acme Labs ${production ? "company" : "organization"} switcher`);
       expect(document.body.textContent).toContain("Anachronist Wiki");
       expect(document.body.textContent).toContain("ANA");
-      expect(document.body.textContent).not.toContain("Create organization");
+      expect(document.body.textContent).not.toContain("Crear organización");
       expect(mockOpenOnboarding).not.toHaveBeenCalled();
       const row = [...document.querySelectorAll('[data-slot="dropdown-menu-item"]')]
         .find(element => element.textContent?.includes("Anachronist Wiki"));

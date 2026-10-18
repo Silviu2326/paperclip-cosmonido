@@ -40,7 +40,7 @@ describe("CaseFieldsPanel", () => {
 
   it("shows the empty state when there are no fields", () => {
     const root = render({});
-    expect(container.textContent).toContain("No fields set");
+    expect(container.textContent).toContain("No hay campos definidos");
     act(() => root.unmount());
   });
 

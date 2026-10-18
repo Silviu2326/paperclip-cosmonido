@@ -190,6 +190,6 @@ describe("SidebarNavItem", () => {
     sidebarState.collapsed = true;
     render(<SidebarNavItem to="/dashboard" label="Dashboard" icon={Inbox} liveCount={3} />);
 
-    expect(link().getAttribute("aria-label")).toBe("Dashboard, 3 live");
+    expect(link().getAttribute("aria-label")).toBe("Dashboard, 3 en directo");
   });
 });

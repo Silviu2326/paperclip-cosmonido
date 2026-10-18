@@ -328,15 +328,15 @@ async function pickFirstSource(
 /**
  * The arc footer's primary button, whatever this step calls it.
  *
- * Step 4 calls it "Connect", because there it starts a sign-in rather than
- * simply advancing; every other arc step calls it "Next". These tests are about
+ * Step 4 calls it "Conectar", because there it starts a sign-in rather than
+ * simply advancing; every other arc step calls it "Siguiente". These tests are about
  * what the press does, not what it reads, so they match either — restating the
  * label at twenty call sites would make a copy change look like a behaviour
  * regression. The label itself is pinned once, in the step test that is about
  * the label.
  */
 function isArcPrimary(text: string): boolean {
-  return text.startsWith("Next") || text.startsWith("Connect");
+  return text.startsWith("Siguiente") || text.startsWith("Conectar");
 }
 
 describe("OnboardingWizard restore-gate (stale localStorage across accounts)", () => {
@@ -423,7 +423,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
   describe("step 1 leads straight to the agent — there is no mission step 2", () => {
     // One path now: Name your organization → Name your agent → Connect → Get
     // started. The Build / Grow front door and both mission screens are gone,
-    // so "Continue" on step 1 creates the organization and lands on the agent
+    // so "Continuar" on step 1 creates the organization and lands on the agent
     // step with no mission question in between.
 
     async function openStepOne() {
@@ -466,12 +466,12 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // unrendered step cannot pass as an absence.
       mockCompaniesApi.create.mockResolvedValue({ id: "company-new", issuePrefix: "INI" });
       const { root } = await openStepOne();
-      await clickByText((t) => t.startsWith("Continue"));
+      await clickByText((t) => t.startsWith("Continuar"));
 
       expect(mockCompaniesApi.create).toHaveBeenCalledWith({ name: "Initech" });
       expect(document.body.textContent).not.toContain("Define your mission");
       expect(document.body.textContent).not.toContain("Tell us about your team");
-      expect(document.body.textContent).toContain("Create your first agent");
+      expect(document.body.textContent).toContain("Crea tu primer agente");
 
       // Step 3 → 4 needs an agent name — the one field the step has now.
       const agentField = document.body.querySelector(
@@ -483,7 +483,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       await flushReact();
       await clickByText((t) => isArcPrimary(t));
 
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(document.body.textContent).toContain("Conecta un modelo");
       await pickFirstSource(clickByText);
       expect(document.body.textContent).not.toContain("Adapter environment check");
       expect(document.body.textContent).not.toContain("Test now");
@@ -495,7 +495,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // The review step is the heading and the woken agent, nothing else: the
       // checklist that restated the walk in three rows is gone, and with it
       // the Mission row that could only render unchecked.
-      expect(document.body.textContent).toContain("Let's get started...");
+      expect(document.body.textContent).toContain("Empecemos...");
       expect(document.body.textContent).toContain("Ada is ready to work!");
       expect(document.body.textContent).not.toContain("Organization name");
       expect(document.body.textContent).not.toContain("Model connected");
@@ -550,7 +550,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         });
         await flushReact();
       }
-      await clickText((t) => t.startsWith("Continue"));
+      await clickText((t) => t.startsWith("Continuar"));
       const agentField = document.body.querySelector(
         "#onboarding-agent-name",
       ) as HTMLInputElement;
@@ -604,7 +604,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         await flushReact();
       };
 
-      await clickText((t) => t.startsWith("Continue"));
+      await clickText((t) => t.startsWith("Continuar"));
       const agentField = document.body.querySelector(
         "#onboarding-agent-name",
       ) as HTMLInputElement;
@@ -639,7 +639,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       );
       mockCompaniesApi.create.mockResolvedValue({ id: "company-new", issuePrefix: "INI" });
       const { root } = await openStepOne();
-      await clickByText((t) => t.startsWith("Continue"));
+      await clickByText((t) => t.startsWith("Continuar"));
       const agentField = document.body.querySelector(
         "#onboarding-agent-name",
       ) as HTMLInputElement;
@@ -648,7 +648,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       });
       await flushReact();
       await clickByText((t) => isArcPrimary(t));
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(document.body.textContent).toContain("Conecta un modelo");
       await pickFirstSource(clickByText);
 
       const connect = [...document.body.querySelectorAll("button")].find((b) =>
@@ -688,7 +688,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       await flushReact();
 
       expect(mockCompaniesApi.create).toHaveBeenCalledTimes(1);
-      expect(document.body.textContent).toContain("Create your first agent");
+      expect(document.body.textContent).toContain("Crea tu primer agente");
 
       await act(async () => root.unmount());
     });
@@ -723,7 +723,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
 
       await act(async () => resolveCreate({ id: "company-new", issuePrefix: "INI" }));
       await flushReact();
-      expect(document.body.textContent).toContain("Create your first agent");
+      expect(document.body.textContent).toContain("Crea tu primer agente");
 
       await act(async () => root.unmount());
     });
@@ -733,12 +733,12 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // not the mission screen it never saw.
       mockCompaniesApi.create.mockResolvedValue({ id: "company-new", issuePrefix: "INI" });
       const { root } = await openStepOne();
-      await clickByText((t) => t.startsWith("Continue"));
-      expect(document.body.textContent).toContain("Create your first agent");
+      await clickByText((t) => t.startsWith("Continuar"));
+      expect(document.body.textContent).toContain("Crea tu primer agente");
 
       await clickByText((t) => t.includes("Back"));
 
-      expect(document.body.textContent).toContain("What is the name of your organization?");
+      expect(document.body.textContent).toContain("¿Cuál es el nombre de tu organización?");
       expect(document.body.textContent).not.toContain("Define your mission");
 
       await act(async () => root.unmount());
@@ -777,7 +777,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         await flushReact();
       };
 
-      await clickByText((t) => t.startsWith("Continue"));
+      await clickByText((t) => t.startsWith("Continuar"));
       const agentField = document.body.querySelector(
         "#onboarding-agent-name",
       ) as HTMLInputElement;
@@ -786,7 +786,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       });
       await flushReact();
       await clickByText((t) => isArcPrimary(t));
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(document.body.textContent).toContain("Conecta un modelo");
 
       // The credential mode is chosen *before* a source, because picking a
       // source starts the sequence and the mode link fades out with the row —
@@ -1245,8 +1245,8 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     ])("restores the authorized review draft after route reload %s with %s runner", async (pathname, runner) => {
       const { root, draft } = await openSavedReview(pathname, runner);
       try {
-        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Get started")).toBe(true);
-        expect(document.body.textContent).not.toContain("What is the name of your organization?");
+        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Empezar")).toBe(true);
+        expect(document.body.textContent).not.toContain("¿Cuál es el nombre de tu organización?");
         const persisted = JSON.parse(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)!);
         expect(persisted).toMatchObject(draft);
         expect(mockAgentsApi.hire).not.toHaveBeenCalled();
@@ -1257,7 +1257,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     it("keeps restored review progress when initial effects replay in StrictMode", async () => {
       const { root, draft } = await openSavedReview("/SC/onboarding", "auto", { strict: true });
       try {
-        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Get started")).toBe(true);
+        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Empezar")).toBe(true);
         expect(JSON.parse(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)!)).toMatchObject(draft);
       } finally { await act(async () => root.unmount()); }
     });
@@ -1268,7 +1268,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         mockCompany.loading = false;
         await renderWizardView(root, queryClient);
         for (let tick = 0; tick < 8; tick++) await flushReact();
-        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Get started")).toBe(true);
+        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Empezar")).toBe(true);
         expect(JSON.parse(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)!)).toMatchObject(draft);
       } finally { await act(async () => root.unmount()); }
     });
@@ -1301,7 +1301,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         const persisted = JSON.parse(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)!);
         expect(persisted.step).toBe(initialStep);
         expect(persisted.createdCompanyId).toBe("c1");
-        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Get started")).toBe(false);
+        expect([...document.querySelectorAll("button")].some(button => button.textContent?.trim() === "Empezar")).toBe(false);
       } finally { await act(async () => root.unmount()); }
     });
 
@@ -1377,7 +1377,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     // The draft is restored once companies settle: step 3 (Create your first
     // agent) with the saved agent name in the input, not the defaults
     // (step 0, "Chief of staff").
-    expect(document.body.textContent).toContain("Create your first agent");
+    expect(document.body.textContent).toContain("Crea tu primer agente");
     const nameInput = document.body.querySelector(
       "#onboarding-agent-name",
     ) as HTMLInputElement | null;
@@ -1387,7 +1387,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     // labelled by destination: the wizard has its own numbering, and two
     // controls both announcing "Step 1" would mean different things.
     const currentStep = document.body.querySelector('[aria-current="step"]');
-    expect(currentStep?.getAttribute("aria-label")).toBe("Create your first agent");
+    expect(currentStep?.getAttribute("aria-label")).toBe("Crea tu primer agente");
     expect(document.body.textContent).toContain("Step 1 of 3");
 
     await act(async () => {
@@ -1428,7 +1428,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     setControlledValue(companyNameInput, "Created Co");
     await act(async () => {
       [...document.body.querySelectorAll("button")]
-        .find((button) => button.textContent?.trim() === "Continue")!
+        .find((button) => button.textContent?.trim() === "Continuar")!
         .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flushReact();
@@ -1957,7 +1957,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // itself), each settling on its own render. One flush is not always
       // enough to reach the end of that chain.
       for (let i = 0; i < 5; i++) await flushReact();
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(document.body.textContent).toContain("Conecta un modelo");
       // No pick needed here: the draft this helper restores already names an
       // adapter, which is what a run returning to this step actually carries.
       return { root, queryClient };
@@ -1997,7 +1997,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         expect(mockAgentsApi.hire).toHaveBeenCalledWith("company-new", expect.objectContaining({ runtimeConfig: expect.objectContaining({ aiConnection: { provider, method: "subscription", mode: "responsible_user" } }) }));
         for (let i = 0; i < 4; i++) await flushReact();
         expect(document.body.textContent).toContain("Temporary hire failure");
-        const retry = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Connect");
+        const retry = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Conectar");
         expect(retry).toBeTruthy();
         expect(retry!.disabled).toBe(false);
         await act(async () => { retry!.click(); });
@@ -2257,8 +2257,8 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       for (let i = 0; i < 10; i++) await flushReact();
 
       expect(rowCentred()).toBe(false);
-      expect(cta()).toBe("Next");
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(cta()).toBe("Siguiente");
+      expect(document.body.textContent).toContain("Conecta un modelo");
 
       await act(async () => root.unmount());
     });
@@ -2305,18 +2305,18 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // and that is all the field needs to show of it.
       expect(field!.type).toBe("password");
       // And the button answers the paste itself. The status here never reaches
-      // authenticated, so this is "Connecting" before any server confirmation —
+      // authenticated, so this is "Conectando" before any server confirmation —
       // waiting for that left about a second of a button still reading
-      // "Waiting for code" after the code had gone in.
+      // "Esperando el código" after the code had gone in.
       expect(
         [...document.body.querySelectorAll("button")].pop()?.textContent?.trim(),
-      ).toBe("Connecting");
+      ).toBe("Conectando");
 
       await act(async () => root.unmount());
     });
 
     it("does not hire on the paste alone, before the login is stored", async () => {
-      // "Connecting" appears at the paste now, ahead of the server confirming
+      // "Conectando" appears at the paste now, ahead of the server confirming
       // anything. The two-second hold used to start at that same moment, so
       // moving one without the other would hire at the paste plus two seconds
       // whether or not a credential existed. The status here stays pending, so
@@ -2338,7 +2338,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         [...document.body.querySelectorAll("button")].pop()?.textContent?.trim();
       // The paste really did start Connecting; without this the assertion
       // below would hold for a flow that never got that far.
-      expect(cta(), "the paste should have started Connecting").toBe("Connecting");
+      expect(cta(), "the paste should have started Connecting").toBe("Conectando");
 
       await act(async () => {
         await new Promise((resolve) => window.setTimeout(resolve, CONNECTED_HOLD_MS + 400));
@@ -2346,14 +2346,14 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       for (let i = 0; i < 4; i++) await flushReact();
 
       expect(mockAgentsApi.hire).not.toHaveBeenCalled();
-      expect(cta()).toBe("Connecting");
+      expect(cta()).toBe("Conectando");
 
       await act(async () => root.unmount());
     });
 
     it("gives the button back when the pasted code is refused", async () => {
       // The other half of answering the paste early: a button that says
-      // "Connecting" before the server answers has to stop saying it when the
+      // "Conectando" before the server answers has to stop saying it when the
       // answer is no, or it spins on a login that is not coming.
       mockAgentsApi.getAdapterAuthSignal.mockResolvedValue({ status: "absent" });
       mockAgentsApi.submitClaudeSetupTokenBrowserCode.mockRejectedValueOnce(
@@ -2410,7 +2410,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       const cta = () =>
         [...document.body.querySelectorAll("button")].pop()?.textContent?.trim();
       expect(mockAgentsApi.submitClaudeSetupTokenBrowserCode).toHaveBeenCalledTimes(1);
-      expect(cta(), "the paste should have started Connecting").toBe("Connecting");
+      expect(cta(), "the paste should have started Connecting").toBe("Conectando");
 
       // Hold the exit open so the refusal lands inside it. Without a
       // `matchMedia` to ask, every beat collapses to zero and the exit would be
@@ -2444,7 +2444,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
 
         // Still leaving: the button shows the step's resting face, not the
         // sign-in it would have reopened.
-        expect(cta()).toBe("Next");
+        expect(cta()).toBe("Siguiente");
 
         // And the exit finishes — the row is a question again. Waited in short
         // slices, each its own `act`. One long `act` defers React's commits to
@@ -2476,7 +2476,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     it("does not hire when the login finishes after Back", async () => {
       // The same window from the other side. A login can complete while Back's
       // exit is still running, and reporting that success pulled the step back
-      // into "Connecting" and on into a hire the customer had backed away from.
+      // into "Conectando" and on into a hire the customer had backed away from.
       // No paste needed: here the server has already authenticated, and the
       // completion read is simply slow.
       mockAgentsApi.getAdapterAuthSignal.mockResolvedValue({ status: "absent" });
@@ -2530,12 +2530,12 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         });
         for (let i = 0; i < 4; i++) await flushReact();
 
-        expect(cta()).toBe("Next");
+        expect(cta()).toBe("Siguiente");
 
         // Past the exit, and past the full hold a late success would have
         // started. In short slices, each its own `act`, for the reason given in
         // the test above — and here it matters twice: a hire scheduled by a late
-        // "Connecting" is only scheduled once that phase commits, so one long
+        // "Conectando" is only scheduled once that phase commits, so one long
         // `act` would hide the very hire this is looking for.
         const slices = Math.ceil((CONNECTED_HOLD_MS + 1200) / 50);
         for (let i = 0; i < slices; i++) {
@@ -2595,7 +2595,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       // The panel that shows a code owns its session and the wizard learns the
       // prompt's URL only by being told. When it was not told, the step waited
       // on a card that had already opened: the code sat on screen under a
-      // button still reading "Next", disabled, with nothing left to wait for.
+      // button still reading "Siguiente", disabled, with nothing left to wait for.
       //
       // The sibling test above stops at the login having started, which is why
       // this went unseen — and the harness could not see it either, since it
@@ -2628,7 +2628,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
     });
 
     it("does not hire after Back interrupts the hold before step 5", async () => {
-      // "Connecting" is held for two seconds so it reads as a state rather than
+      // "Conectando" is held for two seconds so it reads as a state rather than
       // a flicker, and Back stays live throughout. The hire behind that hold
       // knows nothing about the phase, so a timer left running took a customer
       // who had just backed out to Review with an agent hired anyway.
@@ -2648,7 +2648,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       const cta = () =>
         [...document.body.querySelectorAll("button")].pop()?.textContent?.trim();
       expect(cta(), "success should have taken the button to the hold").toBe(
-        "Connecting",
+        "Conectando",
       );
 
       const back = [...document.body.querySelectorAll("button")].find((b) =>
@@ -2666,7 +2666,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       for (let i = 0; i < 6; i++) await flushReact();
 
       expect(mockAgentsApi.hire).not.toHaveBeenCalled();
-      expect(document.body.textContent).toContain("Connect a model");
+      expect(document.body.textContent).toContain("Conecta un modelo");
 
       await act(async () => root.unmount());
     });
@@ -2719,11 +2719,11 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
 
       expect(mockAgentsApi.hire).toHaveBeenCalled();
       expect(document.body.textContent).not.toContain("Environment test identity");
-      expect(document.body.textContent).not.toContain("Warnings");
+      expect(document.body.textContent).not.toContain("Avisos");
       // And the button goes on saying what is happening rather than going quiet.
       expect(
         [...document.body.querySelectorAll("button")].pop()?.textContent?.trim(),
-      ).toBe("Connecting…");
+      ).toBe("Conectando…");
 
       await act(async () => finishHire({ agent: { id: "agent-1" }, approval: null }));
       for (let i = 0; i < 6; i++) await flushReact();
@@ -2777,7 +2777,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         for (let i = 0; i < 6; i++) await flushReact();
 
         expect(mockAgentsApi.startClaudeSetupTokenLogin).not.toHaveBeenCalled();
-        expect(document.body.textContent).toContain("Connect a model");
+        expect(document.body.textContent).toContain("Conecta un modelo");
 
         await act(async () => root.unmount());
       } finally {
@@ -3223,9 +3223,9 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         await settle();
       }
       function expectTesting() {
-        expect(button("Testing…").disabled).toBe(true);
-        expect(button("Testing…").querySelector("svg.animate-spin")).not.toBeNull();
-        expect([...document.body.querySelectorAll('[role="status"]')].some(e => e.textContent === "Testing connection…")).toBe(true);
+        expect(button("Probando…").disabled).toBe(true);
+        expect(button("Probando…").querySelector("svg.animate-spin")).not.toBeNull();
+        expect([...document.body.querySelectorAll('[role="status"]')].some(e => e.textContent === "Probando conexión…")).toBe(true);
         expect(document.body.querySelector('[aria-label="Saved subscription"]')).toBeNull();
         expect(document.body.textContent).not.toContain("Run this in a terminal");
         expect(document.body.textContent).not.toContain("Start sign-in again");
@@ -3239,7 +3239,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
           await pickSource(label);
           expect(document.body.textContent).toContain("Sign in to");
           expect(document.body.textContent).not.toContain("Run this in a terminal");
-          expect(button("Connect").disabled).toBe(false);
+          expect(button("Conectar").disabled).toBe(false);
           await detected();
           expectTesting();
           // The saved account can become visible while its hello test is pending.
@@ -3311,7 +3311,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
           expect(mockAgentsApi.testEnvironment).not.toHaveBeenCalled();
           expect(mockAgentsApi.hire).not.toHaveBeenCalled();
           expect(document.body.textContent).toContain("Sign in to");
-          expect(button("Connect").disabled).toBe(false);
+          expect(button("Conectar").disabled).toBe(false);
         } finally { await act(async () => root.unmount()); }
       });
 
@@ -3365,11 +3365,11 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
           await pickSource(label);
           await detected();
           expect(document.body.textContent).toContain("Provider request timed out. Try again.");
-          expect(button("Connect").disabled).toBe(false);
+          expect(button("Conectar").disabled).toBe(false);
           await detected();
           expect(mockAgentsApi.testEnvironment).toHaveBeenCalledTimes(1);
           expect(mockAgentsApi.hire).not.toHaveBeenCalled();
-          await click("Connect");
+          await click("Conectar");
           expect(mockAgentsApi.testEnvironment).toHaveBeenCalledTimes(2);
           expect(managedApi.connectLocal).toHaveBeenCalledTimes(1);
           expect(document.body.textContent).toContain("is ready to work!");
@@ -3381,7 +3381,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         try {
           await pickSource(label);
           expect(mockAgentsApi.testEnvironment).not.toHaveBeenCalled();
-          await click("Connect");
+          await click("Conectar");
           expect(managedApi.connectLocal).toHaveBeenCalledTimes(1);
           expect(mockAgentsApi.testEnvironment).toHaveBeenCalledTimes(1);
           expect(document.body.textContent).toContain("is ready to work!");
@@ -3396,7 +3396,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
         try {
           await pickSource(/OpenAI/);
           await detected();
-          expect(button("Connecting…").disabled).toBe(true);
+          expect(button("Conectando…").disabled).toBe(true);
           expect(document.body.textContent).not.toContain("Run this in a terminal");
           await act(async () => saved({ connectionId: "local-connection", grantId: "local-grant" }));
           await settle();
@@ -3463,7 +3463,7 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       expect(document.body.textContent).not.toContain("claude auth login");
       expect(document.body.textContent).not.toContain("No managed sandbox");
       expect(mockAgentsApi.startClaudeSetupTokenLogin).not.toHaveBeenCalled();
-      const connect = [...document.body.querySelectorAll("button")].find(b => b.textContent?.trim().startsWith("Connect"));
+      const connect = [...document.body.querySelectorAll("button")].find(b => b.textContent?.trim().startsWith("Conectar"));
       expect(connect).toBeTruthy();
       await act(async () => connect!.click());
       for (let i = 0; i < 6; i++) await flushReact();

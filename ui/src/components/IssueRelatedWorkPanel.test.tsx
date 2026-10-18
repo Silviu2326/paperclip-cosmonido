@@ -51,11 +51,11 @@ describe("IssueRelatedWorkPanel", () => {
       />,
     );
 
-    expect(html).toContain("References");
-    expect(html).toContain("Referenced by");
+    expect(html).toContain("Referencias");
+    expect(html).toContain("Referenciada por");
     expect(html).toContain("PAP-22");
     expect(html).toContain("PAP-33");
-    expect(html).toContain('aria-label="Task PAP-22: Downstream task"');
+    expect(html).toContain('aria-label="Tarea PAP-22: Downstream task"');
     expect(html).toContain('aria-label="Task PAP-33: Upstream task"');
     expect(html).toContain("plan");
     expect(html).toContain("comment");

@@ -39,31 +39,31 @@ describe("actionable cost notices", () => {
   }
   function button(text: string) { return [...container.querySelectorAll("button")].find(button => button.textContent === text)!; }
   async function click(text: string) { await act(async () => button(text).click()); }
-  async function loaded() { await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Ready to record"))); }
+  async function loaded() { await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Listo para registrar"))); }
 
   it("loads bounded details only on demand using the displayed period", async () => {
     await render(); expect(mocks.dataQuality).not.toHaveBeenCalled();
-    expect(button("16 run costs unavailable").getAttribute("aria-expanded")).toBe("false");
-    expect(container.textContent).toBe("16 run costs unavailable");
+    expect(button("16 costes de ejecución no disponibles").getAttribute("aria-expanded")).toBe("false");
+    expect(container.textContent).toBe("16 costes de ejecución no disponibles");
     expect(container.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
     expect(container.querySelector('[role="alert"]')).toBeNull();
-    await click("16 run costs unavailable"); await loaded();
+    await click("16 costes de ejecución no disponibles"); await loaded();
     expect(mocks.dataQuality).toHaveBeenCalledExactlyOnceWith("company", "2026-10-01", "2026-10-09");
-    expect(button("16 run costs unavailable").getAttribute("aria-expanded")).toBe("true");
-    const details = document.getElementById(button("16 run costs unavailable").getAttribute("aria-controls")!)!;
+    expect(button("16 costes de ejecución no disponibles").getAttribute("aria-expanded")).toBe("true");
+    const details = document.getElementById(button("16 costes de ejecución no disponibles").getAttribute("aria-controls")!)!;
     expect(details.textContent).not.toContain("Totals include known charges only.");
     expect(details.textContent).not.toContain("12 entries without prices · 4 runs without final cost data · 9 entries with unknown billing");
     expect(details.textContent).not.toContain("Includes 12 estimated charges.");
-    await click("16 run costs unavailable");
+    await click("16 costes de ejecución no disponibles");
     expect(container.querySelector("ul")).toBeNull();
-    expect(container.textContent).toBe("16 run costs unavailable");
+    expect(container.textContent).toBe("16 costes de ejecución no disponibles");
   });
 
   it("explains future configuration fixes and links to the affected runs in the active company", async () => {
-    await render(); await click("16 run costs unavailable"); await loaded();
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
     const row = (label: string) => [...container.querySelectorAll('[data-slot="badge"]')].find(badge => badge.textContent === label)!.closest("li")!;
-    const billing = row("Billing category unknown");
-    expect(billing.textContent).toContain("Any recorded charges are included in the inference ledger.");
+    const billing = row("Categoría de facturación desconocida");
+    expect(billing.textContent).toContain("Los cargos registrados se incluyen en el libro de inferencia.");
     const configuration = container.querySelector('a[href="/PAP/agents/codie/configuration"]')!;
     expect(configuration.textContent).toBe("Codie");
     expect(configuration.closest("h3")!.textContent).toBe("Codie");
@@ -73,19 +73,19 @@ describe("actionable cost notices", () => {
     for (const link of container.querySelectorAll("a")) expect(link.hasAttribute("data-slot")).toBe(false);
     expect(container.querySelectorAll("h3")).toHaveLength(1);
     expect(container.querySelectorAll('[data-slot="agent-avatar"]')).toHaveLength(1);
-    expect(container.textContent).toContain("Changing settings will not reprice this past run.");
-    const runs = [row("Receiving usage"), row("Final usage unavailable")];
-    expect(runs[0].textContent).toContain("You do not need to rerun the agent.");
-    expect(runs[1].textContent).toContain("Its cost remains unresolved for budget checks.");
-    expect(runs[1].textContent).toContain("rerunning the agent will not recover this usage.");
+    expect(container.textContent).toContain("Cambiar los ajustes no recalculará el precio de esta ejecución pasada.");
+    const runs = [row("Recibiendo uso"), row("Uso final no disponible")];
+    expect(runs[0].textContent).toContain("No necesitas volver a ejecutar el agente.");
+    expect(runs[1].textContent).toContain("Su coste sigue sin resolver para las comprobaciones de presupuesto.");
+    expect(runs[1].textContent).toContain("volver a ejecutar el agente no recuperará este uso.");
     expect(runs[0].querySelector("button")).toBeNull();
     expect(runs[1].querySelector("button")).toBeNull();
-    expect([...container.querySelectorAll("button")].filter(row => row.textContent === "Retry cost recording")).toHaveLength(1);
-    const actionLine = button("Retry cost recording").parentElement!;
+    expect([...container.querySelectorAll("button")].filter(row => row.textContent === "Reintentar registro de costes")).toHaveLength(1);
+    const actionLine = button("Reintentar registro de costes").parentElement!;
     expect(actionLine.children[0].tagName).toBe("TIME");
-    expect(actionLine.children[1].textContent).toBe("View run");
-    expect(actionLine.children[2].textContent).toBe("Retry cost recording");
-    expect(button("Retry cost recording").getAttribute("data-variant")).toBe("link");
+    expect(actionLine.children[1].textContent).toBe("Ver ejecución");
+    expect(actionLine.children[2].textContent).toBe("Reintentar registro de costes");
+    expect(button("Reintentar registro de costes").getAttribute("data-variant")).toBe("link");
   });
 
   it("groups all kinds of cost gaps by agent identity, alphabetizes names, and preserves appearances and newest-first entries", async () => {
@@ -102,13 +102,13 @@ describe("actionable cost notices", () => {
         { ...item("retryable"), id: "shared-id", agentAppearance: appearance },
       ],
     });
-    await render(); await click("16 run costs unavailable"); await loaded();
-    const groups = [...container.querySelectorAll('[aria-label="Cost details by agent"] > li')];
-    expect(groups.map(group => group.querySelector("h3")!.textContent)).toEqual(["Codie", "Codie", "fry", "Leela", "Paperclip services"]);
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
+    const groups = [...container.querySelectorAll('[aria-label="Detalles de coste por agente"] > li')];
+    expect(groups.map(group => group.querySelector("h3")!.textContent)).toEqual(["Codie", "Codie", "fry", "Leela", "Servicios de Paperclip"]);
     const codieItems = groups[0].querySelectorAll("li");
     expect(codieItems).toHaveLength(2);
-    expect(codieItems[0].textContent).toContain("Ready to record");
-    expect(codieItems[1].textContent).toContain("Cost unavailable");
+    expect(codieItems[0].textContent).toContain("Listo para registrar");
+    expect(codieItems[1].textContent).toContain("Coste no disponible");
     expect(groups[1].querySelectorAll("li")).toHaveLength(1);
     expect(groups[0].querySelector("img")?.getAttribute("src")).toBe(agentAvatarUrl(appearance, 20));
     expect(groups[4].querySelector("a")).toBeNull();
@@ -116,9 +116,9 @@ describe("actionable cost notices", () => {
 
   it("does not label priced unknown billing or estimates as unavailable costs", async () => {
     await render({ unpricedCount: 0, pendingCount: 0, unknownBillingCount: 1 });
-    expect(container.textContent).toBe("1 billing type unknown");
-    await click("1 billing type unknown"); await loaded();
-    expect(container.textContent).toContain("Billing category unknown");
+    expect(container.textContent).toBe("1 tipo de facturación desconocido");
+    await click("1 tipo de facturación desconocido"); await loaded();
+    expect(container.textContent).toContain("Categoría de facturación desconocida");
     expect(container.textContent).not.toContain("Totals include known charges only.");
     expect(container.textContent).not.toContain("Includes 12 estimated charges.");
   });
@@ -126,14 +126,14 @@ describe("actionable cost notices", () => {
   it("records saved costs without rerunning work and refreshes every period for this company", async () => {
     let finish!: (result: { accounted: boolean }) => void;
     mocks.retryAccounting.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-    await render(); await click("16 run costs unavailable"); await loaded();
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
     const invalidate = vi.spyOn(client, "invalidateQueries");
-    await click("Retry cost recording");
-    await act(async () => vi.waitFor(() => expect(button("Retry cost recording").disabled).toBe(true)));
-    await click("Retry cost recording");
+    await click("Reintentar registro de costes");
+    await act(async () => vi.waitFor(() => expect(button("Reintentar registro de costes").disabled).toBe(true)));
+    await click("Reintentar registro de costes");
     expect(mocks.retryAccounting).toHaveBeenCalledTimes(1);
     await act(async () => finish({ accounted: true }));
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Costs recorded.")));
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Costes registrados.")));
     expect(mocks.retryAccounting).toHaveBeenCalledExactlyOnceWith("company", "retryable-run");
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["costs", "company"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["cost-subscriptions", "company"] });
@@ -143,50 +143,50 @@ describe("actionable cost notices", () => {
     mocks.dataQuality.mockResolvedValueOnce({ ...report(), events: [], runs: [item("retryable")] })
       .mockResolvedValue({ ...report(), events: [], runs: [] });
     await render({ unpricedCount: 0, pendingCount: 1, unknownBillingCount: 0 });
-    await click("1 run cost unavailable"); await loaded();
-    await click("Retry cost recording");
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("No cost gaps remain")));
-    expect(container.textContent).not.toContain("Retry cost recording");
+    await click("1 coste de ejecución no disponible"); await loaded();
+    await click("Reintentar registro de costes");
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("No quedan huecos de coste")));
+    expect(container.textContent).not.toContain("Reintentar registro de costes");
     await act(async () => root.render(<MemoryRouter><QueryClientProvider client={client}>
       <ToastProvider><ToastStatus /></ToastProvider>
     </QueryClientProvider></MemoryRouter>));
-    expect(container.textContent).toContain("Costs recorded. The agent was not rerun.");
+    expect(container.textContent).toContain("Costes registrados. El agente no se ha vuelto a ejecutar.");
   });
 
   it("makes stale retry results understandable and never renders raw provider errors", async () => {
     mocks.retryAccounting.mockResolvedValueOnce({ accounted: false }).mockRejectedValueOnce(new Error("SECRET sh -c provider --token credential"));
-    await render(); await click("16 run costs unavailable"); await loaded();
-    await click("Retry cost recording");
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("No new cost data is available. The agent was not rerun.")));
-    await click("Retry cost recording");
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Cost recording failed. Try again shortly.")));
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
+    await click("Reintentar registro de costes");
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("No hay datos de coste nuevos disponibles. El agente no se ha vuelto a ejecutar.")));
+    await click("Reintentar registro de costes");
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("El registro de costes falló. Inténtalo de nuevo en breve.")));
     expect(container.textContent).not.toContain("SECRET");
     expect(container.textContent).not.toContain("credential");
   });
 
   it("keeps viewer details readable without exposing the retry action", async () => {
     mocks.dataQuality.mockResolvedValue(report(false));
-    await render(); await click("16 run costs unavailable"); await loaded();
-    expect(container.textContent).not.toContain("Retry cost recording");
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
+    expect(container.textContent).not.toContain("Reintentar registro de costes");
     expect(mocks.retryAccounting).not.toHaveBeenCalled();
   });
 
   it("retains the last successful details through a failed background refresh", async () => {
-    await render(); await click("16 run costs unavailable"); await loaded();
+    await render(); await click("16 costes de ejecución no disponibles"); await loaded();
     mocks.dataQuality.mockRejectedValue(new Error("SECRET backend exception"));
     await act(async () => { await client.invalidateQueries({ queryKey: [...key, "data-quality"] }); });
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Showing the last loaded cost details.")));
-    expect(container.textContent).toContain("Ready to record");
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Mostrando los últimos detalles de coste cargados.")));
+    expect(container.textContent).toContain("Listo para registrar");
     expect(container.textContent).not.toContain("SECRET");
   });
 
   it("offers a safe first-load retry and explains truncated results", async () => {
     mocks.dataQuality.mockRejectedValueOnce(new Error("SECRET command"));
-    await render(); await click("16 run costs unavailable");
-    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("Cost details could not be loaded.")));
+    await render(); await click("16 costes de ejecución no disponibles");
+    await act(async () => vi.waitFor(() => expect(container.textContent).toContain("No se pudieron cargar los detalles de coste.")));
     expect(container.textContent).not.toContain("SECRET");
     mocks.dataQuality.mockResolvedValue({ ...report(), hasMoreRuns: true });
-    await click("Retry loading"); await loaded();
-    expect(container.textContent).toContain("Select a shorter date range to inspect more.");
+    await click("Reintentar carga"); await loaded();
+    expect(container.textContent).toContain("Selecciona un rango de fechas más corto para ver más.");
   });
 });

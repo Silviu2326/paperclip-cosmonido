@@ -2,6 +2,7 @@ import type { AgentRunner, AgentRunnerChoice } from "@paperclipai/shared";
 import { Field } from "./agent-config-primitives";
 import { SelectPopover } from "./ui/select";
 import { Button } from "./ui/button";
+import { useTranslation } from "@/i18n";
 
 export function CodexRunnerSelect({
   value,
@@ -22,22 +23,23 @@ export function CodexRunnerSelect({
   error?: string;
   onRetry?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
-    <Field label="Runner">
+    <Field label={t("codexRunner.label")}>
       <SelectPopover
-        aria-label="Runner"
+        aria-label={t("codexRunner.label")}
         disabled={disabled}
         value={value}
-        displayValue={value === "auto" ? (defaultRunner ? `${defaultRunner === "paperclip" ? "Paperclip Runner" : "Legacy runner"} (default)` : pending ? "Checking runner availability…" : "Automatic selection unavailable") : undefined}
+        displayValue={value === "auto" ? (defaultRunner ? `${defaultRunner === "paperclip" ? "Paperclip Runner" : t("codexRunner.legacyRunner")}${t("codexRunner.defaultSuffix")}` : pending ? t("codexRunner.checking") : t("codexRunner.automaticUnavailable")) : undefined}
         onValueChange={next => onChange(next as AgentRunnerChoice)}
         options={[
-          { value: "paperclip", label: `Paperclip Runner${defaultRunner === "paperclip" ? " (default)" : ""}`, disabled: !supportedRunners.includes("paperclip") && value !== "paperclip" },
-          { value: "legacy", label: `Legacy runner${defaultRunner === "legacy" ? " (default)" : ""}`, disabled: !supportedRunners.includes("legacy") && value !== "legacy" },
+          { value: "paperclip", label: `Paperclip Runner${defaultRunner === "paperclip" ? t("codexRunner.defaultSuffix") : ""}`, disabled: !supportedRunners.includes("paperclip") && value !== "paperclip" },
+          { value: "legacy", label: `${t("codexRunner.legacyRunner")}${defaultRunner === "legacy" ? t("codexRunner.defaultSuffix") : ""}`, disabled: !supportedRunners.includes("legacy") && value !== "legacy" },
         ]}
       />
       {error && <div className="mt-2 space-y-2">
         <p role="alert" className="text-sm text-destructive">{error}</p>
-        {onRetry && <Button type="button" variant="outline" size="sm" disabled={pending || disabled} onClick={onRetry}>Retry runner discovery</Button>}
+        {onRetry && <Button type="button" variant="outline" size="sm" disabled={pending || disabled} onClick={onRetry}>{t("codexRunner.retry")}</Button>}
       </div>}
     </Field>
   );

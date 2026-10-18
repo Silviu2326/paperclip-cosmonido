@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "motion/react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { t, useTranslation } from "@/i18n";
 
 /**
  * AgentCapsule — the brand "capsule is the agent" motif (PAP-118).
@@ -45,11 +46,13 @@ const SIZE_PRESETS: Record<AgentCapsuleSizePreset, { width: number; height: numb
   lg: { width: 46, height: 116 },
 };
 
-const STATE_ARIA: Record<AgentCapsuleState, string> = {
-  slot: "empty agent slot",
-  configured: "agent configured, offline",
-  online: "agent online",
-};
+function getStateAria(): Record<AgentCapsuleState, string> {
+  return {
+    slot: t("agentCapsule.emptySlot"),
+    configured: t("agentCapsule.configured"),
+    online: t("agentCapsule.online"),
+  };
+}
 
 export interface AgentCapsuleProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color"> {
@@ -96,6 +99,7 @@ export function AgentCapsule({
   "aria-label": ariaLabel,
   ...rest
 }: AgentCapsuleProps) {
+  const { t } = useTranslation();
   const dims = typeof size === "string" ? SIZE_PRESETS[size] : size;
   const reducedMotion = useReducedMotion();
   const drawn = state === "configured" || state === "online";
@@ -105,7 +109,7 @@ export function AgentCapsule({
   return (
     <div
       role="img"
-      aria-label={ariaLabel ?? STATE_ARIA[state]}
+      aria-label={ariaLabel ?? getStateAria()[state]}
       data-state={state}
       data-gradient={idx}
       data-glow={glow}

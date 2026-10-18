@@ -130,16 +130,16 @@ afterEach(() => {
 describe("DecisionCard", () => {
   it("renders a pending decision with provenance, effect summary and dismiss", () => {
     const el = render({});
-    expect(el.textContent).toContain("Pending");
+    expect(el.textContent).toContain("Pendiente");
     expect(el.textContent).toContain("Gardener");
     expect(el.textContent).toContain("PAP-123");
-    expect(el.textContent).toContain("Comment on PAP-456");
-    expect([...el.querySelectorAll("button")].some((b) => b.textContent?.includes("Dismiss"))).toBe(true);
+    expect(el.textContent).toContain("Comentar en PAP-456");
+    expect([...el.querySelectorAll("button")].some((b) => b.textContent?.includes("Descartar"))).toBe(true);
   });
 
   it("links the target issue the decision applies to, not just the origin", () => {
     const el = render({});
-    expect(el.textContent).toContain("applies to");
+    expect(el.textContent).toContain("aplica a");
     const provenance = el.querySelector("p");
     expect(provenance?.textContent).toContain("PAP-456");
     expect(
@@ -155,7 +155,7 @@ describe("DecisionCard", () => {
         ],
       }),
     });
-    expect(el.textContent).not.toContain("applies to");
+    expect(el.textContent).not.toContain("aplica a");
   });
 
   it("links secondary target issues referenced by an effect", () => {
@@ -195,7 +195,7 @@ describe("DecisionCard", () => {
   it("fires onDismiss from the always-present zero-effect dismiss", () => {
     const onDismiss = vi.fn();
     const el = render({ onDismiss });
-    clickButtonWithText(el, "Dismiss");
+    clickButtonWithText(el, "Descartar");
     expect(onDismiss).toHaveBeenCalled();
   });
 
@@ -209,8 +209,8 @@ describe("DecisionCard", () => {
         ],
       }),
     });
-    expect(el.textContent).toContain("changed since this was proposed");
-    expect(el.textContent).toContain("Blocked · stale");
+    expect(el.textContent).toContain("ha cambiado desde que se propuso");
+    expect(el.textContent).toContain("Bloqueada · obsoleta");
     const strict = [...el.querySelectorAll("button")].find((b) => b.textContent?.includes("Cancel it"));
     expect(strict?.disabled).toBe(true);
   });
@@ -239,7 +239,7 @@ describe("DecisionCard", () => {
     });
     const strict = [...el.querySelectorAll("button")].find((button) => button.textContent?.includes("Create the follow-up"));
     expect(strict?.disabled).toBe(true);
-    expect(strict?.textContent).toContain("Blocked · stale");
+    expect(strict?.textContent).toContain("Bloqueada · obsoleta");
   });
 
   it("gates a cancel_issue_tree option behind a type-to-confirm step", () => {
@@ -253,12 +253,12 @@ describe("DecisionCard", () => {
         ],
       }),
     });
-    expect(el.textContent).toContain("Destructive");
+    expect(el.textContent).toContain("Destructiva");
     // First click opens the confirm gate rather than deciding.
     clickButtonWithText(el, "Cancel the tree");
     expect(onDecide).not.toHaveBeenCalled();
-    expect(el.textContent).toContain("to confirm");
-    const confirm = [...el.querySelectorAll("button")].find((b) => b.textContent?.match(/Cancel \d+ issue/));
+    expect(el.textContent).toContain("para confirmar");
+    const confirm = [...el.querySelectorAll("button")].find((b) => b.textContent?.match(/Cancelar \d+ tarea/));
     expect(confirm?.disabled).toBe(true);
   });
 
@@ -270,9 +270,9 @@ describe("DecisionCard", () => {
         exec({ effectIndex: 1, effectType: "update_issue_status", status: "executed", result: { issueId: "issue-target", status: "done" } }),
       ],
     });
-    expect(el.textContent).toContain("Decided");
-    expect(el.textContent).toContain("Created PAP-999");
-    expect(el.textContent).toContain("Set PAP-456 to done");
+    expect(el.textContent).toContain("Decidida");
+    expect(el.textContent).toContain("Creada PAP-999");
+    expect(el.textContent).toContain("PAP-456 ahora está en done");
     expect([...el.querySelectorAll("a")].some((a) => a.getAttribute("href") === "/PAP/issues/PAP-999")).toBe(true);
     // No option buttons on a terminal decision.
     expect([...el.querySelectorAll("button")].length).toBe(0);
@@ -286,10 +286,10 @@ describe("DecisionCard", () => {
         exec({ effectIndex: 1, effectType: "update_issue_status", status: "failed", error: "deny_decision_intersection" }),
       ],
     });
-    expect(el.textContent).toContain("Partial");
-    expect(el.textContent).toContain("permission boundary");
-    expect(el.textContent).toContain("may already have been applied");
-    expect(el.textContent).toContain("re-propose");
+    expect(el.textContent).toContain("Parcial");
+    expect(el.textContent).toContain("límite de permisos");
+    expect(el.textContent).toContain("ya se hayan aplicado");
+    expect(el.textContent).toContain("proponga de nuevo");
   });
 
   it("marks skipped effects as target-changed on a failed decision", () => {
@@ -297,27 +297,27 @@ describe("DecisionCard", () => {
       decision: mkDecision({ status: "decided", executionStatus: "failed", chosenOptionId: "cancel" }),
       executions: [exec({ effectIndex: 0, effectType: "cancel_issue_tree", status: "skipped", error: "target_changed" })],
     });
-    expect(el.textContent).toContain("Failed");
-    expect(el.textContent).toContain("target changed since proposal");
+    expect(el.textContent).toContain("Fallida");
+    expect(el.textContent).toContain("cambió desde la propuesta");
   });
 
   it("renders expired and dismissed terminal states", () => {
     const expired = render({ decision: mkDecision({ status: "expired", metadata: { expiredReason: "ttl" } }) });
-    expect(expired.textContent).toContain("Expired");
-    expect(expired.textContent).toContain("window closed");
+    expect(expired.textContent).toContain("Vencida");
+    expect(expired.textContent).toContain("Se cerró el plazo");
     act(() => root?.unmount());
     container?.remove();
 
     const dismissed = render({ decision: mkDecision({ status: "decided", executionStatus: "succeeded", chosenOptionId: "dismissed", metadata: { dismissed: true } }), executions: [] });
-    expect(dismissed.textContent).toContain("Dismissed");
-    expect(dismissed.textContent).toContain("no effects were run");
+    expect(dismissed.textContent).toContain("Descartada");
+    expect(dismissed.textContent).toContain("no se ejecutó ningún efecto");
   });
 
   it("explains when a decision expires because its targets completed", () => {
     const expired = render({
       decision: mkDecision({ status: "expired", metadata: { expiredReason: "target_completed" } }),
     });
-    expect(expired.textContent).toContain("target issues were completed");
-    expect(expired.textContent).not.toContain("expiry deadline");
+    expect(expired.textContent).toContain("Todas las tareas afectadas se completaron");
+    expect(expired.textContent).not.toContain("fecha límite");
   });
 });

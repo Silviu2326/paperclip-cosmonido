@@ -63,14 +63,14 @@ describe("RoutineVariablesEditor", () => {
       root.render(<RoutineVariablesHint />);
     });
 
-    const helpButton = document.querySelector<HTMLButtonElement>('button[aria-label="Show variable help"]');
+    const helpButton = document.querySelector<HTMLButtonElement>('button[aria-label="Mostrar ayuda de variables"]');
     expect(helpButton).toBeTruthy();
 
     flushUi(() => {
       helpButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    expect(document.body.textContent).toContain("Variable names ending in capital Date");
+    expect(document.body.textContent).toContain("Los nombres de variable que terminan en Date con mayúscula");
     expect(document.body.textContent).toContain("startDate");
 
     flushUi(() => root.unmount());

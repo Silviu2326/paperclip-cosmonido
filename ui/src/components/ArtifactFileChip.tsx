@@ -3,6 +3,7 @@ import { FileCode2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkspaceFileRef } from "@paperclipai/shared";
 import { useFileViewer } from "@/context/FileViewerContext";
+import { useTranslation } from "@/i18n";
 
 export interface ArtifactFileChipProps {
   workspaceFileRef: WorkspaceFileRef;
@@ -29,18 +30,19 @@ export function ArtifactFileChip({
   showIcon = true,
   title,
 }: ArtifactFileChipProps) {
+  const { t } = useTranslation();
   const viewer = useFileViewer();
   const display = typeof label !== "undefined" ? label : artifactFileDisplay(workspaceFileRef);
   const canOpen = !!(onOpen || viewer);
   const lineSuffix = workspaceFileRef.line
-    ? ` line ${workspaceFileRef.line}${workspaceFileRef.column ? ` column ${workspaceFileRef.column}` : ""}`
+    ? ` ${t("artifactFileChip.line", { line: workspaceFileRef.line })}${workspaceFileRef.column ? ` ${t("artifactFileChip.column", { column: workspaceFileRef.column })}` : ""}`
     : "";
   const ariaLabel = canOpen
-    ? `Open ${workspaceFileRef.displayPath}${lineSuffix} in the file viewer`
-    : `Workspace file ${workspaceFileRef.displayPath}${lineSuffix}`;
+    ? t("artifactFileChip.openInViewer", { path: workspaceFileRef.displayPath, suffix: lineSuffix })
+    : t("artifactFileChip.workspaceFile", { path: workspaceFileRef.displayPath, suffix: lineSuffix });
   const tooltip = title ?? (canOpen
-    ? `Open ${workspaceFileRef.displayPath}${lineSuffix} in the file viewer`
-    : `Workspace file ${workspaceFileRef.displayPath}${lineSuffix}`);
+    ? t("artifactFileChip.openInViewer", { path: workspaceFileRef.displayPath, suffix: lineSuffix })
+    : t("artifactFileChip.workspaceFile", { path: workspaceFileRef.displayPath, suffix: lineSuffix }));
 
   const classNames = cn(
     "paperclip-artifact-file-chip inline-flex items-center gap-1 rounded-sm border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-xs leading-tight text-foreground/90 align-middle no-underline hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",

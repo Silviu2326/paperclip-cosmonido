@@ -60,11 +60,11 @@ describe("ScrollToBottom mobile composer docking", () => {
     });
 
     const initialButton = dock.querySelector<HTMLButtonElement>(
-      'button[aria-label="Scroll to bottom"]',
+      'button[aria-label="Ir al final"]',
     );
     expect(initialButton).not.toBeNull();
     expect(initialButton?.classList).toContain("absolute");
-    expect(host.querySelector('button[aria-label="Scroll to bottom"]')).toBeNull();
+    expect(host.querySelector('button[aria-label="Ir al final"]')).toBeNull();
 
     await act(async () => {
       dock.remove();
@@ -72,7 +72,7 @@ describe("ScrollToBottom mobile composer docking", () => {
     });
 
     const fallbackButton = host.querySelector<HTMLButtonElement>(
-      'button[aria-label="Scroll to bottom"]',
+      'button[aria-label="Ir al final"]',
     );
     expect(fallbackButton).not.toBeNull();
     expect(fallbackButton?.classList).toContain("fixed");
@@ -85,10 +85,10 @@ describe("ScrollToBottom mobile composer docking", () => {
     });
 
     const replacementButton = replacementDock.querySelector<HTMLButtonElement>(
-      'button[aria-label="Scroll to bottom"]',
+      'button[aria-label="Ir al final"]',
     );
     expect(replacementButton).not.toBeNull();
     expect(replacementButton?.classList).toContain("absolute");
-    expect(host.querySelector('button[aria-label="Scroll to bottom"]')).toBeNull();
+    expect(host.querySelector('button[aria-label="Ir al final"]')).toBeNull();
   });
 });

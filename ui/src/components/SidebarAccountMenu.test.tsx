@@ -186,7 +186,7 @@ describe("SidebarAccountMenu", () => {
         expect(label?.textContent).toBe("SHA 8751e2d");
         expect(label?.previousElementSibling?.textContent).toBe("jane@example.com");
         expect(label?.getAttribute("href")).toBe(`https://github.com/paperclipai/paperclip/commit/${commit}`);
-        expect(label?.getAttribute("aria-label")).toBe(`View commit ${commit} on GitHub`);
+        expect(label?.getAttribute("aria-label")).toBe(`Ver el commit ${commit} en GitHub`);
         expect(mockHealthApi.get).toHaveBeenCalledOnce();
       } else {
         expect(mockHealthApi.get).not.toHaveBeenCalled();
@@ -293,14 +293,14 @@ describe("SidebarAccountMenu", () => {
     expect(accountSurface?.className).not.toContain("border-t");
     expect(accountSurface?.className).not.toContain("border-r");
     expect(accountSurface?.className).not.toContain("border-border");
-    const accountTrigger = container.querySelector('button[aria-label="Open account menu"]');
+    const accountTrigger = container.querySelector('button[aria-label="Abrir menú de cuenta"]');
     expect(accountTrigger?.classList).toContain("rounded-lg");
     expect(accountTrigger?.classList).toContain("hover:bg-sidebar-accent");
     expect(accountTrigger?.classList).toContain("hover:text-sidebar-accent-foreground");
     expect(accountTrigger?.classList).not.toContain("hover:bg-background");
 
     const feedbackButton = container.querySelector<HTMLAnchorElement>(
-      'a[aria-label="Share feedback"]',
+      'a[aria-label="Enviar comentarios"]',
     );
     expect(feedbackButton?.getAttribute("href")).toBe("https://paperclip.ing/feedback");
     expect(feedbackButton?.getAttribute("target")).toBe("_blank");
@@ -333,13 +333,13 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
 
     const accountTrigger = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Open account menu"]',
+      'button[aria-label="Abrir menú de cuenta"]',
     );
     expect(accountTrigger?.classList).toContain("rounded-lg");
     expect(accountTrigger?.classList).toContain("hover:bg-accent/50");
 
     const feedbackButton = container.querySelector<HTMLAnchorElement>(
-      'a[aria-label="Share feedback"]',
+      'a[aria-label="Enviar comentarios"]',
     );
     expect(feedbackButton?.getAttribute("href")).toBe("https://paperclip.ing/feedback");
     expect(feedbackButton?.getAttribute("target")).toBe("_blank");
@@ -384,11 +384,11 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.querySelector('a[aria-label="Share feedback"]')).not.toBeNull();
+    expect(container.querySelector('a[aria-label="Enviar comentarios"]')).not.toBeNull();
     expect(container.textContent).toContain("Jane Example");
     expect(container.textContent).not.toContain("jane@example.com");
 
-    const trigger = container.querySelector('button[aria-label="Open account menu"]');
+    const trigger = container.querySelector('button[aria-label="Abrir menú de cuenta"]');
     expect(trigger).not.toBeNull();
 
     await act(async () => {
@@ -396,9 +396,9 @@ describe("SidebarAccountMenu", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Settings");
+    expect(document.body.textContent).toContain("Configuración");
     expect(document.body.textContent).not.toContain("Instance settings");
-    expect(document.body.textContent).toContain("Documentation");
+    expect(document.body.textContent).toContain("Documentación");
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
     expect(popover?.textContent).not.toContain("Feedback");
@@ -407,11 +407,11 @@ describe("SidebarAccountMenu", () => {
     // Profile access moved off the action list: the header links to the
     // profile, and the separate view/edit rows are gone. Editing lives on the
     // profile page itself.
-    expect(popover?.textContent).not.toContain("View profile");
+    expect(popover?.textContent).not.toContain("Ver perfil");
     expect(popover?.textContent).not.toContain("Edit profile");
     // The link resolves by user id, not display name: names are not unique,
     // and the profile endpoint returns the first member whose slug matches.
-    const profileHeaderLink = popover?.querySelector<HTMLAnchorElement>('a[aria-label="View profile"]');
+    const profileHeaderLink = popover?.querySelector<HTMLAnchorElement>('a[aria-label="Ver perfil"]');
     expect(profileHeaderLink?.getAttribute("href")).toBe("/u/user-1");
     // The link is a stretched overlay over the header block (so the staging
     // SHA anchor can live beside the email without nesting anchors), so the
@@ -426,16 +426,16 @@ describe("SidebarAccountMenu", () => {
     const inviteLink = popover?.querySelector<HTMLAnchorElement>(
       'a[href="/company/settings/members?tab=invites"]',
     );
-    expect(inviteLink?.textContent).toBe("Invite");
+    expect(inviteLink?.textContent).toBe("Invitar");
     expect(inviteLink?.querySelector("svg")?.classList).toContain("lucide-user-plus");
     expect(inviteLink?.hasAttribute("target")).toBe(false);
     const menuOrder = popover?.textContent ?? "";
-    expect(menuOrder.indexOf("Settings")).toBeLessThan(menuOrder.indexOf("Invite"));
-    expect(menuOrder.indexOf("Invite")).toBeLessThan(menuOrder.indexOf("Documentation"));
+    expect(menuOrder.indexOf("Configuración")).toBeLessThan(menuOrder.indexOf("Invitar"));
+    expect(menuOrder.indexOf("Invitar")).toBeLessThan(menuOrder.indexOf("Documentación"));
 
     // Documentation still appears before the theme toggle.
     const menuText = popover?.textContent ?? "";
-    const docsPos = menuText.indexOf("Documentation");
+    const docsPos = menuText.indexOf("Documentación");
     const themePos = menuText.indexOf("Switch to");
     expect(docsPos).toBeLessThan(themePos);
 
@@ -456,7 +456,7 @@ describe("SidebarAccountMenu", () => {
     expect(document.body.querySelector('a[href="/company/settings"]')).not.toBeNull();
 
     const signOutButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Sign out"),
+      (button) => button.textContent?.includes("Cerrar sesión"),
     );
     await act(async () => {
       signOutButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -505,24 +505,24 @@ describe("SidebarAccountMenu", () => {
     });
     await flushReact();
 
-    expect(container.querySelector('a[aria-label="Share feedback"]')).toBeNull();
+    expect(container.querySelector('a[aria-label="Enviar comentarios"]')).toBeNull();
 
     // Cloud manages invitations in the stack's People settings, reached with a
     // same-tab top-level navigation rather than the in-app router.
     const popover = document.body.querySelector('[data-slot="popover-content"]');
     const inviteLink = Array.from(popover?.querySelectorAll("a") ?? []).find(
-      (anchor) => anchor.textContent?.includes("Invite"),
+      (anchor) => anchor.textContent?.includes("Invitar"),
     );
     expect(inviteLink?.getAttribute("href")).toBe(
       "https://cloud.example.test/workspaces/acme-labs/settings?section=people",
     );
     expect(inviteLink?.hasAttribute("target")).toBe(false);
     expect(popover?.querySelector('a[href="/company/settings/members?tab=invites"]')).toBeNull();
-    expect(popover?.querySelector('a[aria-label="View profile"]')?.getAttribute("href")).toBe("/u/user-1");
+    expect(popover?.querySelector('a[aria-label="Ver perfil"]')?.getAttribute("href")).toBe("/u/user-1");
     expect(popover?.textContent).not.toContain("Edit profile");
 
     const signOutButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Sign out"),
+      (button) => button.textContent?.includes("Cerrar sesión"),
     );
     await act(async () => {
       signOutButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -571,10 +571,10 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
-    expect(popover?.textContent).not.toContain("Invite");
+    expect(popover?.textContent).not.toContain("Invitar");
     expect(popover?.querySelector('a[href^="https://cloud.example.test/"]')).toBeNull();
     expect(popover?.querySelector('a[href="/company/settings/members?tab=invites"]')).toBeNull();
-    expect(popover?.querySelector('a[aria-label="View profile"]')).not.toBeNull();
+    expect(popover?.querySelector('a[aria-label="Ver perfil"]')).not.toBeNull();
 
     await act(async () => {
       root.unmount();
@@ -613,9 +613,9 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
-    expect(popover?.textContent).not.toContain("Invite");
+    expect(popover?.textContent).not.toContain("Invitar");
     expect(popover?.querySelector('a[href="/company/settings/members?tab=invites"]')).toBeNull();
-    expect(popover?.textContent).toContain("Documentation");
+    expect(popover?.textContent).toContain("Documentación");
 
     await act(async () => {
       root.unmount();
@@ -645,11 +645,11 @@ describe("SidebarAccountMenu", () => {
     await flushReact();
 
     const popover = document.body.querySelector('[data-slot="popover-content"]');
-    expect(popover?.textContent).not.toContain("Invite");
+    expect(popover?.textContent).not.toContain("Invitar");
     expect(popover?.querySelector('a[href="/company/settings/members?tab=invites"]')).toBeNull();
     // The settings-independent entries stay put.
-    expect(popover?.querySelector('a[aria-label="View profile"]')).not.toBeNull();
-    expect(popover?.textContent).toContain("Documentation");
+    expect(popover?.querySelector('a[aria-label="Ver perfil"]')).not.toBeNull();
+    expect(popover?.textContent).toContain("Documentación");
 
     await act(async () => {
       root.unmount();
@@ -682,10 +682,10 @@ describe("SidebarAccountMenu", () => {
 
     expect(mockGetCurrentBoardAccess).toHaveBeenCalledOnce();
     const popover = document.body.querySelector('[data-slot="popover-content"]');
-    expect(popover?.textContent).not.toContain("Invite");
+    expect(popover?.textContent).not.toContain("Invitar");
     expect(popover?.querySelector('a[href="/company/settings/members?tab=invites"]')).toBeNull();
-    expect(popover?.querySelector('a[aria-label="View profile"]')).not.toBeNull();
-    expect(popover?.textContent).toContain("Documentation");
+    expect(popover?.querySelector('a[aria-label="Ver perfil"]')).not.toBeNull();
+    expect(popover?.textContent).toContain("Documentación");
 
     await act(async () => {
       root.unmount();
@@ -724,7 +724,7 @@ describe("SidebarAccountMenu", () => {
     const inviteLink = popover?.querySelector<HTMLAnchorElement>(
       'a[href="/company/settings/members?tab=invites"]',
     );
-    expect(inviteLink?.textContent).toBe("Invite");
+    expect(inviteLink?.textContent).toBe("Invitar");
 
     await act(async () => {
       root.unmount();
@@ -748,7 +748,7 @@ describe("SidebarAccountMenu", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).not.toContain("Sign out");
+    expect(document.body.textContent).not.toContain("Cerrar sesión");
 
     await act(async () => {
       root.unmount();

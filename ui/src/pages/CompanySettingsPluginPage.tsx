@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "@/i18n";
 import { useParams } from "@/lib/router";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "@/context/CompanyContext";
@@ -13,6 +14,7 @@ export function CompanySettingsPluginPage() {
   const { companyPrefix: routeCompanyPrefix, settingsRoutePath } = params;
   const { companies, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
 
   const routeCompany = useMemo(() => {
     if (!routeCompanyPrefix) return null;
@@ -41,26 +43,26 @@ export function CompanySettingsPluginPage() {
   useEffect(() => {
     if (!pageSlot) return;
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
+      { label: t("companySettingsPluginPage.settings"), href: "/company/settings" },
       { label: pageSlot.displayName },
     ]);
-  }, [pageSlot, setBreadcrumbs]);
+  }, [pageSlot, setBreadcrumbs, t]);
 
   if (!resolvedCompanyId) {
     if (hasInvalidCompanyPrefix) {
       return <NotFoundPage scope="invalid_company_prefix" requestedPrefix={routeCompanyPrefix} />;
     }
-    return <div className="text-sm text-muted-foreground">Select an organization to view this page.</div>;
+    return <div className="text-sm text-muted-foreground">{t("companySettingsPluginPage.selectOrganization")}</div>;
   }
 
   if (!settingsRoutePath || isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>;
+    return <div className="text-sm text-muted-foreground">{t("companySettingsPluginPage.loading")}</div>;
   }
 
   if (errorMessage) {
     return (
       <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-        Plugin extensions unavailable: {errorMessage}
+        {t("companySettingsPluginPage.pluginsUnavailable", { error: errorMessage })}
       </div>
     );
   }
@@ -68,7 +70,7 @@ export function CompanySettingsPluginPage() {
   if (pageSlots.length > 1) {
     return (
       <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-        Multiple plugins declare the company settings route <code>{settingsRoutePath}</code>. Disable one plugin or change its route.
+        {t("companySettingsPluginPage.multiplePluginsBefore")}<code>{settingsRoutePath}</code>{t("companySettingsPluginPage.multiplePluginsAfter")}
       </div>
     );
   }

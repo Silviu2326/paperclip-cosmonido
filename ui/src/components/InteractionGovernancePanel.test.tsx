@@ -68,22 +68,22 @@ describe("InteractionGovernancePanel", () => {
     const { host } = renderPanel();
 
     const defaultSelect = host.querySelector('[data-testid="governance-request_confirmation-default"]');
-    expect(defaultSelect?.textContent).toContain("Anyone (default)");
+    expect(defaultSelect?.textContent).toContain("Cualquiera (predeterminado)");
     const cap = host.querySelector('[data-testid="governance-request_confirmation-cap"]');
-    expect(cap?.textContent).toContain("No cap");
+    expect(cap?.textContent).toContain("Sin límite");
   });
 
   it("describes the open default without presenting it as board-required", () => {
     const { host } = renderPanel();
     const copy = host.textContent ?? "";
 
-    expect(copy).toContain("Thread interactions are open by default");
+    expect(copy).toContain("Las interacciones del hilo están abiertas por defecto");
     expect(copy).toContain("the board or any agent, including the one that asked");
     expect(copy).not.toContain("Board only");
     expect(copy).not.toContain("always require the board");
     // Governed tool approvals keep their human-only guarantee.
     expect(copy).toContain("Tool-approval confirmations always stay");
-    expect(copy).toContain("Human only");
+    expect(copy).toContain("Solo humanos");
   });
 
   it("shows a stored narrowing override on the matching row", () => {
@@ -93,14 +93,14 @@ describe("InteractionGovernancePanel", () => {
 
     expect(
       host.querySelector('[data-testid="governance-request_confirmation-default"]')?.textContent,
-    ).toContain("Human only");
+    ).toContain("Solo humanos");
     expect(
       host.querySelector('[data-testid="governance-request_confirmation-cap"]')?.textContent,
     ).toContain("Anyone except creator");
     // Untouched kinds still read as open.
     expect(
       host.querySelector('[data-testid="governance-suggest_tasks-default"]')?.textContent,
-    ).toContain("Anyone (default)");
+    ).toContain("Cualquiera (predeterminado)");
   });
 
   /**
@@ -113,8 +113,8 @@ describe("InteractionGovernancePanel", () => {
     const { host } = renderPanel();
 
     for (const kind of INTERACTION_KINDS) {
-      expect(triggerText(host, `governance-${kind}-default`)).toBe("Anyone (default)");
-      expect(triggerText(host, `governance-${kind}-cap`)).toBe("No cap");
+      expect(triggerText(host, `governance-${kind}-default`)).toBe("Cualquiera (predeterminado)");
+      expect(triggerText(host, `governance-${kind}-cap`)).toBe("Sin límite");
     }
   });
 
@@ -123,7 +123,7 @@ describe("InteractionGovernancePanel", () => {
       request_confirmation: { defaultPolicy: "human_only", cap: "not_creator" },
     });
 
-    expect(triggerText(host, "governance-request_confirmation-default")).toBe("Human only");
+    expect(triggerText(host, "governance-request_confirmation-default")).toBe("Solo humanos");
     expect(triggerText(host, "governance-request_confirmation-cap")).toBe("Anyone except creator");
     // The effect prose belongs to the option list, never the trigger.
     expect(host.textContent).not.toContain("New cards wait for a person on the board");
@@ -144,11 +144,11 @@ describe("InteractionGovernancePanel", () => {
 
     const listbox = document.querySelector('[data-slot="select-content"]');
     const listText = listbox?.textContent ?? "";
-    expect(listText).toContain("Anyone (default)");
+    expect(listText).toContain("Cualquiera (predeterminado)");
     expect(listText).toContain(
-      "New cards are open — the board or any agent can respond, including the one that asked.",
+      "Las tarjetas nuevas están abiertas: el tablero o cualquier agente puede responder, incluido el que preguntó.",
     );
-    expect(listText).toContain("New cards wait for a person on the board. Agents are turned away.");
+    expect(listText).toContain("Las tarjetas nuevas esperan a una persona del tablero. Los agentes no pueden responder.");
     // Each option keeps a label-only typeahead value so keyboard search does not
     // match the effect prose.
     expect(

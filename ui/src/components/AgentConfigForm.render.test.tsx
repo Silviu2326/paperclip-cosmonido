@@ -585,10 +585,10 @@ async function renderStatefulCreateClaudeSandbox(environments: Environment[]) {
 }
 
 async function environmentOptions(container: HTMLElement) {
-  const picker = container.querySelector('[aria-label="Environment override"]');
+  const picker = container.querySelector('[aria-label="Anulación de entorno"]');
   expect(picker).not.toBeNull();
   await clickElement(picker);
-  const options = document.body.querySelector('[role="listbox"][aria-label="Environment override"]');
+  const options = document.body.querySelector('[role="listbox"][aria-label="Anulación de entorno"]');
   expect(options).not.toBeNull();
   return options!;
 }
@@ -616,11 +616,11 @@ async function clickElement(element: Element | null | undefined) {
 }
 
 async function runTest(container: HTMLElement) {
-  await clickByText(container, "Test");
+  await clickByText(container, "Probar");
 }
 
 async function startLogin(container: HTMLElement) {
-  await clickByText(container, "Sign in");
+  await clickByText(container, "Iniciar sesión");
   await flushReact();
 }
 
@@ -661,7 +661,7 @@ describe("AgentConfigForm environment selector", () => {
       await flushReact();
       expect(current.codexLegacySandboxBypass).toBe(false);
       for (const harness of ["claude_local", "codex_local"]) {
-        await clickElement(container.querySelector('[aria-label="Harness"]'));
+        await clickElement(container.querySelector('[aria-label="Arnés"]'));
         await clickElement(document.querySelector(`[role="option"][data-value="${harness}"]`));
         await flushReact();
         expect(current.adapterType).toBe(harness);
@@ -677,12 +677,12 @@ describe("AgentConfigForm environment selector", () => {
     const adapterConfig = { model: "gpt-5.6-sol", ...(adapterType === "paperclip_runner" ? { provider: "codex", reasoningEffort: "high" } : { modelReasoningEffort: "high" }) };
     const result = await renderForm([], { adapterType, adapterConfig }, { showAdapterTypeField: true });
     roots.push(result.root);
-    expect(result.container.querySelector('[aria-label="Harness"]')?.textContent).toContain("Codex");
-    await clickByText(result.container, "Advanced");
+    expect(result.container.querySelector('[aria-label="Arnés"]')?.textContent).toContain("Codex");
+    await clickByText(result.container, "Avanzado");
     expect(result.container.querySelector('[aria-label="Runner"]')?.textContent).toContain(adapterType === "paperclip_runner" ? "Paperclip Runner" : "Legacy runner");
-    await act(async () => setInputValue(result.container.querySelector<HTMLInputElement>('[placeholder="Agent name"]')!, "Renamed Cody"));
+    await act(async () => setInputValue(result.container.querySelector<HTMLInputElement>('[placeholder="Nombre del agente"]')!, "Renamed Cody"));
     await flushReact();
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenCalledWith({ name: "Renamed Cody" });
   });
 
@@ -697,19 +697,19 @@ describe("AgentConfigForm environment selector", () => {
       makeEnvironment({ id: "sandbox-2", name: "Daytona Two", driver: "sandbox", config: { provider: "daytona" } }),
     ], { adapterType, adapterConfig, defaultEnvironmentId: "sandbox-1" }, { showAdapterTypeField: true });
     roots.push(result.root);
-    await clickByText(result.container, "Advanced");
+    await clickByText(result.container, "Avanzado");
     const runnerLabel = adapterType === "paperclip_runner" ? "Paperclip Runner" : "Legacy runner";
 
     await selectEnvironment(result.container, "sandbox-2");
-    expect(result.container.querySelector('[aria-label="Environment override"]')?.textContent).toContain("Daytona Two");
+    expect(result.container.querySelector('[aria-label="Anulación de entorno"]')?.textContent).toContain("Daytona Two");
     expect(result.container.querySelector('[aria-label="Runner"]')?.textContent).toContain(runnerLabel);
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenLastCalledWith({ defaultEnvironmentId: "sandbox-2" });
 
     await selectEnvironment(result.container, "");
-    expect(result.container.querySelector('[aria-label="Environment override"]')?.textContent).toContain("Default: Local");
+    expect(result.container.querySelector('[aria-label="Anulación de entorno"]')?.textContent).toContain("Predeterminado: Local");
     expect(result.container.querySelector('[aria-label="Runner"]')?.textContent).toContain(runnerLabel);
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenLastCalledWith({ defaultEnvironmentId: null });
   });
 
@@ -723,10 +723,10 @@ describe("AgentConfigForm environment selector", () => {
   it("submits only an explicit runner change and retains saved configuration for server translation", async () => {
     const result = await renderForm([], { adapterType: "paperclip_runner", adapterConfig: { provider: "codex", model: "gpt-5.6-sol", reasoningEffort: "high", env: { CODEX_HOME: { type: "secret_ref", secretId: "codex-account" } } } });
     roots.push(result.root);
-    await clickByText(result.container, "Advanced");
+    await clickByText(result.container, "Avanzado");
     await clickElement(result.container.querySelector('[aria-label="Runner"]'));
     await clickElement([...document.querySelectorAll('[role="option"]')].find(option => option.textContent?.startsWith("Legacy runner")));
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenCalledWith({ runner: "legacy" });
   });
 
@@ -734,13 +734,13 @@ describe("AgentConfigForm environment selector", () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableNativeRunner: enabled });
     const result = await renderForm([], { adapterType: "claude_local", adapterConfig: { model: "claude-sonnet-5" } }, { showAdapterTypeField: true });
     roots.push(result.root);
-    await clickElement(result.container.querySelector('[aria-label="Harness"]'));
+    await clickElement(result.container.querySelector('[aria-label="Arnés"]'));
     const option = [...document.querySelectorAll('[role="option"]')].find(element => element.getAttribute("data-value") === "paperclip_runner");
     expect(Boolean(option)).toBe(enabled);
     if (!enabled) return;
-    expect(document.body.textContent).toContain("Advanced");
+    expect(document.body.textContent).toContain("Avanzado");
     await clickElement(option);
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({
       adapterType: "paperclip_runner",
       adapterConfig: expect.objectContaining({ provider: "acpx", acpxAgent: "claude" }),
@@ -753,9 +753,9 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderForm([], { adapterType: "paperclip_runner", adapterConfig }, { showAdapterTypeField: true });
     roots.push(result.root);
     expect(result.container.querySelector('[aria-label="Runner"]')).toBeNull();
-    await act(async () => setInputValue(result.container.querySelector<HTMLInputElement>('[placeholder="Agent name"]')!, "Renamed native agent"));
+    await act(async () => setInputValue(result.container.querySelector<HTMLInputElement>('[placeholder="Nombre del agente"]')!, "Renamed native agent"));
     await flushReact();
-    await clickByText(result.container, "Save");
+    await clickByText(result.container, "Guardar");
     expect(result.onSave).toHaveBeenCalledWith({ name: "Renamed native agent" });
   });
 
@@ -859,11 +859,11 @@ describe("AgentConfigForm environment selector", () => {
     expect(result.container.querySelector('[aria-label="Grok Bot connection"]')).not.toBeNull();
     expect(result.container.textContent).toContain("Reconnect agent access");
     expect(result.container.querySelector('[data-config-section="adapter"]')?.textContent).toContain("Grok Bot");
-    expect(result.container.querySelector('[aria-label="Model"]')).toBeNull();
+    expect(result.container.querySelector('[aria-label="Modelo"]')).toBeNull();
     expect(result.container.textContent).not.toContain("AI connection");
     expect(result.container.textContent).not.toContain("Working directory");
     expect(result.container.textContent).not.toContain("Test your agent");
-    expect(findButton(result.container, "Test")).toBeUndefined();
+    expect(findButton(result.container, "Probar")).toBeUndefined();
     expect(mockAgentsApi.adapterModels).not.toHaveBeenCalled();
     expect(mockAgentsApi.testEnvironment).not.toHaveBeenCalled();
   });
@@ -887,7 +887,7 @@ describe("AgentConfigForm environment selector", () => {
     });
     await flushReact();
     expect(dirty).toHaveBeenLastCalledWith(true);
-    expect([...result.container.querySelectorAll("button")].some(button => button.textContent?.trim() === "Save")).toBe(false);
+    expect([...result.container.querySelectorAll("button")].some(button => button.textContent?.trim() === "Guardar")).toBe(false);
     await act(async () => { await save?.(); });
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ env: { ONBOARDING_SMOKE: { type: "plain", value: "true" } } }) }));
     await act(async () => discard?.());
@@ -907,7 +907,7 @@ describe("AgentConfigForm environment selector", () => {
     expect(low).toBeTruthy();
     await act(async () => low.click());
     await flushReact();
-    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Save")!;
+    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Guardar")!;
     await act(async () => save.click());
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ thinking: "low" }) }));
     expect(result.onSave.mock.calls[0][0].adapterConfig.effort).toBeUndefined();
@@ -942,7 +942,7 @@ describe("AgentConfigForm environment selector", () => {
         option.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
       });
       await flushReact();
-      await clickByText(result.container, "Save");
+      await clickByText(result.container, "Guardar");
       expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({
         adapterConfig: expect.objectContaining({ provider, model, ...(acpxAgent ? { acpxAgent } : {}) }),
       }));
@@ -954,15 +954,15 @@ describe("AgentConfigForm environment selector", () => {
   it("saves Grok 4.7 reasoning effort using the runtime key", async () => {
     const result = await renderForm([], { adapterType: "grok_local", adapterConfig: { model: "grok-4.7", reasoningEffort: "high" } });
     roots.push(result.root);
-    const effort = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "High")!;
+    const effort = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Alto")!;
     expect(effort).toBeTruthy();
     await act(async () => effort.click());
     await flushReact();
-    const xhigh = [...document.querySelectorAll("button")].find(button => button.textContent?.trim() === "X-Highxhigh")!;
+    const xhigh = [...document.querySelectorAll("button")].find(button => button.textContent?.trim() === "Muy altoxhigh")!;
     expect(xhigh).toBeTruthy();
     await act(async () => xhigh.click());
     await flushReact();
-    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Save")!;
+    const save = [...result.container.querySelectorAll("button")].find(button => button.textContent?.trim() === "Guardar")!;
     await act(async () => save.click());
     expect(result.onSave).toHaveBeenCalledWith(expect.objectContaining({ adapterConfig: expect.objectContaining({ reasoningEffort: "xhigh" }) }));
     expect(result.onSave.mock.calls[0][0].adapterConfig.effort).toBeUndefined();
@@ -974,10 +974,10 @@ describe("AgentConfigForm environment selector", () => {
     ]);
     roots.push(result.root);
 
-    expect(result.container.textContent).not.toContain("Secret access");
+    expect(result.container.textContent).not.toContain("Acceso a secretos");
 
-    expect(result.container.textContent).not.toContain("Environment override");
-    expect(result.container.querySelector('[aria-label="Environment override"]')).toBeNull();
+    expect(result.container.textContent).not.toContain("Anulación de entorno");
+    expect(result.container.querySelector('[aria-label="Anulación de entorno"]')).toBeNull();
   });
 
   it("renders GPT-6 Astra and its model-specific reasoning efforts", async () => {
@@ -1046,7 +1046,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     const saveButton = Array.from(result.container.querySelectorAll("button"))
-      .find((button) => button.textContent?.trim() === "Save");
+      .find((button) => button.textContent?.trim() === "Guardar");
     expect(saveButton).not.toBeUndefined();
     await act(async () => {
       saveButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -1064,8 +1064,8 @@ describe("AgentConfigForm environment selector", () => {
     roots.push(existing.root);
     const created = await renderCreateForm(environments, { adapterType: "claude_local", model: "" });
     roots.push(created.root);
-    expect(existing.container.textContent).toContain("Default (claude-opus-5)");
-    expect(created.container.textContent).toContain("Default (claude-opus-5)");
+    expect(existing.container.textContent).toContain("Predeterminado (claude-opus-5)");
+    expect(created.container.textContent).toContain("Predeterminado (claude-opus-5)");
     expect(existing.onSave).not.toHaveBeenCalled();
   });
 
@@ -1077,7 +1077,7 @@ describe("AgentConfigForm environment selector", () => {
     );
     roots.push(result.root);
 
-    expect(result.container.textContent).toContain("Secret access");
+    expect(result.container.textContent).toContain("Acceso a secretos");
     expect(result.container.textContent).toContain("No secrets are bound to this agent yet.");
     expect(result.container.textContent).not.toContain("Environment variables");
   });
@@ -1089,9 +1089,9 @@ describe("AgentConfigForm environment selector", () => {
     const text = result.container.textContent ?? "";
     const selector = await environmentOptions(result.container);
 
-    expect(text).toContain("Environment");
-    expect(text).toContain("Environment override");
-    expect(selector?.textContent).toContain("Default: Local");
+    expect(text).toContain("Entorno");
+    expect(text).toContain("Anulación de entorno");
+    expect(selector?.textContent).toContain("Predeterminado: Local");
     expect(selector?.textContent).toContain("E2B · sandbox");
     expect(text).not.toContain("Execution");
     expect(text).not.toContain("Leave this unset to inherit the instance default");
@@ -1108,7 +1108,7 @@ describe("AgentConfigForm environment selector", () => {
     const text = result.container.textContent ?? "";
     const selector = await environmentOptions(result.container);
 
-    expect(text).toContain("Environment override");
+    expect(text).toContain("Anulación de entorno");
     expect(selector?.textContent).toContain("E2B · sandbox");
   });
 
@@ -1122,7 +1122,7 @@ describe("AgentConfigForm environment selector", () => {
     const text = result.container.textContent ?? "";
     const selector = await environmentOptions(result.container);
 
-    expect(text).toContain("Environment override");
+    expect(text).toContain("Anulación de entorno");
     expect(selector?.textContent).toContain("E2B · sandbox");
   });
 
@@ -1144,8 +1144,8 @@ describe("AgentConfigForm environment selector", () => {
     const text = result.container.textContent ?? "";
     const selector = await environmentOptions(result.container);
 
-    expect(text).toContain("Environment override");
-    expect(selector?.textContent).toContain("Default: Local");
+    expect(text).toContain("Anulación de entorno");
+    expect(selector?.textContent).toContain("Predeterminado: Local");
     expect(selector?.textContent).toContain("Fake Sandbox · sandbox");
   });
 
@@ -1164,7 +1164,7 @@ describe("AgentConfigForm environment selector", () => {
 
     const selector = await environmentOptions(result.container);
 
-    expect(selector?.textContent).toContain("Default: Paperclip Computer");
+    expect(selector?.textContent).toContain("Predeterminado: Paperclip Computer");
     expect(selector?.textContent).toContain("Paperclip Computer");
     expect(selector?.textContent).not.toContain("(sandbox)");
     expect(selector?.textContent).not.toContain("· sandbox");
@@ -1208,7 +1208,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     const defaultButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Default",
+      (button) => button.textContent?.trim() === "Predeterminado",
     );
     expect(defaultButton).toBeTruthy();
 
@@ -1218,7 +1218,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     const testButton = Array.from(result.container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Test",
+      (button) => button.textContent?.trim() === "Probar",
     );
     expect(testButton).toBeTruthy();
 
@@ -1249,7 +1249,7 @@ describe("AgentConfigForm environment selector", () => {
     roots.push(result.root);
 
     const testButton = Array.from(result.container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Test",
+      (button) => button.textContent?.trim() === "Probar",
     );
     expect(testButton).toBeTruthy();
 
@@ -1290,7 +1290,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     const testButton = Array.from(result.container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Test",
+      (button) => button.textContent?.trim() === "Probar",
     );
     expect(testButton).toBeTruthy();
 
@@ -1326,7 +1326,7 @@ describe("AgentConfigForm environment selector", () => {
     roots.push(result.root);
 
     const testButton = Array.from(result.container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Test",
+      (button) => button.textContent?.trim() === "Probar",
     );
     expect(testButton).toBeTruthy();
 
@@ -1371,11 +1371,11 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderCodexSandbox();
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
   });
 
   it.each([
@@ -1390,9 +1390,9 @@ describe("AgentConfigForm environment selector", () => {
     });
     const result = await renderCodexSandbox({ adapterType: "paperclip_runner", adapterConfig: { provider: "codex" } });
     roots.push(result.root);
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
     await runTest(result.container);
-    expect(Boolean(findButton(result.container, "Sign in"))).toBe(authentication);
+    expect(Boolean(findButton(result.container, "Iniciar sesión"))).toBe(authentication);
     if (authentication) {
       await startLogin(result.container);
       expect(mockAgentsApi.startAdapterAuthLogin).toHaveBeenCalledWith("company-1", "codex_local", { environmentId: "sandbox-1" });
@@ -1415,7 +1415,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("shows the login affordance and the displayed-code panel for a third adapter with a projected login capability", async () => {
@@ -1426,13 +1426,13 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderVendorSandbox();
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(result.container);
 
     // The projected capability gates the login affordance on for the third
     // adapter.
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
 
     await startLogin(result.container);
 
@@ -1440,7 +1440,7 @@ describe("AgentConfigForm environment selector", () => {
     // URL. It shows no browser-code input, so the dispatcher picked the panel
     // from the projected `displayed_code` mode.
     expect(result.container.textContent).toContain("WXYZ-1234");
-    expect(result.container.querySelector('input[aria-label="Browser code"]')).toBeFalsy();
+    expect(result.container.querySelector('input[aria-label="Código del navegador"]')).toBeFalsy();
   });
 
   it("shows the login affordance and the displayed-code panel for a Grok sandbox with a projected login capability", async () => {
@@ -1451,16 +1451,16 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderGrokSandbox();
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
 
     await startLogin(result.container);
 
     expect(result.container.textContent).toContain("WXYZ-1234");
-    expect(result.container.querySelector('input[aria-label="Browser code"]')).toBeFalsy();
+    expect(result.container.querySelector('input[aria-label="Código del navegador"]')).toBeFalsy();
   });
 
   it("hides the Login button before Test and shows it after the adapter_auth_missing check for a Claude sandbox", async () => {
@@ -1468,11 +1468,11 @@ describe("AgentConfigForm environment selector", () => {
     const result = await renderClaudeSandbox();
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
   });
 
   it("hides the Login button for a Claude sandbox whose provider lacks the setup-token login capability", async () => {
@@ -1488,7 +1488,7 @@ describe("AgentConfigForm environment selector", () => {
 
     // E2B does not advertise the setup-token login capability, so the panel
     // stays hidden even after the auth-missing check.
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("hides the Login button for a Daytona sandbox while the capabilities report no setup-token support", async () => {
@@ -1515,7 +1515,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("gates a pseudo-terminal login on the provider pty capability for a non-Claude adapter", async () => {
@@ -1533,7 +1533,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("shows a pseudo-terminal login for a non-Claude adapter when the provider advertises pty support", async () => {
@@ -1550,7 +1550,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
   });
 
   it("shows the Login button when a parent lifts the test feedback and renders the panel from the descriptor", async () => {
@@ -1600,11 +1600,11 @@ describe("AgentConfigForm environment selector", () => {
     });
     await flushReact();
 
-    expect(findButton(container, "Sign in")).toBeFalsy();
+    expect(findButton(container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(container);
 
-    expect(findButton(container, "Sign in")).toBeTruthy();
+    expect(findButton(container, "Iniciar sesión")).toBeTruthy();
   });
 
   it("does not show the Login button when the Test result has no adapter_auth_missing check", async () => {
@@ -1613,7 +1613,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("does not show the Login button when the effective environment is Local", async () => {
@@ -1627,7 +1627,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("shows the Login button for an agent with no own environment under the managed-sandbox-only policy", async () => {
@@ -1663,11 +1663,11 @@ describe("AgentConfigForm environment selector", () => {
     );
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
 
     await runTest(result.container);
 
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
   });
 
   it("keeps the Login button hidden under the managed-sandbox-only policy when no managed sandbox is available", async () => {
@@ -1694,7 +1694,7 @@ describe("AgentConfigForm environment selector", () => {
     );
     roots.push(result.root);
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("shows the loading state while the session starts and the prompt is not ready", async () => {
@@ -1713,7 +1713,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    expect(result.container.textContent).toContain("Preparing...");
+    expect(result.container.textContent).toContain("Preparando...");
     expect(result.container.textContent).not.toContain("https://");
   });
 
@@ -1725,8 +1725,8 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    await clickElement(findByAriaLabel(result.container, "Copy code"));
-    await clickElement(findByAriaLabel(result.container, "Copy URL"));
+    await clickElement(findByAriaLabel(result.container, "Copiar código"));
+    await clickElement(findByAriaLabel(result.container, "Copiar URL"));
 
     expect(mockClipboard.copyTextToClipboard).toHaveBeenCalledWith("WXYZ-1234");
     expect(mockClipboard.copyTextToClipboard).toHaveBeenCalledWith("https://auth.example.test/device");
@@ -1736,8 +1736,8 @@ describe("AgentConfigForm environment selector", () => {
     // while it is still in front of you. The panel used to run the other way.
     const labels = [...result.container.querySelectorAll("div")]
       .map((el) => el.textContent?.trim())
-      .filter((t) => t === "1. Code" || t === "2. Authentication URL");
-    expect(labels).toEqual(["1. Code", "2. Authentication URL"]);
+      .filter((t) => t === "1. Código" || t === "2. URL de autenticación");
+    expect(labels).toEqual(["1. Código", "2. URL de autenticación"]);
 
     const codeIndex = result.container.textContent!.indexOf("WXYZ-1234");
     const urlIndex = result.container.textContent!.indexOf("https://auth.example.test/device");
@@ -1802,9 +1802,9 @@ describe("AgentConfigForm environment selector", () => {
     expect(result.container.textContent).toContain("https://auth.example.test/device");
 
     // The Cancel button appears while the session is active.
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
 
-    await clickByText(result.container, "Cancel");
+    await clickByText(result.container, "Cancelar");
     await flushReact();
 
     expect(mockAgentsApi.cancelAdapterAuthLogin).toHaveBeenCalledWith(
@@ -1813,9 +1813,9 @@ describe("AgentConfigForm environment selector", () => {
       "session-1",
     );
     // The panel resets: the Sign in button is available again and the code is gone.
-    const login = findButton(result.container, "Sign in");
+    const login = findButton(result.container, "Iniciar sesión");
     expect(login?.disabled).toBe(false);
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
     expect(result.container.textContent).not.toContain("WXYZ-1234");
   });
 
@@ -1832,7 +1832,7 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
     await startLogin(result.container);
-    expect(findButton(result.container, "Cancel"), "the login should be active").toBeTruthy();
+    expect(findButton(result.container, "Cancelar"), "the login should be active").toBeTruthy();
 
     mockAgentsApi.cancelAdapterAuthLogin.mockClear();
     await act(async () => {
@@ -1859,17 +1859,17 @@ describe("AgentConfigForm environment selector", () => {
         aiConnection={{ ...intent, agentIds: [] }} chrome="onboarding" autoStart />
       );
     });
-    await flushUntil(() => Boolean(findButton(container, "Cancel previous sign-in and retry")));
+    await flushUntil(() => Boolean(findButton(container, "Cancelar el inicio anterior y reintentar")));
     expect(mockAgentsApi.startAdapterAuthLogin).not.toHaveBeenCalled();
     expect(mockAgentsApi.cancelAdapterAuthLogin).not.toHaveBeenCalled();
-    await act(async () => findButton(container, "Cancel previous sign-in and retry")!.click());
+    await act(async () => findButton(container, "Cancelar el inicio anterior y reintentar")!.click());
     await flushUntil(() => container.textContent?.includes("Could not cancel") ?? false);
     expect(mockAgentsApi.startAdapterAuthLogin).not.toHaveBeenCalled();
     let release!: () => void;
     mockAgentsApi.cancelAdapterAuthLogin.mockImplementationOnce(() => new Promise<void>((resolve) => { release = resolve; }));
-    await act(async () => findButton(container, "Cancel previous sign-in and retry")!.click());
+    await act(async () => findButton(container, "Cancelar el inicio anterior y reintentar")!.click());
     await flushReact();
-    expect(findButton(container, "Cancel previous sign-in and retry")!.disabled).toBe(true);
+    expect(findButton(container, "Cancelar el inicio anterior y reintentar")!.disabled).toBe(true);
     expect(mockAgentsApi.startAdapterAuthLogin).not.toHaveBeenCalled();
     await act(async () => release());
     await flushUntil(() => mockAgentsApi.startAdapterAuthLogin.mock.calls.length === 1);
@@ -1907,7 +1907,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushUntil(() => container.textContent?.includes("authorization code") ?? false);
     expect(container.textContent).toContain("authorization code");
 
-    expect(findButton(container, "Cancel")).toBeFalsy();
+    expect(findButton(container, "Cancelar")).toBeFalsy();
     expect(mockAgentsApi.cancelAdapterAuthLogin).not.toHaveBeenCalled();
   });
   it("reports the account-binding claim upward exactly once when the session authenticates", async () => {
@@ -1958,8 +1958,8 @@ describe("AgentConfigForm environment selector", () => {
     });
     // The panel narrates the bind as its own state, separate from the login's
     // success line — the bind is a second save that can still fail.
-    await flushUntil(() => container.textContent?.includes("Agent bound to the signed-in account") ?? false);
-    expect(container.textContent).toContain("Agent bound to the signed-in account");
+    await flushUntil(() => container.textContent?.includes("Agente vinculado a la cuenta con sesión iniciada") ?? false);
+    expect(container.textContent).toContain("Agente vinculado a la cuenta con sesión iniciada");
   });
 
   it("a failed bind save renders an explicit Retry instead of silently latching the claim", async () => {
@@ -2005,13 +2005,13 @@ describe("AgentConfigForm environment selector", () => {
       );
     });
     await flushUntil(() => container.textContent?.includes("Could not bind this agent") ?? false);
-    const retry = findButton(container, "Retry");
+    const retry = findButton(container, "Reintentar");
     expect(retry).toBeTruthy();
 
     await act(async () => {
       retry!.click();
     });
-    await flushUntil(() => container.textContent?.includes("Agent bound to the signed-in account") ?? false);
+    await flushUntil(() => container.textContent?.includes("Agente vinculado a la cuenta con sesión iniciada") ?? false);
     expect(onAccountBinding).toHaveBeenCalledTimes(2);
     expect(onAccountBinding).toHaveBeenLastCalledWith({
       secretId: "secret-bind-2",
@@ -2078,7 +2078,7 @@ describe("AgentConfigForm environment selector", () => {
       companyIdentityDiffers: true,
     });
 
-    const signIn = findButton(container, "Sign in");
+    const signIn = findButton(container, "Iniciar sesión");
     expect(signIn).toBeTruthy();
     await act(async () => {
       signIn!.click();
@@ -2137,15 +2137,15 @@ describe("AgentConfigForm environment selector", () => {
       );
     });
     await flushUntil(() => container.textContent?.includes("Binding this agent") ?? false);
-    const signInWhileSaving = findButton(container, "Sign in");
+    const signInWhileSaving = findButton(container, "Iniciar sesión");
     expect(signInWhileSaving).toBeTruthy();
     expect(signInWhileSaving!.disabled).toBe(true);
 
     await act(async () => {
       releaseSave?.();
     });
-    await flushUntil(() => container.textContent?.includes("Agent bound to the signed-in account") ?? false);
-    const signInAfterSave = findButton(container, "Sign in");
+    await flushUntil(() => container.textContent?.includes("Agente vinculado a la cuenta con sesión iniciada") ?? false);
+    const signInAfterSave = findButton(container, "Iniciar sesión");
     expect(signInAfterSave!.disabled).toBe(false);
   });
 
@@ -2168,7 +2168,7 @@ describe("AgentConfigForm environment selector", () => {
     }
     await act(async () => renderFormView(root, queryClient, <Harness />));
     await flushReact();
-    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]')!;
+    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Nombre del agente"]')!;
     setInputValue(nameInput, "Unsaved name");
     await flushReact();
     let finishPoll!: (agent: Agent) => void;
@@ -2186,7 +2186,7 @@ describe("AgentConfigForm environment selector", () => {
     expect(mockAgentsApi.get).toHaveBeenCalledWith(saved.id, saved.companyId);
     expect(container.textContent).toContain("Verifying agent");
     expect(nameInput.value).toBe("Edited during poll");
-    await act(async () => findButton(container, "Save")!.click());
+    await act(async () => findButton(container, "Guardar")!.click());
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ name: "Edited during poll" }));
     mockAgentsApi.get.mockRejectedValueOnce(new Error("Status unavailable"));
     await act(async () => { await queryClient.refetchQueries({ queryKey: [...queryKeys.agents.detail(saved.id), "lifecycle"] }); });
@@ -2253,7 +2253,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushUntil(() => onSave.mock.calls.length > 0);
 
     // Rename the agent while the bind save is still in flight.
-    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]');
+    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Nombre del agente"]');
     expect(nameInput).toBeTruthy();
     setInputValue(nameInput!, "Renamed during bind");
     await flushReact();
@@ -2270,12 +2270,12 @@ describe("AgentConfigForm environment selector", () => {
     });
     await flushReact();
     expect(
-      container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]')!.value,
+      container.querySelector<HTMLInputElement>('input[placeholder="Nombre del agente"]')!.value,
     ).toBe("Renamed during bind");
 
     // An ordinary Save in that window still carries the binding.
     const persistedPatch = onSave.mock.calls[0]![0] as Record<string, unknown>;
-    const saveButton = findButton(container, "Save");
+    const saveButton = findButton(container, "Guardar");
     expect(saveButton).toBeTruthy();
     await act(async () => {
       saveButton!.click();
@@ -2312,7 +2312,7 @@ describe("AgentConfigForm environment selector", () => {
     // The rename survives the refresh instead of reverting to the refreshed
     // agent's name.
     expect(
-      container.querySelector<HTMLInputElement>('input[placeholder="Agent name"]')!.value,
+      container.querySelector<HTMLInputElement>('input[placeholder="Nombre del agente"]')!.value,
     ).toBe("Renamed during bind");
   });
 
@@ -2354,7 +2354,7 @@ describe("AgentConfigForm environment selector", () => {
       "codex_local",
       "resumed-session-1",
     );
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
   });
 
   it("starts a new session when the active-session read finds none", async () => {
@@ -2369,7 +2369,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     expect(mockAgentsApi.startAdapterAuthLogin).not.toHaveBeenCalled();
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
 
     await startLogin(result.container);
 
@@ -2421,13 +2421,13 @@ describe("AgentConfigForm environment selector", () => {
 
     // The cancel call fired, but the panel still shows the resumed login as
     // active because it is waiting for the cancel response.
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
 
     resolveCancel();
-    await flushUntil(() => findButton(result.container, "Sign in")?.disabled === false);
+    await flushUntil(() => findButton(result.container, "Iniciar sesión")?.disabled === false);
 
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
   });
 
   it("announces the login state through a polite live region", async () => {
@@ -2465,7 +2465,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    const startButton = findButton(result.container, "Sign in");
+    const startButton = findButton(result.container, "Iniciar sesión");
     expect(startButton).toBeTruthy();
     expect(startButton?.disabled).toBe(true);
     expect(mockAgentsApi.startAdapterAuthLogin).toHaveBeenCalledTimes(1);
@@ -2487,7 +2487,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    expect(result.container.textContent).toContain("Authenticated");
+    expect(result.container.textContent).toContain("Autenticado");
   });
 
   it("renders the failed terminal state with the non-secret message", async () => {
@@ -2506,7 +2506,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    expect(result.container.textContent).toContain("Login failed");
+    expect(result.container.textContent).toContain("El inicio de sesión falló");
     expect(result.container.textContent).toContain("The device rejected the code.");
   });
 
@@ -2526,7 +2526,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
 
-    expect(result.container.textContent).toContain("Login timed out");
+    expect(result.container.textContent).toContain("El inicio de sesión agotó el tiempo");
   });
 
   it("hides the Login button when the effective environment changes after a Test", async () => {
@@ -2535,11 +2535,11 @@ describe("AgentConfigForm environment selector", () => {
     roots.push(result.root);
 
     await runTest(result.container);
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
 
     await selectEnvironment(result.container, "");
 
-    expect(findButton(result.container, "Sign in")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeFalsy();
   });
 
   it("shows a non-blocking disclaimer when the transport advisory is present", async () => {
@@ -2556,16 +2556,16 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
     await startLogin(result.container);
-    await flushUntil(() => (result.container.textContent ?? "").includes("not encrypted"));
+    await flushUntil(() => (result.container.textContent ?? "").includes("no está cifrada"));
 
     // The disclaimer states the transport risk in plain language.
-    expect(result.container.textContent).toContain("not encrypted");
-    expect(result.container.textContent).toContain("clear text");
+    expect(result.container.textContent).toContain("no está cifrada");
+    expect(result.container.textContent).toContain("texto plano");
     // The login still proceeds: the panel shows the URL and the browser-code
     // input, so the disclaimer never blocks the flow.
     expect(result.container.textContent).toContain("https://claude.example.test/authorize");
     expect(
-      result.container.querySelector('input[aria-label="Browser code"]'),
+      result.container.querySelector('input[aria-label="Código del navegador"]'),
     ).toBeTruthy();
   });
 
@@ -2577,15 +2577,15 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
     await flushUntil(() =>
-      Boolean(result.container.querySelector('input[aria-label="Browser code"]')),
+      Boolean(result.container.querySelector('input[aria-label="Código del navegador"]')),
     );
 
     const input = result.container.querySelector<HTMLInputElement>(
-      'input[aria-label="Browser code"]',
+      'input[aria-label="Código del navegador"]',
     );
     setInputValue(input!, "BROWSERCODE-9");
     await flushReact();
-    await clickByText(result.container, "Submit");
+    await clickByText(result.container, "Enviar");
     await flushReact();
 
     expect(mockAgentsApi.submitClaudeSetupTokenBrowserCode).toHaveBeenCalledWith(
@@ -2596,7 +2596,7 @@ describe("AgentConfigForm environment selector", () => {
     // The panel clears the browser code after submit, so the secret does not
     // linger in the input.
     const clearedInput = result.container.querySelector<HTMLInputElement>(
-      'input[aria-label="Browser code"]',
+      'input[aria-label="Código del navegador"]',
     );
     expect(clearedInput?.value).toBe("");
   });
@@ -2615,13 +2615,13 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
     await startLogin(result.container);
-    await flushUntil(() => (result.container.textContent ?? "").includes("Authenticated"));
+    await flushUntil(() => (result.container.textContent ?? "").includes("Autenticado"));
 
     expect(mockAgentsApi.completeClaudeSetupTokenLogin).toHaveBeenCalledWith(
       "company-1",
       "claude-session-1",
     );
-    expect(result.container.textContent).toContain("Authenticated");
+    expect(result.container.textContent).toContain("Autenticado");
   });
 
   it("clears the stored-session claim and the fixed binding when the effective environment changes", async () => {
@@ -2805,7 +2805,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushUntil(() => container.textContent?.includes("authorization code") ?? false);
     expect(container.textContent).toContain("authorization code");
 
-    expect(findButton(container, "Cancel")).toBeFalsy();
+    expect(findButton(container, "Cancelar")).toBeFalsy();
     expect(mockAgentsApi.cancelClaudeSetupTokenLogin).not.toHaveBeenCalled();
   });
   it("offers an apply-existing affordance when the status route reports a stored value", async () => {
@@ -2831,16 +2831,16 @@ describe("AgentConfigForm environment selector", () => {
         />
       );
     });
-    await flushUntil(() => Boolean(findButton(container, "Use saved login")));
+    await flushUntil(() => Boolean(findButton(container, "Usar inicio de sesión guardado")));
 
-    await clickByText(container, "Use saved login");
+    await clickByText(container, "Usar inicio de sesión guardado");
 
     expect(onApplyStored).toHaveBeenCalledTimes(1);
     // The panel shows the applied confirmation and hides the apply affordance.
     await flushUntil(() =>
-      (container.textContent ?? "").includes("The saved Claude login is bound to this agent now."),
+      (container.textContent ?? "").includes("El inicio de sesión de Claude guardado ya está vinculado a este agente."),
     );
-    expect(findButton(container, "Use saved login")).toBeUndefined();
+    expect(findButton(container, "Usar inicio de sesión guardado")).toBeUndefined();
     // The apply-existing path never starts a login round trip.
     expect(mockAgentsApi.startClaudeSetupTokenLogin).not.toHaveBeenCalled();
   });
@@ -2865,9 +2865,9 @@ describe("AgentConfigForm environment selector", () => {
         />
       );
     });
-    await flushUntil(() => Boolean(findButton(container, "Sign in")));
+    await flushUntil(() => Boolean(findButton(container, "Iniciar sesión")));
 
-    expect(findButton(container, "Use saved login")).toBeUndefined();
+    expect(findButton(container, "Usar inicio de sesión guardado")).toBeUndefined();
     expect(onApplyStored).not.toHaveBeenCalled();
   });
 
@@ -2886,13 +2886,13 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
     await flushUntil(() =>
-      (result.container.textContent ?? "").includes("The login did not finish"),
+      (result.container.textContent ?? "").includes("El inicio de sesión no se completó"),
     );
 
     // The panel shows a fixed message and returns to its start state. The Log in
     // button is available again.
-    expect(result.container.textContent).toContain("The login did not finish");
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(result.container.textContent).toContain("El inicio de sesión no se completó");
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
     // The panel never shows the provider failure message, which could carry a
     // secret.
     expect(result.container.textContent).not.toContain("the provider rejected the browser code");
@@ -2913,11 +2913,11 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
     await flushUntil(() =>
-      (result.container.textContent ?? "").includes("The login did not finish"),
+      (result.container.textContent ?? "").includes("El inicio de sesión no se completó"),
     );
 
-    expect(result.container.textContent).toContain("The login did not finish");
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(result.container.textContent).toContain("El inicio de sesión no se completó");
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
   });
 
   it("shows a terminal failure and stops polling on a status 404 from server cleanup", async () => {
@@ -2943,17 +2943,17 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     await startLogin(result.container);
     await flushUntil(() =>
-      (result.container.textContent ?? "").includes("The login did not finish"),
+      (result.container.textContent ?? "").includes("El inicio de sesión no se completó"),
     );
 
     // The panel shows the fixed failure message and returns to its start state.
-    expect(result.container.textContent).toContain("The login did not finish");
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(result.container.textContent).toContain("El inicio de sesión no se completó");
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
 
     // The panel shows no credential material: no authorization URL and no
     // browser-code input.
     expect(result.container.textContent).not.toContain("https://claude.example.test/authorize");
-    expect(result.container.querySelector('input[aria-label="Browser code"]')).toBeFalsy();
+    expect(result.container.querySelector('input[aria-label="Código del navegador"]')).toBeFalsy();
 
     // The stale polling stopped. The status call count stays fixed after the
     // failure, so the panel does not poll a session the server removed.
@@ -2983,15 +2983,15 @@ describe("AgentConfigForm environment selector", () => {
     // shows a server-displayed code.
     expect(result.container.textContent).toContain("https://claude.example.test/authorize");
     expect(
-      result.container.querySelector('input[aria-label="Browser code"]'),
+      result.container.querySelector('input[aria-label="Código del navegador"]'),
     ).toBeTruthy();
     // The default prompt carries no advisory: a confidential transport. So the
     // panel shows no disclaimer.
-    expect(result.container.textContent).not.toContain("not encrypted");
+    expect(result.container.textContent).not.toContain("no está cifrada");
 
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
 
-    await clickByText(result.container, "Cancel");
+    await clickByText(result.container, "Cancelar");
     await flushReact();
 
     expect(mockAgentsApi.cancelClaudeSetupTokenLogin).toHaveBeenCalledWith(
@@ -3000,10 +3000,10 @@ describe("AgentConfigForm environment selector", () => {
     );
     // The panel resets: the Sign in button is available again, and the URL and the
     // browser-code input are gone.
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
     expect(result.container.textContent).not.toContain("https://claude.example.test/authorize");
-    expect(result.container.querySelector('input[aria-label="Browser code"]')).toBeFalsy();
+    expect(result.container.querySelector('input[aria-label="Código del navegador"]')).toBeFalsy();
   });
 
   it("treats a 404 cancel the same as success and returns to its start state", async () => {
@@ -3025,7 +3025,7 @@ describe("AgentConfigForm environment selector", () => {
       (result.container.textContent ?? "").includes("https://claude.example.test/authorize"),
     );
 
-    await clickByText(result.container, "Cancel");
+    await clickByText(result.container, "Cancelar");
     await flushReact();
 
     expect(mockAgentsApi.cancelClaudeSetupTokenLogin).toHaveBeenCalledWith(
@@ -3035,11 +3035,11 @@ describe("AgentConfigForm environment selector", () => {
     // The panel reset even though the cancel returned a 404: the Sign in button is
     // available again, and the URL and the browser-code input are gone. No error
     // message remains.
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
     expect(result.container.textContent).not.toContain("https://claude.example.test/authorize");
-    expect(result.container.querySelector('input[aria-label="Browser code"]')).toBeFalsy();
-    expect(result.container.textContent).not.toContain("Could not cancel the login.");
+    expect(result.container.querySelector('input[aria-label="Código del navegador"]')).toBeFalsy();
+    expect(result.container.textContent).not.toContain("No se pudo cancelar el inicio de sesión.");
   });
 
   it("does not cancel an active login session when the panel unmounts", async () => {
@@ -3055,7 +3055,7 @@ describe("AgentConfigForm environment selector", () => {
       (result.container.textContent ?? "").includes("https://claude.example.test/authorize"),
     );
     // The login is active before the unmount.
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
 
     mockAgentsApi.cancelClaudeSetupTokenLogin.mockClear();
     await act(async () => {
@@ -3072,7 +3072,7 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
     // The panel shows the Sign in button but no session started, so no active
     // session exists to cancel.
-    expect(findButton(result.container, "Sign in")).toBeTruthy();
+    expect(findButton(result.container, "Iniciar sesión")).toBeTruthy();
 
     await act(async () => {
       result.root.unmount();
@@ -3106,7 +3106,7 @@ describe("AgentConfigForm environment selector", () => {
       "company-1",
       "resumed-claude-session-1",
     );
-    expect(findButton(result.container, "Cancel")).toBeTruthy();
+    expect(findButton(result.container, "Cancelar")).toBeTruthy();
   });
 
   it("starts a new Claude login when the active-session read finds none", async () => {
@@ -3120,7 +3120,7 @@ describe("AgentConfigForm environment selector", () => {
     await flushReact();
 
     expect(mockAgentsApi.startClaudeSetupTokenLogin).not.toHaveBeenCalled();
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
 
     await startLogin(result.container);
 
@@ -3146,15 +3146,15 @@ describe("AgentConfigForm environment selector", () => {
       (result.container.textContent ?? "").includes("https://claude.example.test/resumed"),
     );
 
-    await clickByText(result.container, "Cancel");
+    await clickByText(result.container, "Cancelar");
     await flushReact();
 
     expect(mockAgentsApi.cancelClaudeSetupTokenLogin).toHaveBeenCalledWith(
       "company-1",
       "resumed-claude-session-1",
     );
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
   });
 
   it("releases a resumed Claude login after an unrecoverable resume error, waiting for the cancel response", async () => {
@@ -3200,13 +3200,13 @@ describe("AgentConfigForm environment selector", () => {
 
     // The cancel call fired, but the panel still shows the resumed login as
     // active because it is waiting for the cancel response.
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(true);
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(true);
 
     resolveCancel();
-    await flushUntil(() => findButton(result.container, "Sign in")?.disabled === false);
+    await flushUntil(() => findButton(result.container, "Iniciar sesión")?.disabled === false);
 
-    expect(findButton(result.container, "Cancel")).toBeFalsy();
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(findButton(result.container, "Cancelar")).toBeFalsy();
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
   });
 
   it("stops both polls and shows the timed-out state at the server deadline", async () => {
@@ -3287,8 +3287,8 @@ describe("AgentConfigForm environment selector", () => {
       });
       await flushFake();
 
-      await clickFake(container, "Test");
-      await clickFake(container, "Sign in");
+      await clickFake(container, "Probar");
+      await clickFake(container, "Iniciar sesión");
 
       // The login is active: both polls have run at least once.
       const statusCallsAtStart = mockAgentsApi.getClaudeSetupTokenLoginStatus.mock.calls.length;
@@ -3305,19 +3305,19 @@ describe("AgentConfigForm environment selector", () => {
       expect(mockAgentsApi.getClaudeSetupTokenLoginPrompt.mock.calls.length).toBeGreaterThan(
         promptCallsAtStart,
       );
-      expect(container.textContent).not.toContain("The login timed out");
+      expect(container.textContent).not.toContain("El inicio de sesión agotó el tiempo");
 
       // Advance past the old fixed sixty-second cutoff. The panel does NOT time
       // out now, because the cutoff comes from the server `expiresAt`, which is
       // far longer than sixty seconds. This proves the fixed 60-second cap is
       // gone.
       await advanceFake(60_000);
-      expect(container.textContent).not.toContain("The login timed out");
+      expect(container.textContent).not.toContain("El inicio de sesión agotó el tiempo");
 
       // Advance past the server deadline. The panel enters the timed-out state.
       // Total elapsed after this step is 1 second past `serverDeadlineMs`.
       await advanceFake(serverDeadlineMs - 66_000 + 1_000);
-      expect(container.textContent).toContain("The login timed out");
+      expect(container.textContent).toContain("El inicio de sesión agotó el tiempo");
       // The panel released the server session when the cutoff fired. The cancel
       // frees the per-owner reservation now, so an immediate retry by the same
       // owner starts a new session and does not hit the "too many active
@@ -3327,8 +3327,8 @@ describe("AgentConfigForm environment selector", () => {
         "claude-session-1",
       );
       // The Log in button is available again, and the Cancel button is gone.
-      expect(findButton(container, "Sign in")?.disabled).toBe(false);
-      expect(findButton(container, "Cancel")).toBeFalsy();
+      expect(findButton(container, "Iniciar sesión")?.disabled).toBe(false);
+      expect(findButton(container, "Cancelar")).toBeFalsy();
 
       // Both polls stopped. A further ten seconds adds no new poll call.
       const statusCallsAtTimeout = mockAgentsApi.getClaudeSetupTokenLoginStatus.mock.calls.length;
@@ -3387,9 +3387,9 @@ describe("AgentConfigForm environment selector", () => {
 
     await runTest(result.container);
     await startLogin(result.container);
-    await flushUntil(() => (result.container.textContent ?? "").includes("Authenticated"));
+    await flushUntil(() => (result.container.textContent ?? "").includes("Autenticado"));
 
-    expect(result.container.textContent).toContain("Authenticated");
+    expect(result.container.textContent).toContain("Autenticado");
     expect(result.container.textContent).not.toContain("sk-ant-SECRET-TOKEN");
   });
 });
@@ -3546,12 +3546,12 @@ describe("AgentConfigForm create-mode Claude OAuth binding", () => {
     await runTest(result.container);
     await startLogin(result.container);
     await flushUntil(() =>
-      (result.container.textContent ?? "").includes("The login did not finish"),
+      (result.container.textContent ?? "").includes("El inicio de sesión no se completó"),
     );
 
     // The panel shows a fixed, non-secret message and returns to its start state.
-    expect(result.container.textContent).toContain("The login did not finish");
-    expect(findButton(result.container, "Sign in")?.disabled).toBe(false);
+    expect(result.container.textContent).toContain("El inicio de sesión no se completó");
+    expect(findButton(result.container, "Iniciar sesión")?.disabled).toBe(false);
     expect(result.container.textContent).not.toContain(
       "the provider rejected the stored-session claim",
     );
@@ -3723,7 +3723,7 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
   function choosePathButtons(container: HTMLElement) {
     return Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent?.trim() === "Choose",
+      (button) => button.textContent?.trim() === "Elegir",
     );
   }
 
@@ -3760,13 +3760,13 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
     await act(async () => {
       for (const button of result.container.querySelectorAll("button")) {
-        if (["Advanced", "Advanced Run Policy"].includes(button.textContent?.trim() ?? "")) button.click();
+        if (["Avanzado", "Política de ejecución avanzada"].includes(button.textContent?.trim() ?? "")) button.click();
       }
     });
     await flushReact();
     const labels = fieldLabels(result.container);
-    expect(labels).toContain("Working directory (deprecated)");
-    expect(labels).toContain("Command");
+    expect(labels).toContain("Directorio de trabajo (obsoleto)");
+    expect(labels).toContain("Comando");
     expect(labels).toContain("Execution engine");
     expect(labels).toContain("ACP server command");
     expect(labels).toContain("ACP state directory");
@@ -3787,7 +3787,7 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
     await act(async () => {
       for (const button of result.container.querySelectorAll("button")) {
-        if (["Advanced", "Advanced Run Policy"].includes(button.textContent?.trim() ?? "")) button.click();
+        if (["Avanzado", "Política de ejecución avanzada"].includes(button.textContent?.trim() ?? "")) button.click();
       }
     });
     await flushReact();
@@ -3795,8 +3795,8 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
     expect(labels).toContain("ACP session mode");
     expect(labels).toContain("ACP non-interactive permissions");
-    expect(labels).not.toContain("Working directory (deprecated)");
-    expect(labels).not.toContain("Command");
+    expect(labels).not.toContain("Directorio de trabajo (obsoleto)");
+    expect(labels).not.toContain("Comando");
     expect(labels).not.toContain("Execution engine");
     expect(labels).not.toContain("ACP server command");
     expect(labels).not.toContain("ACP state directory");
@@ -3818,13 +3818,13 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
     await act(async () => {
       for (const button of result.container.querySelectorAll("button")) {
-        if (["Advanced", "Advanced Run Policy"].includes(button.textContent?.trim() ?? "")) button.click();
+        if (["Avanzado", "Política de ejecución avanzada"].includes(button.textContent?.trim() ?? "")) button.click();
       }
     });
     await flushReact();
     const labels = fieldLabels(result.container);
-    expect(labels).not.toContain("Working directory (deprecated)");
-    expect(labels).not.toContain("Command");
+    expect(labels).not.toContain("Directorio de trabajo (obsoleto)");
+    expect(labels).not.toContain("Comando");
     expect(labels).not.toContain("Execution engine");
     expect(choosePathButtons(result.container)).toHaveLength(0);
     expect(result.container.textContent).not.toContain("/srv/agents/cody");
@@ -3840,13 +3840,13 @@ describe("AgentConfigForm managed-sandbox-only host surfaces", () => {
 
     await act(async () => {
       for (const button of result.container.querySelectorAll("button")) {
-        if (["Advanced", "Advanced Run Policy"].includes(button.textContent?.trim() ?? "")) button.click();
+        if (["Avanzado", "Política de ejecución avanzada"].includes(button.textContent?.trim() ?? "")) button.click();
       }
     });
     await flushReact();
     const labels = fieldLabels(result.container);
-    expect(labels).not.toContain("Working directory (deprecated)");
-    expect(labels).not.toContain("Command");
+    expect(labels).not.toContain("Directorio de trabajo (obsoleto)");
+    expect(labels).not.toContain("Comando");
     expect(choosePathButtons(result.container)).toHaveLength(0);
 
     const adapterFields = result.container.querySelector('[data-testid="adapter-config-fields"]');

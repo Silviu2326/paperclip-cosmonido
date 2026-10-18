@@ -168,7 +168,7 @@ describe("resolveGenerationStatusLine", () => {
     ).toBe("drafting");
     expect(
       resolveGenerationStatusLine({ message: null, currentToolName: "Grep", lastAssistantSnippet: null }),
-    ).toBe("Working with Grep");
+    ).toBe("Trabajando con Grep");
   });
 
   it("returns null when nothing has streamed", () => {
@@ -215,7 +215,7 @@ describe("SummarySlotCard live status line", () => {
 
     // Falls back to the static generating copy before any event arrives.
     expect(container.querySelector('[data-testid="summary-generation-status-line"]')).toBeNull();
-    expect(container.textContent).toContain("Summarizer is working in");
+    expect(container.textContent).toContain("El resumidor está trabajando en");
 
     await act(async () => {
       dispatchLiveEventToSubscribers(

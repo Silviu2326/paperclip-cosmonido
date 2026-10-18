@@ -6,6 +6,7 @@ import { cn, relativeTime } from "../lib/utils";
 import { MarkdownBody, type MarkdownExternalReferenceMap } from "./MarkdownBody";
 import { ChevronDown, ChevronRight, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { t } from "@/i18n";
 
 type IssueContinuationHandoffProps = {
   document: IssueDocument | null | undefined;
@@ -33,7 +34,7 @@ export function IssueContinuationHandoff({
 
   if (!document) return null;
 
-  const title = document.title?.trim() || "Continuation handoff";
+  const title = document.title?.trim() || t("issueContinuationHandoff.defaultTitle");
 
   return (
     <div
@@ -49,7 +50,7 @@ export function IssueContinuationHandoff({
           type="button"
           className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
           onClick={() => setExpanded((current) => !current)}
-          aria-label={expanded ? "Collapse continuation handoff" : "Expand continuation handoff"}
+          aria-label={expanded ? t("issueContinuationHandoff.collapse") : t("issueContinuationHandoff.expand")}
           aria-expanded={expanded}
         >
           {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -59,19 +60,19 @@ export function IssueContinuationHandoff({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-foreground">{title}</span>
             <Badge variant="outline" className="border-border font-mono text-(length:--text-nano) uppercase text-muted-foreground">
-              handoff
+              {t("issueContinuationHandoff.badge")}
             </Badge>
           </div>
           <div className="text-(length:--text-micro) text-muted-foreground">
-            Updated {relativeTime(document.updatedAt)}
-            {document.latestRevisionNumber > 0 ? ` - revision ${document.latestRevisionNumber}` : ""}
+            {t("issueContinuationHandoff.updated", { time: relativeTime(document.updatedAt) })}
+            {document.latestRevisionNumber > 0 ? t("issueContinuationHandoff.revision", { number: document.latestRevisionNumber }) : ""}
           </div>
         </div>
         <AgentSetupPrompt
           prompt={document.body}
-          label="Continue with an agent"
-          title="Task handoff"
-          description="Paste this into your agent to continue from this handoff."
+          label={t("issueContinuationHandoff.continueWithAgent")}
+          title={t("issueContinuationHandoff.taskHandoff")}
+          description={t("issueContinuationHandoff.pasteDescription")}
           align="end"
         />
       </div>

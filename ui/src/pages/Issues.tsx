@@ -305,8 +305,8 @@ function OrganizationIssues({
       <EmptyState
         icon={CircleDot}
         message={streamlinedUiEnabled
-          ? "Select an organization to view tasks."
-          : "Select a company to view tasks."}
+          ? t("issues.selectOrgTasks")
+          : t("issues.selectCompanyTasks")}
       />
     );
   }

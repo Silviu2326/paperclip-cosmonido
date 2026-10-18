@@ -73,7 +73,7 @@ describe('GitHub skill source import', () => {
     vi.mocked(skillSourcesApi.adoptProject).mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }))
       .mockResolvedValue({ bindingId: 'binding-two' });
     await mount();
-    expect(document.querySelectorAll('[aria-label="Project repositories"] section')).toHaveLength(1);
+    expect(document.querySelectorAll('[aria-label="Repositorios del proyecto"] section')).toHaveLength(1);
     expect(document.body.textContent).toContain('Paperclip, Sentry');
     await act(async () => button('Import skills').click()); await flush();
     expect(document.querySelector('[aria-busy="true"]')).not.toBeNull();
@@ -93,8 +93,8 @@ describe('GitHub skill source import', () => {
     vi.mocked(skillSourcesApi.list).mockResolvedValue([{ ...source, repairAction: 'branch' }]);
     vi.mocked(skillSourcesApi.settings).mockResolvedValue({ ...source, trackingRef: 'master', lastError: null });
     await mount();
-    expect(button('Choose connection')).toBeUndefined();
-    await act(async () => button('Choose a new branch').click()); await flush();
+    expect(button('Elegir conexión')).toBeUndefined();
+    await act(async () => button('Elegir una nueva rama').click()); await flush();
     await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="Branch"]')!.click()); await flush();
     await act(async () => (document.querySelector('[cmdk-item][data-value="master"]') as HTMLElement).click()); await flush();
     await act(async () => button('Change branch').click()); await flush();
@@ -111,7 +111,7 @@ describe('GitHub skill source import', () => {
     vi.mocked(skillSourcesApi.list).mockResolvedValue([source]);
     vi.mocked(skillSourcesApi.settings).mockRejectedValue(new ApiError(message, 409, {}));
     await mount();
-    await act(async () => button('Choose a new branch').click()); await flush();
+    await act(async () => button('Elegir una nueva rama').click()); await flush();
     await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="Branch"]')!.click()); await flush();
     await act(async () => (document.querySelector('[cmdk-item][data-value="master"]') as HTMLElement).click()); await flush();
     await act(async () => button('Change branch').click()); await flush();
@@ -126,13 +126,13 @@ describe('GitHub skill source import', () => {
       workspaceId: 'second-workspace', repositoryUrl: sourceFixture().repositoryUrl, trackingRef: 'HEAD', bindingId: 'binding', sourceId: null, status: 'pending', lastError: null }]);
     await mount();
     expect(document.querySelectorAll(`a[href="${sourceFixture().repositoryUrl}"]`)).toHaveLength(1);
-    expect(document.querySelector('[aria-label="Project repositories"]')).toBeNull();
+    expect(document.querySelector('[aria-label="Repositorios del proyecto"]')).toBeNull();
     expect(document.querySelector('[aria-label="Skills from Sentry"]')).toBeNull();
     expect(document.body.textContent).not.toContain('Other projects with this repo');
     expect(document.body.textContent).not.toContain('Sentry');
     expect(document.body.textContent).not.toContain('Paperclip');
     expect(document.querySelector('a[href="/skills"]')).toBeNull();
-    expect(document.querySelector('[role="status"]')?.textContent).toContain('Importing skills');
+    expect(document.querySelector('[role="status"]')?.textContent).toContain('Importando skills');
   });
 
   it('allows remaining project imports while another matching workspace is pending', async () => {
@@ -157,10 +157,10 @@ describe('GitHub skill source import', () => {
     vi.mocked(skillSourcesApi.settings).mockRejectedValueOnce(new ApiError('The tracked GitHub branch or revision is unavailable.', 422, { code: 'skill_source_ref_unavailable' }))
       .mockResolvedValue({ ...source, trackingRef: 'master', lastError: null });
     await mount();
-    await act(async () => button('Choose connection').click()); await flush();
+    await act(async () => button('Elegir conexión').click()); await flush();
     await act(async () => button('Save connection').click()); await flush();
     expect(skillSourcesApi.settings).toHaveBeenLastCalledWith('company-1', source.id, { revision: source.revision, connectionId: 'personal' });
-    await act(async () => button('Choose a new branch').click()); await flush();
+    await act(async () => button('Elegir una nueva rama').click()); await flush();
     await act(async () => document.querySelector<HTMLButtonElement>('button[aria-label="Branch"]')!.click()); await flush();
     await act(async () => (document.querySelector('[cmdk-item][data-value="master"]') as HTMLElement).click()); await flush();
     await act(async () => button('Change branch').click()); await flush();
@@ -177,7 +177,7 @@ describe('GitHub skill source import', () => {
     await mount();
     await act(async () => button('... or add public repo by URL').click());
     await input('input[placeholder="https://github.com/owner/repository"]', 'https://github.com/public/skills');
-    await act(async () => button('Find skills').click()); await flush();
+    await act(async () => button('Buscar skills').click()); await flush();
     expect(document.body.textContent).toContain('Downloading repository');
     expect(document.body.textContent).toContain('64% received · 18 MB');
     expect(document.querySelector('progress')?.value).toBe(64);
@@ -194,7 +194,7 @@ describe('GitHub skill source import', () => {
     });
     await mount();
     await act(async () => (document.querySelector('[cmdk-item]') as HTMLElement).click());
-    await act(async () => button('Find skills').click()); await flush();
+    await act(async () => button('Buscar skills').click()); await flush();
     expect(document.body.textContent).toContain('20 skills found');
     expect(document.body.textContent).toContain('1 of 20 checked');
     expect(document.body.textContent).toContain('Code review');
@@ -204,7 +204,7 @@ describe('GitHub skill source import', () => {
     await act(async () => fail(new Error('Network interrupted'))); await flush();
     expect(document.querySelector('[role="alert"]')?.textContent).toContain('Network interrupted');
     expect(document.body.textContent).not.toContain('Code review');
-    expect(button('Find skills').disabled).toBe(false);
+    expect(button('Buscar skills').disabled).toBe(false);
   });
   it('bounds the live feed while keeping the full server progress count', async () => {
     vi.mocked(skillSourcesApi.discoverStream).mockImplementation((_company, _input, update, signal) => {
@@ -214,7 +214,7 @@ describe('GitHub skill source import', () => {
     });
     await mount();
     await act(async () => (document.querySelector('[cmdk-item]') as HTMLElement).click());
-    await act(async () => button('Find skills').click()); await flush();
+    await act(async () => button('Buscar skills').click()); await flush();
     expect(document.querySelectorAll('[aria-label="Skills checked so far"] li')).toHaveLength(5);
     expect(document.body.textContent).toContain('40 of 100 checked');
     expect(document.body.textContent).toContain('40 checked');
@@ -230,15 +230,15 @@ describe('GitHub skill source import', () => {
     });
     await mount();
     await act(async () => (document.querySelector('[cmdk-item]') as HTMLElement).click());
-    await act(async () => button('Find skills').click()); await flush();
-    await act(async () => button('Cancel scan').click());
+    await act(async () => button('Buscar skills').click()); await flush();
+    await act(async () => button('Cancelar escaneo').click());
     expect(signal?.aborted).toBe(true);
     await act(async () => {
       update({ type: 'candidate', candidate: { path: 'late/SKILL.md', name: 'Late result', description: null, error: null, fileCount: 1 } });
       finish(discovery);
     }); await flush();
     expect(document.body.textContent).not.toContain('Late result');
-    expect(button('Find skills').disabled).toBe(false);
+    expect(button('Buscar skills').disabled).toBe(false);
     expect(JSON.parse(sessionStorage.getItem('paperclip.skill-source-draft:company-1:new')!).repositoryUrl).toBe('https://github.com/acme/team-skills');
   });
 
@@ -246,36 +246,36 @@ describe('GitHub skill source import', () => {
     await mount();
     expect(document.querySelectorAll('[cmdk-item]')).toHaveLength(2);
     expect(document.body.textContent).toContain('Personal · Engineering');
-    expect([...document.querySelectorAll('a')].find(el => el.textContent === 'Add repos')?.getAttribute('href')).toBe('/apps/connect?source=github');
-    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="Refresh repositories"]')!.click());
+    expect([...document.querySelectorAll('a')].find(el => el.textContent === 'Añadir repos')?.getAttribute('href')).toBe('/apps/connect?source=github');
+    await act(async () => document.querySelector<HTMLButtonElement>('[aria-label="Actualizar repositorios"]')!.click());
     await flush();
     expect(skillSourcesApi.repositories).toHaveBeenCalledTimes(2);
     expect(document.querySelector('select')).toBeNull();
     expect(document.body.textContent).not.toContain('Choose a branch');
     expect(document.querySelector('input[placeholder="https://github.com/owner/repository"]')).toBeNull();
-    await input('[aria-label="Search repositories"]', 'design');
+    await input('[aria-label="Buscar repositorios"]', 'design');
     expect(document.querySelectorAll('[cmdk-item]')).toHaveLength(1);
     await act(async () => (document.querySelector('[cmdk-item]') as HTMLElement).click());
-    await act(async () => button('Find skills').click());
+    await act(async () => button('Buscar skills').click());
     expect(skillSourcesApi.discoverStream).toHaveBeenCalledWith('company-1', { repositoryUrl: 'https://github.com/acme/design', packageMode: 'repository', trackingRef: undefined, connectionId: 'shared' }, expect.any(Function), expect.any(AbortSignal));
   });
   it('recognizes pasted branch URLs and does not reuse their branch or credentials for another repository', async () => {
     await mount();
     await act(async () => button('... or add public repo by URL').click());
     await input('input[placeholder="https://github.com/owner/repository"]', 'https://github.com/ACME/team-skills/tree/feature/new-skills');
-    await act(async () => button('Find skills').click());
+    await act(async () => button('Buscar skills').click());
     expect(skillSourcesApi.discoverStream).toHaveBeenLastCalledWith('company-1', { repositoryUrl: 'https://github.com/ACME/team-skills/tree/feature/new-skills', packageMode: 'repository', trackingRef: undefined, connectionId: 'personal' }, expect.any(Function), expect.any(AbortSignal));
     await flush();
     expect(document.body.textContent).toContain('feature/new-skills');
-    await act(async () => button('Back').click());
+    await act(async () => button('Atrás').click());
     await input('input[placeholder="https://github.com/owner/repository"]', 'https://github.com/public/skills');
-    await act(async () => button('Find skills').click());
+    await act(async () => button('Buscar skills').click());
     expect(skillSourcesApi.discoverStream).toHaveBeenLastCalledWith('company-1', { repositoryUrl: 'https://github.com/public/skills', packageMode: 'repository', trackingRef: undefined, connectionId: null }, expect.any(Function), expect.any(AbortSignal));
   });
   it('links empty repositories to standard GitHub setup in Apps while preserving the import draft', async () => {
     vi.mocked(skillSourcesApi.repositories).mockResolvedValue({ repositories: [], connections: [], connectionCount: 0, failedConnectionCount: 0 });
     await mount();
-    const link = [...document.querySelectorAll('a')].find(el => el.textContent === 'Connect GitHub to see your repos');
+    const link = [...document.querySelectorAll('a')].find(el => el.textContent === 'Conecta GitHub para ver tus repositorios');
     expect(link?.getAttribute('href')).toBe('/apps/connect?source=github');
     expect(document.querySelector('input[placeholder="https://github.com/owner/repository"]')).toBeNull();
     expect(document.querySelector('[role="dialog"]')?.textContent).not.toContain('Imported skills will be available');
@@ -296,7 +296,7 @@ describe('GitHub skill source import', () => {
     expect(document.querySelectorAll('[cmdk-item]')).toHaveLength(2);
     expect(document.querySelector('[role="alert"]')?.textContent).toContain('Some GitHub connections could not load repositories.');
     expect([...document.querySelectorAll('a')].find(el => el.textContent === 'Manage connections')?.getAttribute('href')).toBe('/apps');
-    expect(button('Try again')).toBeTruthy();
+    expect(button('Intentar de nuevo')).toBeTruthy();
   });
   it('defaults to the repository, selects every discovered skill without a packaging menu', async () => {
     const main = { path: 'skills/main/SKILL.md', name: 'Main', description: 'Work', fileCount: 1, error: null, warnings: [] };
@@ -308,7 +308,7 @@ describe('GitHub skill source import', () => {
       } } : {}) }));
     await mount();
     await act(async () => (document.querySelector('[cmdk-item]') as HTMLElement).click());
-    await act(async () => button('Find skills').click()); await flush();
+    await act(async () => button('Buscar skills').click()); await flush();
     expect(skillSourcesApi.discoverStream).toHaveBeenLastCalledWith('company-1', expect.objectContaining({ packageMode: 'repository' }), expect.any(Function), expect.any(AbortSignal));
     expect(skillSourcesApi.discoverStream).toHaveBeenCalledTimes(1);
     expect(document.body.textContent).toContain('2 of 2 selected');
@@ -343,7 +343,7 @@ describe('GitHub skill source import', () => {
       inspection: { files: [], requirements: null, warnings: [], references: [{ fromPath: 'SKILL.md', target: '../../shared.md', resolvedPath: 'shared.md', kind: 'outside_package' as const }] } };
     vi.mocked(skillSourcesApi.discoverStream).mockResolvedValueOnce({ ...discovery, packageMode: 'repository', candidates: [{ ...candidate, inspection: { ...candidate.inspection, references: [] } }], repositoryPackage: { files: [], requirements: null, warnings: [], error: null } });
     await mount();
-    await act(async () => button('Find skills').click()); await flush();
+    await act(async () => button('Buscar skills').click()); await flush();
     expect(skillSourcesApi.discoverStream).toHaveBeenCalledTimes(1);
     expect(skillSourcesApi.discoverStream).toHaveBeenLastCalledWith('company-1', expect.objectContaining({ packageMode: 'repository' }), expect.any(Function), expect.any(AbortSignal));
     expect(button('Import repository').disabled).toBe(false);
@@ -358,16 +358,16 @@ describe('GitHub skill source import', () => {
     const trigger = document.querySelector<HTMLButtonElement>(`button[aria-label="More actions for ${source.fullName}"]`)!;
     await act(async () => trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })));
     await flush();
-    const menu = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(el => el.textContent === (disconnected ? 'Remove source' : 'Disconnect source'))!;
+    const menu = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(el => el.textContent === (disconnected ? 'Quitar fuente' : 'Desconectar fuente'))!;
     await act(async () => menu.click()); await flush();
     return source;
   }
   it('requires a keep-or-delete choice and cancellation leaves the source intact', async () => {
     await openRemoval();
-    expect(button('Disconnect source').disabled).toBe(true);
+    expect(button('Desconectar fuente').disabled).toBe(true);
     expect(document.querySelector('[role="radio"][tabindex="0"]')?.textContent).toContain('Keep editable copies');
     expect(skillSourcesApi.disconnect).not.toHaveBeenCalled();
-    await act(async () => button('Cancel').click());
+    await act(async () => button('Cancelar').click());
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(document.body.textContent).toContain('acme/team-skills');
   });
@@ -379,7 +379,7 @@ describe('GitHub skill source import', () => {
     });
     const choice = [...document.querySelectorAll<HTMLButtonElement>('[role="radio"]')].find(el => el.textContent?.startsWith('Delete skills'))!;
     await act(async () => choice.click());
-    await act(async () => button('Remove source').click()); await flush(); await flush();
+    await act(async () => button('Quitar fuente').click()); await flush(); await flush();
     expect(skillSourcesApi.disconnect).toHaveBeenCalledWith('company-1', source.id, { revision: source.revision, skills: 'delete' });
     expect(document.querySelector('[role="dialog"]')).toBeNull();
     expect(document.body.textContent).not.toContain('acme/team-skills');
@@ -388,19 +388,19 @@ describe('GitHub skill source import', () => {
     const source = await openRemoval();
     vi.mocked(skillSourcesApi.disconnect).mockRejectedValueOnce(new ApiError('Source changed. Reload before disconnecting.', 409, {}));
     await act(async () => document.querySelector<HTMLButtonElement>('[role="radio"]')!.click());
-    await act(async () => button('Disconnect source').click()); await flush();
-    expect(button('Disconnect source').disabled).toBe(true);
+    await act(async () => button('Desconectar fuente').click()); await flush();
+    expect(button('Desconectar fuente').disabled).toBe(true);
     vi.mocked(skillSourcesApi.list).mockResolvedValue([{ ...source, revision: source.revision + 1, entries: source.entries.slice(0, 1) }]);
     await act(async () => button('Reload source').click()); await flush(); await flush();
     expect(document.querySelector('[role="dialog"]')?.textContent).toContain('1 imported skill');
     expect(document.querySelector('[role="dialog"] [role="alert"]')).toBeNull();
-    expect(button('Disconnect source').disabled).toBe(true);
+    expect(button('Desconectar fuente').disabled).toBe(true);
     await act(async () => document.querySelector<HTMLButtonElement>('[role="radio"]')!.click());
     vi.mocked(skillSourcesApi.disconnect).mockImplementation(async () => {
       vi.mocked(skillSourcesApi.list).mockResolvedValue([]);
       return { id: source.id, copiedCount: 1, deletedCount: 0 };
     });
-    await act(async () => button('Disconnect source').click()); await flush(); await flush();
+    await act(async () => button('Desconectar fuente').click()); await flush(); await flush();
     expect(skillSourcesApi.disconnect).toHaveBeenLastCalledWith('company-1', source.id, { revision: source.revision + 1, skills: 'copy' });
     expect(document.querySelector('[role="dialog"]')).toBeNull();
   });
@@ -409,10 +409,10 @@ describe('GitHub skill source import', () => {
     vi.mocked(skillSourcesApi.disconnect).mockRejectedValue(new Error('Source changed. Reload before disconnecting.'));
     const choice = [...document.querySelectorAll<HTMLButtonElement>('[role="radio"]')].find(el => el.textContent?.startsWith('Keep editable copies'))!;
     await act(async () => choice.click());
-    await act(async () => button('Disconnect source').click()); await flush();
+    await act(async () => button('Desconectar fuente').click()); await flush();
     expect(skillSourcesApi.disconnect).toHaveBeenCalledWith('company-1', source.id, { revision: source.revision, skills: 'copy' });
     expect(document.querySelector('[role="dialog"] [role="alert"]')?.textContent).toContain('Source changed');
-    expect(button('Disconnect source').disabled).toBe(false);
+    expect(button('Desconectar fuente').disabled).toBe(false);
     expect(document.querySelector('section[aria-label="acme/team-skills"]')).not.toBeNull();
     const other = [...document.querySelectorAll<HTMLButtonElement>('[role="radio"]')].find(el => el.textContent?.startsWith('Delete skills'))!;
     await act(async () => other.click()); await flush();

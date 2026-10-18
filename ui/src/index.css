@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "./cosmonido-motion.css";
 @import "./cosmonido-personality.css";
+@import "./cosmonido-extra.css";
 @plugin "@tailwindcss/typography";
 
 @font-face {

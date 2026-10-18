@@ -14,10 +14,10 @@ describe("CommentAttributionChip", () => {
   it("renders 'for {user}' beside the author name", () => {
     const html = render(<CommentAttributionChip agentName="Fable" userName="Dotta" />);
 
-    // Composes with the header's author name to read "Fable · for Dotta".
-    expect(html).toContain("for Dotta");
+    // Composes with the header's author name to read "Fable · para Dotta".
+    expect(html).toContain("para Dotta");
     expect(html).toContain('data-testid="comment-attribution-chip"');
-    expect(html).toContain('aria-label="Posted on behalf of Dotta"');
+    expect(html).toContain('aria-label="Publicado en nombre de Dotta"');
   });
 
   it("does not repeat the agent name on the chip face", () => {
@@ -39,16 +39,16 @@ describe("CommentAttributionChip", () => {
   });
 
   it("trims a padded user name", () => {
-    expect(render(<CommentAttributionChip userName="  Dotta  " />)).toContain("for Dotta");
+    expect(render(<CommentAttributionChip userName="  Dotta  " />)).toContain("para Dotta");
   });
 });
 
 describe("commentAttributionTooltip", () => {
   it("names both the agent and the user it acted for", () => {
     const copy = commentAttributionTooltip("Fable", "Dotta");
-    expect(copy).toContain("Fable posted this on behalf of Dotta");
-    expect(copy).toContain("not assigned to this task");
-    expect(copy).toContain("never exceeds it");
+    expect(copy).toContain("Fable publicó esto en nombre de Dotta");
+    expect(copy).toContain("no está asignado a esta tarea");
+    expect(copy).toContain("nunca la supera");
   });
 
   it("keeps on-behalf-of terminology, never 'impersonate'", () => {

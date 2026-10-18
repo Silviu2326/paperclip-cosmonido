@@ -10,6 +10,7 @@ import {
   taskStatusVarDefault,
 } from "../lib/status-colors";
 import { StatusGlyph } from "./StatusGlyph";
+import { t } from "@/i18n";
 
 /** Inline `--sc` local var pointing a status helper at a base-hue CSS var. */
 function scStyle(cssVar: string): CSSProperties {
@@ -19,7 +20,7 @@ function scStyle(cssVar: string): CSSProperties {
 /** "in_review" → "In review" (sentence case). */
 function sentenceCaseStatus(status: string): string {
   const s = status.replace(/_/g, " ");
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  return t(`statusIcon.labels.${status}`, { defaultValue: s.charAt(0).toUpperCase() + s.slice(1) });
 }
 
 /**
@@ -48,7 +49,7 @@ export function StatusBadge({ status, label, className }: { status: string; labe
  */
 export function AgentStatusBadge({ status }: { status: string }) {
   const cssVar = agentStatusVar[status] ?? agentStatusVarDefault;
-  const label = status === "active" ? "idle" : status;
+  const label = status === "active" ? t("statusBadge.idle") : status;
   return (
     <span
       className="status-chip inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium leading-none whitespace-nowrap shrink-0"

@@ -250,8 +250,8 @@ describe("Sidebar", () => {
     expect([...container.querySelectorAll('a[href="/activity"]')]).toHaveLength(1);
     expect(navLabels).toContain("Auditoría");
     expect(navLabels).not.toContain("Ajustes");
-    expect(navLabels).not.toContain("Activity");
-    expect(navLabels).not.toContain("Costs");
+    expect(navLabels).not.toContain("Actividad");
+    expect(navLabels).not.toContain("Costos");
     expect(container.querySelector('[data-testid="sidebar-recent-tasks"]')).not.toBeNull();
 
     flushSync(() => {
@@ -266,7 +266,7 @@ describe("Sidebar", () => {
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
     expect(navLabels).toContain("Proyectos");
     expect(navLabels).toContain("Agentes");
-    expect(container.textContent).not.toContain("Organization");
+    expect(container.textContent).not.toContain("Organización");
     expect(container.textContent).not.toContain("Espacios de trabajo");
     expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Objetivos");
     expect(container.querySelector('[data-testid="sidebar-goals-placeholder"]')).not.toBeNull();
@@ -310,8 +310,8 @@ describe("Sidebar", () => {
     expect(container.querySelector('[data-testid="sidebar-recent-tasks"]')).toBeNull();
     expect(container.querySelector('[data-testid="sidebar-projects"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="sidebar-agents"]')?.getAttribute("data-streamlined")).toBe("undefined");
-    expect(container.textContent).toContain("Organization");
-    expect(labels).toEqual(expect.arrayContaining(["Organización", "Conectores", "Timeline", "Costs", "Activity", "Ajustes"]));
+    expect(container.textContent).toContain("Organización");
+    expect(labels).toEqual(expect.arrayContaining(["Organización", "Conectores", "Cronología", "Costos", "Actividad", "Ajustes"]));
     expect(labels).not.toContain("Auditoría");
     expect(labels).not.toContain("Proyectos");
     expect(container.querySelector('a[href="/agents"]')).toBeNull();
@@ -568,7 +568,7 @@ describe("Sidebar", () => {
     const sections = [...container.querySelectorAll("nav > div")];
     const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
     expect(workSection?.textContent).toContain("Proyectos");
-    expect(workSection?.textContent).not.toContain("Timeline");
+    expect(workSection?.textContent).not.toContain("Cronología");
     expect(container.querySelector('a[href="/timeline"]')).toBeNull();
 
     flushSync(() => {

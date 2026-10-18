@@ -375,7 +375,7 @@ describe("getSkillVersionDiffSelection", () => {
 describe("DiscoveryGrid IA presentation", () => {
   it("makes the search scope explicit for Installed and Discover", async () => {
     let node = await renderDiscoveryGrid({ tab: "installed" });
-    expect(node.querySelector('input[aria-label="Search installed skills"]')).not.toBeNull();
+    expect(node.querySelector('input[aria-label="Buscar habilidades instaladas"]')).not.toBeNull();
 
     root?.unmount();
     container?.remove();
@@ -383,7 +383,7 @@ describe("DiscoveryGrid IA presentation", () => {
     container = null;
 
     node = await renderDiscoveryGrid({ tab: "discover" });
-    expect(node.querySelector('input[aria-label="Search discoverable skills"]')).not.toBeNull();
+    expect(node.querySelector('input[aria-label="Buscar habilidades disponibles"]')).not.toBeNull();
     expect(node.textContent).not.toContain("Catalog");
   });
 
@@ -428,8 +428,8 @@ describe("DiscoveryGrid IA presentation", () => {
       totalCount: 2,
     });
 
-    expect(node.textContent).toContain("Not enabled for any agents");
-    expect(node.textContent).toContain("Available to install");
+    expect(node.textContent).toContain("No habilitada para ningún agente");
+    expect(node.textContent).toContain("Disponible para instalar");
     expect(node.textContent).toContain("Local workspace");
     expect(node.textContent).toContain("Paperclip catalog");
   });
@@ -438,8 +438,8 @@ describe("DiscoveryGrid IA presentation", () => {
     const onCreate = vi.fn();
     const node = await renderDiscoveryGrid({ onCreate });
 
-    await click(buttonsNamed(node, "Create new skill")[0] as HTMLButtonElement);
-    await click(buttonsNamed(node, "Create a skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Crear habilidad nueva")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Crear una habilidad")[0] as HTMLButtonElement);
 
     expect(onCreate).toHaveBeenCalledTimes(2);
   });
@@ -448,7 +448,7 @@ describe("DiscoveryGrid IA presentation", () => {
     const onBrowseDiscover = vi.fn();
     const node = await renderDiscoveryGrid({ onBrowseDiscover });
 
-    await click(buttonsNamed(node, "Discover skills")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Descubrir habilidades")[0] as HTMLButtonElement);
 
     expect(onBrowseDiscover).toHaveBeenCalledOnce();
     expect(node.textContent).not.toContain("Browse catalog");
@@ -460,7 +460,7 @@ describe("DiscoveryGrid IA presentation", () => {
     const node = await renderDiscoveryGrid(props);
     const compactCreateButton = node.querySelector<HTMLButtonElement>('button[title="New folder"]');
 
-    expect(buttonsNamed(node, "New folder")).toHaveLength(0);
+    expect(buttonsNamed(node, "Nueva carpeta")).toHaveLength(0);
     expect(compactCreateButton).not.toBeNull();
 
     await click(compactCreateButton!);
@@ -479,8 +479,8 @@ describe("DiscoveryGrid IA presentation", () => {
 
     expect(node.querySelector('nav[aria-label="Skill folders"]')).toBeNull();
     expect(node.querySelector("aside")).toBeNull();
-    expect(node.textContent).not.toContain("Browse by category");
-    expect(node.querySelector('input[aria-label="Search installed skills"]')).not.toBeNull();
+    expect(node.textContent).not.toContain("Explorar por categoría");
+    expect(node.querySelector('input[aria-label="Buscar habilidades instaladas"]')).not.toBeNull();
   });
 
   it("omits bulk selection when its entry point is not supplied", async () => {
@@ -489,7 +489,7 @@ describe("DiscoveryGrid IA presentation", () => {
       onToggleSelectMode: undefined,
     });
 
-    expect(buttonsNamed(node, "Select")).toHaveLength(0);
+    expect(buttonsNamed(node, "Seleccionar")).toHaveLength(0);
   });
 
   it("keeps folder creation available when no folder rail exists", async () => {
@@ -499,7 +499,7 @@ describe("DiscoveryGrid IA presentation", () => {
       folderResult: { ...projectFolderResult, folders: [] },
       onCreateFolder,
     });
-    const createButton = buttonsNamed(node, "New folder")[0] as HTMLButtonElement;
+    const createButton = buttonsNamed(node, "Nueva carpeta")[0] as HTMLButtonElement;
 
     expect(createButton).toBeDefined();
 
@@ -516,7 +516,7 @@ describe("DiscoveryGrid IA presentation", () => {
       onScan,
     });
     const refreshButton = node.querySelector<HTMLButtonElement>(
-      'button[aria-label="Refresh Acme project skills"]',
+      'button[aria-label="Actualizar habilidades del proyecto Acme"]',
     );
 
     expect(refreshButton).not.toBeNull();
@@ -559,7 +559,7 @@ describe("DiscoveryGrid IA presentation", () => {
       onMoveCard: vi.fn(),
       onCreateFolderAndMoveCard: vi.fn(),
     });
-    const actionsButton = node.querySelector<HTMLButtonElement>('[aria-label="More actions for Demo Skill"]');
+    const actionsButton = node.querySelector<HTMLButtonElement>('[aria-label="Más acciones para Demo Skill"]');
 
     await act(async () => {
       actionsButton?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
@@ -621,9 +621,9 @@ describe("DiscoveryGrid IA presentation", () => {
       onOpenMoveCard: vi.fn(),
     });
 
-    expect(node.querySelector('[aria-label="More actions for Bundled Skill"]')).toBeNull();
+    expect(node.querySelector('[aria-label="Más acciones para Bundled Skill"]')).toBeNull();
     expect(node.querySelector('input[type="checkbox"]')).toBeNull();
-    expect(node.textContent).not.toContain("Move to folder");
+    expect(node.textContent).not.toContain("Mover a carpeta");
   });
 });
 
@@ -744,7 +744,7 @@ describe("skill detail breadcrumbs", () => {
     };
 
     expect(skillDetailBreadcrumbs({ name: "Deal with PR", folderId: "review-folder" }, folders)).toEqual([
-      { label: "Skills", href: "/skills" },
+      { label: "Habilidades", href: "/skills" },
       { label: "My Skills", href: "/skills?folder=my-root" },
       { label: "Review", href: "/skills?folder=review-folder" },
       { label: "Deal with PR" },
@@ -763,7 +763,7 @@ describe("SkillDetailPage versions tab", () => {
     const v1 = makeVersion(1, "# Demo Skill\n\nFirst line");
     const v2 = makeVersion(2, "# Demo Skill\n\nSecond line");
     const node = await renderSkillDetail([v2, v1]);
-    const viewDiffButtons = buttonsNamed(node, "View diff") as HTMLButtonElement[];
+    const viewDiffButtons = buttonsNamed(node, "Ver diferencias") as HTMLButtonElement[];
 
     expect(viewDiffButtons).toHaveLength(2);
 
@@ -771,7 +771,7 @@ describe("SkillDetailPage versions tab", () => {
     let dialog = node.querySelector('[role="dialog"]') as HTMLElement;
     let selects = Array.from(dialog.querySelectorAll("select"));
 
-    expect(dialog.textContent).toContain("Diff");
+    expect(dialog.textContent).toContain("Diferencias");
     expect(selects[0]?.value).toBe(v1.id);
     expect(selects[1]?.value).toBe(v2.id);
     expect(dialog.textContent).toContain("Second line");
@@ -782,9 +782,9 @@ describe("SkillDetailPage versions tab", () => {
 
     expect(selects[0]?.value).toBe("");
     expect(selects[1]?.value).toBe(v1.id);
-    expect(dialog.textContent).toContain("Initial");
+    expect(dialog.textContent).toContain("Inicial");
     expect(dialog.textContent).toContain("First line");
-    expect(dialog.textContent).not.toContain("Both sides are the same version");
+    expect(dialog.textContent).not.toContain("Ambos lados son la misma versión");
   });
 });
 
@@ -816,7 +816,7 @@ describe("SkillDetailPage settings", () => {
 
     expect(node.textContent).not.toContain("Fork or import locally");
 
-    const forkButton = buttonsNamed(node, "Make a copy")[0] as HTMLButtonElement;
+    const forkButton = buttonsNamed(node, "Hacer una copia")[0] as HTMLButtonElement;
     expect(forkButton).toBeTruthy();
 
     await click(forkButton);
@@ -856,10 +856,10 @@ describe("SkillDetailPage settings", () => {
       onUpdateSettings,
     });
 
-    await click(buttonsNamed(node, "Settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Ajustes")[0] as HTMLButtonElement);
     const dialog = node.querySelector('[role="dialog"]') as HTMLElement;
     const categoryInput = dialog.querySelector("input") as HTMLInputElement;
-    const saveButton = buttonsNamed(dialog, "Save settings")[0] as HTMLButtonElement;
+    const saveButton = buttonsNamed(dialog, "Guardar ajustes")[0] as HTMLButtonElement;
 
     expect(categoryInput.value).toBe("engineering");
 
@@ -884,12 +884,12 @@ describe("SkillDetailPage settings", () => {
       onUpdateSettings,
     });
 
-    await click(buttonsNamed(node, "Settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Ajustes")[0] as HTMLButtonElement);
     const dialog = node.querySelector('[role="dialog"]') as HTMLElement;
 
     await inputValue(dialog.querySelector("input") as HTMLInputElement, "");
     await selectValue(dialog.querySelector("select") as HTMLSelectElement, "private");
-    await click(buttonsNamed(dialog, "Save settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(dialog, "Guardar ajustes")[0] as HTMLButtonElement);
 
     expect(onUpdateSettings).toHaveBeenCalledWith({
       sharingScope: "private",
@@ -907,12 +907,12 @@ describe("SkillDetailPage settings", () => {
       }),
     });
 
-    await click(buttonsNamed(node, "Settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Ajustes")[0] as HTMLButtonElement);
     const dialog = node.querySelector('[role="dialog"]') as HTMLElement;
 
     await inputValue(dialog.querySelector("input") as HTMLInputElement, "review, memory");
 
-    expect((buttonsNamed(dialog, "Save settings")[0] as HTMLButtonElement).disabled).toBe(true);
+    expect((buttonsNamed(dialog, "Guardar ajustes")[0] as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("keeps the category draft visible while a failed save leaves detail unchanged", async () => {
@@ -928,11 +928,11 @@ describe("SkillDetailPage settings", () => {
       onUpdateSettings,
     });
 
-    await click(buttonsNamed(node, "Settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Ajustes")[0] as HTMLButtonElement);
     const categoryInput = node.querySelector('[role="dialog"] input') as HTMLInputElement;
 
     await inputValue(categoryInput, "memory");
-    await click(buttonsNamed(node.querySelector('[role="dialog"]') as HTMLElement, "Save settings")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node.querySelector('[role="dialog"]') as HTMLElement, "Guardar ajustes")[0] as HTMLButtonElement);
 
     await act(async () => {
       root?.render(
@@ -1042,9 +1042,9 @@ describe("install-time agent enablement", () => {
     });
 
     const node = container as ParentNode;
-    expect(node.textContent).toContain("Enable for agents");
+    expect(node.textContent).toContain("Activar para agentes");
 
-    await click(buttonsNamed(node, "Install skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Instalar habilidad")[0] as HTMLButtonElement);
 
     expect(onConfirm).toHaveBeenCalledWith({
       slug: "wireframe",
@@ -1085,7 +1085,7 @@ describe("install-time agent enablement", () => {
     // The agents arrive later; the untouched selection must pick them up.
     await act(async () => renderDialog(agentOptions));
 
-    await click(buttonsNamed(container as ParentNode, "Install skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(container as ParentNode, "Instalar habilidad")[0] as HTMLButtonElement);
 
     expect(onConfirm.mock.calls[0][0].agentIds).toHaveLength(2);
   });
@@ -1117,9 +1117,9 @@ describe("install-time agent enablement", () => {
     });
 
     const node = container as ParentNode;
-    expect(node.textContent).not.toContain("Enable for agents");
+    expect(node.textContent).not.toContain("Activar para agentes");
 
-    await click(buttonsNamed(node, "Install update")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Instalar actualización")[0] as HTMLButtonElement);
 
     expect(onConfirm).toHaveBeenCalledWith({ slug: "wireframe", force: false, agentIds: [] });
   });

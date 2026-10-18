@@ -51,7 +51,7 @@ describe("StarToggle", () => {
     await render(<StarToggle starred={false} resourceName="Alpha" onToggle={onToggle} />);
 
     const btn = button();
-    expect(btn?.getAttribute("aria-label")).toBe("Star Alpha");
+    expect(btn?.getAttribute("aria-label")).toBe("Destacar Alpha");
     expect(btn?.getAttribute("aria-pressed")).toBe("false");
 
     await act(async () => { btn?.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
@@ -63,7 +63,7 @@ describe("StarToggle", () => {
     await render(<StarToggle starred resourceName="Alpha" onToggle={onToggle} />);
 
     const btn = button();
-    expect(btn?.getAttribute("aria-label")).toBe("Unstar Alpha");
+    expect(btn?.getAttribute("aria-label")).toBe("Quitar destacado: Alpha");
     expect(btn?.getAttribute("aria-pressed")).toBe("true");
     // A starred (non-quiet) row control is visible at rest.
     expect(btn?.className).toContain("opacity-100");
@@ -97,7 +97,7 @@ describe("StarToggle", () => {
     const btn = button();
     expect(btn?.textContent).toBe("");
     expect(btn?.getAttribute("data-variant")).toBe("ghost");
-    expect(btn?.getAttribute("title")).toBe("Couldn't save — retry");
+    expect(btn?.getAttribute("title")).toBe("No se pudo guardar — reintentar");
   });
 
   it("renders the unstarred detail variant as an unfilled icon without an outline", async () => {
@@ -105,7 +105,7 @@ describe("StarToggle", () => {
     const btn = button();
     expect(btn?.textContent).toBe("");
     expect(btn?.getAttribute("data-variant")).toBe("ghost");
-    expect(btn?.getAttribute("aria-label")).toBe("Star Alpha");
+    expect(btn?.getAttribute("aria-label")).toBe("Destacar Alpha");
     expect(btn?.querySelector("svg")?.getAttribute("class")).not.toContain("fill-amber-500");
   });
 
@@ -115,7 +115,7 @@ describe("StarToggle", () => {
     expect(btn?.textContent).toBe("");
     expect(btn?.getAttribute("data-variant")).toBe("ghost");
     expect(btn?.getAttribute("data-size")).toBe("icon-sm");
-    expect(btn?.getAttribute("aria-label")).toBe("Unstar Alpha");
+    expect(btn?.getAttribute("aria-label")).toBe("Quitar destacado: Alpha");
     expect(btn?.querySelector("svg")?.getAttribute("class")).toContain("fill-amber-500");
   });
 });

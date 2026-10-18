@@ -63,7 +63,7 @@ describe("ScheduleEditor cron helpers", () => {
   it("reports partial cron edits as invalid without treating them as presets", () => {
     const validation = getScheduleCronValidation("0 8-18/2 *");
     expect(validation.valid).toBe(false);
-    expect(validation.message).toContain("5 fields");
+    expect(validation.message).toContain("5 campos");
   });
 });
 
@@ -81,7 +81,7 @@ describe("ScheduleEditor", () => {
   });
 
   function cronInput() {
-    return container.querySelector<HTMLInputElement>('input[aria-label="Cron expression"]');
+    return container.querySelector<HTMLInputElement>('input[aria-label="Expresión cron"]');
   }
 
   it("renders unknown valid cron expressions in Custom with the original text", () => {
@@ -90,9 +90,9 @@ describe("ScheduleEditor", () => {
       root.render(<Harness initial="0 8-18/2 * * 1-5" />);
     });
 
-    expect(container.textContent).toContain("Custom (cron)");
+    expect(container.textContent).toContain("Personalizado (cron)");
     expect(cronInput()?.value).toBe("0 8-18/2 * * 1-5");
-    expect(container.textContent).toContain("Valid cron.");
+    expect(container.textContent).toContain("Cron válido.");
 
     act(() => root.unmount());
   });
@@ -116,7 +116,7 @@ describe("ScheduleEditor", () => {
     });
     expect(cronInput()?.value).toBe("0 8-18/2 *");
     expect(cronInput()?.getAttribute("aria-invalid")).toBe("true");
-    expect(container.textContent).toContain("Use exactly 5 fields");
+    expect(container.textContent).toContain("Usa exactamente 5 campos");
     expect(onChange).not.toHaveBeenCalledWith("0 8-18/2 *");
     expect(onValidityChange).toHaveBeenLastCalledWith(false);
 

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { ProjectRepositoryInput, repositoryOptionsKey } from "./ProjectRepositoryInput";
 import { ConnectionSetupFlow } from "@/features/connections/ConnectionSetupFlow";
+import { t } from "@/i18n";
 
 export function NewProjectDialog() {
   const { newProjectOpen, closeNewProject } = useDialog();
@@ -40,7 +41,7 @@ export function NewProjectForm({ companyId, onClose }: { companyId: string; onCl
       className="flex max-h-(--sz-calc-18) flex-col gap-0 overflow-hidden p-0 shadow-sm sm:max-w-lg"
       onOpenAutoFocus={(event) => { event.preventDefault(); input.current?.focus(); }}>
       {connecting ? <div className="min-h-0 overflow-y-auto p-5">
-        <DialogTitle className="sr-only">Connect GitHub</DialogTitle>
+        <DialogTitle className="sr-only">{t("newProjectDialog.connectGithub")}</DialogTitle>
         <ConnectionSetupFlow host="dialog" serviceSlug="github" forceNewConnection onCancel={() => setConnecting(false)} onComplete={() => {
           void client.invalidateQueries({ queryKey: repositoryOptionsKey(companyId) });
           setConnecting(false);
@@ -48,22 +49,22 @@ export function NewProjectForm({ companyId, onClose }: { companyId: string; onCl
       </div> : <form className="flex min-h-0 flex-col overflow-hidden" onSubmit={(event) => { event.preventDefault(); if (name.trim() && !create.isPending) create.mutate(); }}>
         <div className="flex shrink-0 flex-col gap-4 px-5 pb-4 pt-5">
           <div className="flex items-center justify-between gap-3">
-            <DialogTitle className="text-lg font-semibold">Create project</DialogTitle>
-            <Button type="button" variant="ghost" size="icon-sm" disabled={create.isPending} aria-label="Close new project" onClick={onClose}><X className="size-4" /></Button>
+            <DialogTitle className="text-lg font-semibold">{t("newProjectDialog.createProject")}</DialogTitle>
+            <Button type="button" variant="ghost" size="icon-sm" disabled={create.isPending} aria-label={t("newProjectDialog.closeAria")} onClick={onClose}><X className="size-4" /></Button>
           </div>
           <div className="flex items-center gap-3 rounded-lg border border-input px-3 focus-within:border-ring focus-within:ring-1 focus-within:ring-ring">
             <ProjectTile color={color} size="sm" />
-            <input ref={input} aria-label="Project name" value={name} disabled={create.isPending} onChange={(event) => setName(event.target.value)} placeholder="Project name" required
+            <input ref={input} aria-label={t("newProjectDialog.projectName")} value={name} disabled={create.isPending} onChange={(event) => setName(event.target.value)} placeholder={t("newProjectDialog.projectName")} required
               className="h-10 w-full min-w-0 border-0 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-sm" />
           </div>
         </div>
-        <div role="region" aria-label="Source repositories" tabIndex={0} className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-1 outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring">
+        <div role="region" aria-label={t("newProjectDialog.sourceRepos")} tabIndex={0} className="min-h-0 overflow-y-auto overscroll-contain px-5 pb-1 outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring">
           <ProjectRepositoryInput companyId={companyId} selected={repos} onChange={setRepos} onConnect={() => setConnecting(true)} disabled={create.isPending} />
         </div>
         {create.isError && <p role="alert" className="px-5 pt-3 text-sm text-destructive">{create.error.message}</p>}
         <div className="flex shrink-0 justify-end gap-2 px-5 py-5">
-          <Button type="button" variant="ghost" disabled={create.isPending} onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={!name.trim() || create.isPending}>{create.isPending ? "Creating…" : "Create project"}</Button>
+          <Button type="button" variant="ghost" disabled={create.isPending} onClick={onClose}>{t("newProjectDialog.cancel")}</Button>
+          <Button type="submit" disabled={!name.trim() || create.isPending}>{create.isPending ? t("newProjectDialog.creating") : t("newProjectDialog.createProject")}</Button>
         </div>
       </form>}
     </DialogContent>

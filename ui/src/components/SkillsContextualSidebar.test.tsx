@@ -54,13 +54,13 @@ describe("SkillsContextualSidebar", () => {
   it("keeps Installed, Discover, and authored My Skills visible together", () => {
     const root = render();
 
-    expect(container.textContent).toContain("Installed");
-    expect(container.textContent).toContain("Discover");
-    expect(container.textContent).toContain("My Skills");
-    expect(container.textContent).toContain("Skills you create, edit, and test.");
+    expect(container.textContent).toContain("Instaladas");
+    expect(container.textContent).toContain("Descubrir");
+    expect(container.textContent).toContain("Mis habilidades");
+    expect(container.textContent).toContain("Habilidades que creas, editas y pruebas.");
     expect(container.textContent).not.toContain("Paperclip");
     expect(container.querySelector('[aria-label="Back from Skills"]')).toBeNull();
-    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("Installed");
+    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("Instaladas");
 
     act(() => root.unmount());
   });
@@ -93,7 +93,7 @@ describe("SkillsContextualSidebar", () => {
     mockLocation.search = "?tab=bundled";
     const root = render();
 
-    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("Discover");
+    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("Descubrir");
     expect(sidebarNavItemMock.mock.calls.map(([props]) => props.to)).toEqual([
       "/skills",
       "/skills?tab=discover",
@@ -109,7 +109,7 @@ describe("SkillsContextualSidebar", () => {
     mockLocation.search = "?tab=files";
     const root = render();
 
-    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("My Skills");
+    expect(container.querySelector('[aria-current="page"]')?.textContent).toBe("Mis habilidades");
 
     act(() => root.unmount());
   });

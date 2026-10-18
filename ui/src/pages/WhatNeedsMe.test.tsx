@@ -24,8 +24,8 @@ describe("WhatNeedsMe decision history", () => {
       <DecisionBundleHeader agentName="Planner" title="Choose routes" originIssue={null} count={2} />,
     );
 
-    expect(single).toContain("Planner proposed 1 decision");
-    expect(multiple).toContain("Planner proposed 2 decisions");
+    expect(single).toContain("Planner propuso 1 decisión");
+    expect(multiple).toContain("Planner propuso 2 decisiones");
     expect(single).not.toContain("cleanup");
     expect(multiple).not.toContain("cleanup");
   });

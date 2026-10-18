@@ -52,7 +52,7 @@ describe("ContextualSidebarFrame", () => {
     expect(container.textContent).toContain("Settings");
 
     act(() => {
-      container.querySelector<HTMLButtonElement>('button[aria-label="Back from Settings"]')?.click();
+      container.querySelector<HTMLButtonElement>('button[aria-label="Volver desde Settings"]')?.click();
     });
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     act(() => root.unmount());
@@ -67,7 +67,7 @@ describe("ContextualSidebarFrame", () => {
     const root = render();
 
     act(() => {
-      container.querySelector<HTMLButtonElement>('button[aria-label="Back from Settings"]')?.click();
+      container.querySelector<HTMLButtonElement>('button[aria-label="Volver desde Settings"]')?.click();
     });
     expect(mockNavigate).toHaveBeenCalledWith("/PAP/issues/task-1");
     act(() => root.unmount());
@@ -84,7 +84,7 @@ describe("ContextualSidebarFrame", () => {
     });
 
     expect(container.textContent).toBe("Skill links");
-    expect(container.querySelector('[aria-label="Back from Skills"]')).toBeNull();
+    expect(container.querySelector('[aria-label="Volver desde Skills"]')).toBeNull();
     act(() => root.unmount());
   });
 });

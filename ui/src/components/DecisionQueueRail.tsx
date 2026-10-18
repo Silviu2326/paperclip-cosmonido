@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import { Link } from "@/lib/router";
 import { decisionQueuesApi } from "../api/decisionQueues";
 import { queryKeys } from "../lib/queryKeys";
@@ -25,6 +26,7 @@ interface DecisionQueueRailProps {
  * the queue's pending items.
  */
 export function DecisionQueueRail({ companyId, activeQueueKey = null }: DecisionQueueRailProps) {
+  const { t } = useTranslation();
   const { data: queues } = useQuery({
     queryKey: queryKeys.decisionQueues.list(companyId),
     queryFn: () => decisionQueuesApi.list(companyId),
@@ -40,8 +42,8 @@ export function DecisionQueueRail({ companyId, activeQueueKey = null }: Decision
   const now = Date.now();
 
   return (
-    <nav className="flex flex-wrap items-center gap-1.5" aria-label="Decision queues" data-decision-queue-rail>
-      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label="All" />
+    <nav className="flex flex-wrap items-center gap-1.5" aria-label={t("decisionQueueRail.navLabel")} data-decision-queue-rail>
+      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label={t("decisionQueueRail.all")} />
       {queues.map((queue) => {
         const recent = now - new Date(queue.updatedAt).getTime() < RECENT_ACTIVITY_MS;
         return (
@@ -72,6 +74,7 @@ function Chip({
   count?: number;
   recent?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <Link
       to={href}
@@ -84,7 +87,7 @@ function Chip({
       aria-current={active ? "page" : undefined}
     >
       {recent && (
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label="Recent activity" />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-label={t("decisionQueueRail.recentActivity")} />
       )}
       <span className="truncate">{label}</span>
       {count != null && count > 0 && (

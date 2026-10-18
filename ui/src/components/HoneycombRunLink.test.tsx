@@ -38,7 +38,7 @@ describe("HoneycombRunLink", () => {
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("View in Honeycomb");
+    expect(container.textContent).not.toContain("Ver en Honeycomb");
   });
 
   it("links the run hash query when Paperclip developer mode is on", async () => {
@@ -48,7 +48,7 @@ describe("HoneycombRunLink", () => {
     await flushReact();
 
     const link = container.querySelector<HTMLAnchorElement>("a");
-    expect(link?.textContent).toContain("View in Honeycomb");
+    expect(link?.textContent).toContain("Ver en Honeycomb");
     expect(link?.target).toBe("_blank");
     const query = JSON.parse(
       new URL(link?.href ?? "about:blank").searchParams.get("query") ?? "null",

@@ -156,12 +156,12 @@ describe("RunnerInspector", () => {
     );
     flushSync(() =>
       Array.from(container.querySelectorAll("button"))
-        .find((button) => button.textContent?.trim() === "Overview")
+        .find((button) => button.textContent?.trim() === "Resumen")
         ?.click(),
     );
     await flush();
-    expect(container.textContent).toContain("Raw capture off");
-    expect(container.textContent).not.toContain("Expired");
+    expect(container.textContent).toContain("Captura sin procesar desactivada");
+    expect(container.textContent).not.toContain("Caducada");
     const rerunButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("Re-run with provider trace"),
     );

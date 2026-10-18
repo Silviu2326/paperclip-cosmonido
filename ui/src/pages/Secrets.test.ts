@@ -85,7 +85,7 @@ describe("Secrets page provider helpers", () => {
         null,
       ),
     ).toBe(
-      "Deployment default AWS Secrets Manager is not configured. Select a ready provider vault or configure the deployment default.",
+      "El predeterminado de despliegue AWS Secrets Manager no está configurado. Selecciona un almacén de proveedor listo o configura el predeterminado de despliegue.",
     );
   });
 
@@ -108,7 +108,7 @@ describe("Secrets page provider helpers", () => {
         health,
       ),
     ).toBe(
-      "Deployment default AWS Secrets Manager is not configured. Select a ready provider vault or configure the deployment default. AWS Secrets Manager provider is not ready: missing PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID.",
+      "El predeterminado de despliegue AWS Secrets Manager no está configurado. Selecciona un almacén de proveedor listo o configura el predeterminado de despliegue. AWS Secrets Manager provider is not ready: missing PAPERCLIP_SECRETS_AWS_DEPLOYMENT_ID.",
     );
   });
 
@@ -141,7 +141,7 @@ describe("Secrets page provider helpers", () => {
           status: "disabled",
         }),
       ),
-    ).toBe("This provider vault is disabled.");
+    ).toBe("Este almacén de proveedor está deshabilitado.");
   });
 
   it("blocks provider modes the backend does not support", () => {
@@ -151,7 +151,7 @@ describe("Secrets page provider helpers", () => {
         "external",
         null,
       ),
-    ).toBe("Local encrypted (default) does not support linked external references.");
+    ).toBe("Local encrypted (default) no admite referencias externas vinculadas.");
   });
 
   it("switching to external mode prefers AWS instead of staying on local encrypted when a ready AWS vault exists", () => {
@@ -203,6 +203,6 @@ describe("Secrets page provider helpers", () => {
         provider: "vault",
         status: "coming_soon",
       } as never),
-    ).toBe("This provider vault is saved as draft metadata only.");
+    ).toBe("Este almacén de proveedor solo está guardado como metadatos en borrador.");
   });
 });

@@ -75,13 +75,13 @@ describe("organization navigation replacement", () => {
     state.companyListReady = false;
     state.props = null;
     render();
-    expect(container.querySelector('[aria-label="Loading organization"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Cargando organización"]')).not.toBeNull();
     expect(container.textContent).toBe("");
     expect(state.props).toBeNull();
     state.companyListReady = true;
     state.companyIds = ["company-b"];
     render();
-    expect(container.querySelector('[aria-label="Loading organization"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Cargando organización"]')).not.toBeNull();
     expect(container.textContent).toBe("");
     expect(state.props).toBeNull();
     state.companyId = "company-b";

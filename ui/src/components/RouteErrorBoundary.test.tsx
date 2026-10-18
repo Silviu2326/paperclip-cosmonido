@@ -52,7 +52,7 @@ describe("RouteErrorBoundary", () => {
     });
 
     const goBack = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Go back",
+      (button) => button.textContent === "Volver",
     );
     expect(goBack).toBeDefined();
 
@@ -83,11 +83,11 @@ describe("RouteErrorBoundary", () => {
     });
     expect(
       Array.from(container.querySelectorAll("button")).some(
-        (button) => button.textContent === "Go back",
+        (button) => button.textContent === "Volver",
       ),
     ).toBe(true);
 
-    expect(container.textContent).toContain("This page hit an error");
+    expect(container.textContent).toContain("Esta página ha tenido un error");
     expect(container.textContent).toContain("Maximum update depth exceeded");
     expect(container.querySelector("pre")).not.toBeNull();
 
@@ -103,7 +103,7 @@ describe("RouteErrorBoundary", () => {
     });
 
     expect(container.textContent).toContain("Agents list");
-    expect(container.textContent).not.toContain("This page hit an error");
+    expect(container.textContent).not.toContain("Esta página ha tenido un error");
 
     act(() => {
       root.unmount();

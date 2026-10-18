@@ -210,8 +210,8 @@ describe("RoutineHistoryTab", () => {
     await render({
       routine: createRoutine({ latestRevisionId: "revision-1", latestRevisionNumber: 1 }),
     });
-    expect(container.textContent).toContain("No edits yet");
-    expect(container.textContent).toContain("Revision 1 is the only history");
+    expect(container.textContent).toContain("Aún no hay ediciones");
+    expect(container.textContent).toContain("La revisión 1 es el único historial");
   });
 
   it("renders the revision list with current and historical pills", async () => {
@@ -229,7 +229,7 @@ describe("RoutineHistoryTab", () => {
     await render();
     expect(container.textContent).toContain("rev 2");
     expect(container.textContent).toContain("rev 1");
-    expect(container.textContent).toContain("Current");
+    expect(container.textContent).toContain("Actual");
   });
 
   it("shows the historical-preview banner with append-only copy when previewing an old revision", async () => {
@@ -256,11 +256,11 @@ describe("RoutineHistoryTab", () => {
     await flush();
     expect(container.textContent).toContain("Viewing revision 1 (read-only)");
     expect(container.textContent).toContain(
-      "Restoring this revision creates a new revision 3 with the same content. History stays append-only.",
+      "Restaurar esta revisión crea una nueva revision 3 with the same content. History stays append-only.",
     );
-    expect(container.textContent).toContain("Status");
+    expect(container.textContent).toContain("Estado");
     expect(container.textContent).toContain("paused");
-    expect(container.textContent).toContain("Restore as new revision");
+    expect(container.textContent).toContain("Restaurar como nueva revisión");
   });
 
   it("blocks historical preview and surfaces the conflict banner when local edits are dirty", async () => {
@@ -271,7 +271,7 @@ describe("RoutineHistoryTab", () => {
       isEditDirty: true,
       dirtyFields: [{ key: "description", label: "the description" }],
     });
-    expect(container.textContent).toContain("Unsaved routine edits");
+    expect(container.textContent).toContain("Ediciones de rutina sin guardar");
     const oldRow = container.querySelector(
       "[data-testid='revision-row-1']",
     ) as HTMLButtonElement | null;
@@ -302,7 +302,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent === "Restaurar como nueva revisión",
     );
     expect(restoreButtons.length).toBeGreaterThan(0);
     await act(async () => {
@@ -375,7 +375,7 @@ describe("RoutineHistoryTab", () => {
       },
     ];
     await render({ secrets });
-    expect(container.textContent).toContain("Env");
+    expect(container.textContent).toContain("Entorno");
     expect(container.textContent).toContain("2 keys (1 secret ref)");
 
     const oldRow = container.querySelector(
@@ -386,14 +386,14 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent === "Restaurar como nueva revisión",
     );
     expect(restoreButtons.length).toBeGreaterThan(0);
     await act(async () => {
       restoreButtons[0].click();
     });
     await flush();
-    expect(container.textContent).toContain("Routine secrets will revert");
+    expect(container.textContent).toContain("Los secretos de la rutina volverán atrás");
     expect(container.textContent).toContain("1 key removed");
     expect(container.textContent).toContain("1 key changed");
   });
@@ -474,7 +474,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const compareButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Compare with current",
+      (button) => button.textContent === "Comparar con la actual",
     );
     await act(async () => {
       compareButton?.click();
@@ -519,7 +519,7 @@ describe("RoutineHistoryTab", () => {
     });
     await flush();
     const restoreButtons = Array.from(container.querySelectorAll("button")).filter(
-      (button) => button.textContent === "Restore as new revision",
+      (button) => button.textContent === "Restaurar como nueva revisión",
     );
     await act(async () => {
       restoreButtons[0].click();

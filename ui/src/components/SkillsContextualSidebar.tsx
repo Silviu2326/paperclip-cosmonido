@@ -8,6 +8,7 @@ import {
 import { ContextualSidebarFrame } from "./ContextualSidebarFrame";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { contextualSidebarStyles } from "./contextual-sidebar-styles";
+import { t } from "@/i18n";
 
 export {
   resolveSkillsDiscoveryView,
@@ -24,33 +25,33 @@ export function SkillsContextualSidebar() {
   return (
     <ContextualSidebarFrame
       surface="skills"
-      title="Skills"
+      title={t("skillsContextualSidebar.title")}
       icon={Library}
       fallbackTo="/dashboard"
       showHeader={false}
       className="border-r border-border bg-background"
     >
       <nav
-        aria-label="Skills"
+        aria-label={t("skillsContextualSidebar.title")}
         data-slot="contextual-sidebar-nav"
         className={contextualSidebarStyles.nav}
       >
         <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
           <SidebarNavItem
             to={SKILLS_NAVIGATION_HREFS.installed}
-            label="Installed"
+            label={t("skillsContextualSidebar.installed")}
             icon={Library}
             active={activeView === "installed"}
             end
           />
           <SidebarNavItem
             to={SKILLS_NAVIGATION_HREFS.discover}
-            label="Discover"
+            label={t("skillsContextualSidebar.discover")}
             icon={Compass}
             active={activeView === "discover"}
             end
           />
-          <SidebarNavItem to={SKILLS_NAVIGATION_HREFS.sources} label="Sources" icon={GithubIcon} active={activeView === "sources"} />
+          <SidebarNavItem to={SKILLS_NAVIGATION_HREFS.sources} label={t("skillsContextualSidebar.sources")} icon={GithubIcon} active={activeView === "sources"} />
         </div>
 
         <div data-slot="contextual-sidebar-section" className={contextualSidebarStyles.section}>
@@ -58,18 +59,18 @@ export function SkillsContextualSidebar() {
             data-slot="contextual-sidebar-section-label"
             className={contextualSidebarStyles.sectionLabel}
           >
-            Author
+            {t("skillsContextualSidebar.author")}
           </div>
           <p
             data-slot="contextual-sidebar-section-description"
             className={contextualSidebarStyles.sectionDescription}
           >
-            Skills you create, edit, and test.
+            {t("skillsContextualSidebar.authorDescription")}
           </p>
           <div data-slot="contextual-sidebar-group" className={contextualSidebarStyles.group}>
             <SidebarNavItem
               to={SKILLS_NAVIGATION_HREFS.authored}
-              label="My Skills"
+              label={t("skillsContextualSidebar.mySkills")}
               icon={PencilRuler}
               active={activeView === "authored"}
             />

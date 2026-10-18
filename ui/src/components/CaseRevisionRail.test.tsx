@@ -101,7 +101,7 @@ describe("CaseRevisionRail", () => {
     const text = container.textContent ?? "";
     expect(text).toContain("rev 2");
     expect(text).toContain("rev 1");
-    expect(text).toContain("latest");
+    expect(text).toContain("última");
     expect(text).toContain("polish wording");
     expect(text).toContain("Cases Agent");
     // Latest (rev 2) selected → its body renders; via-issue attribution shown.

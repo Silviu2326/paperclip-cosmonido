@@ -21,7 +21,7 @@ vi.mock("@/context/ToastContext", () => ({ useToast: () => mocks }));
 
 const companyA = { id: "company-a", name: "Company A", issuePrefix: "CPA", status: "active" };
 const companyB = { id: "company-b", name: "Company B", issuePrefix: "CPB", status: "active" };
-const user = { id: "admin", name: "Admin", email: "admin@example.com", isInstanceAdmin: true };
+const user = { id: "admin", name: "Administrador", email: "admin@example.com", isInstanceAdmin: true };
 const membershipA = {
   id: "membership-a", companyId: companyA.id, companyName: companyA.name,
   status: "active", membershipRole: "owner", updatedAt: "2020-01-01T00:00:00Z",
@@ -83,7 +83,7 @@ describe("InstanceAccess company directory", () => {
   it("lets admins grant access outside their navigation list and refreshes their own navigation", async () => {
     await renderPage();
     await eventually(() => {
-      expect(button("Save organization access")).toBeDefined();
+      expect(button("Guardar acceso a organizaciones")).toBeDefined();
       expect(container.querySelector("nav")?.textContent).toBe("Company A");
     });
     const otherCompany = [...container.querySelectorAll("label")].find((label) => label.textContent?.includes("Company B"));
@@ -97,7 +97,7 @@ describe("InstanceAccess company directory", () => {
       return {};
     });
     await act(async () => checkbox!.click());
-    await act(async () => button("Save organization access")!.click());
+    await act(async () => button("Guardar acceso a organizaciones")!.click());
     await eventually(() => {
       expect(mocks.setUserCompanyAccess).toHaveBeenCalledWith(user.id, [companyA.id, companyB.id]);
       expect(container.querySelector("nav")?.textContent).toBe("Company A, Company B");
@@ -111,11 +111,11 @@ describe("InstanceAccess company directory", () => {
       expect(container.textContent).toContain("Failed to load organizations.");
       expect(container.querySelector("nav")?.textContent).toBe("Company A");
     });
-    expect(button("Save organization access")).toBeUndefined();
+    expect(button("Guardar acceso a organizaciones")).toBeUndefined();
     expect(mocks.setUserCompanyAccess).not.toHaveBeenCalled();
     mocks.directory.mockResolvedValue([companyA, companyB]);
-    await act(async () => button("Try again")!.click());
-    await eventually(() => expect(button("Save organization access")).toBeDefined());
+    await act(async () => button("Reintentar")!.click());
+    await eventually(() => expect(button("Guardar acceso a organizaciones")).toBeDefined());
   });
 
   it("does not request the directory when instance administration is forbidden", async () => {

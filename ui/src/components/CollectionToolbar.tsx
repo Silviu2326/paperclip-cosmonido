@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
 
 export interface CollectionToolbarProps {
   /** Primary context such as tabs, a view title, or a result count. */
@@ -30,8 +31,10 @@ export function CollectionToolbar({
   actions,
   feedback,
   className,
-  ariaLabel = "Collection controls",
+  ariaLabel: ariaLabelProp,
 }: CollectionToolbarProps) {
+  const { t } = useTranslation();
+  const ariaLabel = ariaLabelProp ?? t("collectionToolbar.ariaLabel");
   return (
     <div
       data-slot="collection-toolbar"

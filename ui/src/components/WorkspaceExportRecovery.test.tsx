@@ -16,24 +16,24 @@ describe("WorkspaceExportRecovery", () => {
   }
   it("shows a quiet status while the harness restores work", async () => {
     await mount({ ...action, evidence: { ...action.evidence, workspaceOwnerRecovery: { state: "resuming" } } });
-    expect(container.querySelector('[role="status"]')?.textContent).toBe("Restoring saved work…");
+    expect(container.querySelector('[role="status"]')?.textContent).toBe("Restaurando el trabajo guardado…");
   });
   it("does not mistake platform identity for confirmed recovery", async () => {
     await mount({ ...action, evidence: { ...action.evidence, owner: { ...(action.evidence.owner as object), worker: { provider: "railway", deploymentId: "old" } } } });
-    expect(container.textContent).toContain("operator assistance");
+    expect(container.textContent).toContain("ayuda del operador");
   });
   it("states that an operator is needed for legacy receipts", async () => {
     await mount(action);
-    expect(container.textContent).toContain("Workspace recovery needs operator assistance");
+    expect(container.textContent).toContain("La recuperación del espacio de trabajo necesita ayuda del operador");
   });
   it("keeps export repair out of the task", async () => {
     const cause = "native_workspace_sync_out_retry_exhausted";
     await mount({ ...action, cause });
-    expect(container.textContent).toContain("operator assistance");
+    expect(container.textContent).toContain("ayuda del operador");
   });
   it("removes the status when recovery resolves, including updates in place", async () => {
     await mount({ ...action, evidence: { ...action.evidence, workspaceOwnerStop: {} } });
-    expect(container.textContent).toBe("Restoring saved work…");
+    expect(container.textContent).toBe("Restaurando el trabajo guardado…");
     await mount({ ...action, status: "resolved" }); expect(container.textContent).toBe("");
     await mount(null); expect(container.textContent).toBe("");
   });

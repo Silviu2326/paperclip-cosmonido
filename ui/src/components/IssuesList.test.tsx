@@ -483,7 +483,7 @@ describe("IssuesList", () => {
       expect(row?.getAttribute("data-presentation")).toBe("task");
       expect(row?.getAttribute("data-show-identifier")).toBe("true");
       expect(row?.getAttribute("data-trailing-meta")).toMatch(/\S/);
-      expect(row?.getAttribute("data-trailing-meta")).not.toContain("Updated");
+      expect(row?.getAttribute("data-trailing-meta")).not.toContain("Actualizada");
       expect(row?.getAttribute("data-has-desktop-trailing")).toBe("false");
       expect(row?.querySelector('[data-slot="task-row-disclosure-spacer"]')).not.toBeNull();
     });
@@ -511,7 +511,7 @@ describe("IssuesList", () => {
       const parentRow = rows.find((row) => row.textContent?.includes("Parent task"));
       const childRow = rows.find((row) => row.textContent?.includes("Child task"));
       expect(parentRow?.getAttribute("data-tree-guides")).toBe("0");
-      expect(parentRow?.querySelector('button[aria-label="Collapse sub-tasks"]')).not.toBeNull();
+      expect(parentRow?.querySelector('button[aria-label="Contraer subtareas"]')).not.toBeNull();
       expect(childRow?.getAttribute("data-tree-guides")).toBe("1");
       expect(childRow?.querySelector('[data-slot="task-row-disclosure-spacer"]')).not.toBeNull();
     });
@@ -937,7 +937,7 @@ describe("IssuesList", () => {
     });
 
     const sortButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.getAttribute("title") === "Sort",
+      (button) => button.getAttribute("title") === "Ordenar",
     );
     expect(sortButton).toBeTruthy();
     act(() => {
@@ -946,12 +946,12 @@ describe("IssuesList", () => {
     await waitForAssertion(() => {
       const labels = Array.from(document.body.querySelectorAll("button")).map((b) => b.textContent ?? "");
       // Status sort option renders, but the Priority option is gated off (PAP-411).
-      expect(labels.some((text) => text.includes("Status"))).toBe(true);
-      expect(labels.some((text) => text.includes("Priority"))).toBe(false);
+      expect(labels.some((text) => text.includes("Estado"))).toBe(true);
+      expect(labels.some((text) => text.includes("Prioridad"))).toBe(false);
     });
 
     const groupButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.getAttribute("title") === "Group",
+      (button) => button.getAttribute("title") === "Agrupar",
     );
     expect(groupButton).toBeTruthy();
     act(() => {
@@ -959,8 +959,8 @@ describe("IssuesList", () => {
     });
     await waitForAssertion(() => {
       const labels = Array.from(document.body.querySelectorAll("button")).map((b) => b.textContent ?? "");
-      expect(labels.some((text) => text.includes("Status"))).toBe(true);
-      expect(labels.some((text) => text.includes("Priority"))).toBe(false);
+      expect(labels.some((text) => text.includes("Estado"))).toBe(true);
+      expect(labels.some((text) => text.includes("Prioridad"))).toBe(false);
     });
 
     act(() => {
@@ -1463,7 +1463,7 @@ describe("IssuesList", () => {
     });
 
     const pageSizeButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.getAttribute("title") === "Cards per column",
+      button.getAttribute("title") === "Tarjetas por columna",
     );
     expect(pageSizeButton).toBeTruthy();
 
@@ -1559,7 +1559,7 @@ describe("IssuesList", () => {
 
     await waitForAssertion(() => {
       expect(container.querySelectorAll('[data-testid="issue-row"]')).toHaveLength(100);
-      expect(container.textContent).toContain("Rendering 100 of 220 tasks");
+      expect(container.textContent).toContain("Mostrando 100 de 220 tareas");
     });
 
     act(() => {
@@ -1820,7 +1820,7 @@ describe("IssuesList", () => {
       expect(columnsButton).not.toBeUndefined();
       expect(container.textContent).toContain("PAP-9");
       expect(container.textContent).toContain("Agent One");
-      expect(container.textContent).not.toContain("Updated");
+      expect(container.textContent).not.toContain("Actualizada");
     });
 
     act(() => {
@@ -1894,8 +1894,8 @@ describe("IssuesList", () => {
     );
 
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Todo");
-      expect(container.textContent).toContain("Done");
+      expect(container.textContent).toContain("Por hacer");
+      expect(container.textContent).toContain("Hecha");
       expect(container.textContent).toContain("Alpha");
       expect(container.textContent).toContain("Beta");
     });

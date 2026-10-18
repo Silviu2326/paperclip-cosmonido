@@ -128,7 +128,7 @@ describe("KanbanBoard", () => {
       revealIncrement: 50,
     });
 
-    expect(container.textContent).toContain("Showing 50 of 60");
+    expect(container.textContent).toContain("Mostrando 50 de 60");
     expect(container.textContent).toContain("Show 10 more");
     expect(container.textContent).toContain("Issue 50");
     expect(container.textContent).not.toContain("Issue 51");
@@ -219,7 +219,7 @@ describe("KanbanBoard", () => {
     expect(container.textContent).toContain("PAP-1");
     expect(container.textContent).toContain("Issue 1");
     expect(container.textContent).toContain("Codex");
-    expect(container.textContent).toContain("Live");
+    expect(container.textContent).toContain("En vivo");
   });
 
   it("resolves drop targets from status rails and cards", () => {

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { t } from "@/i18n";
 import {
   RoutineListRow,
   type RoutineListAgentSummary,
@@ -79,7 +80,7 @@ export function ManagedRoutinesList({
   agents = [],
   projects = [],
   pluginDisplayName = null,
-  emptyMessage = "No managed routines.",
+  emptyMessage = t("managedRoutinesList.empty"),
   runningRoutineKey = null,
   statusMutationRoutineKey = null,
   reconcilingRoutineKey = null,
@@ -123,8 +124,8 @@ export function ManagedRoutinesList({
               runningRoutineId={runningRoutineKey}
               statusMutationRoutineId={statusMutationRoutineKey}
               href={href}
-              configureLabel="Configure"
-              managedByLabel={managedBy ? `Managed by ${managedBy}` : null}
+              configureLabel={t("managedRoutinesList.configure")}
+              managedByLabel={managedBy ? t("managedRoutinesList.managedBy", { name: managedBy }) : null}
               runNowButton
               hideArchiveAction
               disableRunNow={!canUseRoutine}
@@ -132,7 +133,7 @@ export function ManagedRoutinesList({
               secondaryDetails={
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {routine.resourceKey ? <span>{routine.resourceKey}</span> : null}
-                  {routine.cronExpression ? <span>Schedule {routine.cronExpression}</span> : null}
+                  {routine.cronExpression ? <span>{t("managedRoutinesList.schedule", { cron: routine.cronExpression })}</span> : null}
                 </span>
               }
               onRunNow={() => onRunNow?.(routine)}
@@ -148,8 +149,8 @@ export function ManagedRoutinesList({
               >
                 <span>
                   {missingRefs.length
-                    ? `Missing ${missingRefs.map((ref) => `${ref.resourceKind}:${ref.resourceKey}`).join(", ")}`
-                    : "Routine defaults can be repaired."}
+                    ? t("managedRoutinesList.missing", { list: missingRefs.map((ref) => `${ref.resourceKind}:${ref.resourceKey}`).join(", ") })
+                    : t("managedRoutinesList.repairable")}
                 </span>
                 <span className="flex items-center gap-2">
                   {onReconcile ? (
@@ -159,7 +160,7 @@ export function ManagedRoutinesList({
                       disabled={reconcilingRoutineKey === routine.key}
                       onClick={() => onReconcile(routine)}
                     >
-                      {reconcilingRoutineKey === routine.key ? "Reconciling..." : "Reconcile"}
+                      {reconcilingRoutineKey === routine.key ? t("managedRoutinesList.reconciling") : t("managedRoutinesList.reconcile")}
                     </Button>
                   ) : null}
                   {onReset ? (
@@ -169,7 +170,7 @@ export function ManagedRoutinesList({
                       disabled={resettingRoutineKey === routine.key}
                       onClick={() => onReset(routine)}
                     >
-                      {resettingRoutineKey === routine.key ? "Resetting..." : "Reset"}
+                      {resettingRoutineKey === routine.key ? t("managedRoutinesList.resetting") : t("managedRoutinesList.reset")}
                     </Button>
                   ) : null}
                 </span>

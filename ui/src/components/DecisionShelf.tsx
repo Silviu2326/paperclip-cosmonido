@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Sun } from "lucide-react";
 import type { Agent, AttentionItem } from "@paperclipai/shared";
+import { useTranslation } from "@/i18n";
 import { decisionQueuesApi } from "../api/decisionQueues";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
@@ -70,6 +71,7 @@ export function AgingItemRow({
   onDismiss: (item: AttentionItem) => void;
   onSnooze: (item: AttentionItem, snoozedUntil: string) => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const idleDays = attentionIdleDays(item, now);
@@ -77,12 +79,12 @@ export function AgingItemRow({
     mutationFn: () => decisionQueuesApi.setKeep(companyId, item.sourceKind, item.subject.id, true),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.attention(companyId) });
-      pushToast({ title: "Kept on desk", body: item.subject.title ?? undefined, tone: "success" });
+      pushToast({ title: t("decisionShelf.keptToast"), body: item.subject.title ?? undefined, tone: "success" });
     },
     onError: (error) =>
       pushToast({
-        title: "Could not keep this decision",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("decisionShelf.keepErrorTitle"),
+        body: error instanceof Error ? error.message : t("decisionShelf.tryAgain"),
         tone: "error",
       }),
   });
@@ -91,7 +93,7 @@ export function AgingItemRow({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2 px-1">
         <span className="text-(length:--text-nano) text-muted-foreground">
-          Idle {idleDays} {idleDays === 1 ? "day" : "days"}
+          {t(idleDays === 1 ? "decisionShelf.idleOne" : "decisionShelf.idleOther", { count: idleDays })}
         </span>
         <Button
           type="button"
@@ -103,7 +105,7 @@ export function AgingItemRow({
         >
           {keep.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
           <Sun className="h-3.5 w-3.5" />
-          {item.keep ? "Kept" : "Keep on desk"}
+          {item.keep ? t("decisionShelf.kept") : t("decisionShelf.keepOnDesk")}
         </Button>
       </div>
       <AttentionQueueRow

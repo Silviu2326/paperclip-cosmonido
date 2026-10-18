@@ -117,11 +117,11 @@ describe("InboxAgentPolicyControl", () => {
     await flush();
 
     await waitForAssertion(() => {
-      expect(optionByTitle(container, "Any of my agents")).toBeTruthy();
-      expect(optionByTitle(container, "Only chosen agents")).toBeTruthy();
-      expect(optionByTitle(container, "Off")).toBeTruthy();
-      expect(optionByTitle(container, "Off")?.getAttribute("aria-checked")).toBe("true");
-      expect(optionByTitle(container, "Any of my agents")?.getAttribute("aria-checked")).toBe("false");
+      expect(optionByTitle(container, "Cualquiera de mis agentes")).toBeTruthy();
+      expect(optionByTitle(container, "Solo agentes elegidos")).toBeTruthy();
+      expect(optionByTitle(container, "Desactivado")).toBeTruthy();
+      expect(optionByTitle(container, "Desactivado")?.getAttribute("aria-checked")).toBe("true");
+      expect(optionByTitle(container, "Cualquiera de mis agentes")?.getAttribute("aria-checked")).toBe("false");
     });
 
     act(() => root.unmount());
@@ -133,23 +133,23 @@ describe("InboxAgentPolicyControl", () => {
 
     // Save disabled until the draft diverges from the persisted policy.
     await waitForAssertion(() => {
-      const save = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Save"));
+      const save = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Guardar"));
       expect(save?.disabled).toBe(true);
     });
 
     // Switch to allowlist — agents stay in the compact selector instead of a
     // permanently expanded list.
-    await act(async () => optionByTitle(container, "Only chosen agents")!.click());
+    await act(async () => optionByTitle(container, "Solo agentes elegidos")!.click());
     await flush();
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Select agents");
+      expect(container.textContent).toContain("Seleccionar agentes");
       expect(container.textContent).not.toContain("Gardener");
       expect(container.textContent).not.toContain("Coder");
       expect(container.textContent).not.toContain("Retired");
     });
 
     const selector = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.includes("Select agents"));
+      .find((button) => button.textContent?.includes("Seleccionar agentes"));
     await act(async () => selector!.click());
     await flush();
     await waitForAssertion(() => {
@@ -165,7 +165,7 @@ describe("InboxAgentPolicyControl", () => {
     await act(async () => gardenerCheckbox!.click());
     await flush();
 
-    const saveButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Save"))!;
+    const saveButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Guardar"))!;
     await waitForAssertion(() => expect(saveButton.disabled).toBe(false));
 
     await act(async () => saveButton.click());
@@ -177,8 +177,8 @@ describe("InboxAgentPolicyControl", () => {
     });
 
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Saved");
-      const save = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Save"));
+      expect(container.textContent).toContain("Guardado");
+      const save = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Guardar"));
       expect(save?.disabled).toBe(true);
     });
 
@@ -191,13 +191,13 @@ describe("InboxAgentPolicyControl", () => {
     await flush();
 
     await waitForAssertion(() => {
-      expect(optionByTitle(container, "Only chosen agents")?.getAttribute("aria-checked")).toBe("true");
+      expect(optionByTitle(container, "Solo agentes elegidos")?.getAttribute("aria-checked")).toBe("true");
     });
 
-    await act(async () => optionByTitle(container, "Off")!.click());
+    await act(async () => optionByTitle(container, "Desactivado")!.click());
     await flush();
 
-    const saveButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Save"))!;
+    const saveButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent?.includes("Guardar"))!;
     await waitForAssertion(() => expect(saveButton.disabled).toBe(false));
     await act(async () => saveButton.click());
     await flush();

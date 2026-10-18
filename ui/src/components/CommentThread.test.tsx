@@ -220,7 +220,7 @@ describe("CommentThread", () => {
 
     expect(container.textContent).toContain("Workspace is closed.");
     expect(container.querySelector('textarea[aria-label="Comment editor"]')).toBeNull();
-    expect(container.textContent).not.toContain("Comment");
+    expect(container.textContent).not.toContain("Comentar");
 
     act(() => {
       root.unmount();
@@ -262,8 +262,8 @@ describe("CommentThread", () => {
       );
     });
 
-    expect(container.textContent).toContain("Follow-up");
-    expect(container.textContent).toContain("requested follow-up");
+    expect(container.textContent).toContain("Seguimiento");
+    expect(container.textContent).toContain("solicitó seguimiento");
 
     act(() => {
       root.unmount();
@@ -291,7 +291,7 @@ describe("CommentThread", () => {
 
     const editor = container.querySelector('textarea[aria-label="Comment editor"]') as HTMLTextAreaElement | null;
     const submitButton = Array.from(container.querySelectorAll("button")).find(
-      (element) => element.textContent === "Comment",
+      (element) => element.textContent === "Comentar",
     ) as HTMLButtonElement | undefined;
     expect(editor).not.toBeNull();
     expect(submitButton).toBeDefined();
@@ -414,12 +414,12 @@ describe("CommentThread", () => {
     });
 
     const copyButton = Array.from(container.querySelectorAll("button")).find(
-      (element) => element.getAttribute("aria-label") === "Copy comment as markdown",
+      (element) => element.getAttribute("aria-label") === "Copiar comentario como markdown",
     ) as HTMLButtonElement | undefined;
 
     expect(copyButton).toBeDefined();
     expect(copyButton?.className).toContain("min-h-8");
-    expect(copyButton?.textContent).toContain("Copy");
+    expect(copyButton?.textContent).toContain("Copiar");
 
     Object.defineProperty(window, "isSecureContext", {
       value: false,
@@ -432,13 +432,13 @@ describe("CommentThread", () => {
 
     expect(writeTextMock).not.toHaveBeenCalled();
     expect(execCommandMock).toHaveBeenCalledWith("copy");
-    expect(copyButton?.textContent).toContain("Copied");
+    expect(copyButton?.textContent).toContain("Copiado");
 
     act(() => {
       vi.advanceTimersByTime(1500);
     });
 
-    expect(copyButton?.textContent).toContain("Copy");
+    expect(copyButton?.textContent).toContain("Copiar");
 
     act(() => {
       root.unmount();
@@ -471,7 +471,7 @@ describe("CommentThread", () => {
                 objectType: "pull_request",
                 statusCategory: "open",
                 liveness: "fresh",
-                statusLabel: "Open",
+                statusLabel: "Abierto",
                 displayTitle: "PR #42",
               },
             }}

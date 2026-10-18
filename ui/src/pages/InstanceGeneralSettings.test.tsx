@@ -82,13 +82,13 @@ describe("InstanceGeneralSettings sign-out", () => {
         </QueryClientProvider>,
       );
     });
-    await vi.waitFor(() => expect(container.textContent).toContain("Deployment and auth"));
+    await vi.waitFor(() => expect(container.textContent).toContain("Despliegue y autenticación"));
     expect(container.querySelector('[data-slot="card"]')).toBeNull();
   }
 
   function signOutButton() {
     return Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.trim() === "Sign out");
+      .find((button) => button.textContent?.trim() === "Cerrar sesión");
   }
 
   it("uses the Cloud-managed top-level logout without calling local auth", async () => {
@@ -131,7 +131,7 @@ describe("InstanceGeneralSettings sign-out", () => {
     await renderPage(SELF_HOSTED_HEALTH);
 
     const censorToggle = container.querySelector<HTMLButtonElement>(
-      '[aria-label="Toggle username log censoring"]',
+      '[aria-label="Activar o desactivar el ocultamiento del nombre de usuario en los logs"]',
     );
     flushSync(() => censorToggle?.click());
     await vi.waitFor(() => expect(container.textContent).toContain("Settings update failed"));
@@ -150,7 +150,7 @@ describe("InstanceGeneralSettings sign-out", () => {
     await vi.waitFor(() => expect(container.textContent).toContain("Sign-out request failed"));
 
     const censorToggle = container.querySelector<HTMLButtonElement>(
-      '[aria-label="Toggle username log censoring"]',
+      '[aria-label="Activar o desactivar el ocultamiento del nombre de usuario en los logs"]',
     );
     flushSync(() => censorToggle?.click());
 
@@ -168,7 +168,7 @@ describe("InstanceGeneralSettings sign-out", () => {
     await renderPage(SELF_HOSTED_HEALTH);
 
     const censorToggle = container.querySelector<HTMLButtonElement>(
-      '[aria-label="Toggle username log censoring"]',
+      '[aria-label="Activar o desactivar el ocultamiento del nombre de usuario en los logs"]',
     );
     flushSync(() => signOutButton()?.click());
     await vi.waitFor(() => expect(mockAuthApi.signOut).toHaveBeenCalledOnce());
@@ -191,7 +191,7 @@ describe("InstanceGeneralSettings sign-out", () => {
     await renderPage(SELF_HOSTED_HEALTH);
 
     const censorToggle = container.querySelector<HTMLButtonElement>(
-      '[aria-label="Toggle username log censoring"]',
+      '[aria-label="Activar o desactivar el ocultamiento del nombre de usuario en los logs"]',
     );
     flushSync(() => censorToggle?.click());
     await vi.waitFor(() => expect(mockInstanceSettingsApi.updateGeneral).toHaveBeenCalledOnce());
@@ -240,7 +240,7 @@ describe("InstanceGeneralSettings operator-hidden sections", () => {
         </QueryClientProvider>,
       );
     });
-    await vi.waitFor(() => expect(container.textContent).toContain("Backup retention"));
+    await vi.waitFor(() => expect(container.textContent).toContain("Retención de copias de seguridad"));
   }
 
   it("hides an operator-hidden field-backed section and a UI-only section", async () => {
@@ -252,18 +252,18 @@ describe("InstanceGeneralSettings operator-hidden sections", () => {
       ],
     });
 
-    expect(container.textContent).not.toContain("Censor username in logs");
-    expect(container.textContent).not.toContain("Deployment and auth");
-    expect(container.textContent).toContain("Backup retention");
-    expect(container.textContent).toContain("AI feedback sharing");
-    expect(container.textContent).toContain("Sign out");
+    expect(container.textContent).not.toContain("Ocultar el nombre de usuario en los logs");
+    expect(container.textContent).not.toContain("Despliegue y autenticación");
+    expect(container.textContent).toContain("Retención de copias de seguridad");
+    expect(container.textContent).toContain("Compartir valoraciones de IA");
+    expect(container.textContent).toContain("Cerrar sesión");
   });
 
   it("shows every section when nothing is hidden", async () => {
     await renderPage(SELF_HOSTED_HEALTH);
 
-    expect(container.textContent).toContain("Deployment and auth");
-    expect(container.textContent).toContain("Censor username in logs");
-    expect(container.textContent).toContain("Backup retention");
+    expect(container.textContent).toContain("Despliegue y autenticación");
+    expect(container.textContent).toContain("Ocultar el nombre de usuario en los logs");
+    expect(container.textContent).toContain("Retención de copias de seguridad");
   });
 });

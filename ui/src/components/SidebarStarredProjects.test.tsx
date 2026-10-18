@@ -178,7 +178,7 @@ describe("SidebarStarredProjects", () => {
 
     // project-c is starred but absent because the default project list is server-filtered.
     expect(projectLinkLabels(container)).toEqual(["Bravo"]);
-    expect(document.body.querySelector('button[aria-label="Unstar Bravo"]')).not.toBeNull();
+    expect(document.body.querySelector('button[aria-label="Quitar destacado: Bravo"]')).not.toBeNull();
   });
 
   it("keeps starred projects indented only outside the collapsed rail", async () => {

@@ -225,7 +225,7 @@ function setInputValue(input: HTMLInputElement, value: string) {
 
 function findRunButton() {
   return Array.from(document.querySelectorAll("button"))
-    .find((button) => button.textContent === "Run routine") as HTMLButtonElement | undefined;
+    .find((button) => button.textContent === "Ejecutar rutina") as HTMLButtonElement | undefined;
 }
 
 describe("RoutineRunVariablesDialog", () => {
@@ -274,9 +274,9 @@ describe("RoutineRunVariablesDialog", () => {
     });
 
     expect(issueWorkspaceDraftCalls).toBeLessThanOrEqual(2);
-    expect(document.body.textContent).toContain("Run routine");
-    expect(document.body.textContent).not.toContain("Search agents...");
-    expect(document.body.textContent).not.toContain("Search projects...");
+    expect(document.body.textContent).toContain("Ejecutar rutina");
+    expect(document.body.textContent).not.toContain("Buscar agentes...");
+    expect(document.body.textContent).not.toContain("Buscar proyectos...");
 
     await flushUi(() => {
       root.unmount();
@@ -394,7 +394,7 @@ describe("RoutineRunVariablesDialog", () => {
     );
     expect(footer?.className).toContain("shrink-0");
     expect(footer?.contains(formScrollRegion ?? null)).toBe(false);
-    expect(footer?.textContent).toContain("Run routine");
+    expect(footer?.textContent).toContain("Ejecutar rutina");
 
     await flushUi(() => {
       root.unmount();
@@ -458,7 +458,7 @@ describe("RoutineRunVariablesDialog", () => {
     expect(document.body.textContent).not.toContain("Missing: workspaceBranch");
 
     const runButton = Array.from(document.querySelectorAll("button"))
-      .find((button) => button.textContent === "Run routine");
+      .find((button) => button.textContent === "Ejecutar rutina");
     expect(runButton).toBeTruthy();
 
     await flushUi(() => {

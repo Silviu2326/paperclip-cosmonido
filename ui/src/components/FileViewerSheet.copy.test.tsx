@@ -136,31 +136,31 @@ describe("FileViewerSheet copy actions", () => {
   it("copies file contents and shows confirmation", async () => {
     renderSheet();
 
-    await click("Copy file contents");
+    await click("Copiar contenido del archivo");
 
     expect(writeText).toHaveBeenCalledWith("hello from the file");
-    expect(document.body.textContent).toContain("Copied contents");
+    expect(document.body.textContent).toContain("Contenido copiado");
   });
 
   it("copies the current file view link and shows confirmation", async () => {
     renderSheet();
 
-    await click("Copy link to this file view");
+    await click("Copiar enlace a esta vista del archivo");
 
     expect(writeText).toHaveBeenCalledWith(window.location.href);
-    expect(document.body.textContent).toContain("Copied link");
+    expect(document.body.textContent).toContain("Enlace copiado");
   });
 
   it("renders a keyboard-addressable file tree resize separator", () => {
     renderSheet();
-    const separator = document.body.querySelector('[role="separator"][aria-label="Resize file tree"]');
+    const separator = document.body.querySelector('[role="separator"][aria-label="Redimensionar árbol de archivos"]');
     expect(separator).not.toBeNull();
     expect(separator?.getAttribute("aria-valuenow")).toBe("288");
   });
 
   it("keeps split panes unframed so file selection does not shift the browser", () => {
     renderSheet();
-    const separator = document.body.querySelector('[role="separator"][aria-label="Resize file tree"]');
+    const separator = document.body.querySelector('[role="separator"][aria-label="Redimensionar árbol de archivos"]');
     const browserPane = separator?.previousElementSibling;
     const previewPane = separator?.nextElementSibling;
 
@@ -194,16 +194,16 @@ describe("FileViewerSheet copy actions", () => {
     });
     renderSheet();
 
-    expect(document.body.querySelector('[aria-label="launch.md rendered Markdown"]')).not.toBeNull();
-    expect(document.body.querySelector('[aria-label="launch.md source"]')).toBeNull();
-    expect(document.body.querySelector('button[aria-label="Show rendered Markdown"]')).not.toBeNull();
-    expect(document.body.querySelector('button[aria-label="Show raw Markdown"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="Markdown renderizado de launch.md"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="Código fuente de launch.md"]')).toBeNull();
+    expect(document.body.querySelector('button[aria-label="Mostrar Markdown renderizado"]')).not.toBeNull();
+    expect(document.body.querySelector('button[aria-label="Mostrar Markdown en bruto"]')).not.toBeNull();
     expect(document.body.textContent).toContain("Rendered Markdown: # Launch note");
 
-    await click("Show raw Markdown");
+    await click("Mostrar Markdown en bruto");
 
-    expect(document.body.querySelector('[aria-label="launch.md source"]')).not.toBeNull();
-    expect(document.body.querySelector('[aria-label="launch.md rendered Markdown"]')).toBeNull();
+    expect(document.body.querySelector('[aria-label="Código fuente de launch.md"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="Markdown renderizado de launch.md"]')).toBeNull();
   });
 });
 

@@ -40,7 +40,7 @@ describe("SystemNotice", () => {
 
     const status = node.querySelectorAll('[role="status"]');
     expect(status.length).toBe(1);
-    expect(status[0]?.getAttribute("aria-label")).toBe("System warning");
+    expect(status[0]?.getAttribute("aria-label")).toBe("Advertencia del sistema");
     expect(node.textContent).toContain(
       "Paperclip needs a disposition before this issue can continue.",
     );
@@ -52,7 +52,7 @@ describe("SystemNotice", () => {
     );
 
     const status = node.querySelector('[role="status"]');
-    expect(status?.getAttribute("aria-label")).toBe("System alert");
+    expect(status?.getAttribute("aria-label")).toBe("Alerta del sistema");
   });
 
   it("uses neutral System notice label by default", () => {
@@ -61,7 +61,7 @@ describe("SystemNotice", () => {
     );
 
     const status = node.querySelector('[role="status"]');
-    expect(status?.getAttribute("aria-label")).toBe("System notice");
+    expect(status?.getAttribute("aria-label")).toBe("Aviso del sistema");
   });
 
   it("collapses metadata details by default and toggles aria-expanded on click", () => {

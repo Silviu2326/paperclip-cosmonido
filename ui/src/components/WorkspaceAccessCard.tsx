@@ -1,6 +1,7 @@
 import { ExternalLink, Loader2, Play, ScrollText, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { t, useTranslation } from "@/i18n";
 import { cn } from "../lib/utils";
 import type { WorkspaceAccessState } from "../lib/workspace-access-state";
 
@@ -31,12 +32,12 @@ const STATE_BADGE_CLASSES: Record<ActiveWorkspaceAccessState, string> = {
 };
 
 const STATE_LABELS: Record<ActiveWorkspaceAccessState, string> = {
-  provisioning: "Provisioning",
-  validating: "Validating clone",
-  ready: "Ready",
-  degraded: "Degraded",
-  repairing: "Repairing",
-  failed: "Failed",
+  provisioning: t("workspaceAccessCard.stateProvisioning"),
+  validating: t("workspaceAccessCard.stateValidating"),
+  ready: t("workspaceAccessCard.stateReady"),
+  degraded: t("workspaceAccessCard.stateDegraded"),
+  repairing: t("workspaceAccessCard.stateRepairing"),
+  failed: t("workspaceAccessCard.stateFailed"),
 };
 
 const ACTION_ICONS = {
@@ -64,6 +65,7 @@ export function WorkspaceAccessCard({
   onViewLogs: () => void;
   errorMessage?: string | null;
 }) {
+  const { t } = useTranslation();
   const Icon = ACTION_ICONS[access.action.kind];
   const isWaiting = access.action.kind === "wait";
   const handlers: Record<WorkspaceAccessState["action"]["kind"], () => void> = {
@@ -116,12 +118,12 @@ export function WorkspaceAccessCard({
           </Button>
           {access.state === "ready" && !access.handoffAvailable ? (
             <span className="text-xs text-muted-foreground">
-              Signs in with the snapshot-local credentials captured when this clone was made.
+              {t("workspaceAccessCard.readyCredentials")}
             </span>
           ) : null}
           {access.state === "ready" && access.handoffAvailable ? (
             <span className="text-xs text-muted-foreground">
-              Uses a single-use login handoff — no password needed.
+              {t("workspaceAccessCard.readyHandoff")}
             </span>
           ) : null}
         </div>

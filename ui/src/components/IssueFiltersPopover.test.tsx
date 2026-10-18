@@ -189,21 +189,21 @@ describe("IssueFiltersPopover", () => {
 
     const categoryOptions = container.querySelector('[data-filter-options="inbox-category"]');
     const approvalOptions = container.querySelector('[data-filter-options="inbox-approval-status"]');
-    expect(categoryOptions?.textContent).toContain("All categories");
-    expect(categoryOptions?.querySelector('button[aria-pressed="true"]')?.textContent).toContain("Approvals");
-    expect(approvalOptions?.querySelector('button[aria-pressed="true"]')?.textContent).toContain("Needs action");
+    expect(categoryOptions?.textContent).toContain("Todas las categorías");
+    expect(categoryOptions?.querySelector('button[aria-pressed="true"]')?.textContent).toContain("Aprobaciones");
+    expect(approvalOptions?.querySelector('button[aria-pressed="true"]')?.textContent).toContain("Requiere acción");
 
     const allCategoriesButton = Array.from(categoryOptions?.querySelectorAll("button") ?? [])
-      .find((button) => button.textContent?.includes("All categories"));
+      .find((button) => button.textContent?.includes("Todas las categorías"));
     const resolvedButton = Array.from(approvalOptions?.querySelectorAll("button") ?? [])
-      .find((button) => button.textContent?.includes("Resolved"));
+      .find((button) => button.textContent?.includes("Resueltas"));
     act(() => allCategoriesButton?.click());
     act(() => resolvedButton?.click());
     expect(onCategoryChange).toHaveBeenCalledWith("everything");
     expect(onApprovalStatusChange).toHaveBeenCalledWith("resolved");
 
     const clearButton = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.trim() === "Clear");
+      .find((button) => button.textContent?.trim() === "Limpiar");
     act(() => clearButton?.click());
     expect(onChange).toHaveBeenCalledWith(defaultIssueFilterState);
     expect(onClear).toHaveBeenCalledTimes(1);

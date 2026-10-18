@@ -258,9 +258,9 @@ describe("CommandPalette", () => {
     });
 
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Create new task");
+      expect(container.textContent).toContain("Crear nueva tarea");
     });
-    expect(container.textContent).not.toContain("Open file in this issue");
+    expect(container.textContent).not.toContain("Abrir archivo en esta tarea");
 
     act(() => {
       root.unmount();
@@ -287,7 +287,7 @@ describe("CommandPalette", () => {
     });
 
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Open file in this issue");
+      expect(container.textContent).toContain("Abrir archivo en esta tarea");
     });
 
     act(() => {

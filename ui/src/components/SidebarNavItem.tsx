@@ -6,6 +6,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { t } from "@/i18n";
 
 /**
  * Forces the full-label (non-rail) presentation for any `SidebarNavItem`
@@ -103,11 +104,11 @@ export function SidebarNavItem({
   // Accessible text equivalent for the collapsed dot indicator. The visible
   // label is `sr-only` in the rail, so the count must be surfaced here.
   const railStatusText = hasLive
-    ? `${liveCount} live`
+    ? t("sidebarNavItem.liveCount", { count: liveCount })
     : hasBadge
       ? `${badge}${badgeLabel ? ` ${badgeLabel}` : ""}`
       : alert
-        ? "attention needed"
+        ? t("sidebarNavItem.attentionNeeded")
         : undefined;
   const railAriaLabel = !rail || (!railStatusText && !trailingLabel)
     ? undefined
@@ -190,7 +191,7 @@ export function SidebarNavItem({
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
-              <span className="text-(length:--text-micro) font-medium text-primary">{liveCount} live</span>
+              <span className="text-(length:--text-micro) font-medium text-primary">{t("sidebarNavItem.liveCount", { count: liveCount })}</span>
             </>
           )}
         </span>

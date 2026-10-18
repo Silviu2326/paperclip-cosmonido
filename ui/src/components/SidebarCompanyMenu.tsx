@@ -369,7 +369,7 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
               <span className="flex size-5 shrink-0 items-center justify-center text-muted-foreground">
                 <Plus className="size-4" />
               </span>
-              <span className="min-w-0 flex-1 truncate">Create organization</span>
+              <span className="min-w-0 flex-1 truncate">{t("sidebarCompanyMenu.createOrganization")}</span>
             </DropdownMenuItem>
           )}
           {showInvitePeople ? (

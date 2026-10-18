@@ -295,7 +295,7 @@ describe("PromptsTab instruction editor", () => {
 
   async function selectInstructionMode(mode: "Read" | "Edit" | "Raw") {
     await act(async () => {
-      buttonByText(container, mode.toLowerCase()).click();
+      buttonByText(container, { Read: "Lectura", Edit: "Editar", Raw: "Sin formato" }[mode]).click();
     });
     await flushReact();
   }
@@ -356,8 +356,8 @@ describe("PromptsTab instruction editor", () => {
     const revision = { id: "head-1", entryFile: "AGENTS.md" } as NonNullable<AgentInstructionsFileDetail["revision"]>;
     mockAgentsApi.instructionCandidates.mockResolvedValue([{ runId: "preserved-run", entryFile: "AGENTS.md", baseRevisionId: "older-base", baseHash: "base-hash", state: "conflict", candidateHash: "candidate-hash", content: "preserved edit", errorCode: "INSTRUCTION_REVISION_CONFLICT", errorMessage: "Instructions changed", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" }]);
     await renderPromptsTab(makeBundle("AGENTS.md", [summary]), { "AGENTS.md": makeDetail(summary, "current content", { revision }) });
-    await waitFor(() => expect(buttonByText(container, "Review preserved edits")).toBeDefined());
-    await act(async () => { buttonByText(container, "Review preserved edits").click(); });
+    await waitFor(() => expect(buttonByText(container, "Revisar ediciones conservadas")).toBeDefined());
+    await act(async () => { buttonByText(container, "Revisar ediciones conservadas").click(); });
     const editor = await waitFor(() => {
       const element = container.querySelector<HTMLTextAreaElement>('[data-testid="markdown-editor"]');
       expect(element?.value).toBe("preserved edit"); return element!;
@@ -374,8 +374,8 @@ describe("PromptsTab instruction editor", () => {
     expect(mockAgentsApi.resolveInstructionCandidate.mock.lastCall?.[2].baseRevisionId).toBe("head-1");
     expect(editor.value).toBe("preserved edit");
     mockAgentsApi.instructionsFile.mockResolvedValue(makeDetail(summary, "latest content", { revision: { ...revision, id: "head-3" } }));
-    await waitFor(() => expect(buttonByText(container, "Refresh current revision").disabled).toBe(false));
-    await act(async () => { buttonByText(container, "Refresh current revision").click(); });
+    await waitFor(() => expect(buttonByText(container, "Actualizar la revisión actual").disabled).toBe(false));
+    await act(async () => { buttonByText(container, "Actualizar la revisión actual").click(); });
     await waitFor(() => expect(container.textContent).toContain("latest content"));
     expect(editor.value).toBe("preserved edit");
     expect(mockAgentsApi.resolveInstructionCandidate).toHaveBeenCalledTimes(2);
@@ -395,7 +395,7 @@ describe("PromptsTab instruction editor", () => {
     });
     await waitFor(() => expect(container.textContent).toContain("Successfully saved agent instructions"));
     expect(container.textContent).not.toContain("could not be retrieved");
-    expect(container.textContent).not.toContain("Preserved instruction edits");
+    expect(container.textContent).not.toContain("Ediciones de instrucciones conservadas");
     expect(container.querySelector('[role="alert"]')).toBeNull();
     await act(async () => {
       queryClient.setQueryData(queryKeys.agents.instructionCandidates("agent-1"), [...failures, {
@@ -403,8 +403,8 @@ describe("PromptsTab instruction editor", () => {
         content: "Legacy edits to review", createdAt: "2026-01-01T00:00:00Z",
       }]);
     });
-    await waitFor(() => expect(buttonByText(container, "Review preserved edits").disabled).toBe(false));
-    expect(container.textContent).toContain("Preserved instruction edits");
+    await waitFor(() => expect(buttonByText(container, "Revisar ediciones conservadas").disabled).toBe(false));
+    expect(container.textContent).toContain("Ediciones de instrucciones conservadas");
     expect(container.textContent).not.toContain("could not be retrieved");
   });
 
@@ -414,7 +414,7 @@ describe("PromptsTab instruction editor", () => {
       root?.render(<AgentFileRunNotice resultJson={{ instructionSave }} />);
     });
     await render({ contract: "agent_files", state: "unavailable", errorMessage: "This run's files were not saved." });
-    expect(container.textContent).toContain("Agent file sync failed for this run");
+    expect(container.textContent).toContain("Falló la sincronización de archivos del agente en esta ejecución");
     expect(container.textContent).toContain("This run's files were not saved.");
     await render({ contract: "agent_files", state: "unavailable", errorCode: "AGENT_FILES_LIMIT_EXCEEDED", errorMessage: "Save rejected", storageWarning: "Agent storage is full. Runs can continue." });
     expect(container.querySelectorAll('[role="note"]')).toHaveLength(1);
@@ -436,19 +436,19 @@ describe("PromptsTab instruction editor", () => {
     const preserved = "# Original entry\nPreserve these exact edits.\n";
     mockAgentsApi.instructionCandidates.mockResolvedValue([{ runId: "old-entry-run", entryFile: "OLD.md", baseRevisionId: "old-head", baseHash: "base-hash", state: "conflict", candidateHash: "candidate-hash", content: preserved, errorCode: "INSTRUCTION_ENTRY_CHANGED", errorMessage: "The instruction entry changed", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" }]);
     await renderPromptsTab(makeBundle("CURRENT.md", [summary]), { "CURRENT.md": makeDetail(summary, "Current instructions", { revision }) });
-    await waitFor(() => expect(buttonByText(container, "Review preserved edits").disabled).toBe(false));
-    await act(async () => { buttonByText(container, "Review preserved edits").click(); });
+    await waitFor(() => expect(buttonByText(container, "Revisar ediciones conservadas").disabled).toBe(false));
+    await act(async () => { buttonByText(container, "Revisar ediciones conservadas").click(); });
     const review = await waitFor(() => {
-      const region = container.querySelector<HTMLElement>('[aria-label="Preserved edits for OLD.md"]');
+      const region = container.querySelector<HTMLElement>('[aria-label="Ediciones conservadas de OLD.md"]');
       expect(region?.querySelector("pre")?.textContent).toBe(preserved);
       return region!;
     });
-    expect(review.textContent).toContain("Read only");
+    expect(review.textContent).toContain("Solo lectura");
     expect(review.textContent).toContain("CURRENT.md");
     expect(review.querySelector("textarea, input, [contenteditable=true]")).toBeNull();
     expect(saveAction).toBeNull();
     expect(mockAgentsApi.instructionsFile.mock.calls.every((call) => call[1] === "CURRENT.md")).toBe(true);
-    await act(async () => { review.querySelector<HTMLButtonElement>('[aria-label="Copy preserved edits for OLD.md"]')!.click(); });
+    await act(async () => { review.querySelector<HTMLButtonElement>('[aria-label="Copiar ediciones conservadas de OLD.md"]')!.click(); });
     expect(copyTextToClipboardMock).toHaveBeenCalledWith(preserved);
     expect(saveAction).toBeNull();
     expect(mockAgentsApi.resolveInstructionCandidate).not.toHaveBeenCalled();
@@ -579,7 +579,7 @@ describe("PromptsTab instruction editor", () => {
 
     await selectInstructionMode("Edit");
     await waitFor(() => {
-      expect(container.querySelector<HTMLTextAreaElement>('textarea[placeholder="File contents"]')).not.toBeNull();
+      expect(container.querySelector<HTMLTextAreaElement>('textarea[placeholder="Contenido del archivo"]')).not.toBeNull();
     });
 
     await act(async () => {
@@ -591,7 +591,7 @@ describe("PromptsTab instruction editor", () => {
 
     await act(async () => {
       setNativeValue(input!, "notes.md");
-      buttonByText(container, "Create").click();
+      buttonByText(container, "Crear").click();
     });
 
     await selectInstructionMode("Edit");
@@ -633,7 +633,7 @@ describe("PromptsTab instruction editor", () => {
     await selectInstructionMode("Edit");
     await waitFor(() => {
       expect(container.querySelector('[data-testid="markdown-editor"]')).toBeNull();
-      expect(container.querySelector<HTMLTextAreaElement>('textarea[placeholder="File contents"]')?.value).toBe("raw instructions");
+      expect(container.querySelector<HTMLTextAreaElement>('textarea[placeholder="Contenido del archivo"]')?.value).toBe("raw instructions");
     });
   });
 });

@@ -157,7 +157,7 @@ describe("IssueRecoveryActionCard", () => {
       nativeRunActivity: { runId: "native-run", status: "running", workspaceOperationId: "export-operation" },
     })} />);
     expect(node.querySelector("section")?.getAttribute("data-recovery-state")).toBe("in_progress");
-    expect(node.textContent).toContain("Paperclip is recovering the existing run");
+    expect(node.textContent).toContain("Paperclip está recuperando la ejecución existente");
     expect(node.querySelector('[data-testid="recovery-recovery-owner"]')?.textContent).toContain("Paperclip");
     expect(node.textContent).not.toContain("Automatic retries are finished");
   });
@@ -178,11 +178,11 @@ describe("IssueRecoveryActionCard", () => {
     expect(section?.getAttribute("data-recovery-state")).toBe("needed");
     expect(section?.getAttribute("data-recovery-kind")).toBe("missing_disposition");
     expect(node.textContent).toContain("RECOVERY NEEDED");
-    expect(node.textContent).toContain("Missing Disposition");
+    expect(node.textContent).toContain("Falta la disposición");
     expect(node.textContent).toContain(
-      "This task's run finished, but no next step was chosen. Choose what happens next — try the task again, mark it done, or send it for review.",
+      "La ejecución de esta tarea terminó, pero no se eligió un siguiente paso. Elige qué ocurre a continuación: volver a intentar la tarea, marcarla como hecha o enviarla a revisión.",
     );
-    expect(node.textContent).toContain("An agent will be asked to choose the next step");
+    expect(node.textContent).toContain("Se pedirá a un agente que elija el siguiente paso");
     expect(node.textContent).toContain("ClaudeCoder");
     expect(node.textContent).toContain("CodexCoder");
     expect(node.textContent).toContain("Choose and record a valid issue disposition.");
@@ -196,7 +196,7 @@ describe("IssueRecoveryActionCard", () => {
     expect(section?.getAttribute("data-recovery-state")).toBe("observe_only");
     expect(node.textContent).toContain("OBSERVING ACTIVE RUN");
     expect(node.textContent).toContain(
-      "The active run has been silent. Recovery is observing without interrupting it.",
+      "La ejecución activa lleva un tiempo sin actividad. La recuperación la observa sin interrumpirla.",
     );
   });
 
@@ -223,7 +223,7 @@ describe("IssueRecoveryActionCard", () => {
         />,
       );
       expect(node.textContent).toContain(
-        "This recovery needs a human decision. Review the recorded failure and choose the next step.",
+        "Esta recuperación necesita una decisión humana. Revisa el fallo registrado y elige el siguiente paso.",
       );
       expect(node.textContent).not.toContain("The active run has been silent");
       expect(node.textContent).not.toContain("observing without interrupting");
@@ -252,7 +252,7 @@ describe("IssueRecoveryActionCard", () => {
     expect(document.body.textContent).not.toContain("False positive");
     click(
       [...document.body.querySelectorAll("button")].find((button) =>
-        button.textContent?.includes("Try again"),
+        button.textContent?.includes("Reintentar"),
       ) ?? null,
     );
     expect(onResolve).toHaveBeenCalledExactlyOnceWith("todo");
@@ -264,9 +264,9 @@ describe("IssueRecoveryActionCard", () => {
         action={buildAction({ kind: "issue_graph_liveness", cause: "issue_graph_liveness" })}
       />,
     );
-    expect(node.textContent).toContain("Task Needs Next Step");
+    expect(node.textContent).toContain("La tarea necesita un siguiente paso");
     expect(node.textContent).toContain(
-      "Paperclip could not find a clear next step for this open task. Choose whether to continue work, send it for review, mark it done, or record what is blocking it.",
+      "Paperclip no encontró un siguiente paso claro para esta tarea abierta. Elige si continuar el trabajo, enviarla a revisión, marcarla como hecha o registrar qué la bloquea.",
     );
   });
 
@@ -293,9 +293,9 @@ describe("IssueRecoveryActionCard", () => {
     );
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-kind")).toBe("workspace_validation");
-    expect(node.textContent).toContain("Workspace Validation");
+    expect(node.textContent).toContain("Validación del espacio de trabajo");
     expect(node.textContent).toContain(
-      "Paperclip stopped this run because the task's git workspace could not be validated.",
+      "Paperclip detuvo esta ejecución porque no se pudo validar el espacio de trabajo git de la tarea.",
     );
     expect(node.textContent).toContain("Repair the source issue workspace link");
   });
@@ -322,7 +322,7 @@ describe("IssueRecoveryActionCard", () => {
     expect(summary?.className).toContain("text-xs");
     expect(summary?.className).not.toContain("font-mono");
     expect(node.textContent).toContain(
-      "To get it moving, choose what happens next — try the task again, mark it done, or send it for review.",
+      "Para que avance, elige qué ocurre a continuación — try the task again, mark it done, or send it for review.",
     );
   });
 
@@ -352,7 +352,7 @@ describe("IssueRecoveryActionCard", () => {
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-state")).toBe("resolved");
     expect(node.textContent).toContain("RECOVERY RESOLVED");
-    expect(node.textContent).toContain("Recovery resolved as restored.");
+    expect(node.textContent).toContain("Recuperación resuelta como restored.");
     expect(node.textContent).toContain("Resolved as restored");
   });
 
@@ -363,11 +363,11 @@ describe("IssueRecoveryActionCard", () => {
     );
     click(node.querySelector("[data-testid='recovery-action-resolve-trigger']"));
 
-    expect(document.body.textContent).toContain("Try again");
-    expect(document.body.textContent).toContain("Mark task done");
+    expect(document.body.textContent).toContain("Reintentar");
+    expect(document.body.textContent).toContain("Marcar tarea como hecha");
     expect(document.body.textContent).not.toContain("Mark blocked");
     expect(document.body.textContent).not.toContain("Delegate follow-up issue");
-    click([...document.body.querySelectorAll("button")].find((button) => button.textContent?.includes("Try again")) ?? null);
+    click([...document.body.querySelectorAll("button")].find((button) => button.textContent?.includes("Reintentar")) ?? null);
 
     expect(onResolve).toHaveBeenCalledWith("todo");
   });
@@ -378,11 +378,11 @@ describe("IssueRecoveryActionCard", () => {
     );
     click(node.querySelector("[data-testid='recovery-action-resolve-trigger']"));
 
-    expect(document.body.textContent).toContain("Try again");
-    expect(document.body.textContent).toContain("Mark task done");
-    expect(document.body.textContent).toContain("Send for review");
-    expect(document.body.textContent).toContain("False positive, done");
-    expect(document.body.textContent).toContain("False positive, review");
+    expect(document.body.textContent).toContain("Reintentar");
+    expect(document.body.textContent).toContain("Marcar tarea como hecha");
+    expect(document.body.textContent).toContain("Enviar a revisión");
+    expect(document.body.textContent).toContain("Falso positivo, hecha");
+    expect(document.body.textContent).toContain("Falso positivo, revisión");
     expect(document.body.textContent).not.toContain("Mark blocked");
   });
 
@@ -403,9 +403,9 @@ describe("IssueRecoveryActionCard", () => {
       <IssueRecoveryActionCard action={buildAction()} onResolve={onResolve} canFalsePositive />,
     );
     click(second.querySelector("[data-testid='recovery-action-resolve-trigger']"));
-    expect(document.body.textContent).toContain("False positive, done");
-    expect(document.body.textContent).toContain("False positive, review");
-    click([...document.body.querySelectorAll("button")].find((button) => button.textContent?.includes("False positive, done")) ?? null);
+    expect(document.body.textContent).toContain("Falso positivo, hecha");
+    expect(document.body.textContent).toContain("Falso positivo, revisión");
+    click([...document.body.querySelectorAll("button")].find((button) => button.textContent?.includes("Falso positivo, hecha")) ?? null);
     expect(onResolve).toHaveBeenCalledWith("false_positive_done");
   });
 });
@@ -448,9 +448,9 @@ describe("IssueRecoveryActionCard workspace_validation divergence", () => {
     const diagnosis = node.querySelector("[data-testid='recovery-divergence-diagnosis']");
     expect(diagnosis).not.toBeNull();
     const text = diagnosis?.textContent ?? "";
-    expect(text).toContain("Divergence diagnosis");
-    expect(text).toContain("Expected · recorded");
-    expect(text).toContain("Live · checked out");
+    expect(text).toContain("Diagnóstico de divergencia");
+    expect(text).toContain("Esperada · registrada");
+    expect(text).toContain("Activa · extraída");
     expect(text).toContain("PAP-522-recorded");
     expect(text).toContain("nleach/PAP-1405-live");
     // shortened shas (10 chars)
@@ -462,21 +462,21 @@ describe("IssueRecoveryActionCard workspace_validation divergence", () => {
 
   it("labels each ancestry verdict", () => {
     const diverged = render(<IssueRecoveryActionCard action={buildWorkspaceValidationAction()} />);
-    expect(diverged.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Diverged");
+    expect(diverged.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Divergida");
 
     const ancestor = render(
       <IssueRecoveryActionCard
         action={buildWorkspaceValidationAction({ provenance: { ancestryVerdict: "ancestor" } })}
       />,
     );
-    expect(ancestor.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Forward-only");
+    expect(ancestor.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Solo hacia adelante");
 
     const unknown = render(
       <IssueRecoveryActionCard
         action={buildWorkspaceValidationAction({ provenance: { ancestryVerdict: "unknown" } })}
       />,
     );
-    expect(unknown.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Ancestry unknown");
+    expect(unknown.querySelector("[data-testid='recovery-ancestry-verdict']")?.textContent).toBe("Ascendencia desconocida");
   });
 
   it("does not render a divergence diagnosis for non-incoherence workspace failures", () => {
@@ -809,7 +809,7 @@ describe("IssueRecoveryActionCard repair workspace (quarantine_restore)", () => 
     );
     expect(trigger?.disabled).toBe(true);
     expect(disabled?.textContent).toContain(
-      "Held by PAP-9001 — re-issue on an isolated workspace instead.",
+      "Retenido por PAP-9001 — reemite en un espacio de trabajo aislado instead.",
     );
     // Clicking the disabled control never fires the repair.
     click(trigger ?? null);
@@ -925,9 +925,9 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(section?.getAttribute("data-recovery-lane")).toBe("source_owner");
     expect(node.textContent).toContain("RECOVERY IN PROGRESS");
     expect(node.textContent).not.toContain("RECOVERY NEEDED");
-    expect(node.textContent).toContain("Wait Without A Target");
+    expect(node.textContent).toContain("Espera sin destino");
     expect(node.textContent).toContain("The task stays with its owner, and no action is needed yet.");
-    expect(node.textContent).toContain("Paperclip is retrying the original owner");
+    expect(node.textContent).toContain("Paperclip está reintentando con el responsable original");
   });
 
   it("shows the five-attempt budget and the next due time", () => {
@@ -941,7 +941,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(progress?.getAttribute("data-recovery-max-attempts")).toBe("5");
     expect(progress?.textContent).toContain("Attempt 2 of 5");
     expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
-      "Next try in 3m",
+      "Próximo intento in 3m",
     );
   });
 
@@ -959,7 +959,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(recoveryOwner?.textContent).toContain("repairs the next step only");
     expect(recoveryOwner?.textContent).not.toContain("CodexCoder");
     expect(node.textContent).toContain(
-      "the task itself still belongs to its original owner",
+      "la tarea sigue perteneciendo a su responsable original",
     );
   });
 
@@ -1006,14 +1006,14 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-state")).toBe("needed");
     expect(node.textContent).toContain("RECOVERY NEEDED");
-    expect(node.textContent).toContain("has used every automatic repair attempt");
+    expect(node.textContent).toContain("ha agotado todos los intentos automáticos de reparación");
     expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
-      "Automatic retries used up",
+      "Reintentos automáticos agotados",
     );
     // The follow-up line must not keep promising a retry that will never run, and the
     // generic timeout chip must not reintroduce a stale due time next to it.
-    expect(node.textContent).toContain("Automatic retries are finished — a decision is needed");
-    expect(node.textContent).not.toContain("Paperclip is retrying the original owner");
+    expect(node.textContent).toContain("Los reintentos automáticos han terminado: hace falta una decisión");
+    expect(node.textContent).not.toContain("Paperclip está reintentando con el responsable original");
     expect(node.textContent).not.toContain("Times out");
   });
 
@@ -1042,7 +1042,7 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     expect(node.textContent).toContain("RECOVERY NEEDED");
     expect(node.textContent).not.toContain("RECOVERY IN PROGRESS");
     const retry = node.querySelector("[data-testid='recovery-next-retry']");
-    expect(retry?.textContent).toBe("Retry missed 5m ago");
+    expect(retry?.textContent).toBe("Reintento perdido 5m ago");
     expect(retry?.getAttribute("data-recovery-retry-expired")).toBe("true");
     // Nothing may still read as an upcoming attempt or as needing no action.
     expect(node.textContent).not.toContain("Next try");
@@ -1085,16 +1085,16 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-state")).toBe("in_progress");
     expect(node.querySelector("[data-testid='recovery-next-retry']")?.textContent).toBe(
-      "Attempt running now",
+      "Intento en ejecución ahora",
     );
-    expect(node.textContent).not.toContain("Retry missed");
+    expect(node.textContent).not.toContain("Reintento perdido");
   });
 
   it("keeps timing in the retry-progress row only while a lane is live", () => {
     const node = render(
       <IssueRecoveryActionCard action={buildSourceLaneAction()} agentMap={bothAgents} />,
     );
-    expect(node.textContent).toContain("Paperclip is retrying the original owner");
+    expect(node.textContent).toContain("Paperclip está reintentando con el responsable original");
     expect(node.textContent).not.toContain("Times out");
   });
 
@@ -1125,8 +1125,8 @@ describe("IssueRecoveryActionCard owner-sticky retry lineage", () => {
     const section = node.querySelector("section[aria-label]");
     expect(section?.getAttribute("data-recovery-state")).toBe("needed");
     expect(section?.getAttribute("data-recovery-lane")).toBe("board");
-    expect(node.textContent).toContain("Automatic recovery is exhausted");
-    expect(node.textContent).toContain("Board decision required");
+    expect(node.textContent).toContain("La recuperación automática se ha agotado");
+    expect(node.textContent).toContain("Se requiere decisión del tablero");
     const recoveryOwner = node.querySelector("[data-testid='recovery-recovery-owner']");
     expect(recoveryOwner?.textContent).toContain("Board");
     expect(recoveryOwner?.textContent).toContain("decides the next step only");
@@ -1156,10 +1156,10 @@ it("requires export retry for ordinary restoration while keeping explicit board 
   const node = render(<IssueRecoveryActionCard action={buildAction({ kind: "active_run_watchdog", ownerType: "board",
     cause: "native_workspace_sync_out_retry_exhausted" })} onResolve={() => {}} canFalsePositive />);
   click(node.querySelector("[data-testid='recovery-action-resolve-trigger']"));
-  expect(document.body.textContent).not.toContain("Try again");
-  expect(document.body.textContent).not.toContain("Mark task done");
-  expect(document.body.textContent).not.toContain("Send for review");
-  expect(document.body.textContent).toContain("False positive, done");
+  expect(document.body.textContent).not.toContain("Reintentar");
+  expect(document.body.textContent).not.toContain("Marcar tarea como hecha");
+  expect(document.body.textContent).not.toContain("Enviar a revisión");
+  expect(document.body.textContent).toContain("Falso positivo, hecha");
 });
 
 it("requires owner-stop recovery even for board false-positive dispositions", () => {

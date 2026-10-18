@@ -25,14 +25,14 @@ describe("disposition recovery notice", () => {
   const button = (name: string) => Array.from(container.querySelectorAll("button")).find(b => b.textContent === name)!;
   it("shows the explanation and action without exposing technical detail until expanded", async () => {
     await render();
-    expect(container.textContent).toContain("Agent needs attention");
-    expect(container.textContent).toContain("Two automatic attempts");
-    expect(button("Retry agent").disabled).toBe(false);
+    expect(container.textContent).toContain("El agente necesita atención");
+    expect(container.textContent).toContain("Fallaron dos intentos automáticos");
+    expect(button("Reintentar agente").disabled).toBe(false);
     expect(container.textContent).not.toContain(snapshot.reason);
-    await act(async () => button("View details").click());
-    expect(button("Hide details").getAttribute("aria-expanded")).toBe("true");
-    expect(container.querySelector(`#${CSS.escape(button("Hide details").getAttribute("aria-controls")!)}`)).not.toBeNull();
-    expect(container.textContent).toContain("2 of 2");
+    await act(async () => button("Ver detalles").click());
+    expect(button("Ocultar detalles").getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector(`#${CSS.escape(button("Ocultar detalles").getAttribute("aria-controls")!)}`)).not.toBeNull();
+    expect(container.textContent).toContain("2 de 2");
     expect(container.textContent).toContain("Alex");
     expect(container.textContent).toContain(snapshot.reason);
   });
@@ -40,29 +40,29 @@ describe("disposition recovery notice", () => {
     let finish!: () => void;
     const value = context(); value.onRetry = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
     await render(value);
-    await act(async () => { button("Retry agent").click(); button("Retry agent")?.click(); });
+    await act(async () => { button("Reintentar agente").click(); button("Reintentar agente")?.click(); });
     expect(value.onRetry).toHaveBeenCalledExactlyOnceWith("action-1");
-    expect(button("Requesting retry…").disabled).toBe(true);
+    expect(button("Solicitando reintento…").disabled).toBe(true);
     await act(async () => finish());
-    expect(container.textContent).toContain("Retry requested");
-    expect(container.textContent).toContain("returned to To do for Alex");
-    expect(button("Retry agent")).toBeUndefined();
+    expect(container.textContent).toContain("Reintento solicitado");
+    expect(container.textContent).toContain("volvió a Por hacer para Alex");
+    expect(button("Reintentar agente")).toBeUndefined();
   });
   it("shows a rejected request inline and allows another attempt without promising that nothing ran", async () => {
     const value = context(); value.onRetry = vi.fn().mockRejectedValueOnce(new Error("The company spending limit was reached.")).mockResolvedValueOnce(undefined);
     await render(value);
-    await act(async () => button("Retry agent").click());
+    await act(async () => button("Reintentar agente").click());
     expect(container.querySelector('[role="alert"]')?.textContent).toContain("spending limit");
     expect(container.textContent).not.toContain("No new run was started");
-    expect(button("Retry agent").disabled).toBe(false);
-    await act(async () => button("Retry agent").click());
+    expect(button("Reintentar agente").disabled).toBe(false);
+    await act(async () => button("Reintentar agente").click());
     expect(container.querySelector('[role="alert"]')).toBeNull();
-    expect(container.textContent).toContain("Retry requested");
+    expect(container.textContent).toContain("Reintento solicitado");
   });
   it("shows the current gate next to a disabled retry action", async () => {
     const value = context(); value.unavailableReason = "The task is paused.";
     await render(value);
-    const retry = button("Retry agent");
+    const retry = button("Reintentar agente");
     expect(retry.disabled).toBe(true);
     expect(document.getElementById(retry.getAttribute("aria-describedby")!)?.textContent).toContain("task is paused");
     await act(async () => retry.click()); expect(value.onRetry).not.toHaveBeenCalled();
@@ -71,20 +71,20 @@ describe("disposition recovery notice", () => {
     const value = context(); await render(value);
     value.issue.activeRecoveryAction = { ...value.issue.activeRecoveryAction!, id: "action-2" };
     await render(value);
-    expect(container.textContent).toContain("Agent needed attention");
-    expect(container.textContent).toContain("no longer active");
-    expect(button("Retry agent")).toBeUndefined();
+    expect(container.textContent).toContain("El agente necesitó atención");
+    expect(container.textContent).toContain("ya no está activo");
+    expect(button("Reintentar agente")).toBeUndefined();
   });
   it.each(["owner_not_invokable", "owner_budget_blocked"])("does not invent exhausted attempts for %s", async reason => {
     await render(context(), { ...snapshot, attemptCount: 0, reason });
     expect(container.textContent).not.toContain("attempts to resolve this failed");
-    await act(async () => button("View details").click()); expect(container.textContent).toContain("0 of 2");
+    await act(async () => button("Ver detalles").click()); expect(container.textContent).toContain("0 de 2");
   });
   it("uses typed metadata regardless of prose and rejects prose-only lookalikes", async () => {
     const value = context();
     const item = { id: "notice", kind: "message" as const, author: "system" as const, text: "完全に異なる文章", metadata: { version: 1 as const, sections: [], recovery: snapshot } };
     await act(async () => root.render(<DispositionRecoveryProvider value={value}><TaskChatSystemNotice item={item} /></DispositionRecoveryProvider>));
-    expect(button("Retry agent").disabled).toBe(false);
+    expect(button("Reintentar agente").disabled).toBe(false);
     await act(async () => root.render(<DispositionRecoveryProvider value={value}><TaskChatSystemNotice item={{ ...item, text: "Recovery: disposition repair escalated — source owner preserved", metadata: null }} /></DispositionRecoveryProvider>));
     expect(container.querySelector('[data-testid="disposition-recovery-notice"]')).toBeNull();
     await act(async () => root.render(<DispositionRecoveryProvider value={value}><TaskChatSystemNotice item={{ ...item, author: "agent" }} /></DispositionRecoveryProvider>));

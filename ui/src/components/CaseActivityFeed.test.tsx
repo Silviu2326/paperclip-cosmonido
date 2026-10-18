@@ -54,7 +54,7 @@ describe("CaseActivityFeed", () => {
 
   it("shows the empty state when there are no events", () => {
     const root = render([]);
-    expect(container.textContent).toContain("No activity yet");
+    expect(container.textContent).toContain("Todavía no hay actividad.");
     act(() => root.unmount());
   });
 
@@ -70,9 +70,9 @@ describe("CaseActivityFeed", () => {
       }),
     ]);
     const text = container.textContent ?? "";
-    expect(text).toContain("document revised");
+    expect(text).toContain("documento revisado");
     expect(text).toContain("Cases Agent");
-    expect(text).toContain("via");
+    expect(text).toContain("vía");
     // The issue chip links to the issue detail.
     const issueLink = container.querySelector('a[href="/issues/PAP-42"]');
     expect(issueLink?.textContent).toContain("PAP-42");
@@ -89,9 +89,9 @@ describe("CaseActivityFeed", () => {
       }),
     ]);
     const text = container.textContent ?? "";
-    expect(text).toContain("issue linked");
-    expect(text).toContain("System");
-    expect(text).toContain("issue");
+    expect(text).toContain("tarea vinculada");
+    expect(text).toContain("Sistema");
+    expect(text).toContain("tarea");
     expect(container.querySelector('a[href="/issues/PAP-9"]')).not.toBeNull();
     act(() => root.unmount());
   });
@@ -104,15 +104,15 @@ describe("CaseActivityFeed", () => {
     // The status-transition detail only appears in the status_changed row.
     expect(container.textContent).toContain("draft → in_review");
 
-    // Open the activity filter dropdown and choose "created"; only created
+    // Open the activity filter dropdown and choose "creado"; only created
     // rows remain, so the status-transition detail disappears.
     const filterButton = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("All activity"),
+      (b) => b.textContent?.includes("Toda la actividad"),
     );
     expect(filterButton).toBeTruthy();
     act(() => filterButton!.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })));
     const createdItem = Array.from(document.body.querySelectorAll('[role="menuitemcheckbox"]')).find(
-      (item) => item.textContent === "created",
+      (item) => item.textContent === "creado",
     );
     expect(createdItem).toBeTruthy();
     act(() => createdItem!.dispatchEvent(new MouseEvent("click", { bubbles: true })));

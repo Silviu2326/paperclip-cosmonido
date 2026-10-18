@@ -297,11 +297,11 @@ describe("InlineEntitySelector", () => {
     expect(document.querySelector("[data-mobile-entity-picker]")).not.toBeNull();
     expect(container.contains(document.querySelector("[data-mobile-entity-picker]"))).toBe(false);
     expect(document.querySelector("[data-mobile-entity-picker-header]")?.textContent).toContain("Responsible");
-    expect(document.querySelector('button[aria-label="Close selector"]')).not.toBeNull();
+    expect(document.querySelector('button[aria-label="Cerrar selector"]')).not.toBeNull();
     expect(document.activeElement).toBe(searchInput);
 
     await act(async () => {
-      (document.querySelector('button[aria-label="Close selector"]') as HTMLButtonElement | null)?.click();
+      (document.querySelector('button[aria-label="Cerrar selector"]') as HTMLButtonElement | null)?.click();
       await Promise.resolve();
     });
     expect(document.querySelector("[data-mobile-entity-picker]")).toBeNull();

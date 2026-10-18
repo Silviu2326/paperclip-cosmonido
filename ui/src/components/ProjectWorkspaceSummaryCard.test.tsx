@@ -165,8 +165,8 @@ describe("ProjectWorkspaceSummaryCard", () => {
       ));
     });
 
-    expect(container.textContent).not.toContain("Path");
-    expect(container.textContent).toContain("Branch");
+    expect(container.textContent).not.toContain("Ruta");
+    expect(container.textContent).toContain("Rama");
 
     act(() => {
       root.unmount();
@@ -209,8 +209,8 @@ describe("ProjectWorkspaceSummaryCard", () => {
     }
     expect(queryClient.getQueryState(queryKeys.instance.experimentalSettings)?.status).toBe("error");
 
-    expect(container.textContent).not.toContain("Path");
-    expect(container.textContent).toContain("Branch");
+    expect(container.textContent).not.toContain("Ruta");
+    expect(container.textContent).toContain("Rama");
 
     act(() => {
       root.unmount();
@@ -233,11 +233,11 @@ describe("ProjectWorkspaceSummaryCard", () => {
       ));
     });
 
-    expect(container.textContent).not.toContain("Path");
+    expect(container.textContent).not.toContain("Ruta");
     // Branch, service, and linked-task rows describe the workspace, not the host.
-    expect(container.textContent).toContain("Branch");
-    expect(container.textContent).toContain("Service");
-    expect(container.textContent).toContain("Linked tasks");
+    expect(container.textContent).toContain("Rama");
+    expect(container.textContent).toContain("Servicio");
+    expect(container.textContent).toContain("Tareas vinculadas");
 
     act(() => {
       root.unmount();
@@ -259,13 +259,13 @@ describe("ProjectWorkspaceSummaryCard", () => {
       ));
     });
 
-    expect(container.textContent).toContain("Execution workspace");
-    expect(container.textContent).toContain("Branch");
-    expect(container.textContent).toContain("Path");
-    expect(container.textContent).toContain("Service");
-    expect(container.textContent).toContain("Linked tasks");
-    expect(container.textContent).toContain("Start services");
-    expect(container.textContent).toContain("Close workspace");
+    expect(container.textContent).toContain("Espacio de trabajo de ejecución");
+    expect(container.textContent).toContain("Rama");
+    expect(container.textContent).toContain("Ruta");
+    expect(container.textContent).toContain("Servicio");
+    expect(container.textContent).toContain("Tareas vinculadas");
+    expect(container.textContent).toContain("Iniciar servicios");
+    expect(container.textContent).toContain("Cerrar espacio de trabajo");
     expect(container.textContent).toContain("+1 more");
 
     const actions = container.querySelector('[data-testid="workspace-summary-actions"]');
@@ -306,8 +306,8 @@ describe("ProjectWorkspaceSummaryCard", () => {
 
     const titleLink = container.querySelector("a[href='/projects/paperclip-app/workspaces/workspace-1']");
     expect(titleLink).not.toBeNull();
-    expect(container.textContent).not.toContain("Close workspace");
-    expect(container.textContent).not.toContain("Start services");
+    expect(container.textContent).not.toContain("Cerrar espacio de trabajo");
+    expect(container.textContent).not.toContain("Iniciar servicios");
 
     act(() => {
       root.unmount();
@@ -332,7 +332,7 @@ describe("ProjectWorkspaceSummaryCard", () => {
       ));
     });
 
-    expect(container.textContent).toContain("Retry close");
+    expect(container.textContent).toContain("Reintentar cierre");
 
     act(() => {
       root.unmount();
@@ -362,8 +362,8 @@ describe("ProjectWorkspaceSummaryCard", () => {
     const branchTextButton = Array.from(container.querySelectorAll("button"))
       .find((button) => button.textContent === summary.branchName);
     const pathTextButton = container.querySelector(`button[title="${summary.cwd}"]`);
-    const branchIconButton = container.querySelector('button[aria-label="Copy branch"]');
-    const pathIconButton = container.querySelector('button[aria-label="Copy path"]');
+    const branchIconButton = container.querySelector('button[aria-label="Copiar rama"]');
+    const pathIconButton = container.querySelector('button[aria-label="Copiar ruta"]');
 
     expect(branchTextButton).not.toBeNull();
     expect(pathTextButton).not.toBeNull();

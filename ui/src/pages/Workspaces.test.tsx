@@ -199,20 +199,20 @@ describe("Workspaces", () => {
     expect(mockSummarySlotCard).toHaveBeenCalledWith(expect.objectContaining({
       companyId: "company-1",
       scopeKind: "workspaces_overview",
-      title: "Workspace summary",
+      title: "Resumen de espacios de trabajo",
     }));
-    const heading = Array.from(container.querySelectorAll("h2")).find((node) => node.textContent === "Workspaces");
+    const heading = Array.from(container.querySelectorAll("h2")).find((node) => node.textContent === "Espacios de trabajo");
     const summaryCard = container.querySelector('[data-testid="summary-slot-card"]');
     expect(heading && summaryCard ? Boolean(heading.compareDocumentPosition(summaryCard) & Node.DOCUMENT_POSITION_FOLLOWING) : false).toBe(true);
     expect(container.textContent).toContain("Paperclip App");
     expect(container.textContent).toContain("Workspace Alpha");
     expect(container.textContent).toContain("PAP-11916");
     expect(container.textContent).toContain("+1 more");
-    expect(container.textContent).toContain("Showing 1 of 2 workspaces.");
+    expect(container.textContent).toContain("Mostrando 1 de 2 espacios de trabajo.");
     expect(container.querySelector('a[href="/projects/paperclip-app/workspaces"]')).not.toBeNull();
 
     const loadMoreButton = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent === "Load more");
+      .find((button) => button.textContent === "Cargar más");
     expect(loadMoreButton).not.toBeNull();
     await act(async () => {
       loadMoreButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));

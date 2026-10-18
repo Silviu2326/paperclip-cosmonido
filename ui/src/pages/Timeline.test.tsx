@@ -156,7 +156,7 @@ describe("Timeline", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Project Timeline");
+    expect(container.textContent).toContain("Cronograma del proyecto");
     expect(mockWorkTimelineApi.get).toHaveBeenCalledWith(
       "company-1",
       expect.objectContaining({ projectId: "11111111-1111-4111-8111-111111111111" }),
@@ -176,9 +176,9 @@ describe("Timeline", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Range");
-    expect(container.querySelector('[aria-label="Zoom out"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="Zoom in"]')).not.toBeNull();
+    expect(container.textContent).toContain("Rango");
+    expect(container.querySelector('[aria-label="Alejar"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Acercar"]')).not.toBeNull();
     expect(container.querySelector('[aria-label="Reset zoom"]')).not.toBeNull();
     expect(container.textContent).not.toContain("Everyone");
     expect(container.textContent).not.toContain("work kicked off");
@@ -210,15 +210,15 @@ describe("Timeline", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Runs");
+    expect(container.textContent).toContain("Ejecuciones");
     expect(container.textContent).toContain("Agents");
     expect(container.textContent).toContain("Run time");
-    expect(container.textContent).toContain("Tokens used");
+    expect(container.textContent).toContain("Tokens usados");
     expect(container.textContent).toContain("45m");
     expect(container.textContent).toContain("3K");
 
     const footer = Array.from(container.querySelectorAll("div")).find((element) =>
-      element.textContent?.includes("2 runs") && element.textContent.includes("Range"),
+      element.textContent?.includes("2 ejecuciones") && element.textContent.includes("Rango"),
     );
     expect(footer).not.toBeUndefined();
   });
@@ -336,7 +336,7 @@ describe("Timeline", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Tokens used");
+    expect(container.textContent).toContain("Tokens usados");
     expect(container.textContent).toContain("2K");
     expect(container.textContent).not.toContain("4K");
   });

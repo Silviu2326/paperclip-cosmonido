@@ -343,7 +343,7 @@ function setSelectValue(select: HTMLSelectElement, value: string) {
 
 async function openAwsVaultDialog() {
   const vaultTabButton = [...document.querySelectorAll("button")].find(
-    (button) => button.textContent?.includes("Provider vaults"),
+    (button) => button.textContent?.includes("Almacenes de proveedor"),
   ) as HTMLButtonElement | undefined;
   await act(async () => {
     vaultTabButton?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -353,7 +353,7 @@ async function openAwsVaultDialog() {
   await flushReact();
 
   const addVaultButtons = [...document.querySelectorAll("button")].filter(
-    (button) => button.textContent?.includes("Add vault"),
+    (button) => button.textContent?.includes("Añadir almacén"),
   ) as HTMLButtonElement[];
   await act(async () => {
     addVaultButtons[1]?.click();
@@ -422,8 +422,8 @@ describe("Secrets page layout", () => {
   it("uses the shared search/filter/tab affordances and keeps vault sections quiet", async () => {
     const root = await renderSecrets(container);
 
-    expect(container.querySelector('input[data-page-search-target="true"][aria-label="Search secrets"]')).not.toBeNull();
-    expect(container.textContent).toContain("Use secrets by binding them to runtime environment variables.");
+    expect(container.querySelector('input[data-page-search-target="true"][aria-label="Buscar secretos"]')).not.toBeNull();
+    expect(container.textContent).toContain("Usa secretos vinculándolos a variables de entorno de ejecución.");
     expect(container.textContent).toContain("GH_TOKEN");
     expect(container.querySelectorAll("select")).toHaveLength(0);
     expect(container.textContent).not.toContain("Provider warnings detected");
@@ -469,7 +469,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const vaultTabButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.includes("Provider vaults"),
+      (button) => button.textContent?.includes("Almacenes de proveedor"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       vaultTabButton?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -507,7 +507,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const vaultTabButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.includes("Provider vaults"),
+      (button) => button.textContent?.includes("Almacenes de proveedor"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       vaultTabButton?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -517,20 +517,20 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     const removeButtons = [...document.querySelectorAll("button")].filter(
-      (button) => button.textContent?.trim() === "Remove",
+      (button) => button.textContent?.trim() === "Quitar",
     ) as HTMLButtonElement[];
     await act(async () => {
       removeButtons[1]?.click();
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Remove provider vault");
-    expect(document.body.textContent).toContain("from Paperclip only");
-    expect(document.body.textContent).toContain("does not delete");
+    expect(document.body.textContent).toContain("Quitar almacén de proveedor");
+    expect(document.body.textContent).toContain("solo de Paperclip");
+    expect(document.body.textContent).toContain("no elimina");
     expect(document.body.textContent).toContain("AWS Secrets Manager");
 
     const confirmButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.includes("Remove from Paperclip"),
+      (button) => button.textContent?.includes("Quitar de Paperclip"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       confirmButton?.click();
@@ -576,7 +576,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const referencesButton = container.querySelector(
-      'button[aria-label="Actions for OPENAI_API_KEY"]',
+      'button[aria-label="Acciones para OPENAI_API_KEY"]',
     ) as HTMLButtonElement | null;
     expect(referencesButton).not.toBeNull();
 
@@ -588,9 +588,9 @@ describe("Secrets page layout", () => {
     });
     await flushReact();
 
-    await waitForReact(() => document.body.textContent?.includes("View in Usage") ?? false);
+    await waitForReact(() => document.body.textContent?.includes("Ver en uso") ?? false);
     const viewUsageButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("View in Usage"),
+      (button) => button.textContent?.includes("Ver en uso"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       viewUsageButton?.click();
@@ -615,7 +615,7 @@ describe("Secrets page layout", () => {
 
     // The detail sheet is open without any clicks: the deep link drives selection.
     const copyLinkButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Copy link"),
+      (button) => button.textContent?.includes("Copiar enlace"),
     );
     expect(copyLinkButton).not.toBeUndefined();
     const sheet = copyLinkButton?.closest("[role='dialog']");
@@ -645,7 +645,7 @@ describe("Secrets page layout", () => {
 
     // AWS supports write-through, so the primary action is a value update.
     const updateValueButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Update value",
+      (button) => button.textContent?.trim() === "Actualizar valor",
     ) as HTMLButtonElement | undefined;
     expect(updateValueButton).not.toBeUndefined();
     await act(async () => {
@@ -654,8 +654,8 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     // Both modes are offered; "Write new value" is the default.
-    expect(document.body.textContent).toContain("Write new value");
-    expect(document.body.textContent).toContain("Change reference");
+    expect(document.body.textContent).toContain("Escribir nuevo valor");
+    expect(document.body.textContent).toContain("Cambiar referencia");
 
     const valueTextarea = document.getElementById("rotate-value") as HTMLTextAreaElement | null;
     expect(valueTextarea).not.toBeNull();
@@ -664,7 +664,7 @@ describe("Secrets page layout", () => {
 
     const dialog = valueTextarea!.closest("[role='dialog']") as HTMLElement;
     const submitButton = Array.from(dialog.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Update value",
+      (button) => button.textContent?.trim() === "Actualizar valor",
     ) as HTMLButtonElement | undefined;
     expect(submitButton?.disabled).toBe(false);
     await act(async () => {
@@ -689,9 +689,9 @@ describe("Secrets page layout", () => {
 
     expect(container.textContent).toContain("OPENAI_API_KEY");
     expect(container.textContent).toContain("Personal GitHub token");
-    expect(container.textContent).toContain("Organization");
-    expect(container.textContent).toContain("Each user");
-    expect(container.textContent).toContain("3/5 set");
+    expect(container.textContent).toContain("Organización");
+    expect(container.textContent).toContain("Cada usuario");
+    expect(container.textContent).toContain("3/5 definidos");
     expect(container.textContent).not.toContain("User secret definitions");
 
     const listContainer = container.querySelector('[data-testid="secrets-list-container"]');
@@ -721,7 +721,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       newSecretButton?.click();
@@ -732,7 +732,7 @@ describe("Secrets page layout", () => {
     expect(companyKeyInput.readOnly).toBe(true);
 
     const editKeyButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Edit",
+      (button) => button.textContent?.trim() === "Editar",
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       editKeyButton?.click();
@@ -741,7 +741,7 @@ describe("Secrets page layout", () => {
     expect(companyKeyInput.readOnly).toBe(false);
 
     const eachUserButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Each user",
+      (button) => button.textContent?.trim() === "Cada usuario",
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       eachUserButton?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -756,7 +756,7 @@ describe("Secrets page layout", () => {
     expect(keyInput.readOnly).toBe(true);
     expect(
       Array.from(document.body.querySelectorAll("button")).some(
-        (button) => button.textContent?.trim() === "Edit",
+        (button) => button.textContent?.trim() === "Editar",
       ),
     ).toBe(true);
     expect(document.getElementById("new-secret-provider")).toBeNull();
@@ -772,7 +772,7 @@ describe("Secrets page layout", () => {
     expect(keyInput.value).toBe("PERSONAL_GITHUB_TOKEN");
 
     const createButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Create user-provided secret"),
+      (button) => button.textContent?.includes("Crear secreto proporcionado por el usuario"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       createButton?.click();
@@ -799,15 +799,15 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       newSecretButton?.click();
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Create secret");
-    expect(document.body.textContent).toContain("Select a provider.");
+    expect(document.body.textContent).toContain("Crear secreto");
+    expect(document.body.textContent).toContain("Selecciona un proveedor.");
 
     await act(async () => {
       root.unmount();
@@ -826,16 +826,16 @@ describe("Secrets page layout", () => {
     await act(async () => {
       definitionRow?.click();
     });
-    await waitForReact(() => document.body.textContent?.includes("Details") ?? false);
+    await waitForReact(() => document.body.textContent?.includes("Detalles") ?? false);
 
     expect(document.body.textContent).toContain("Personal GitHub token");
-    expect(document.body.textContent).toContain("Details");
-    expect(document.body.textContent).toContain("Coverage");
-    expect(document.body.textContent).toContain("Usage");
-    expect(document.body.textContent).toContain("Access events");
+    expect(document.body.textContent).toContain("Detalles");
+    expect(document.body.textContent).toContain("Cobertura");
+    expect(document.body.textContent).toContain("Uso");
+    expect(document.body.textContent).toContain("Eventos de acceso");
 
     const viewCoverageButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("View in Coverage"),
+      (button) => button.textContent?.includes("Ver en cobertura"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       viewCoverageButton?.click();
@@ -843,10 +843,10 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     expect(document.body.textContent).toContain("3 of 5 set");
-    expect(document.body.textContent).toContain("Secret values are never shown here");
+    expect(document.body.textContent).toContain("nunca se muestran valores de secretos");
 
     const setValueButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Set my value"),
+      (button) => button.textContent?.includes("Establecer mi valor"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       setValueButton?.click();
@@ -865,7 +865,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     expect(newSecretButton).toBeDefined();
 
@@ -909,7 +909,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       newSecretButton?.click();
@@ -924,7 +924,7 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     const createButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Create secret",
+      (button) => button.textContent?.trim() === "Crear secreto",
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       createButton?.click();
@@ -933,7 +933,7 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     const errorBanner = document.querySelector('[data-testid="secret-create-error"]');
-    expect(errorBanner?.textContent).toContain("AWS secret creation needs CreateSecret permission");
+    expect(errorBanner?.textContent).toContain("La creación del secreto en AWS necesita el permiso CreateSecret");
     expect(errorBanner?.textContent).toContain("secretsmanager:CreateSecret");
     expect(errorBanner?.textContent).toContain("us-east-1");
     expect(errorBanner?.textContent).toContain("link it as an external reference");
@@ -951,7 +951,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       newSecretButton?.click();
@@ -965,7 +965,7 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     const createButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Create secret",
+      (button) => button.textContent?.trim() === "Crear secreto",
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       createButton?.click();
@@ -1024,7 +1024,7 @@ describe("Secrets page layout", () => {
     expect(document.body.textContent).toContain("AWS production");
 
     const useValuesButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.includes("Use values"),
+      (button) => button.textContent?.includes("Usar valores"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       useValuesButton?.click();
@@ -1088,7 +1088,7 @@ describe("Secrets page layout", () => {
 
     const errorBanner = document.querySelector('[data-testid="aws-vault-discovery-error"]');
     expect(errorBanner).not.toBeNull();
-    expect(errorBanner?.textContent).toContain("AWS discovery needs ListSecrets permission");
+    expect(errorBanner?.textContent).toContain("El descubrimiento de AWS necesita el permiso ListSecrets");
     expect(errorBanner?.textContent).toContain("secretsmanager:ListSecrets");
     expect(errorBanner?.textContent).toContain("Paperclip server runtime/provider credential path");
     expect(errorBanner?.textContent).toContain("paste/link that ARN");
@@ -1096,7 +1096,7 @@ describe("Secrets page layout", () => {
     expect(errorBanner?.textContent).toContain("us-west-2");
     expect(errorBanner?.textContent).toContain("secret_provider_config.discovery.preview");
     expect(errorBanner?.textContent).toContain("aws_secrets_manager");
-    expect(errorBanner?.textContent).toContain("Safe request/error details");
+    expect(errorBanner?.textContent).toContain("Detalles seguros de la solicitud y del error");
     expect(errorBanner?.textContent).not.toContain(rawProviderMessage);
     expect(errorBanner?.textContent).not.toContain("arn:aws");
     expect(errorBanner?.textContent).not.toContain("123456789012");
@@ -1136,10 +1136,10 @@ describe("Secrets page layout", () => {
 
     const errorBanner = document.querySelector('[data-testid="aws-vault-discovery-error"]');
     expect(errorBanner).not.toBeNull();
-    expect(errorBanner?.textContent).toContain("AWS discovery failed");
+    expect(errorBanner?.textContent).toContain("El descubrimiento de AWS falló");
     expect(errorBanner?.textContent).toContain("AWS discovery request failed before IAM evaluation.");
     expect(errorBanner?.textContent).toContain("proxy_forbidden");
-    expect(errorBanner?.textContent).not.toContain("AWS discovery needs ListSecrets permission");
+    expect(errorBanner?.textContent).not.toContain("El descubrimiento de AWS necesita el permiso ListSecrets");
 
     await act(async () => {
       root.unmount();
@@ -1150,7 +1150,7 @@ describe("Secrets page layout", () => {
     const root = await renderSecrets(container);
 
     const newSecretButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("New secret"),
+      (button) => button.textContent?.includes("Nuevo secreto"),
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       newSecretButton?.click();
@@ -1178,7 +1178,7 @@ describe("Secrets page layout", () => {
     expect(keyInput.value).toBe("openai-api-key");
 
     const editKeyButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Edit",
+      (button) => button.textContent?.trim() === "Editar",
     ) as HTMLButtonElement | undefined;
     expect(editKeyButton).toBeDefined();
     await act(async () => {
@@ -1239,7 +1239,7 @@ describe("Secrets page layout", () => {
     await waitForReact(() => document.body.textContent?.includes("Reviewer") ?? false);
 
     // Existing access is listed right in the Details tab.
-    expect(document.body.textContent).toContain("Agent access");
+    expect(document.body.textContent).toContain("Acceso de agentes");
     expect(document.body.textContent).toContain("Reviewer");
 
     const agentSelect = document.getElementById("agent-access-agent") as HTMLButtonElement;
@@ -1261,7 +1261,7 @@ describe("Secrets page layout", () => {
     await flushReact();
 
     const addButton = Array.from(document.body.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Add",
+      (button) => button.textContent?.trim() === "Añadir",
     ) as HTMLButtonElement | undefined;
     await act(async () => {
       addButton?.click();
@@ -1281,7 +1281,7 @@ describe("Secrets page layout", () => {
     );
 
     const revokeButton = document.body.querySelector(
-      'button[aria-label="Remove access for Reviewer"]',
+      'button[aria-label="Quitar acceso de Reviewer"]',
     ) as HTMLButtonElement | null;
     expect(revokeButton).not.toBeNull();
     await act(async () => {
@@ -1319,7 +1319,7 @@ describe("Secrets page layout", () => {
     await flushReact();
     await flushReact();
 
-    expect(document.body.textContent).toContain("No AWS vault metadata candidates found");
+    expect(document.body.textContent).toContain("No se encontraron candidatos de metadatos de almacén de AWS");
     expect(regionInput.value).toBe("us-east-2");
 
     await act(async () => {
@@ -1377,8 +1377,8 @@ describe("Secrets folder view (PAP-14698)", () => {
     expect(table.textContent).toContain("prod");
     expect(table.textContent).toContain("standalone");
     // dev groups both oauth secrets recursively; github and oauth are descendant folders.
-    expect(table.textContent).toContain("2 secrets · 2 folders");
-    expect(table.textContent).toContain("1 secret · 1 folder");
+    expect(table.textContent).toContain("2 secretos · 2 carpetas");
+    expect(table.textContent).toContain("1 secreto · 1 carpeta");
     // Folder rows are real links carrying ?path=.
     const links = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? "");
     expect(links.some((href) => href.includes("path=dev"))).toBe(true);
@@ -1389,7 +1389,7 @@ describe("Secrets folder view (PAP-14698)", () => {
   it("opens a deep ?path= link into the folder with breadcrumb, leaves, and an up affordance", async () => {
     const root = await renderAt("/?path=dev/github/oauth");
 
-    const breadcrumb = container.querySelector('nav[aria-label="Breadcrumb"]');
+    const breadcrumb = container.querySelector('nav[aria-label="Ruta de navegación"]');
     expect(breadcrumb).not.toBeNull();
     const current = container.querySelector('[aria-current="page"]');
     expect(current?.textContent).toContain("oauth");
@@ -1397,7 +1397,7 @@ describe("Secrets folder view (PAP-14698)", () => {
     const table = container.querySelector('[data-testid="secrets-table-view"]')!;
     expect(table.textContent).toContain("clientid");
     expect(table.textContent).toContain("clientsecret");
-    expect(table.textContent).toContain("Up to github");
+    expect(table.textContent).toContain("Subir a github");
     // Sibling trees are not shown while drilled in.
     expect(table.textContent).not.toContain("standalone");
 
@@ -1407,10 +1407,10 @@ describe("Secrets folder view (PAP-14698)", () => {
   it("renders the empty-folder state (breadcrumb intact) for an unknown path", async () => {
     const root = await renderAt("/?path=does/not/exist");
 
-    expect(container.querySelector('nav[aria-label="Breadcrumb"]')).not.toBeNull();
-    expect(container.textContent).toContain("No secrets in this folder yet.");
+    expect(container.querySelector('nav[aria-label="Ruta de navegación"]')).not.toBeNull();
+    expect(container.textContent).toContain("Aún no hay secretos en esta carpeta.");
     const cta = [...container.querySelectorAll("button")].find((b) =>
-      b.textContent?.includes("New secret here"),
+      b.textContent?.includes("Nuevo secreto aquí"),
     ) as HTMLButtonElement;
     expect(cta).toBeDefined();
     await act(async () => cta.click());
@@ -1418,25 +1418,25 @@ describe("Secrets folder view (PAP-14698)", () => {
 
     expect(document.body.textContent).toContain("does/not/exist/");
     expect((document.getElementById("new-secret-name") as HTMLInputElement).value).toBe("");
-    expect(document.querySelector('button[aria-label="Remove folder prefix"]')).not.toBeNull();
+    expect(document.querySelector('button[aria-label="Quitar prefijo de carpeta"]')).not.toBeNull();
 
     await act(async () => root.unmount());
   });
 
   it("distinguishes a filtered-empty folder from a genuinely empty folder", async () => {
     const root = await renderAt("/?path=dev/github/oauth");
-    const filterButton = document.querySelector('button[title="Filter"]') as HTMLButtonElement;
+    const filterButton = document.querySelector('button[title="Filtrar"]') as HTMLButtonElement;
     await act(async () => filterButton.click());
     await flushReact();
 
     const archivedLabel = [...document.querySelectorAll("label")].find(
-      (label) => label.textContent?.trim() === "Archived",
+      (label) => label.textContent?.trim() === "Archivado",
     ) as HTMLLabelElement;
     await act(async () => archivedLabel.click());
-    await waitForReact(() => container.textContent?.includes("No secrets match your filters.") ?? false);
+    await waitForReact(() => container.textContent?.includes("Ningún secreto coincide con tus filtros.") ?? false);
 
-    expect(container.textContent).toContain("No secrets match your filters.");
-    expect(container.textContent).not.toContain("New secret here");
+    expect(container.textContent).toContain("Ningún secreto coincide con tus filtros.");
+    expect(container.textContent).not.toContain("Nuevo secreto aquí");
 
     await act(async () => root.unmount());
   });
@@ -1448,7 +1448,7 @@ describe("Secrets folder view (PAP-14698)", () => {
     const root = await renderAt("/?path=dev/github/oauth");
 
     const newSecretButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "New secret",
+      (button) => button.textContent?.trim() === "Nuevo secreto",
     ) as HTMLButtonElement;
     await act(async () => newSecretButton.click());
     await flushReact();
@@ -1467,7 +1467,7 @@ describe("Secrets folder view (PAP-14698)", () => {
       setTextareaValue(document.getElementById("new-secret-value") as HTMLTextAreaElement, "secret-value"),
     );
     const createButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "Create secret",
+      (button) => button.textContent?.trim() === "Crear secreto",
     ) as HTMLButtonElement;
     await act(async () => createButton.click());
     await flushReact();
@@ -1483,13 +1483,13 @@ describe("Secrets folder view (PAP-14698)", () => {
   it("keeps the folder prefix for Each user and exposes the full name when the chip is removed", async () => {
     const root = await renderAt("/?path=dev/github/oauth");
     const newSecretButton = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "New secret",
+      (button) => button.textContent?.trim() === "Nuevo secreto",
     ) as HTMLButtonElement;
     await act(async () => newSecretButton.click());
     await flushReact();
 
     const eachUserTab = [...document.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "Each user",
+      (button) => button.textContent?.trim() === "Cada usuario",
     ) as HTMLButtonElement;
     await act(async () => {
       eachUserTab.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
@@ -1506,14 +1506,14 @@ describe("Secrets folder view (PAP-14698)", () => {
     );
 
     const removePrefix = document.querySelector(
-      'button[aria-label="Remove folder prefix"]',
+      'button[aria-label="Quitar prefijo de carpeta"]',
     ) as HTMLButtonElement;
     await act(async () => removePrefix.click());
     await flushReact();
     expect((document.getElementById("new-secret-name") as HTMLInputElement).value).toBe(
       "dev/github/oauth/personal-token",
     );
-    expect(document.querySelector('button[aria-label="Remove folder prefix"]')).toBeNull();
+    expect(document.querySelector('button[aria-label="Quitar prefijo de carpeta"]')).toBeNull();
 
     await act(async () => root.unmount());
   });
@@ -1521,15 +1521,15 @@ describe("Secrets folder view (PAP-14698)", () => {
   it("validates New folder inline and stages the trimmed segment in the URL-backed folder view", async () => {
     const root = await renderAt("/?path=dev/github/oauth");
     const newFolderButton = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "New folder",
+      (button) => button.textContent?.trim() === "Nueva carpeta",
     ) as HTMLButtonElement;
     await act(async () => newFolderButton.click());
     await flushReact();
 
-    const folderInput = container.querySelector('input[aria-label="Folder name"]') as HTMLInputElement;
+    const folderInput = container.querySelector('input[aria-label="Nombre de la carpeta"]') as HTMLInputElement;
     await act(async () => setInputValue(folderInput, "bad/name"));
     const createFolderButton = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent?.trim() === "Create folder",
+      (button) => button.textContent?.trim() === "Crear carpeta",
     ) as HTMLButtonElement;
     await act(async () => createFolderButton.click());
     await flushReact();
@@ -1551,8 +1551,8 @@ describe("Secrets folder view (PAP-14698)", () => {
         node.textContent?.includes("staged"),
       ),
     ).toBe(true);
-    expect(container.textContent).toContain("No secrets in this folder yet.");
-    expect(container.querySelector('input[aria-label="Folder name"]')).toBeNull();
+    expect(container.textContent).toContain("Aún no hay secretos en esta carpeta.");
+    expect(container.querySelector('input[aria-label="Nombre de la carpeta"]')).toBeNull();
 
     await act(async () => root.unmount());
   });
@@ -1561,7 +1561,7 @@ describe("Secrets folder view (PAP-14698)", () => {
     const root = await renderAt("/");
 
     const flatButton = [...container.querySelectorAll("button")].find(
-      (b) => b.textContent?.trim().toLowerCase() === "flat",
+      (b) => b.textContent?.trim().toLowerCase() === "plana",
     ) as HTMLButtonElement | undefined;
     expect(flatButton).toBeDefined();
     await act(async () => flatButton!.click());
@@ -1569,7 +1569,7 @@ describe("Secrets folder view (PAP-14698)", () => {
 
     const table = container.querySelector('[data-testid="secrets-table-view"]')!;
     expect(table.textContent).toContain("dev/github/oauth/clientid");
-    expect(table.textContent).not.toContain("2 secrets · 1 folder");
+    expect(table.textContent).not.toContain("2 secretos · 1 carpeta");
 
     await act(async () => root.unmount());
   });
@@ -1578,13 +1578,13 @@ describe("Secrets folder view (PAP-14698)", () => {
     const root = await renderAt("/?path=dev/github/oauth");
 
     const input = container.querySelector(
-      'input[aria-label="Search secrets"]',
+      'input[aria-label="Buscar secretos"]',
     ) as HTMLInputElement;
     await act(async () => setInputValue(input, "token"));
     await flushReact();
 
-    expect(container.textContent).toContain("Search results");
-    expect(container.textContent).toContain("across all folders");
+    expect(container.textContent).toContain("Resultados de búsqueda");
+    expect(container.textContent).toContain("en todas las carpetas");
     const table = container.querySelector('[data-testid="secrets-table-view"]')!;
     // prod/api/token lives outside the current folder yet still matches.
     expect(table.textContent).toContain("prod/api/");
@@ -1635,10 +1635,10 @@ describe("Secrets operator-hidden tabs", () => {
     ]);
 
     const tabLabels = [...container.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent);
-    expect(tabLabels.join(" ")).toContain("Secrets");
-    expect(tabLabels.join(" ")).toContain("My secrets");
-    expect(tabLabels.join(" ")).not.toContain("Provider vaults");
-    expect(tabLabels.join(" ")).not.toContain("Proposals");
+    expect(tabLabels.join(" ")).toContain("Secretos");
+    expect(tabLabels.join(" ")).toContain("Mis secretos");
+    expect(tabLabels.join(" ")).not.toContain("Almacenes de proveedor");
+    expect(tabLabels.join(" ")).not.toContain("Propuestas");
     expect(mockSecretsApi.listProposals).not.toHaveBeenCalled();
 
     await act(async () => root.unmount());
@@ -1648,8 +1648,8 @@ describe("Secrets operator-hidden tabs", () => {
     const root = await renderWithHiddenSettings([]);
 
     const tabLabels = [...container.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent);
-    expect(tabLabels.join(" ")).toContain("Provider vaults");
-    expect(tabLabels.join(" ")).toContain("Proposals");
+    expect(tabLabels.join(" ")).toContain("Almacenes de proveedor");
+    expect(tabLabels.join(" ")).toContain("Propuestas");
     expect(mockSecretsApi.listProposals).toHaveBeenCalled();
 
     await act(async () => root.unmount());

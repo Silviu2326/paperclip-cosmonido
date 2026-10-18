@@ -8,6 +8,7 @@ import {
   chatProviderVisible,
 } from "@/hooks/useChatConnectorsEnabled";
 import { Navigate, useParams, useSearchParams } from "@/lib/router";
+import { useTranslation } from "@/i18n";
 
 function ProviderEndpointGate({
   endpointId,
@@ -16,6 +17,7 @@ function ProviderEndpointGate({
   endpointId: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
   const endpoint = useQuery({
     queryKey: queryKeys.chatEndpoints.detail(endpointId),
     queryFn: () => chatEndpointsApi.get(endpointId),
@@ -28,7 +30,7 @@ function ProviderEndpointGate({
           {endpoint.error.message}
         </p>
         <Button variant="outline" onClick={() => void endpoint.refetch()}>
-          Retry
+          {t("chatConnectors.retry")}
         </Button>
       </div>
     );

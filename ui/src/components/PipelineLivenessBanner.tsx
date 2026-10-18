@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router";
 import { cn } from "../lib/utils";
 import { createIssueDetailPath } from "../lib/issueDetailBreadcrumb";
+import { t } from "@/i18n";
 import {
   derivePipelineLivenessBanner,
   type LivenessBannerLink,
@@ -64,13 +65,13 @@ const TONE_PALETTES: Record<LivenessBannerTone, TonePalette> = {
 };
 
 function blockerLinkLabel(link: LivenessBannerLink): string {
-  if (link.identifier) return `Open ${link.identifier}`;
-  return "Open blocker";
+  if (link.identifier) return t("pipelineLiveness.openIdentifier", { id: link.identifier });
+  return t("pipelineLiveness.openBlocker");
 }
 
 function automationLinkLabel(link: LivenessBannerLink): string {
-  if (link.identifier) return `Open ${link.identifier}`;
-  return "Open automation task";
+  if (link.identifier) return t("pipelineLiveness.openIdentifier", { id: link.identifier });
+  return t("pipelineLiveness.openAutomation");
 }
 
 export function PipelineLivenessBanner({
@@ -115,11 +116,11 @@ export function PipelineLivenessBanner({
           <p className="text-sm opacity-85">{view.body}</p>
           {view.permissionKey ? (
             <p className="text-sm opacity-85">
-              Required permission:{" "}
+              {t("pipelineLiveness.requiredPermissionPre")}{" "}
               <code className="rounded-sm bg-black/10 px-1 py-0.5 text-xs font-medium dark:bg-white/10">
                 {view.permissionKey}
               </code>{" "}
-              on the target pipeline.
+              {t("pipelineLiveness.requiredPermissionPost")}
             </p>
           ) : null}
           {view.blockerLink || view.automationLink ? (
@@ -131,7 +132,7 @@ export function PipelineLivenessBanner({
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   {blockerLinkLabel(view.blockerLink)}
-                  {view.blockerLink.title ? `: ${view.blockerLink.title}` : ""}
+                  {view.blockerLink.title ? t("pipelineLiveness.titleSuffix", { title: view.blockerLink.title }) : ""}
                 </Link>
               ) : null}
               {view.automationLink ? (
@@ -169,7 +170,7 @@ export function PipelineLivenessBanner({
           ) : (
             <RefreshCw className="mr-2 h-4 w-4" />
           )}
-          {retryPending ? "Retrying…" : view.retryLabel}
+          {retryPending ? t("pipelineLiveness.retrying") : view.retryLabel}
         </Button>
       ) : null}
     </section>

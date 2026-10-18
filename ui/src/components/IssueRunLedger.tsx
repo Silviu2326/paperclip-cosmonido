@@ -33,6 +33,7 @@ import {
   ProviderTraceStatusBadge,
   runRequestedProviderTrace,
 } from "./ProviderTraceStatusBadge";
+import { t } from "@/i18n";
 
 type IssueRunLedgerProps = {
   issueId: string;
@@ -92,59 +93,59 @@ type LivenessCopy = {
 
 const LIVENESS_COPY: Record<RunLivenessState, LivenessCopy> = {
   completed: {
-    label: "Completed",
+    label: t("issueRunLedger.completed"),
     tone: "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300",
-    description: "Task reached a terminal state.",
+    description: t("issueRunLedger.completedDesc"),
   },
   advanced: {
-    label: "Advanced",
+    label: t("issueRunLedger.advanced"),
     tone: "border-cyan-500/30 bg-secondary/10 text-cyan-700 dark:text-cyan-300",
-    description: "Run produced concrete evidence of progress.",
+    description: t("issueRunLedger.advancedDesc"),
   },
   plan_only: {
-    label: "Plan only",
+    label: t("issueRunLedger.planOnly"),
     tone: "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300",
-    description: "Run described future work without concrete action evidence.",
+    description: t("issueRunLedger.planOnlyDesc"),
   },
   empty_response: {
-    label: "Empty response",
+    label: t("issueRunLedger.emptyResponse"),
     tone: "border-orange-500/30 bg-muted/10 text-orange-700 dark:text-orange-300",
-    description: "Run finished without useful output.",
+    description: t("issueRunLedger.emptyResponseDesc"),
   },
   blocked: {
-    label: "Blocked",
+    label: t("issueRunLedger.blocked"),
     tone: "border-yellow-500/30 bg-muted/10 text-yellow-700 dark:text-yellow-300",
-    description: "Run or task declared a blocker.",
+    description: t("issueRunLedger.blockedDesc"),
   },
   failed: {
-    label: "Failed",
+    label: t("issueRunLedger.failed"),
     tone: "border-destructive/30 bg-destructive/10 text-destructive",
-    description: "Run ended unsuccessfully.",
+    description: t("issueRunLedger.failedDesc"),
   },
   needs_followup: {
-    label: "Needs follow-up",
+    label: t("issueRunLedger.needsFollowUp"),
     tone: "border-sky-500/30 bg-secondary/10 text-sky-700 dark:text-sky-300",
     description:
-      "Run produced useful output but did not prove concrete progress.",
+      t("issueRunLedger.needsFollowUpDesc"),
   },
 };
 
 const PENDING_LIVENESS_COPY: LivenessCopy = {
-  label: "Checks after finish",
+  label: t("issueRunLedger.checksAfterFinish"),
   tone: "border-border bg-background text-muted-foreground",
-  description: "Liveness is evaluated after the run finishes.",
+  description: t("issueRunLedger.checksAfterFinishDesc"),
 };
 
 const RETRY_PENDING_LIVENESS_COPY: LivenessCopy = {
-  label: "Retry pending",
+  label: t("issueRunLedger.retryPending"),
   tone: "border-primary/30 bg-primary/10 text-primary",
-  description: "Paperclip queued an automatic retry that has not started yet.",
+  description: t("issueRunLedger.retryPendingDesc"),
 };
 
 const MISSING_LIVENESS_COPY: LivenessCopy = {
-  label: "No liveness data",
+  label: t("issueRunLedger.noLiveness"),
   tone: "border-border bg-background text-muted-foreground",
-  description: "This run has no persisted liveness classification.",
+  description: t("issueRunLedger.noLivenessDesc"),
 };
 
 const TERMINAL_CHILD_STATUSES = new Set<Issue["status"]>(["done", "cancelled"]);
@@ -163,15 +164,15 @@ const RUN_OUTPUT_SILENCE_COPY: Partial<
   Record<RunOutputSilenceLevel, RunOutputSilenceCopy>
 > = {
   suspicious: {
-    label: "Output silence",
+    label: t("issueRunLedger.outputSilence"),
     tone: "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300",
   },
   critical: {
-    label: "Critical silence",
+    label: t("issueRunLedger.criticalSilence"),
     tone: "border-destructive/30 bg-destructive/10 text-destructive",
   },
   snoozed: {
-    label: "Silence snoozed",
+    label: t("issueRunLedger.silenceSnoozed"),
     tone: "border-cyan-500/30 bg-secondary/10 text-cyan-700 dark:text-cyan-300",
   },
 };
@@ -292,10 +293,10 @@ function runSummary(
   agentMap: ReadonlyMap<string, Pick<Agent, "name">>,
 ) {
   const agentName = compactAgentName(run, agentMap);
-  if (run.status === "running") return `Running now by ${agentName}`;
-  if (run.status === "queued") return `Queued for ${agentName}`;
+  if (run.status === "running") return t("issueRunLedger.runningBy", { name: agentName });
+  if (run.status === "queued") return t("issueRunLedger.queuedFor", { name: agentName });
   if (run.status === "scheduled_retry")
-    return `Automatic retry scheduled for ${agentName}`;
+    return t("issueRunLedger.retryScheduledFor", { name: agentName });
   return `${statusLabel(run.status)} by ${agentName}`;
 }
 
@@ -337,31 +338,31 @@ function stopReasonLabel(run: RunForIssue) {
 
 function stopStatusLabel(run: LedgerRun, stopReason: string | null) {
   if (stopReason) return stopReason;
-  if (run.status === "scheduled_retry") return "Retry pending";
-  if (run.status === "queued") return "Waiting to start";
-  if (run.status === "running") return "Still running";
-  if (!run.livenessState) return "Unavailable";
-  return "No stop reason";
+  if (run.status === "scheduled_retry") return t("issueRunLedger.retryPending");
+  if (run.status === "queued") return t("issueRunLedger.waitingToStart");
+  if (run.status === "running") return t("issueRunLedger.stillRunning");
+  if (!run.livenessState) return t("issueRunLedger.unavailable");
+  return t("issueRunLedger.noStopReason");
 }
 
 function lastUsefulActionLabel(run: LedgerRun) {
-  if (run.status === "scheduled_retry") return "Waiting for next attempt";
+  if (run.status === "scheduled_retry") return t("issueRunLedger.waitingNextAttempt");
   if (run.lastUsefulActionAt) return relativeTime(run.lastUsefulActionAt);
-  if (isActiveRun(run)) return "No action recorded yet";
+  if (isActiveRun(run)) return t("issueRunLedger.noActionYet");
   if (
     run.livenessState === "plan_only" ||
     run.livenessState === "needs_followup"
   ) {
-    return "No concrete action";
+    return t("issueRunLedger.noConcreteAction");
   }
-  if (run.livenessState === "empty_response") return "No useful output";
-  if (!run.livenessState) return "Unavailable";
-  return "None recorded";
+  if (run.livenessState === "empty_response") return t("issueRunLedger.noUsefulOutput");
+  if (!run.livenessState) return t("issueRunLedger.unavailable");
+  return t("issueRunLedger.noneRecorded");
 }
 
 function continuationLabel(run: LedgerRun) {
   if (!run.continuationAttempt || run.continuationAttempt <= 0) return null;
-  return `Continuation attempt ${run.continuationAttempt}`;
+  return t("issueRunLedger.continuationAttempt", { attempt: run.continuationAttempt });
 }
 
 function hasExhaustedContinuation(run: RunForIssue) {
@@ -422,11 +423,11 @@ function canBoardRecordWatchdogDecision(
 
 function watchdogDecisionErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 403) {
-    return "Only the board or the assigned recovery owner can record watchdog decisions";
+    return t("issueRunLedger.onlyBoardWatchdog");
   }
   return error instanceof Error && error.message.trim().length > 0
     ? error.message
-    : "Paperclip could not record the watchdog decision.";
+    : t("issueRunLedger.watchdogFailed");
 }
 
 export function IssueRunLedger({
@@ -511,7 +512,7 @@ export function IssueRunLedger({
         error instanceof ApiError ? String(error.status) : "error";
       setWatchdogDecisionError(message);
       pushToast({
-        title: "Watchdog decision not recorded",
+        title: t("issueRunLedger.watchdogNotRecorded"),
         body: message,
         tone: "error",
         dedupeKey: `watchdog-decision:${issueId}:${dedupeSuffix}`,
@@ -538,7 +539,7 @@ export function IssueRunLedger({
         companyId,
       );
       if (!("id" in result))
-        throw new Error(result.message ?? "Trace re-run was skipped.");
+        throw new Error(result.message ?? t("issueRunLedger.traceSkipped"));
       return result;
     },
     onSuccess: () => {
@@ -551,11 +552,11 @@ export function IssueRunLedger({
     },
     onError: (error) =>
       pushToast({
-        title: "Trace re-run not started",
+        title: t("issueRunLedger.traceNotStarted"),
         body:
           error instanceof Error
             ? error.message
-            : "Paperclip could not start the trace re-run.",
+            : t("issueRunLedger.traceStartFailed"),
         tone: "error",
         dedupeKey: `provider-trace-rerun:${issueId}`,
       }),
@@ -668,14 +669,14 @@ export function IssueRunLedgerContent({
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-muted-foreground">
-            Run ledger
+            {t("issueRunLedger.heading")}
           </h3>
           <p className="text-xs text-muted-foreground">
             {latestRun
               ? runSummary(latestRun, agentMap)
               : issueStatus === "in_progress"
-                ? "Waiting for the first run record."
-                : "No runs linked yet."}
+                ? t("issueRunLedger.waitingFirst")
+                : t("issueRunLedger.noRunsLinked")}
           </p>
         </div>
         {latestRun ? (
@@ -683,7 +684,7 @@ export function IssueRunLedgerContent({
             to={`/agents/${latestRun.agentId}/runs/${latestRun.runId}`}
             className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            Latest run
+            {t("issueRunLedger.latestRun")}
           </Link>
         ) : null}
       </div>
@@ -736,8 +737,8 @@ export function IssueRunLedgerContent({
         >
           <p className="font-medium">
             {latestSilentRun.outputSilence.level === "critical"
-              ? "Critical output silence"
-              : "Output silence watchdog warning"}
+              ? t("issueRunLedger.criticalOutputSilence")
+              : t("issueRunLedger.outputSilenceWarning")}
           </p>
           <p className="mt-1">
             Latest active run has been silent for{" "}
@@ -760,8 +761,8 @@ export function IssueRunLedgerContent({
           </p>
           <p className="mt-1">
             {latestSilentRun.outputSilence.evaluationIssueIdentifier
-              ? "This signal is informational. Paperclip did not create new delegated recovery work."
-              : "This signal is informational. Paperclip did not create or assign a recovery task."}
+              ? t("issueRunLedger.infoDelegated")
+              : t("issueRunLedger.infoNoTask")}
           </p>
           {onWatchdogDecision && canRecordWatchdogDecisions ? (
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -778,7 +779,7 @@ export function IssueRunLedgerContent({
                 }
                 disabled={pendingWatchdogDecision != null}
               >
-                Continue monitoring
+                {t("issueRunLedger.continueMonitoring")}
               </button>
               <button
                 type="button"
@@ -813,7 +814,7 @@ export function IssueRunLedgerContent({
                 }
                 disabled={pendingWatchdogDecision != null}
               >
-                Mark false positive
+                {t("issueRunLedger.markFalsePositive")}
               </button>
             </div>
           ) : null}
@@ -828,8 +829,8 @@ export function IssueRunLedgerContent({
       {feedItems.length === 0 ? (
         <div className="rounded-md border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
           {renderActivityEvent
-            ? "Runs and activity will appear here once this task has history."
-            : "Historical runs without liveness metadata will appear here once linked to this task."}
+            ? t("issueRunLedger.runsWillAppear")
+            : t("issueRunLedger.historicalWillAppear")}
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -876,7 +877,7 @@ export function IssueRunLedgerContent({
                     <span
                       data-testid="run-on-behalf-of"
                       className="min-w-0 max-w-full truncate text-muted-foreground"
-                      title={`Acting on behalf of ${onBehalfOfLabel}`}
+                      title={t("issueRunLedger.actingOnBehalf", { name: onBehalfOfLabel })}
                     >
                       on behalf of{" "}
                       <span className="text-foreground">{onBehalfOfLabel}</span>
@@ -907,7 +908,7 @@ export function IssueRunLedgerContent({
                   </span>
                   {exhausted ? (
                     <span className="rounded-md border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-(length:--text-micro) font-medium text-destructive">
-                      Exhausted
+                      {t("issueRunLedger.exhausted")}
                     </span>
                   ) : null}
                   {continuation ? (
@@ -945,7 +946,7 @@ export function IssueRunLedgerContent({
                     className="rounded-md border border-border px-1.5 py-0.5 text-(length:--text-micro) text-foreground hover:bg-accent/40"
                     onClick={() => setInspectedRun(run)}
                   >
-                    Inspect run
+                    {t("issueRunLedger.inspectRun")}
                   </button>
                 </div>
 

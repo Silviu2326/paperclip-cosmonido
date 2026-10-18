@@ -48,8 +48,8 @@ describe("ThemeToggle", () => {
 
     const button = container.querySelector("button");
     expect(button).not.toBeNull();
-    expect(button?.getAttribute("aria-label")).toBe("Switch to light mode");
-    expect(button?.getAttribute("title")).toBe("Switch to light mode");
+    expect(button?.getAttribute("aria-label")).toBe("Cambiar a modo claro");
+    expect(button?.getAttribute("title")).toBe("Cambiar a modo claro");
 
     await act(async () => {
       button?.click();
@@ -66,8 +66,8 @@ describe("ThemeToggle", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Switch to light mode");
-    expect(container.textContent).toContain("Toggle the app appearance.");
+    expect(container.textContent).toContain("Cambiar a modo claro");
+    expect(container.textContent).toContain("Cambia el aspecto de la aplicación.");
 
     await act(async () => root.unmount());
   });
@@ -83,8 +83,8 @@ describe("ThemeToggle", () => {
     expect(button?.classList).toContain("h-(--profile-popover-row-height)");
     expect(button?.classList).toContain("gap-(--profile-popover-row-gap)");
     expect(button?.querySelector("span")?.classList).toContain("size-5");
-    expect(container.textContent).toContain("Switch to light mode");
-    expect(container.textContent).not.toContain("Toggle the app appearance.");
+    expect(container.textContent).toContain("Cambiar a modo claro");
+    expect(container.textContent).not.toContain("Cambia el aspecto de la aplicación.");
 
     await act(async () => root.unmount());
   });
@@ -117,7 +117,7 @@ describe("ThemeToggle", () => {
     await flushReact();
 
     const button = container.querySelector("button");
-    expect(button?.getAttribute("aria-label")).toBe("Switch to dark mode");
+    expect(button?.getAttribute("aria-label")).toBe("Cambiar a modo oscuro");
 
     await act(async () => root.unmount());
   });

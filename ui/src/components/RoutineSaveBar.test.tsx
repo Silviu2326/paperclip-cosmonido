@@ -60,7 +60,7 @@ describe("RoutineSaveBar", () => {
 
   it("shows the unsaved change count when dirty", () => {
     renderBar({ dirtyFields: DIRTY });
-    expect(container.textContent).toContain("2 unsaved changes");
+    expect(container.textContent).toContain("2 cambios sin guardar");
   });
 
   it("invokes onSave on Cmd/Ctrl+S while dirty", () => {
@@ -81,10 +81,10 @@ describe("RoutineSaveBar", () => {
 
   it("surfaces the conflict recovery actions on saveConflict", () => {
     const handlers = renderBar({ dirtyFields: DIRTY, saveConflict: true });
-    expect(container.textContent).toContain("Routine changed elsewhere");
+    expect(container.textContent).toContain("La rutina cambió en otro sitio");
     const buttons = Array.from(container.querySelectorAll("button"));
-    const reload = buttons.find((button) => button.textContent?.includes("Reload latest"));
-    const overwrite = buttons.find((button) => button.textContent?.includes("Overwrite anyway"));
+    const reload = buttons.find((button) => button.textContent?.includes("Recargar la última"));
+    const overwrite = buttons.find((button) => button.textContent?.includes("Sobrescribir de todos modos"));
     expect(reload).toBeTruthy();
     expect(overwrite).toBeTruthy();
     act(() => {

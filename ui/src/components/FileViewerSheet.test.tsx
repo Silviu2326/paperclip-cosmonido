@@ -8,10 +8,10 @@ import { describeDenial, FileContentViewer, FileViewerMetadataRow } from "./File
 describe("describeDenial", () => {
   it("returns the curated body for too_large regardless of fallback", () => {
     expect(describeDenial("too_large", "").body).toBe(
-      "This file exceeds the supported preview size.",
+      "Este archivo supera el tamaño de vista previa admitido.",
     );
     expect(describeDenial("too_large", "ignored fallback").body).toBe(
-      "This file exceeds the supported preview size.",
+      "Este archivo supera el tamaño de vista previa admitido.",
     );
   });
 
@@ -31,14 +31,14 @@ describe("describeDenial", () => {
 
   it("describes unsupported previews in terms of text, image, and video", () => {
     expect(describeDenial("unsupported_content", "").body).toBe(
-      "This file does not have a text, image, or video preview available.",
+      "Este archivo no tiene vista previa de texto, imagen ni vídeo.",
     );
   });
 
   it("falls back to the generic message for unknown codes with empty fallback", () => {
     const { body, title } = describeDenial("", "");
-    expect(title).toBe("Can't preview this file");
-    expect(body).toBe("The viewer was unable to load this file.");
+    expect(title).toBe("No se puede previsualizar este archivo");
+    expect(body).toBe("El visor no pudo cargar este archivo.");
   });
 
   it("prefers a human-readable server message for unknown codes", () => {
@@ -137,18 +137,18 @@ describe("FileContentViewer", () => {
       </ThemeProvider>,
     );
 
-    expect(markup).toContain("Markdown preview mode");
-    expect(markup).toContain("Show rendered Markdown");
-    expect(markup).toContain("Show raw Markdown");
-    expect(markup).toContain("README.md rendered Markdown");
-    expect(markup).not.toContain("README.md source");
+    expect(markup).toContain("Modo de vista previa de Markdown");
+    expect(markup).toContain("Mostrar Markdown renderizado");
+    expect(markup).toContain("Mostrar Markdown en bruto");
+    expect(markup).toContain("Markdown renderizado de README.md");
+    expect(markup).not.toContain("Código fuente de README.md");
   });
 
   it("does not show the Markdown toggle for non-Markdown text files", () => {
     const markup = renderToStaticMarkup(<FileContentViewer content={content()} highlightedLine={null} />);
 
-    expect(markup).not.toContain("Markdown preview mode");
-    expect(markup).toContain("notes.txt source");
+    expect(markup).not.toContain("Modo de vista previa de Markdown");
+    expect(markup).toContain("Código fuente de notes.txt");
   });
 });
 
@@ -165,7 +165,7 @@ describe("FileViewerMetadataRow", () => {
   it("reserves metadata row height while file details load", () => {
     const markup = renderToStaticMarkup(<FileViewerMetadataRow state={state} />);
     expect(markup).toContain("min-h-(--sz-18px)");
-    expect(markup).toContain("Loading file details");
+    expect(markup).toContain("Cargando detalles del archivo");
   });
 });
 
@@ -181,7 +181,7 @@ describe("workspace CSV content", () => {
     expect(rendered).toContain("Lee, Sam");
     expect(rendered).not.toContain("CSV preview mode");
     const raw = renderToStaticMarkup(<FileContentViewer content={csv} highlightedLine={null} previewMode="raw" />);
-    expect(raw).toContain("export.csv source");
+    expect(raw).toContain("Código fuente de export.csv");
     expect(raw).not.toContain("<table");
   });
 });
@@ -201,10 +201,10 @@ describe("CSV preview limits", () => {
       const rendered = renderToStaticMarkup(<FileContentViewer content={content} highlightedLine={null} previewMode="rendered" />);
       expect((rendered.match(/<td /g) ?? []).length).toBe(Math.min(rowCount, 500) * Math.min(columnCount, 100));
       expect((rendered.match(/scope="col"/g) ?? []).length).toBe(Math.min(columnCount, 100) + 1);
-      expect(rendered).toContain(`${rowCount} ${rowCount === 1 ? "row" : "rows"}`);
-      expect(rendered).toContain(`${columnCount} columns`);
+      expect(rendered).toContain(`${rowCount} ${rowCount === 1 ? "fila" : "filas"}`);
+      expect(rendered).toContain(`${columnCount} columnas`);
       if (rowCount > 500 || columnCount > 100) {
-        expect(rendered).toContain(`Showing the first ${Math.min(rowCount, 500)} rows and ${Math.min(columnCount, 100)} columns.`);
+        expect(rendered).toContain(`Mostrando las primeras ${Math.min(rowCount, 500)} filas y ${Math.min(columnCount, 100)} columnas.`);
       } else {
         expect(rendered).not.toContain("Showing the first");
       }

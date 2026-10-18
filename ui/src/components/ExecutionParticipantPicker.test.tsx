@@ -30,8 +30,8 @@ describe("ExecutionParticipantPicker", () => {
   it("adds a reviewer to a valid policy that omits stages without dropping authorization", () => {
     const policy = { authorizationPolicy: { trustPreset: "standard" }, maxReviewRounds: 4 };
     const { container, onUpdate, cleanup } = renderPicker(policy);
-    expect(container.textContent).not.toContain("Execution policy unavailable");
-    const assign = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Assign to me");
+    expect(container.textContent).not.toContain("Política de ejecución no disponible");
+    const assign = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Asignar a mí");
     expect(assign).toBeTruthy();
     act(() => assign!.click());
     expect(onUpdate).toHaveBeenCalledTimes(1);
@@ -49,7 +49,7 @@ describe("ExecutionParticipantPicker", () => {
     };
     const { container, onUpdate, cleanup } = renderPicker(policy);
     expect(container.querySelector("button")?.textContent).toBe("You");
-    const remove = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "No reviewers");
+    const remove = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Sin revisores");
     expect(remove).toBeTruthy();
     act(() => remove!.click());
     expect(onUpdate).toHaveBeenCalledWith({ executionPolicy: {
@@ -62,7 +62,7 @@ describe("ExecutionParticipantPicker", () => {
 
   it("keeps a malformed policy unavailable and exposes no mutation controls", () => {
     const { container, onUpdate, cleanup } = renderPicker({ stages: [{ type: "review", participants: {} }] });
-    expect(container.textContent).toBe("Execution policy unavailable. Refresh to try again.");
+    expect(container.textContent).toBe("Política de ejecución no disponible. Actualiza para volver a intentarlo.");
     expect(container.querySelector("button")).toBeNull();
     expect(onUpdate).not.toHaveBeenCalled();
     cleanup();

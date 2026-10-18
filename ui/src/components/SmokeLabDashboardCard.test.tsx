@@ -115,7 +115,7 @@ describe("SmokeLabDashboardCard", () => {
     await render();
 
     expect(container.querySelector('[data-testid="smoke-lab-dashboard-card"]')).toBeNull();
-    expect(container.textContent).not.toContain("Integration smoke");
+    expect(container.textContent).not.toContain("Prueba de integración");
     expect(listRunsMock).not.toHaveBeenCalled();
   });
 
@@ -125,7 +125,7 @@ describe("SmokeLabDashboardCard", () => {
     const card = container.querySelector<HTMLAnchorElement>('[data-testid="smoke-lab-dashboard-card"]');
     expect(card).not.toBeNull();
     expect(card?.getAttribute("href")).toBe("/apps/advanced/smoke-lab");
-    expect(container.textContent).toContain("Integration smoke");
-    expect(container.textContent).toContain("Failing paths: P3");
+    expect(container.textContent).toContain("Prueba de integración");
+    expect(container.textContent).toContain("Rutas con fallos: P3");
   });
 });

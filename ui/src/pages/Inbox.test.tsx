@@ -534,7 +534,7 @@ describe("Inbox toolbar", () => {
     for (const text of ["Hire Agent: New teammate", "Failed run", "Jordan Example"]) {
       const row = rowFor(text);
       expect(row, `missing inbox row for ${text}`).toBeDefined();
-      expect(row?.querySelector('button[aria-label="Mark as read"]')).not.toBeNull();
+      expect(row?.querySelector('button[aria-label="Marcar como leído"]')).not.toBeNull();
       const archiveButton = row?.querySelector<HTMLButtonElement>('button[aria-label="Archive"]');
       expect(archiveButton).not.toBeNull();
       expect(archiveButton?.className).toContain("opacity-0");
@@ -544,7 +544,7 @@ describe("Inbox toolbar", () => {
 
     const approvalRow = rowFor("Hire Agent: New teammate");
     const approvalActions = [...(approvalRow?.querySelectorAll("button") ?? [])]
-      .filter((button) => button.textContent === "Approve" || button.textContent === "Reject");
+      .filter((button) => button.textContent === "Aprobar" || button.textContent === "Rechazar");
     expect(approvalActions.length).toBeGreaterThanOrEqual(2);
     approvalActions.forEach((button) => {
       expect(button.className).toContain("h-8");
@@ -666,11 +666,11 @@ describe("Inbox toolbar", () => {
     expect(container.querySelector('input[placeholder="Buscar bandeja…"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="inbox-blocked-tab-badge"]')).toBeNull();
     expect(container.querySelector('button[title="Filter"]')).not.toBeNull();
-    expect(container.querySelector('button[title="Group"]')).not.toBeNull();
+    expect(container.querySelector('button[title="Agrupar"]')).not.toBeNull();
     expect(container.querySelector('button[title="Columns"]')).not.toBeNull();
-    expect(container.querySelector('button[title="Sort"]')).not.toBeNull();
+    expect(container.querySelector('button[title="Ordenar"]')).not.toBeNull();
     expect(container.querySelector('button[title="Enable parent-child nesting"]')).toBeNull();
-    expect(container.textContent).not.toContain("Mark all as read");
+    expect(container.textContent).not.toContain("Marcar todo como leído");
 
     act(() => {
       root.unmount();
@@ -726,7 +726,7 @@ describe("Inbox toolbar", () => {
     });
 
     expect(container.querySelector('[data-testid="inbox-filter-scope-feedback"]')?.textContent)
-      .toBe("Live runs only — tasks currently connected to an agent run.");
+      .toBe("Solo ejecuciones en vivo: tareas conectadas actualmente a una ejecución de agente.");
     const migrated = JSON.parse(
       localStorage.getItem("paperclip:task-collection:v1:company-1:inbox") ?? "null",
     ) as { companyId?: string; collectionKey?: string } | null;
@@ -882,7 +882,7 @@ describe("Inbox toolbar", () => {
       );
     });
 
-    const groupButton = container.querySelector<HTMLButtonElement>('button[title="Group"]');
+    const groupButton = container.querySelector<HTMLButtonElement>('button[title="Agrupar"]');
     expect(groupButton).not.toBeNull();
 
     await act(async () => {
@@ -1021,7 +1021,7 @@ describe("Inbox toolbar", () => {
 
     const rows = Array.from(container.querySelectorAll("[data-inbox-item]"));
     const rowFor = (text: string) => rows.find((row) => row.textContent?.includes(text));
-    const markReadButton = (row: Element) => row.querySelector('button[aria-label="Mark as read"]');
+    const markReadButton = (row: Element) => row.querySelector('button[aria-label="Marcar como leído"]');
     // The canonical spacer reserves the disclosure column on every leaf row.
     const hasLeadingSpacer = (row: Element) =>
       !!row.querySelector('[data-slot="task-row-disclosure-spacer"]');
@@ -1043,7 +1043,7 @@ describe("Inbox toolbar", () => {
     expect(unreadSlot?.className).toContain("absolute");
     // Only the unread row carries the dot button; the read slot is empty.
     expect(markReadButton(unreadSlot!)).not.toBeNull();
-    expect(readSlot?.querySelector('button[aria-label="Mark as read"]')).toBeNull();
+    expect(readSlot?.querySelector('button[aria-label="Marcar como leído"]')).toBeNull();
     expect(hasLeadingSpacer(unreadRow)).toBe(true);
 
     // Read rows keep the same spacer, so both rows line up.
@@ -1405,7 +1405,7 @@ describe("FailedRunInboxRow", () => {
         <FailedRunInboxRow
           run={run}
           issueById={new Map()}
-          agentName="Agent"
+          agentName="Agente"
           issueLinkState={null}
           onDismiss={() => {}}
           onRetry={() => {}}
@@ -1451,9 +1451,9 @@ describe("InboxIssueMetaLeading", () => {
     );
     const liveBadge = container.querySelector('span[class*="px-1.5"][class*="bg-primary/10"]');
     const liveBadgeLabel = Array.from(container.querySelectorAll("span")).find(
-      // The pill chassis is a Badge (itself a span with textContent "Live");
+      // The pill chassis is a Badge (itself a span with textContent "En vivo");
       // the label is the inner span without the rounded-full chassis class.
-      (node) => node.textContent === "Live" && node.className.includes("text-") && !node.className.includes("rounded-full"),
+      (node) => node.textContent === "En vivo" && node.className.includes("text-") && !node.className.includes("rounded-full"),
     );
     const liveDot = container.querySelector('span[class*="bg-primary"]');
     const pulseRing = container.querySelector('span[class*="animate-pulse"]');

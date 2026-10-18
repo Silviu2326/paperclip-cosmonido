@@ -322,14 +322,14 @@ describe("SkillStudio create mode", () => {
   it("renders /skills/studio/new as create mode instead of loading skill id new", async () => {
     const node = await renderStudio();
 
-    await waitFor(() => expect(node.textContent).toContain("Create a new skill"));
+    await waitFor(() => expect(node.textContent).toContain("Crear una nueva skill"));
 
-    expect(node.textContent).not.toContain("Skill not found.");
+    expect(node.textContent).not.toContain("No se encontró la skill.");
     expect(mockCompanySkillsApi.detail).not.toHaveBeenCalledWith("company-1", "new");
     expect(mockSetBreadcrumbs).toHaveBeenCalledWith([
       { label: "Skills", href: "/skills" },
       { label: "Studio", href: "/skills/studio" },
-      { label: "New skill" },
+      { label: "Nueva skill" },
     ]);
   });
 
@@ -338,7 +338,7 @@ describe("SkillStudio create mode", () => {
 
     const node = await renderStudio();
 
-    await waitFor(() => expect(node.textContent).toContain("Forking Demo Skill"));
+    await waitFor(() => expect(node.textContent).toContain("Creando un fork de Demo Skill"));
 
     expect(mockCompanySkillsApi.detail).toHaveBeenCalledWith("company-1", "source-skill");
     expect((node.querySelector("#skill-name") as HTMLInputElement).value).toBe("Demo Skill Fork");
@@ -350,7 +350,7 @@ describe("SkillStudio create mode", () => {
 
     await waitFor(() => expect(node.querySelector("#skill-name")).toBeTruthy());
     await inputValue(node.querySelector("#skill-name") as HTMLInputElement, "Code Review");
-    await click(buttonsNamed(node, "Create skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Crear skill")[0] as HTMLButtonElement);
 
     await waitFor(() => expect(mockCompanySkillsApi.create).toHaveBeenCalled());
 
@@ -373,7 +373,7 @@ describe("SkillStudio create mode", () => {
 
     await waitFor(() => expect(node.querySelector("#skill-name")).toBeTruthy());
     await inputValue(node.querySelector("#skill-name") as HTMLInputElement, "Code Review");
-    await click(buttonsNamed(node, "Create skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Crear skill")[0] as HTMLButtonElement);
 
     await waitFor(() => expect(mockCompanySkillsApi.create).toHaveBeenCalled());
 
@@ -395,7 +395,7 @@ describe("SkillStudio create mode", () => {
 
     expect((node.querySelector("#skill-categories") as HTMLInputElement).value).toBe("AI Tools, Developer Experience, ");
 
-    await click(buttonsNamed(node, "Create skill")[0] as HTMLButtonElement);
+    await click(buttonsNamed(node, "Crear skill")[0] as HTMLButtonElement);
     await waitFor(() => expect(mockCompanySkillsApi.create).toHaveBeenCalled());
 
     expect(mockCompanySkillsApi.create).toHaveBeenCalledWith(
@@ -504,15 +504,15 @@ describe("SkillStudio landing", () => {
 
     const node = await renderStudio();
 
-    await waitFor(() => expect(node.textContent).toContain("Recently visited"));
-    expect(node.textContent).toContain("Recently updated");
+    await waitFor(() => expect(node.textContent).toContain("Visitadas recientemente"));
+    expect(node.textContent).toContain("Actualizadas recientemente");
 
     // Visited section surfaces the visited skill; updated section excludes it.
     const visitedSection = Array.from(node.querySelectorAll("section")).find((s) =>
-      s.querySelector("h2")?.textContent === "Recently visited",
+      s.querySelector("h2")?.textContent === "Visitadas recientemente",
     )!;
     const updatedSection = Array.from(node.querySelectorAll("section")).find((s) =>
-      s.querySelector("h2")?.textContent === "Recently updated",
+      s.querySelector("h2")?.textContent === "Actualizadas recientemente",
     )!;
     expect(visitedSection.textContent).toContain("Visited One");
     expect(updatedSection.textContent).not.toContain("Visited One");
@@ -546,9 +546,9 @@ describe("SkillStudio landing", () => {
 
     const node = await renderStudio();
 
-    await waitFor(() => expect(node.textContent).toContain("Select a skill to open Studio."));
-    expect(node.textContent).toContain("Create a new skill");
-    expect(node.textContent).not.toContain("Recently updated");
+    await waitFor(() => expect(node.textContent).toContain("Selecciona una skill para abrir Studio."));
+    expect(node.textContent).toContain("Crear una nueva skill");
+    expect(node.textContent).not.toContain("Actualizadas recientemente");
   });
 
   it("shows the loading fallback while skills load", async () => {
@@ -556,7 +556,7 @@ describe("SkillStudio landing", () => {
 
     const node = await renderStudio();
 
-    await waitFor(() => expect(node.textContent).toContain("Loading skills..."));
+    await waitFor(() => expect(node.textContent).toContain("Cargando skills..."));
   });
 });
 
@@ -628,9 +628,9 @@ describe("SkillStudio editor frontmatter", () => {
 
     await keyDown(bodyEditor as HTMLElement, "E");
 
-    await waitFor(() => expect(node.textContent).toContain("Unsaved"));
+    await waitFor(() => expect(node.textContent).toContain("Sin guardar"));
 
-    const saveButton = buttonsNamed(node, "Save").find((button) => !button.disabled);
+    const saveButton = buttonsNamed(node, "Guardar").find((button) => !button.disabled);
     expect(saveButton).toBeTruthy();
     await click(saveButton as HTMLButtonElement);
 
@@ -663,7 +663,7 @@ describe("SkillStudio editor frontmatter", () => {
     // The dead-end "Fork" text link is replaced by a primary "Make a copy"
     // button that opens the fork-confirm dialog (agent-switch flow).
     const editCopy = Array.from(node.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Make a copy",
+      (button) => button.textContent?.trim() === "Crear una copia",
     );
     expect(editCopy).toBeTruthy();
     const staleForkLink = Array.from(node.querySelectorAll("a")).find((link) =>

@@ -326,7 +326,7 @@ describe("IssueAttachmentsSection", () => {
     expect(container.textContent).toContain("stored-report.pdf");
     expect(container.querySelector('a[aria-label="Open stored-report.pdf"]')).toBeTruthy();
     expect(container.querySelector('a[aria-label="Download stored-report.pdf"]')).toBeTruthy();
-    expect(container.querySelector('button[title="Delete attachment"]')).toBeNull();
+    expect(container.querySelector('button[title="Eliminar adjunto"]')).toBeNull();
     expect(container.textContent).not.toContain("Delete this attachment?");
   });
 });

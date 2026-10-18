@@ -363,7 +363,7 @@ describe("CompanyImport", () => {
   }
 
   async function chooseLocalZip(file: File) {
-    await clickButton((text) => text.includes("Local zip"));
+    await clickButton((text) => text.includes("Zip local"));
     const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
     expect(fileInput).toBeTruthy();
     Object.defineProperty(fileInput!, "files", { value: [file], configurable: true });
@@ -377,15 +377,15 @@ describe("CompanyImport", () => {
     await renderPage();
     await enterGithubUrl();
 
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
 
     // Paused-import checkbox is present and checked by default.
     const pauseLabel = Array.from(container.querySelectorAll("label"))
-      .find((label) => label.textContent?.includes("Start imported agents and routines paused"));
+      .find((label) => label.textContent?.includes("Iniciar los agentes y rutinas importados en pausa"));
     expect(pauseLabel).toBeTruthy();
     expect(pauseLabel?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(true);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
   }
 
@@ -400,20 +400,20 @@ describe("CompanyImport", () => {
       // The page polls the job it was handed and runs the same activation path
       // the synchronous response used to drive.
       expect(mockCompaniesApi.getImportJob).toHaveBeenCalledWith("job-1");
-      expect(container.textContent).toContain("Import complete");
-      expect(container.textContent).toContain("Activate imported agents and routines");
+      expect(container.textContent).toContain("Importación completada");
+      expect(container.textContent).toContain("Activar agentes y rutinas importados");
       expect(container.textContent).toContain("Coder");
       expect(container.textContent).toContain("Weekly Report");
 
       expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ["companies"] }));
 
-      await clickButton((text) => text.startsWith("Activate selected"));
+      await clickButton((text) => text.startsWith("Activar seleccionados"));
 
       expect(mockAgentsApi.resume).toHaveBeenCalledWith("agent-1");
       expect(mockRoutinesApi.update).toHaveBeenCalledWith("routine-1", { status: "active" });
-      expect(container.textContent).toContain("activated");
-      expect(container.textContent).not.toContain("failed:");
-      expect(findButton((text) => text === "Go to dashboard")).toBeTruthy();
+      expect(container.textContent).toContain("activado");
+      expect(container.textContent).not.toContain("fallido:");
+      expect(findButton((text) => text === "Ir al panel")).toBeTruthy();
     } finally {
       invalidateSpy.mockRestore();
     }
@@ -423,12 +423,12 @@ describe("CompanyImport", () => {
     mockAgentsApi.resume.mockRejectedValue(new Error("resume exploded"));
     await renderPageAndImport();
 
-    await clickButton((text) => text.startsWith("Activate selected"));
+    await clickButton((text) => text.startsWith("Activar seleccionados"));
 
     expect(mockAgentsApi.resume).toHaveBeenCalledWith("agent-1");
     expect(mockRoutinesApi.update).toHaveBeenCalledWith("routine-1", { status: "active" });
-    expect(container.textContent).toContain("failed: resume exploded");
-    expect(container.textContent).toContain("activated");
+    expect(container.textContent).toContain("fallido: resume exploded");
+    expect(container.textContent).toContain("activado");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
   });
 
@@ -451,7 +451,7 @@ describe("CompanyImport", () => {
 
     await renderPage();
 
-    await clickButton((text) => text.includes("Local zip"));
+    await clickButton((text) => text.includes("Zip local"));
 
     const fileInput = container.querySelector<HTMLInputElement>('input[type="file"]');
     expect(fileInput).toBeTruthy();
@@ -466,15 +466,15 @@ describe("CompanyImport", () => {
     // The inline preflight no longer blocks the zip path.
     expect(container.textContent).not.toContain("Package too large for browser import");
     expect(container.textContent).not.toContain("CLI folder import");
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(false);
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(false);
 
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     // The preview goes up as a multipart package (the raw File), not inline JSON.
     expect(mockCompaniesApi.importPreviewPackage).toHaveBeenCalledTimes(1);
     expect(mockCompaniesApi.importPreview).not.toHaveBeenCalled();
     expect(mockCompaniesApi.importPreviewPackage.mock.calls[0]![0]).toBe(file);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     // The apply also uploads the raw File as a multipart async job — never the
@@ -513,13 +513,13 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await chooseLocalZip(buildLargeZipFile());
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     await vi.waitFor(() => {
       expect(mockCompaniesApi.importTransferUploadPart).toHaveBeenCalledTimes(2);
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Uploading part 2 of 2");
+    expect(container.textContent).toContain("Subiendo la parte 2 de 2");
     expect(container.textContent).toContain("32 MB");
 
     await act(async () => {
@@ -556,9 +556,9 @@ describe("CompanyImport", () => {
       expect.objectContaining({ collisionStrategy: "rename", target: { mode: "new_company", newCompanyName: null } }),
     );
     expect(mockCompaniesApi.importPreviewPackage).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("Import preview");
+    expect(container.textContent).toContain("Vista previa de la importación");
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await vi.waitFor(() => {
       expect(mockCompaniesApi.importTransferApply).toHaveBeenCalledTimes(1);
     });
@@ -574,7 +574,7 @@ describe("CompanyImport", () => {
     );
     expect(mockCompaniesApi.importBundlePackageAsync).not.toHaveBeenCalled();
     expect(mockCompaniesApi.getImportJob).toHaveBeenCalledWith("job-1");
-    expect(container.textContent).toContain("Import complete");
+    expect(container.textContent).toContain("Importación completada");
   });
 
   it("retries a failed part before surfacing the error panel, keeping the transfer resumable", async () => {
@@ -587,9 +587,9 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await chooseLocalZip(buildLargeZipFile());
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Preview failed: socket hang up");
+      expect(container.textContent).toContain("La vista previa falló: socket hang up");
     });
 
     // Part 1 was attempted three times before the failure surfaced; the
@@ -599,7 +599,7 @@ describe("CompanyImport", () => {
     );
     expect(partOneAttempts).toHaveLength(3);
     expect(mockCompaniesApi.importTransferPreview).not.toHaveBeenCalled();
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(false);
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(false);
 
     // Retry: the re-declared transfer reports only the lost part missing, so
     // just that part travels again.
@@ -607,7 +607,7 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importTransferUploadPart.mockResolvedValue({ ok: true, index: 1, alreadyCompleted: false });
     mockCompaniesApi.importTransferUploadPart.mockClear();
 
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     await vi.waitFor(() => {
       expect(mockCompaniesApi.importTransferPreview).toHaveBeenCalledTimes(1);
     });
@@ -615,7 +615,7 @@ describe("CompanyImport", () => {
 
     expect(mockCompaniesApi.importTransferUploadPart).toHaveBeenCalledTimes(1);
     expect(mockCompaniesApi.importTransferUploadPart).toHaveBeenCalledWith("transfer-1", 1, expect.anything());
-    expect(container.textContent).toContain("Import preview");
+    expect(container.textContent).toContain("Vista previa de la importación");
   });
 
   it("re-uploads only the missing parts when resuming an interrupted transfer", async () => {
@@ -626,7 +626,7 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await chooseLocalZip(buildLargeZipFile());
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     await vi.waitFor(() => {
       expect(mockCompaniesApi.importTransferPreview).toHaveBeenCalledTimes(1);
     });
@@ -634,19 +634,19 @@ describe("CompanyImport", () => {
 
     expect(mockCompaniesApi.importTransferUploadPart).toHaveBeenCalledTimes(1);
     expect(mockCompaniesApi.importTransferUploadPart).toHaveBeenCalledWith("transfer-1", 1, expect.anything());
-    expect(container.textContent).toContain("Import preview");
+    expect(container.textContent).toContain("Vista previa de la importación");
   });
 
   it("explains the disabled preview button until a package is chosen", async () => {
     await renderPage();
 
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(true);
-    expect(container.textContent).toContain("Choose a package above to enable the preview.");
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(true);
+    expect(container.textContent).toContain("Elige un paquete arriba para activar la vista previa.");
 
     await enterGithubUrl();
 
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(false);
-    expect(container.textContent).not.toContain("Choose a package above to enable the preview.");
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(false);
+    expect(container.textContent).not.toContain("Elige un paquete arriba para activar la vista previa.");
   });
 
   it("shows a progress panel while the preview runs and a durable error panel when it fails", async () => {
@@ -660,42 +660,42 @@ describe("CompanyImport", () => {
     await renderPage();
     await enterGithubUrl();
 
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
 
-    expect(container.textContent).toContain("Uploading and analyzing your package");
-    expect(container.textContent).toContain("Keep this page open.");
+    expect(container.textContent).toContain("Subiendo y analizando tu paquete");
+    expect(container.textContent).toContain("Mantén esta página abierta.");
 
     // A mid-flight config edit keeps the progress panel visible (the request
     // really is still running) but supersedes the request, so its failure
     // settles silently instead of describing a package no longer selected.
     await enterGithubUrl("https://github.com/acme/starter-b/tree/main/company");
 
-    expect(container.textContent).toContain("Uploading and analyzing your package");
+    expect(container.textContent).toContain("Subiendo y analizando tu paquete");
 
     await act(async () => {
       rejectPreview(new Error("stream disconnected"));
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Uploading and analyzing your package");
-    expect(container.textContent).not.toContain("Preview failed:");
+    expect(container.textContent).not.toContain("Subiendo y analizando tu paquete");
+    expect(container.textContent).not.toContain("La vista previa falló:");
     expect(mockPushToast).not.toHaveBeenCalled();
 
     // A failure of the currently configured request renders a durable panel.
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
     await act(async () => {
       rejectPreview(new Error("stream disconnected"));
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Preview failed: stream disconnected");
-    expect(container.textContent).toContain("Retry, or re-export the package without large attachments");
+    expect(container.textContent).toContain("La vista previa falló: stream disconnected");
+    expect(container.textContent).toContain("Reintenta o vuelve a exportar el paquete sin los adjuntos grandes");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
 
     // Changing the package supersedes the failed request: the error panel resets.
     await enterGithubUrl("https://github.com/acme/other-starter/tree/main/company");
 
-    expect(container.textContent).not.toContain("Preview failed:");
+    expect(container.textContent).not.toContain("La vista previa falló:");
   });
 
   it("shows a progress panel while the import runs and a durable error panel when it fails", async () => {
@@ -710,19 +710,19 @@ describe("CompanyImport", () => {
     );
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
 
-    expect(container.textContent).toContain("Import running on the server");
-    expect(container.textContent).toContain("safe to keep waiting");
+    expect(container.textContent).toContain("La importación se ejecuta en el servidor");
+    expect(container.textContent).toContain("puedes seguir esperando sin problema");
 
     // While the import runs, previewing and the structural package/settings
     // controls are locked (and explained), so nothing can replace or unmount
     // the plan the import started from.
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(true);
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(true);
     expect(container.textContent).toContain(
-      "Import in progress — the package and settings unlock when it finishes.",
+      "Importación en curso: el paquete y los ajustes se desbloquean cuando termine.",
     );
     const lockedUrlInput = container.querySelector<HTMLInputElement>(
       'input[placeholder="https://github.com/owner/repo/tree/main/company"]',
@@ -737,7 +737,7 @@ describe("CompanyImport", () => {
     // Config edits while the import is in flight must not detach it from
     // the UI: the progress panel keeps reporting it until it settles.
     const midFlightNameInput = container.querySelector<HTMLInputElement>(
-      'input[placeholder="Imported Organization"]',
+      'input[placeholder="Organización importada"]',
     );
     expect(midFlightNameInput).toBeTruthy();
     await act(async () => {
@@ -747,21 +747,21 @@ describe("CompanyImport", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Import running on the server");
+    expect(container.textContent).toContain("La importación se ejecuta en el servidor");
 
     await act(async () => {
       rejectImport(new Error("connection reset"));
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Import running on the server");
-    expect(container.textContent).toContain("Import failed: connection reset");
-    expect(container.textContent).toContain("check the target company before retrying.");
+    expect(container.textContent).not.toContain("La importación se ejecuta en el servidor");
+    expect(container.textContent).toContain("La importación falló: connection reset");
+    expect(container.textContent).toContain("revisa la empresa de destino antes de reintentar.");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
 
     // The new-company name feeds the request payload too: editing it clears
     // the stale error panel without discarding the rendered preview.
-    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Imported Organization"]');
+    const nameInput = container.querySelector<HTMLInputElement>('input[placeholder="Organización importada"]');
     expect(nameInput).toBeTruthy();
     await act(async () => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
@@ -770,9 +770,9 @@ describe("CompanyImport", () => {
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Import failed:");
-    expect(findButton((text) => text.startsWith("Import 3 file"))).toBeTruthy();
-    expect(findButton((text) => text === "Preview import")?.disabled).toBe(false);
+    expect(container.textContent).not.toContain("La importación falló:");
+    expect(findButton((text) => text.startsWith("Importar 3 archivo"))).toBeTruthy();
+    expect(findButton((text) => text === "Previsualizar importación")?.disabled).toBe(false);
     expect(
       container.querySelector<HTMLInputElement>(
         'input[placeholder="https://github.com/owner/repo/tree/main/company"]',
@@ -781,16 +781,16 @@ describe("CompanyImport", () => {
 
     // The pause toggle feeds the request payload too: after another failed
     // attempt, toggling it also supersedes the request and clears the panel.
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await act(async () => {
       rejectImport(new Error("second failure"));
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Import failed: second failure");
+    expect(container.textContent).toContain("La importación falló: second failure");
 
     const pauseInput = Array.from(container.querySelectorAll("label"))
-      .find((label) => label.textContent?.includes("Start imported agents and routines paused"))
+      .find((label) => label.textContent?.includes("Iniciar los agentes y rutinas importados en pausa"))
       ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
     expect(pauseInput).toBeTruthy();
     await act(async () => {
@@ -798,35 +798,35 @@ describe("CompanyImport", () => {
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Import failed:");
+    expect(container.textContent).not.toContain("La importación falló:");
 
     // File-selection edits feed the payload too and supersede a failure.
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await act(async () => {
       rejectImport(new Error("third failure"));
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Import failed: third failure");
+    expect(container.textContent).toContain("La importación falló: third failure");
 
     const fileCheckbox = Array.from(
       container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'),
-    ).find((input) => !input.closest("label")?.textContent?.includes("Start imported agents"));
+    ).find((input) => !input.closest("label")?.textContent?.includes("Iniciar los agentes y rutinas importados"));
     expect(fileCheckbox).toBeTruthy();
     await act(async () => {
       fileCheckbox!.click();
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Import failed:");
+    expect(container.textContent).not.toContain("La importación falló:");
 
     // Changing the package supersedes the failed import: previewing a fresh
     // package must not resurface the stale import error panel.
     await enterGithubUrl("https://github.com/acme/other-starter/tree/main/company");
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
 
-    expect(findButton((text) => text.startsWith("Import 3 file"))).toBeTruthy();
-    expect(container.textContent).not.toContain("Import failed:");
+    expect(findButton((text) => text.startsWith("Importar 3 archivo"))).toBeTruthy();
+    expect(container.textContent).not.toContain("La importación falló:");
 
     // The outcome reports the submitted pause option, not the live checkbox:
     // a mid-flight toggle must not change what the completed import did. The
@@ -839,14 +839,14 @@ describe("CompanyImport", () => {
         }),
     );
     mockCompaniesApi.getImportJob.mockResolvedValue(buildSucceededJob("job-final"));
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
 
     expect(mockCompaniesApi.importBundleAsync).toHaveBeenLastCalledWith(
       expect.objectContaining({ pauseAutomations: false }),
     );
 
     const midFlightPauseInput = Array.from(container.querySelectorAll("label"))
-      .find((label) => label.textContent?.includes("Start imported agents and routines paused"))
+      .find((label) => label.textContent?.includes("Iniciar los agentes y rutinas importados en pausa"))
       ?.querySelector<HTMLInputElement>('input[type="checkbox"]');
     expect(midFlightPauseInput).toBeTruthy();
     await act(async () => {
@@ -859,8 +859,8 @@ describe("CompanyImport", () => {
     });
     await settle();
 
-    expect(container.textContent).toContain("Import complete");
-    expect(container.textContent).not.toContain("Activate imported agents and routines");
+    expect(container.textContent).toContain("Importación completada");
+    expect(container.textContent).not.toContain("Activar agentes y rutinas importados");
   });
 
   it("adopts the already-running job when the server reports a 409", async () => {
@@ -877,8 +877,8 @@ describe("CompanyImport", () => {
     // The duplicate submit adopts the running job from the 409 body and polls
     // it instead of firing a second import.
     expect(mockCompaniesApi.getImportJob).toHaveBeenCalledWith("job-existing");
-    expect(container.textContent).toContain("Import complete");
-    expect(container.textContent).toContain("Activate imported agents and routines");
+    expect(container.textContent).toContain("Importación completada");
+    expect(container.textContent).toContain("Activar agentes y rutinas importados");
   });
 
   it("surfaces a failed import job in the durable error panel", async () => {
@@ -888,11 +888,11 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text === "Previsualizar importación");
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
-    expect(container.textContent).toContain("Import failed: blob mismatch");
+    expect(container.textContent).toContain("La importación falló: blob mismatch");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
   });
 
@@ -906,12 +906,12 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text === "Previsualizar importación");
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
-    expect(container.textContent).not.toContain("Import running on the server");
-    expect(container.textContent).toContain("your session may have expired");
+    expect(container.textContent).not.toContain("La importación se ejecuta en el servidor");
+    expect(container.textContent).toContain("tu sesión haya caducado");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
   });
 
@@ -925,8 +925,8 @@ describe("CompanyImport", () => {
 
     await renderPageAndImport();
 
-    expect(container.textContent).not.toContain("Import failed:");
-    expect(container.textContent).toContain("Import complete");
+    expect(container.textContent).not.toContain("La importación falló:");
+    expect(container.textContent).toContain("Importación completada");
   });
 
   it("treats a server-confirmed success without a full result as a soft success and refreshes the company list", async () => {
@@ -944,16 +944,16 @@ describe("CompanyImport", () => {
       await renderPageAndImport();
 
       // Success-leaning panel, not the failure panel.
-      expect(container.textContent).toContain("Import completed");
+      expect(container.textContent).toContain("Importación completada");
       // The readable company gives the panel a name and a direct CTA into the
       // new company's dashboard, plus the paused-agents pointer.
       expect(container.textContent).toContain("Imported Test");
       // The default import submits with pauseAutomations checked, so the
       // paused pointer must show; it is gated off when the user unchecks it.
-      expect(container.textContent).toContain("Imported agents arrived paused");
+      expect(container.textContent).toContain("Los agentes importados llegaron en pausa");
       const openCompany = container.querySelector('[data-testid="import-expired-open-company"]');
       expect(openCompany).not.toBeNull();
-      expect(container.textContent).not.toContain("Import failed");
+      expect(container.textContent).not.toContain("La importación falló");
       expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "success" }));
       // The company list is refreshed so the new company appears in the switcher.
       expect(invalidateSpy).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ["companies"] }));
@@ -972,8 +972,8 @@ describe("CompanyImport", () => {
 
     await renderPageAndImport();
 
-    expect(container.textContent).toContain("Import completed");
-    expect(container.textContent).toContain("select it from the organization switcher");
+    expect(container.textContent).toContain("Importación completada");
+    expect(container.textContent).toContain("selecciónala en el selector de organizaciones");
     // No readable company, so no dashboard CTA — the switcher guidance stands in.
     expect(container.querySelector('[data-testid="import-expired-open-company"]')).toBeNull();
   });
@@ -987,13 +987,13 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text === "Previsualizar importación");
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
-    expect(container.textContent).toContain("Import failed:");
-    expect(container.textContent).toContain("it may have restarted while the import ran");
-    expect(container.textContent).not.toContain("Import completed");
+    expect(container.textContent).toContain("La importación falló:");
+    expect(container.textContent).toContain("es posible que se haya reiniciado mientras se ejecutaba");
+    expect(container.textContent).not.toContain("Importación completada");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
   });
 
@@ -1009,13 +1009,13 @@ describe("CompanyImport", () => {
 
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text === "Previsualizar importación");
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
-    expect(container.textContent).toContain("Import failed:");
-    expect(container.textContent).toContain("it may have restarted while the import ran");
-    expect(container.textContent).not.toContain("Import completed");
+    expect(container.textContent).toContain("La importación falló:");
+    expect(container.textContent).toContain("es posible que se haya reiniciado mientras se ejecutaba");
+    expect(container.textContent).not.toContain("Importación completada");
     expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ tone: "error" }));
   });
 
@@ -1039,7 +1039,7 @@ describe("CompanyImport", () => {
 
     // The resume panel is shown while the first poll is in flight, and no new
     // submit was fired — the job is only being watched.
-    expect(container.textContent).toContain("Resume watching import");
+    expect(container.textContent).toContain("Reanudar el seguimiento de la importación");
     expect(mockCompaniesApi.importBundleAsync).not.toHaveBeenCalled();
     expect(mockCompaniesApi.getImportJob).toHaveBeenCalledWith("job-resume");
 
@@ -1048,8 +1048,8 @@ describe("CompanyImport", () => {
     });
     await settle();
 
-    expect(container.textContent).not.toContain("Resume watching import");
-    expect(container.textContent).toContain("Import complete");
+    expect(container.textContent).not.toContain("Reanudar el seguimiento de la importación");
+    expect(container.textContent).toContain("Importación completada");
     // The stored entry is cleared once the job settles.
     expect(sessionStorage.getItem("paperclip:company-import-job:company-1:acme/starter")).toBeNull();
   });
@@ -1064,7 +1064,7 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(buildMixedAdapterPreviewResult());
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
   }
 
   function lastImportMeta() {
@@ -1079,7 +1079,7 @@ describe("CompanyImport", () => {
     // The picker shows each agent's source adapter, not a coerced CEO default.
     expect(findAdapterSelects().map((select) => select.value)).toEqual(["claude_local", "codex_local"]);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     // Untouched agents flow through with no override at all, so the server
@@ -1099,7 +1099,7 @@ describe("CompanyImport", () => {
     });
     await flushReact();
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     expect(lastImportMeta().adapterOverrides).toEqual({
@@ -1150,7 +1150,7 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton((text) => text === "Preview import");
+    await clickButton((text) => text === "Previsualizar importación");
 
     expect(findAdapterSelects().map((select) => select.value)).toEqual(["openai_dot", "codex_local"]);
     for (const select of findAdapterSelects()) {
@@ -1158,7 +1158,7 @@ describe("CompanyImport", () => {
       expect(choices).toContain("openai_dot");
       expect(choices).not.toContain("paperclip_runner");
     }
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides).toBeUndefined();
   });
@@ -1176,10 +1176,10 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
+    await clickButton(text => text === "Previsualizar importación");
     expect(findAdapterSelects().map(select => select.value)).toEqual(["claude_local", "codex_local"]);
-    expect(container.textContent).not.toContain("will use Claude Code");
-    await clickButton(text => text.startsWith("Import 3 file"));
+    expect(container.textContent).not.toContain("usará Claude Code");
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides).toBeUndefined();
   });
@@ -1199,11 +1199,11 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
+    await clickButton(text => text === "Previsualizar importación");
     expect(findAdapterSelects()[0]!.value).toBe("paperclip_runner");
-    expect(container.textContent).toContain("requires its experimental feature to be enabled");
-    expect(container.textContent).not.toContain("source adapter paperclip_runner is not installed here");
-    await clickButton(text => text.startsWith("Import 3 file"));
+    expect(container.textContent).toContain("requiere activar su función experimental");
+    expect(container.textContent).not.toContain("el adaptador de origen paperclip_runner no está instalado aquí");
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides?.coder).toBeUndefined();
   });
@@ -1243,8 +1243,8 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
-    await clickButton(text => text.includes("configure adapter"));
+    await clickButton(text => text === "Previsualizar importación");
+    await clickButton(text => text.includes("configurar adaptador"));
     await clickButton(text => text.includes("Advanced"));
     const select = container.querySelector<HTMLButtonElement>('[aria-label="Runner"]');
     expect(select).toBeTruthy();
@@ -1258,7 +1258,7 @@ describe("CompanyImport", () => {
       expect(container.querySelector('[role="switch"][aria-label="Bypass sandbox"]')?.getAttribute("aria-checked"))
         .toBe(String(expectedBypass));
     }
-    await clickButton(text => text.startsWith("Import 3 file"));
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides).toEqual({ coder: { adapterType: "codex_local", runner } });
     expect(preview.manifest.agents[0]!.adapterConfig).toEqual(savedSourceConfig);
@@ -1279,15 +1279,15 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
-    await clickButton(text => text.includes("configure adapter"));
+    await clickButton(text => text === "Previsualizar importación");
+    await clickButton(text => text.includes("configurar adaptador"));
     await clickButton(text => text.includes("Advanced"));
     expect(container.querySelector('[aria-label="Bypass sandbox"]')?.getAttribute("aria-checked")).toBe("false");
     await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Model"]')!.click());
     const defaultModel = [...document.querySelectorAll<HTMLButtonElement>('[role="option"]')].find(option => option.textContent?.trim() === "Default");
     expect(defaultModel).toBeTruthy();
     await act(async () => defaultModel!.click());
-    await clickButton(text => text.startsWith("Import 3 file"));
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides?.coder).toMatchObject({
       adapterType: "codex_local", adapterConfig: { dangerouslyBypassApprovalsAndSandbox: false },
@@ -1319,7 +1319,7 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
+    await clickButton(text => text === "Previsualizar importación");
     if (edit === "changed-harness") {
       const harness = findAdapterSelects()[0]!;
       await act(async () => {
@@ -1327,7 +1327,7 @@ describe("CompanyImport", () => {
         harness.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
-    await clickButton(text => text.includes("configure adapter"));
+    await clickButton(text => text.includes("configurar adaptador"));
     await clickButton(text => text.includes("Advanced"));
     const expected: Record<string, unknown> = structuredClone(sourceConfig);
     if (edit === "legacy-model") {
@@ -1351,7 +1351,7 @@ describe("CompanyImport", () => {
       await clickButton(text => text === "Save");
       expected.env = { OPENAI_API_KEY: sourceConfig.env.OPENAI_API_KEY };
     }
-    await clickButton(text => text.startsWith("Import 3 file"));
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     if (edit === "changed-harness") {
       expect(lastImportMeta().adapterOverrides?.coder?.adapterType).toBe("claude_local");
@@ -1374,8 +1374,8 @@ describe("CompanyImport", () => {
     mockCompaniesApi.importPreview.mockResolvedValue(preview);
     await renderPage();
     await enterGithubUrl();
-    await clickButton(text => text === "Preview import");
-    await clickButton(text => text.includes("configure adapter"));
+    await clickButton(text => text === "Previsualizar importación");
+    await clickButton(text => text.includes("configurar adaptador"));
     await clickButton(text => text.includes("Advanced"));
     const input = container.querySelector<HTMLInputElement>('input[placeholder="e.g. --verbose, --foo=bar"]');
     expect(input).toBeTruthy();
@@ -1388,10 +1388,10 @@ describe("CompanyImport", () => {
     await act(async () => {
       input!.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
     });
-    await clickButton(text => text.startsWith("Import 3 file"));
+    await clickButton(text => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(mockCompaniesApi.importBundleAsync).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("Unknown Paperclip Runner provider unknown-provider");
+    expect(container.textContent).toContain("Proveedor de Paperclip Runner desconocido: unknown-provider");
   });
 
   it("requires billing acknowledgement and serializes the standalone Dot import choice as Runner", async () => {
@@ -1410,10 +1410,10 @@ describe("CompanyImport", () => {
     await settle();
     expect(container.textContent).toContain("Allow externally billed provider");
     expect(container.textContent).not.toContain("Harness");
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(mockCompaniesApi.importBundleAsync).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("OpenAI Dot requires acknowledgement of external billing");
+    expect(container.textContent).toContain("OpenAI Dot requiere confirmar la facturación externa");
 
     const billingToggle = Array.from(container.querySelectorAll<HTMLButtonElement>('button[role="switch"]'))
       .find((button) => button.closest("label")?.textContent?.includes("Allow externally billed provider")
@@ -1421,7 +1421,7 @@ describe("CompanyImport", () => {
     expect(billingToggle).toBeTruthy();
     await act(async () => billingToggle!.click());
     await flushReact();
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
     expect(lastImportMeta().adapterOverrides?.coder).toEqual({
       adapterType: "paperclip_runner",
@@ -1449,11 +1449,11 @@ describe("CompanyImport", () => {
     mockAdaptersApi.list.mockResolvedValue([{ type: "claude_local", disabled: false }]);
     await previewMixedAdapterPackage();
 
-    expect(container.textContent).toContain("source adapter codex_local is not installed here");
-    expect(container.textContent).toContain("will use Claude Code");
+    expect(container.textContent).toContain("el adaptador de origen codex_local no está instalado aquí");
+    expect(container.textContent).toContain("usará Claude Code");
     expect(findAdapterSelects().map((select) => select.value)).toEqual(["claude_local", "claude_local"]);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     // Only the unavailable agent is overridden; the claude_local agent still
@@ -1470,10 +1470,10 @@ describe("CompanyImport", () => {
     mockAdaptersApi.list.mockResolvedValue([{ type: "gemini_local", disabled: false }]);
     await previewMixedAdapterPackage();
 
-    expect(container.textContent).toContain("source adapter codex_local is not installed here");
+    expect(container.textContent).toContain("el adaptador de origen codex_local no está instalado aquí");
     expect(findAdapterSelects().map((select) => select.value)).toEqual(["gemini_local", "gemini_local"]);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     expect(lastImportMeta().adapterOverrides).toEqual({
@@ -1491,7 +1491,7 @@ describe("CompanyImport", () => {
     expect(container.textContent).not.toContain("is not installed here");
     expect(findAdapterSelects().map((select) => select.value)).toEqual(["claude_local", "codex_local"]);
 
-    await clickButton((text) => text.startsWith("Import 3 file"));
+    await clickButton((text) => text.startsWith("Importar 3 archivo"));
     await settle();
 
     expect(lastImportMeta().adapterOverrides).toBeUndefined();

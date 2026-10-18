@@ -52,7 +52,7 @@ describe("IssueFieldChangeReceipt", () => {
     );
 
     expect(html).toContain("Dotta");
-    expect(html).toContain("authorized by default-open write on a visible task");
+    expect(html).toContain("autorizado por default-open write on a visible task");
   });
 
   it("resolves an assignee change to agent names", () => {
@@ -90,7 +90,7 @@ describe("IssueFieldChangeReceipt", () => {
     );
 
     expect(html).toContain("Description");
-    expect(html).toContain("preview");
+    expect(html).toContain("vista previa");
   });
 
   it("renders a board edit's receipt the same way as an agent's", () => {
@@ -107,7 +107,7 @@ describe("IssueFieldChangeReceipt", () => {
     );
 
     expect(html).toContain("Title");
-    expect(html).toContain("authorized by board actor");
+    expect(html).toContain("autorizado por board actor");
   });
 
   it("renders nothing for events with no receipt", () => {
@@ -124,6 +124,6 @@ describe("IssueFieldChangeReceipt", () => {
         event={event({ details: { authorizationReason: "allow_self" } })}
       />,
     );
-    expect(html).toContain("authorized by own task");
+    expect(html).toContain("autorizado por own task");
   });
 });

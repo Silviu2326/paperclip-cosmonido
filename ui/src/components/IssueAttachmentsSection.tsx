@@ -21,6 +21,7 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { t } from "@/i18n";
 
 interface IssueAttachmentsSectionProps {
   attachments: IssueAttachment[];
@@ -41,7 +42,7 @@ async function fetchAttachmentText(attachment: IssueAttachment) {
     headers: { Accept: "text/markdown,text/plain;q=0.9,*/*;q=0.1" },
   });
   if (!response.ok) {
-    throw new Error(`Unable to load attachment preview (${response.status})`);
+    throw new Error(t("issueAttachments.loadPreviewFailed", { status: response.status }));
   }
   return response.text();
 }
@@ -68,20 +69,20 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Browse gallery"
-          aria-label={`Browse ${filename} in gallery`}
+          title={t("issueAttachments.browseGallery")}
+          aria-label={t("issueAttachments.browseNamed", { name: filename })}
           onClick={() => onPreview(attachment)}
         >
           <Maximize2 className="h-4 w-4" />
         </Button>
       ) : null}
-      <Button asChild variant="ghost" size="icon-sm" title="Open in new tab">
-        <a href={attachmentOpenPath(attachment)} onClick={openInPanel} target="_blank" rel="noreferrer" aria-label={`Open ${filename}`}>
+      <Button asChild variant="ghost" size="icon-sm" title={t("issueAttachments.openNewTab")}>
+        <a href={attachmentOpenPath(attachment)} onClick={openInPanel} target="_blank" rel="noreferrer" aria-label={t("issueAttachments.openNamed", { name: filename })}>
           <ExternalLink className="h-4 w-4" />
         </a>
       </Button>
-      <Button asChild variant="ghost" size="icon-sm" title="Download">
-        <a href={attachmentDownloadPath(attachment)} aria-label={`Download ${filename}`}>
+      <Button asChild variant="ghost" size="icon-sm" title={t("issueAttachments.download")}>
+        <a href={attachmentDownloadPath(attachment)} aria-label={t("issueAttachments.downloadNamed", { name: filename })}>
           <Download className="h-4 w-4" />
         </a>
       </Button>
@@ -89,7 +90,7 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Delete attachment"
+          title={t("issueAttachments.deleteAttachment")}
           className="text-muted-foreground hover:text-destructive"
           onClick={() => onDelete(attachment.id)}
           disabled={deletePending}
@@ -322,7 +323,7 @@ export function IssueAttachmentsSection({
                       }}
                       disabled={deletePending}
                     >
-                      Yes
+                      {t("issueAttachments.yes")}
                     </button>
                     <button
                       type="button"
@@ -344,7 +345,7 @@ export function IssueAttachmentsSection({
                     event.stopPropagation();
                     requestDelete(attachment.id);
                   }}
-                  title="Delete attachment"
+                  title={t("issueAttachments.deleteAttachment")}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -399,10 +400,10 @@ export function IssueAttachmentsSection({
           <p className="text-sm font-medium text-destructive">Delete this attachment? This cannot be undone.</p>
           <div className="flex shrink-0 items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} disabled={deletePending}>
-              Cancel
+              {t("issueAttachments.cancel")}
             </Button>
             <Button variant="destructive" size="sm" onClick={() => confirmDelete(confirmDeleteId)} disabled={deletePending}>
-              {deletePending ? "Deleting..." : "Delete"}
+              {deletePending ? t("issueAttachments.deleting") : t("issueAttachments.delete")}
             </Button>
           </div>
         </div>

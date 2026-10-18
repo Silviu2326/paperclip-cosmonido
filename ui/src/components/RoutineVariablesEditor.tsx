@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { t } from "@/i18n";
 
 const variableTypes: RoutineVariable["type"][] = ["text", "textarea", "number", "boolean", "select", "date"];
 
@@ -98,7 +99,7 @@ export function RoutineVariablesEditor({
                 {`{{${variable.name}}}`}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Prompt the user for this value before each manual run.
+                {t("routineVars.promptEachRun")}
               </span>
             </div>
 
@@ -149,7 +150,7 @@ export function RoutineVariablesEditor({
                         required: event.target.checked,
                       })))}
                     />
-                    Required
+                    {t("routineVars.required")}
                   </label>
                 </div>
 
@@ -174,9 +175,9 @@ export function RoutineVariablesEditor({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__unset__">No default</SelectItem>
-                      <SelectItem value="true">True</SelectItem>
-                      <SelectItem value="false">False</SelectItem>
+                      <SelectItem value="__unset__">{t("routineVars.noDefault")}</SelectItem>
+                      <SelectItem value="true">{t("routineVars.true")}</SelectItem>
+                      <SelectItem value="false">{t("routineVars.false")}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : variable.type === "select" ? (
@@ -209,10 +210,10 @@ export function RoutineVariablesEditor({
                         })))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="No default" />
+                          <SelectValue placeholder={t("routineVars.noDefault")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__unset__">No default</SelectItem>
+                          <SelectItem value="__unset__">{t("routineVars.noDefault")}</SelectItem>
                           {variable.options.map((option) => (
                             <SelectItem key={option} value={option}>{option}</SelectItem>
                           ))}
@@ -237,7 +238,7 @@ export function RoutineVariablesEditor({
                       ...current,
                       defaultValue: event.target.value || null,
                     })))}
-                    placeholder={variable.type === "number" ? "42" : "Default value"}
+                    placeholder={variable.type === "number" ? "42" : t("routineVars.defaultValue")}
                   />
                 )}
               </div>
@@ -259,12 +260,12 @@ const BUILTIN_VARIABLE_DOCS: BuiltinVariableDoc[] = [
   {
     name: "date",
     example: "2026-04-28",
-    description: "Current date in YYYY-MM-DD format (UTC) at the time the routine runs.",
+    description: t("routineVars.dateDesc"),
   },
   {
     name: "timestamp",
     example: "April 28, 2026 at 12:17 PM UTC",
-    description: "Human-readable date and time (UTC) at the time the routine runs.",
+    description: t("routineVars.dateTimeDesc"),
   },
 ];
 
@@ -281,7 +282,7 @@ export function RoutineVariablesHint() {
           type="button"
           onClick={() => setHelpOpen(true)}
           className="shrink-0 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Show variable help"
+          aria-label={t("routineVars.showHelp")}
         >
           <HelpCircle className="h-3.5 w-3.5" />
         </button>
@@ -290,16 +291,16 @@ export function RoutineVariablesHint() {
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Routine variables</DialogTitle>
+            <DialogTitle>{t("routineVars.title")}</DialogTitle>
             <DialogDescription>
-              How to prompt for inputs and which variables Paperclip fills in automatically.
+              {t("routineVars.intro")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 text-sm">
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                Custom variables
+                {t("routineVars.custom")}
               </h3>
               <p className="text-muted-foreground">
                 Type{" "}
@@ -311,20 +312,20 @@ export function RoutineVariablesHint() {
                 for a value before each run.
               </p>
               <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-                <li>Names must start with a letter and may use letters, numbers, and underscores.</li>
-                <li>Pick a type (text, textarea, number, boolean, select, date), default value, and whether it is required.</li>
-                <li>Variable names ending in capital Date, such as startDate, are created as date variables by default.</li>
-                <li>The same name reused across the title and instructions is treated as one variable.</li>
+                <li>{t("routineVars.tipNames")}</li>
+                <li>{t("routineVars.tipType")}</li>
+                <li>{t("routineVars.tipDate")}</li>
+                <li>{t("routineVars.tipReuse")}</li>
               </ul>
             </section>
 
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                Built-in variables
+                {t("routineVars.builtIn")}
               </h3>
               <p className="text-muted-foreground">
-                These are filled in automatically — no setup needed and they will not appear in the
-                Variables list.
+                {t("routineVars.builtInDesc")}
+                
               </p>
               <div className="overflow-hidden rounded-lg border border-border/70">
                 <table className="w-full text-left text-xs">

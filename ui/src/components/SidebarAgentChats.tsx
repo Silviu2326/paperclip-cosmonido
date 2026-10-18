@@ -14,6 +14,7 @@ import { agentRouteRef } from "@/lib/utils";
 import { AgentChatSidebar } from "./AgentChatSidebar";
 import { AgentChatPicker } from "./AgentChatPicker";
 import { useSidebar } from "@/context/SidebarContext";
+import { t } from "@/i18n";
 
 export function SidebarAgentChats() {
   const { selectedCompanyId } = useCompany();
@@ -61,7 +62,7 @@ function CompanyAgentChats({ companyId, userId }: { companyId: string | null; us
           mutation.mutate({
             resourceType: "agent",
             resourceId: id,
-            resourceName: agents.find((agent) => agent.id === id)?.name ?? "Agent",
+            resourceName: agents.find((agent) => agent.id === id)?.name ?? t("sidebarAgentChats.agentFallback"),
             starred: !stars.includes(id),
           });
         }}

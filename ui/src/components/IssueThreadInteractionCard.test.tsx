@@ -188,7 +188,7 @@ describe("IssueThreadInteractionCard", () => {
     expect(submit).not.toHaveBeenCalled();
     const edited = "\n  Operator edit 漢字\\n\n  ";
     await editCanonical(host, edited);
-    await act(() => Array.from(host.querySelectorAll("button")).find((button) => button.textContent === "Submit answers")!.click());
+    await act(() => Array.from(host.querySelectorAll("button")).find((button) => button.textContent === "Enviar respuestas")!.click());
     expect(submit).toHaveBeenCalledExactlyOnceWith(canonicalDraftInteraction, [{ questionId: "draft", optionIds: [], otherText: edited }]);
   });
 
@@ -200,7 +200,7 @@ describe("IssueThreadInteractionCard", () => {
     host.remove();
     const reopened = renderCard({ interaction: canonicalDraftInteraction, onSubmitInteractionAnswers: submit });
     expect(reopened.querySelector<HTMLTextAreaElement>("textarea")!.value).toBe("");
-    expect(Array.from(reopened.querySelectorAll("button")).find((button) => button.textContent === "Submit answers")!.disabled).toBe(true);
+    expect(Array.from(reopened.querySelectorAll("button")).find((button) => button.textContent === "Enviar respuestas")!.disabled).toBe(true);
     expect(submit).not.toHaveBeenCalled();
   });
 
@@ -213,10 +213,10 @@ describe("IssueThreadInteractionCard", () => {
 
     expect(host.querySelector('[data-testid="connection-intent-actions"]')).toBeTruthy();
     expect(host.textContent).toContain("Connect");
-    expect(host.textContent).toContain("Not now");
+    expect(host.textContent).toContain("Ahora no");
     const labels = Array.from(host.querySelectorAll("button")).map((button) => button.textContent?.trim());
     expect(labels).toContain("Connect");
-    expect(labels).toContain("Not now");
+    expect(labels).toContain("Ahora no");
     expect(host.textContent).toContain("Access is added only for this agent");
     const loadButton = Array.from(host.querySelectorAll("button")).find((button) =>
       button.textContent?.trim() === "Connect",
@@ -278,7 +278,7 @@ describe("IssueThreadInteractionCard", () => {
     expect(host.querySelectorAll('[role="checkbox"]')).toHaveLength(3);
 
     const otherLink = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent === "Other",
+      button.textContent === "Otra",
     );
     expect(otherLink?.getAttribute("role")).toBeNull();
     expect(otherLink?.className).toContain("underline");
@@ -292,7 +292,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const otherButtons = Array.from(host.querySelectorAll("button")).filter((button) =>
-      button.textContent?.includes("Other"),
+      button.textContent?.includes("Otra"),
     );
     expect(otherButtons.length).toBeGreaterThan(0);
 
@@ -349,9 +349,9 @@ describe("IssueThreadInteractionCard", () => {
       onSubmitInteractionAnswers,
     });
 
-    // A first-class free-text option suppresses the built-in "Other" link.
+    // A first-class free-text option suppresses the built-in "Otra" link.
     const otherLink = Array.from(host.querySelectorAll("button")).find(
-      (button) => button.textContent === "Other",
+      (button) => button.textContent === "Otra",
     );
     expect(otherLink).toBeUndefined();
 
@@ -444,7 +444,7 @@ describe("IssueThreadInteractionCard", () => {
       },
     };
     const host = renderCard({ interaction: closed, onSubmitInteractionAnswers: vi.fn() });
-    expect(Array.from(host.querySelectorAll("button")).some((button) => button.textContent === "Other"))
+    expect(Array.from(host.querySelectorAll("button")).some((button) => button.textContent === "Otra"))
       .toBe(false);
 
     act(() => root?.unmount());
@@ -454,7 +454,7 @@ describe("IssueThreadInteractionCard", () => {
       interaction: pendingAskUserQuestionsInteraction,
       onSubmitInteractionAnswers: vi.fn(),
     });
-    expect(Array.from(legacy.querySelectorAll("button")).some((button) => button.textContent === "Other"))
+    expect(Array.from(legacy.querySelectorAll("button")).some((button) => button.textContent === "Otra"))
       .toBe(true);
   });
 
@@ -463,7 +463,7 @@ describe("IssueThreadInteractionCard", () => {
       interaction: pendingAskUserQuestionsInteraction,
       onSubmitInteractionAnswers: vi.fn(),
     });
-    expect(withoutHandler.textContent).not.toContain("Cancel question");
+    expect(withoutHandler.textContent).not.toContain("Cancelar pregunta");
 
     act(() => root?.unmount());
     withoutHandler.remove();
@@ -474,7 +474,7 @@ describe("IssueThreadInteractionCard", () => {
       onCancelInteraction: vi.fn(),
       onSubmitInteractionAnswers: vi.fn(),
     });
-    expect(withHandler.textContent).toContain("Cancel question");
+    expect(withHandler.textContent).toContain("Cancelar pregunta");
   });
 
   it("renders expired question interactions as resolved and non-actionable", () => {
@@ -484,13 +484,13 @@ describe("IssueThreadInteractionCard", () => {
       onCancelInteraction: vi.fn(),
     });
 
-    expect(host.textContent).toContain("Questions expired by comment");
-    expect(host.textContent).toContain("A later board/user comment superseded this question request.");
+    expect(host.textContent).toContain("Las preguntas caducaron por un comentario");
+    expect(host.textContent).toContain("Un comentario posterior del tablero o de un usuario reemplazó this question request.");
     expect(host.textContent).not.toContain("Send answers");
-    expect(host.textContent).not.toContain("Cancel question");
+    expect(host.textContent).not.toContain("Cancelar pregunta");
 
     const jumpLink = Array.from(host.querySelectorAll("a")).find((link) =>
-      link.textContent?.includes("Jump to comment"),
+      link.textContent?.includes("Ir al comentario"),
     );
     expect(jumpLink?.getAttribute("href")).toBe(
       "#comment-22222222-2222-4222-8222-222222222222",
@@ -509,8 +509,8 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
 
-    expect(host.textContent).toContain("Question expired by comment");
-    expect(host.textContent).not.toContain("Questions expired by comment");
+    expect(host.textContent).toContain("La pregunta caducó por un comentario");
+    expect(host.textContent).not.toContain("Las preguntas caducaron por un comentario");
   });
 
   it("renders withdrawn confirmations with the withdraw reason", () => {
@@ -524,9 +524,9 @@ describe("IssueThreadInteractionCard", () => {
       onRejectInteraction: vi.fn(),
     });
 
-    expect(host.textContent).toContain("Withdrawn");
+    expect(host.textContent).toContain("Retirada");
     expect(host.textContent).toContain("Superseded by the hotfix plan.");
-    expect(host.textContent).not.toContain("Decline");
+    expect(host.textContent).not.toContain("Rechazar");
   });
 
   it("renders confirmations expired by issue closure with dedicated copy", () => {
@@ -538,9 +538,9 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
 
-    expect(host.textContent).toContain("Expired · issue closed");
-    expect(host.textContent).toContain("This confirmation expired automatically when the issue reached a terminal state.");
-    expect(host.textContent).not.toContain("Expired by target change");
+    expect(host.textContent).toContain("Caducada · tarea cerrada");
+    expect(host.textContent).toContain("Esta confirmación caducó automáticamente cuando la tarea llegó a un estado final.");
+    expect(host.textContent).not.toContain("Caducada por cambio del objetivo");
   });
 
   it("renders withdrawn question interactions with the withdraw reason", () => {
@@ -558,9 +558,9 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
 
-    expect(host.textContent).toContain("Questions withdrawn");
+    expect(host.textContent).toContain("Preguntas retiradas");
     expect(host.textContent).toContain("Scope was decided on the parent issue.");
-    expect(host.textContent).not.toContain("Question cancelled");
+    expect(host.textContent).not.toContain("Pregunta cancelada");
   });
 
   it("renders question interactions expired by issue closure with dedicated copy", () => {
@@ -578,8 +578,8 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
 
-    expect(host.textContent).toContain("Questions expired when the issue closed");
-    expect(host.textContent).toContain("This question request expired automatically when the issue reached a terminal state.");
+    expect(host.textContent).toContain("Las preguntas caducaron al cerrarse la tarea");
+    expect(host.textContent).toContain("Esta solicitud de pregunta caducó automáticamente cuando la tarea llegó a un estado final.");
     expect(host.textContent).not.toContain("expired by comment");
   });
 
@@ -588,7 +588,7 @@ describe("IssueThreadInteractionCard", () => {
       interaction: pendingSuggestedTasksInteraction,
     });
 
-    expect(host.textContent).toContain("Child task");
+    expect(host.textContent).toContain("Tarea hija");
   });
 
   it("shows an explicit placeholder when a rejected interaction has no reason", () => {
@@ -599,7 +599,7 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
 
-    expect(host.textContent).toContain("No reason provided.");
+    expect(host.textContent).toContain("No se indicó ningún motivo.");
   });
 
   it("requires a revision note when the request confirmation payload asks for one", async () => {
@@ -611,7 +611,7 @@ describe("IssueThreadInteractionCard", () => {
 
     // rejectRequiresReason drops the bare Reject: the only send-back path is Revise…
     expect(Array.from(host.querySelectorAll("button")).some((button) =>
-      button.textContent?.trim() === "Reject",
+      button.textContent?.trim() === "Rechazar",
     )).toBe(false);
     const reviseButton = Array.from(host.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Revise"),
@@ -623,7 +623,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const sendButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Send revision"),
+      button.textContent?.includes("Enviar revisión"),
     );
     expect(sendButton?.hasAttribute("disabled")).toBe(false);
 
@@ -647,7 +647,7 @@ describe("IssueThreadInteractionCard", () => {
       textarea!.dispatchEvent(new Event("input", { bubbles: true }));
     });
     const enabledSendButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Send revision"),
+      button.textContent?.includes("Enviar revisión"),
     );
     expect(enabledSendButton?.hasAttribute("disabled")).toBe(false);
     await act(async () => {
@@ -671,12 +671,12 @@ describe("IssueThreadInteractionCard", () => {
       onAcceptInteraction,
       onRejectInteraction: vi.fn(),
     });
-    expect(host.querySelector('[role="status"]')?.textContent).toContain("Preparing approval…");
+    expect(host.querySelector('[role="status"]')?.textContent).toContain("Preparando la aprobación…");
     const approve = host.querySelector<HTMLButtonElement>('[data-testid="confirmation-actions"] button')!;
     expect(approve.disabled).toBe(true);
     await act(() => approve.click());
     expect(onAcceptInteraction).not.toHaveBeenCalled();
-    const reject = [...host.querySelectorAll<HTMLButtonElement>("button")].find((button) => ["Reject", "Revise…", "Add reason…"].includes(button.textContent ?? ""));
+    const reject = [...host.querySelectorAll<HTMLButtonElement>("button")].find((button) => ["Rechazar", "Revisar…", "Añadir motivo…"].includes(button.textContent ?? ""));
     expect(reject?.disabled).toBe(false);
   });
 
@@ -716,7 +716,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const confirmButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Approve"),
+      button.textContent?.includes("Aprobar"),
     );
     await act(async () => {
       confirmButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -830,11 +830,11 @@ describe("IssueThreadInteractionCard", () => {
     );
 
     // Canonical plan-approval grammar, right→left: Approve · Revise… · Reject.
-    // "Revise…" already carries the send-back-with-notes path, so a distinct
+    // "Revisar…" already carries the send-back-with-notes path, so a distinct
     // "Request changes" word is redundant and must not render.
-    expect(labels).toContain("Reject");
-    expect(labels).toContain("Revise…");
-    expect(labels.some((label) => label?.includes("Approve"))).toBe(true);
+    expect(labels).toContain("Rechazar");
+    expect(labels).toContain("Revisar…");
+    expect(labels.some((label) => label?.includes("Aprobar"))).toBe(true);
     expect(host.textContent).not.toContain("Request changes");
   });
 
@@ -856,7 +856,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const targetLinks = host.querySelectorAll("a");
-    expect(host.textContent).toContain("Expired by target change");
+    expect(host.textContent).toContain("Caducada por cambio del objetivo");
     expect(host.textContent).toContain("Plan v3");
     expect(host.textContent).toContain("Plan v4");
     expect(targetLinks[0]?.getAttribute("href")).toContain("#document-plan");
@@ -908,7 +908,7 @@ describe("IssueThreadInteractionCard", () => {
 
     it("shows no chips or chevron for an unlabeled stale-target change", () => {
       const host = renderCard({ interaction: staleTargetChange(unlabeled(15), unlabeled(16)) });
-      expect(host.textContent).toContain("Expired by target change");
+      expect(host.textContent).toContain("Caducada por cambio del objetivo");
       expect(host.textContent).not.toContain("github:paperclipai");
       expect(host.querySelector(".lucide-chevron-right")).toBeNull();
     });
@@ -935,7 +935,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const jumpLink = Array.from(host.querySelectorAll("a")).find((link) =>
-      link.textContent?.includes("Jump to comment"),
+      link.textContent?.includes("Ir al comentario"),
     );
 
     expect(jumpLink?.getAttribute("href")).toBe(
@@ -950,10 +950,10 @@ describe("IssueThreadInteractionCard", () => {
       onRejectInteraction,
     });
 
-    // The bare-reject button always renders the canonical "Reject", not the
+    // The bare-reject button always renders the canonical "Rechazar", not the
     // payload's "Keep it" — ConfirmationActionRow no longer honors the override.
     const declineButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.trim() === "Reject",
+      button.textContent?.trim() === "Rechazar",
     );
     expect(declineButton).toBeTruthy();
 
@@ -974,7 +974,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     expect(host.textContent).toContain(
-      "This request could not be resolved. Try again or create a new request.",
+      "No se pudo resolver esta solicitud. Inténtalo de nuevo o crea una nueva.",
     );
   });
 
@@ -984,7 +984,7 @@ describe("IssueThreadInteractionCard", () => {
     expect(pendingShell.className).toContain("border-violet-500/80");
     expect(pendingShell.className).not.toContain("border-l-");
     expect(pending.textContent).toContain("Plan");
-    expect(pending.textContent).toContain("In review");
+    expect(pending.textContent).toContain("En revisión");
     // Approve is a neutral CTA (foreground/background), not the blue primary.
     const approve = Array.from(pending.querySelectorAll("button")).find((button) =>
       button.textContent?.includes("Approve plan"),
@@ -1000,7 +1000,7 @@ describe("IssueThreadInteractionCard", () => {
       interaction: { ...pendingRequestConfirmationInteraction, status: "accepted" },
     });
     expect((accepted.firstElementChild as HTMLElement).className).toContain("border-green-500/80");
-    expect(accepted.textContent).toContain("Approved");
+    expect(accepted.textContent).toContain("Aprobada");
 
     act(() => root?.unmount());
     accepted.remove();
@@ -1010,9 +1010,9 @@ describe("IssueThreadInteractionCard", () => {
       interaction: planApprovalResumeFailedRequestConfirmationInteraction,
     });
     expect((resumeFailed.firstElementChild as HTMLElement).className).toContain("border-amber-500/70");
-    expect(resumeFailed.textContent).toContain("Approved — agent resume failed");
-    expect(resumeFailed.textContent).toContain("Agent resume failed");
-    expect(resumeFailed.textContent).toContain("Paperclip needs attention before the agent can resume this approved work.");
+    expect(resumeFailed.textContent).toContain("Aprobada — falló la reanudación del agente");
+    expect(resumeFailed.textContent).toContain("Falló la reanudación del agente");
+    expect(resumeFailed.textContent).toContain("Paperclip necesita atención antes de que el agente pueda reanudar este trabajo aprobado.");
     expect(resumeFailed.textContent).toContain("adapter_failed");
 
     act(() => root?.unmount());
@@ -1027,7 +1027,7 @@ describe("IssueThreadInteractionCard", () => {
       },
     });
     expect((rejected.firstElementChild as HTMLElement).className).toContain("border-destructive/80");
-    expect(rejected.textContent).toContain("Changes requested");
+    expect(rejected.textContent).toContain("Cambios solicitados");
   });
 
   it("attaches screenshots to a plan request-changes reason as markdown images", async () => {
@@ -1053,7 +1053,7 @@ describe("IssueThreadInteractionCard", () => {
     });
 
     const attachButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Attach screenshots"),
+      button.textContent?.includes("Adjuntar capturas"),
     );
     expect(attachButton).toBeTruthy();
 
@@ -1073,7 +1073,7 @@ describe("IssueThreadInteractionCard", () => {
     expect(onUploadImage).toHaveBeenCalledTimes(1);
 
     const sendButton = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Send revision"),
+      button.textContent?.includes("Enviar revisión"),
     );
     await act(async () => {
       sendButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -1153,8 +1153,8 @@ describe("IssueThreadInteractionCard", () => {
 
   it("renders resolved verdicts as terminal chips with reason echo", () => {
     const host = renderCard({ interaction: completeRequestItemVerdictsInteraction });
-    expect(host.textContent).toContain("Approved");
-    expect(host.textContent).toContain("Rejected");
+    expect(host.textContent).toContain("Aprobada");
+    expect(host.textContent).toContain("Rechazada");
     expect(host.textContent).toContain("Tone is off-brand");
     // S5 summary chip.
     expect(host.textContent).toContain("3 approved");
@@ -1164,7 +1164,7 @@ describe("IssueThreadInteractionCard", () => {
 
   it("shows an already-applied, cannot-revert notice when superseded", () => {
     const host = renderCard({ interaction: supersededRequestItemVerdictsInteraction });
-    expect(host.textContent).toContain("expired after a later comment");
+    expect(host.textContent).toContain("caducó tras un comentario posterior");
     expect(host.textContent).toContain("cannot be");
     expect(host.textContent?.toLowerCase()).toContain("revert");
   });
@@ -1176,7 +1176,7 @@ describe("IssueThreadInteractionCard tool-action card", () => {
     expect(host.textContent).toContain("Add 1 row");
     expect(host.querySelector('[role="img"]')?.getAttribute("aria-label")).toBe("Google Sheets");
     expect(host.textContent).toContain("Approve & run");
-    expect(host.textContent).toContain("Decline");
+    expect(host.textContent).toContain("Rechazar");
     expect(host.textContent).not.toContain("Append row to spreadsheet");
     expect(host.textContent).not.toContain("Technical details");
     expect(host.textContent).not.toContain("Expires");
@@ -1200,7 +1200,7 @@ describe("IssueThreadInteractionCard tool-action card", () => {
   it("declines in one click without an optional reason form", async () => {
     const reject = vi.fn();
     const host = renderCard({ interaction: pendingToolActionWriteInteraction, onRejectInteraction: reject });
-    const decline = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Decline");
+    const decline = Array.from(host.querySelectorAll("button")).find(button => button.textContent === "Rechazar");
     await act(async () => { decline?.click(); });
     expect(reject).toHaveBeenCalledExactlyOnceWith(pendingToolActionWriteInteraction);
     expect(host.querySelector("textarea")).toBeNull();
@@ -1209,8 +1209,8 @@ describe("IssueThreadInteractionCard tool-action card", () => {
   it("renders the approved-running state with a spinner and no action buttons", () => {
     const host = renderCard({ interaction: runningToolActionInteraction });
 
-    expect(host.textContent).toContain("Running…");
-    expect(host.textContent).toContain("Approved · Running");
+    expect(host.textContent).toContain("En ejecución…");
+    expect(host.textContent).toContain("Aprobada · En ejecución");
     expect(host.textContent).not.toContain("Approve & run");
     expect(host.querySelector(".animate-spin")).toBeTruthy();
   });
@@ -1218,10 +1218,10 @@ describe("IssueThreadInteractionCard tool-action card", () => {
   it("keeps the executed result collapsed and never reads Accepted", () => {
     const host = renderCard({ interaction: executedToolActionInteraction });
 
-    expect(host.textContent).toContain("Succeeded");
+    expect(host.textContent).toContain("Completada");
     expect(host.textContent).not.toContain("Row 42 added");
     expect(host.querySelector('button[aria-label="Show result details"]')?.getAttribute("aria-expanded")).toBe("false");
-    expect(host.textContent).not.toContain("Accepted");
+    expect(host.textContent).not.toContain("Aceptada");
     const link = Array.from(host.querySelectorAll("a")).find((a) =>
       a.textContent?.includes("View result"),
     );
@@ -1243,7 +1243,7 @@ describe("IssueThreadInteractionCard tool-action card", () => {
 
   it("distinguishes failed (ran + connector error) from declined (did not run)", () => {
     const failed = renderCard({ interaction: failedToolActionInteraction });
-    expect(failed.textContent).toContain("Execution failed");
+    expect(failed.textContent).toContain("La ejecución falló");
     expect(failed.textContent).toContain(failedToolActionInteraction.result!.toolAction!.errorMessage);
 
     act(() => root?.unmount());
@@ -1251,7 +1251,7 @@ describe("IssueThreadInteractionCard tool-action card", () => {
     root = null;
 
     const declined = renderCard({ interaction: declinedToolActionInteraction });
-    expect(declined.textContent).toContain("Declined");
+    expect(declined.textContent).toContain("Rechazada");
     expect(declined.textContent).toContain("use the CRM sync instead");
     expect(declined.textContent).not.toContain("Approve & run");
   });
@@ -1259,7 +1259,7 @@ describe("IssueThreadInteractionCard tool-action card", () => {
   it("renders the expired state without decision controls", () => {
     const host = renderCard({ interaction: expiredToolActionInteraction });
 
-    expect(host.textContent).toContain("Expired");
+    expect(host.textContent).toContain("Caducada");
     expect(host.textContent).not.toContain("Approve & run");
   });
 
@@ -1314,8 +1314,8 @@ describe("IssueThreadInteractionCard tool-action card", () => {
       interaction: withdrawnRequestConfirmationInteraction,
     });
 
-    // Header status reads "Withdrawn", not the raw "Cancelled" status.
-    expect(host.textContent).toContain("Withdrawn");
+    // Header status reads "Retirada", not the raw "Cancelada" status.
+    expect(host.textContent).toContain("Retirada");
     // Withdrawn is a neutral administrative retraction — it must NOT wear the
     // cancelled/rejected costume (rose/red border + XCircle). The shell is muted
     // (border-border), never a rose/red alarm colour (design review R2).
@@ -1342,14 +1342,14 @@ describe("IssueThreadInteractionCard tool-action card", () => {
     });
 
     // Footer is trimmed to just the audit timestamp — the header status badge
-    // already carries the "Expired · issue closed" label, so the footer must
+    // already carries the "Caducada · tarea cerrada" label, so the footer must
     // not restate it.
     const footer = host.querySelector('[data-testid="interaction-issue-closed-footer"]');
     expect(footer?.textContent).toContain("Apr 20");
     expect(footer?.textContent).not.toContain("Expired when the issue closed");
-    // The "Expired · issue closed" label survives exactly once (the header
+    // The "Caducada · tarea cerrada" label survives exactly once (the header
     // status badge); the duplicate body eyebrow was dropped.
-    const label = "Expired · issue closed";
+    const label = "Caducada · tarea cerrada";
     const occurrences = (host.textContent ?? "").split(label).length - 1;
     expect(occurrences).toBe(1);
   });
@@ -1366,7 +1366,7 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
       onRejectInteraction,
     });
 
-    expect(host.textContent).toContain("Secret binding requested");
+    expect(host.textContent).toContain("Vinculación de secreto solicitada");
     expect(host.textContent).toContain("OpenAI API key");
     expect((host.textContent ?? "").split("OpenAI API key")).toHaveLength(2);
     expect(host.textContent).toContain("access.evals_openai_api_key");
@@ -1396,7 +1396,7 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
     expect(configPath?.parentElement?.classList.contains("sm:col-span-2")).toBe(true);
 
     const approve = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Approve & bind"),
+      button.textContent?.includes("Aprobar y vincular"),
     );
     await act(async () => {
       approve?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -1404,7 +1404,7 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
     expect(onAcceptInteraction).toHaveBeenCalledWith(pendingSecretProposalInteraction);
 
     const reject = Array.from(host.querySelectorAll("button")).find((button) =>
-      button.textContent?.trim() === "Reject",
+      button.textContent?.trim() === "Rechazar",
     );
     await act(async () => {
       reject?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -1417,9 +1417,9 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
 
   it("renders an accepted proposal as executed rather than merely accepted", () => {
     const host = renderCard({ interaction: executedSecretProposalInteraction });
-    expect(host.textContent).toContain("Executed");
+    expect(host.textContent).toContain("Ejecutada");
     expect(host.textContent).toContain("Binding created");
-    expect(host.textContent).not.toContain("Accepted");
+    expect(host.textContent).not.toContain("Aceptada");
     expect(host.querySelector("button")).toBeNull();
   });
 
@@ -1428,12 +1428,12 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
     expect(host.textContent).toContain("FAILED");
     expect(host.textContent).toContain("binding_snapshot_stale");
     expect(host.textContent).toContain("binding was not created");
-    expect(host.textContent).not.toContain("Approve & bind");
+    expect(host.textContent).not.toContain("Aprobar y vincular");
   });
 
   it("distinguishes rejected and expired proposals as non-executed terminal states", () => {
     const rejected = renderCard({ interaction: rejectedSecretProposalInteraction });
-    expect(rejected.textContent).toContain("Rejected");
+    expect(rejected.textContent).toContain("Rechazada");
     expect(rejected.textContent).toContain("The binding was not created");
     expect(rejected.textContent).toContain("project-scoped credential");
 
@@ -1442,9 +1442,9 @@ describe("IssueThreadInteractionCard secret-proposal card", () => {
     root = null;
 
     const expired = renderCard({ interaction: expiredSecretProposalInteraction });
-    expect(expired.textContent).toContain("Expired");
+    expect(expired.textContent).toContain("Caducada");
     expect(expired.textContent).toContain("A fresh proposal is required");
-    expect(expired.textContent).not.toContain("Approve & bind");
+    expect(expired.textContent).not.toContain("Aprobar y vincular");
   });
 });
 
@@ -1463,7 +1463,7 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     return Array.from(host.querySelectorAll("button")).map((button) => button.textContent?.trim());
   }
 
-  it("offers the addressed person Connect plus Not now, and nothing from the generic grammar", () => {
+  it("offers the addressed person Connect plus Ahora no, and nothing from the generic grammar", () => {
     const host = renderCard({
       interaction: pendingConnectionAuthorizationInteraction,
       currentUserId: issueThreadInteractionFixtureMeta.currentUserId,
@@ -1473,11 +1473,11 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
 
     expect(host.textContent).toContain("Connect your Gmail to continue");
 
-    // "Action required" rather than the generic kind label: the mechanism is
+    // "Acción requerida" rather than the generic kind label: the mechanism is
     // not the point, the blocked work is.
     const statusBadge = host.querySelector('[data-testid="interaction-status-badge"]');
-    expect(statusBadge?.textContent).toContain("Action required");
-    expect(statusBadge?.textContent).not.toContain("Confirmation");
+    expect(statusBadge?.textContent).toContain("Acción requerida");
+    expect(statusBadge?.textContent).not.toContain("Confirmación");
 
     // One title, one body. The generic layout rendered `payload.prompt` too,
     // which is the title verbatim.
@@ -1488,7 +1488,7 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     expect(body?.textContent).toContain(
       "Outreach Agent needs your Gmail identity for work running as you.",
     );
-    expect(body?.textContent).toContain("No one else can complete this step.");
+    expect(body?.textContent).toContain("Nadie más puede completar este paso.");
 
     // The primary action is a link to the server-minted target, not an accept
     // call: the OAuth callback is what resolves this card.
@@ -1501,8 +1501,8 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     expect(connect?.getAttribute("target")).toBe("_blank");
 
     const labels = buttonLabels(host);
-    expect(labels).toContain("Not now");
-    for (const generic of ["Approve", "Revise…", "Reject", "Send revision"]) {
+    expect(labels).toContain("Ahora no");
+    for (const generic of ["Aprobar", "Revisar…", "Rechazar", "Enviar revisión"]) {
       expect(labels).not.toContain(generic);
     }
 
@@ -1512,7 +1512,7 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     expect(host.textContent?.toLowerCase()).not.toContain("anyone can");
   });
 
-  it("gives another reader Waiting for Carol and no action controls at all", () => {
+  it("gives another reader Esperando a Carol and no action controls at all", () => {
     const host = renderCard({
       interaction: pendingConnectionAuthorizationInteraction,
       currentUserId: "user-someone-else",
@@ -1522,9 +1522,9 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     });
 
     expect(host.querySelector('[data-testid="connection-authorization-waiting"]')?.textContent)
-      .toContain("Waiting for Carol");
+      .toContain("Esperando a Carol");
     expect(host.querySelector('[data-testid="interaction-status-badge"]')?.textContent)
-      .toContain("Waiting for Carol");
+      .toContain("Esperando a Carol");
     // The server's summary is second-person ("your Gmail identity", "as you")
     // because it addressed one person. A teammate must not be told the agent
     // wants *their* account.
@@ -1538,7 +1538,7 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
     // Omitted, not disabled — and the authorization URL is not even in the DOM
     // for someone who may not use it.
     const labels = buttonLabels(host);
-    for (const forbidden of ["Connect Gmail", "Not now", "Approve", "Revise…", "Reject"]) {
+    for (const forbidden of ["Connect Gmail", "Ahora no", "Aprobar", "Revisar…", "Rechazar"]) {
       expect(labels).not.toContain(forbidden);
     }
     expect(
@@ -1558,7 +1558,7 @@ describe("IssueThreadInteractionCard connection-authorization card", () => {
 
     const statusBadge = host.querySelector('[data-testid="interaction-status-badge"]');
     expect(statusBadge?.textContent).toContain("Gmail connected");
-    expect(statusBadge?.textContent).not.toContain("Action required");
+    expect(statusBadge?.textContent).not.toContain("Acción requerida");
 
     const connected = host.querySelector('[data-testid="connection-authorization-connected"]');
     expect(connected?.textContent).toContain("Gmail connected");
@@ -1587,11 +1587,11 @@ describe("IssueThreadInteractionCard connection-intent card", () => {
       userLabelMap: USER_LABELS,
     });
     expect(host.querySelector('[data-testid="connection-intent-waiting"]')?.textContent)
-      .toContain("Waiting for Carol");
+      .toContain("Esperando a Carol");
     expect(host.querySelector('[data-testid="connection-intent-actions"]')).toBeNull();
     expect(host.querySelectorAll("button")).toHaveLength(0);
     expect(host.innerHTML).not.toContain("authorizationUrl");
-    expect(host.textContent).not.toContain("Not now");
+    expect(host.textContent).not.toContain("Ahora no");
   });
 
   it("renders retry and connected terminal states without generic confirmation actions", () => {
@@ -1611,7 +1611,7 @@ describe("IssueThreadInteractionCard connection-intent card", () => {
     });
     expect(connected.querySelector('[data-testid="connection-intent-terminal"]')?.textContent)
       .toContain("Notion connected");
-    expect(connected.textContent).not.toContain("Approve");
+    expect(connected.textContent).not.toContain("Aprobar");
   });
 });
 

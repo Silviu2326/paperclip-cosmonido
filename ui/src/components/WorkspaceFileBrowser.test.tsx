@@ -305,7 +305,7 @@ describe("WorkspaceFileBrowser", () => {
     });
 
     renderBrowser();
-    const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Refresh workspace files"]');
+    const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="Actualizar archivos del espacio de trabajo"]');
     expect(refresh).not.toBeNull();
     act(() => refresh!.click());
 
@@ -332,8 +332,8 @@ describe("WorkspaceFileBrowser", () => {
 
     renderBrowser();
 
-    expect(container.textContent).toContain("Changed files temporarily unavailable");
-    const retry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Retry"));
+    expect(container.textContent).toContain("Archivos modificados no disponibles temporalmente");
+    const retry = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Reintentar"));
     expect(retry).not.toBeUndefined();
     act(() => retry!.click());
     expect(refetch).toHaveBeenCalledTimes(1);
@@ -355,7 +355,7 @@ describe("WorkspaceFileBrowser", () => {
       (el) => el.getAttribute("title") === "ui/src/pages/IssueDetail.tsx",
     );
     expect(option).not.toBeUndefined();
-    const download = option!.querySelector<HTMLAnchorElement>('a[aria-label="Download IssueDetail.tsx"]');
+    const download = option!.querySelector<HTMLAnchorElement>('a[aria-label="Descargar IssueDetail.tsx"]');
     expect(download?.getAttribute("href")).toBe(
       "/api/issues/issue-1/file-resources/content?path=ui%2Fsrc%2Fpages%2FIssueDetail.tsx&download=1",
     );
@@ -544,7 +544,7 @@ describe("WorkspaceFileBrowser", () => {
   it("discloses truncation in the footer", () => {
     useQueryMock.mockReturnValue(ok(availableResponse([createItem()], true)));
     renderBrowser();
-    expect(container.textContent).toContain("refine the search to narrow");
+    expect(container.textContent).toContain("afina la búsqueda para acotar");
   });
 
   it("renders newly loaded current-folder rows after Load more", () => {
@@ -578,7 +578,7 @@ describe("WorkspaceFileBrowser", () => {
     expect(container.textContent).toContain("IssueLinkQuicklook.tsx");
     expect(container.textContent).not.toContain("SourceTrustBadge.tsx");
     const loadMore = Array.from(container.querySelectorAll("button")).find(
-      (el) => el.textContent === "Load more from this folder",
+      (el) => el.textContent === "Cargar más de esta carpeta",
     );
     act(() => {
       loadMore!.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
@@ -633,14 +633,14 @@ describe("WorkspaceFileBrowser", () => {
   it("shows the remote-workspace state without file rows", () => {
     useQueryMock.mockReturnValue(ok(unavailableResponse("remote_workspace")));
     renderBrowser();
-    expect(container.textContent).toContain("Remote workspace preview not supported");
+    expect(container.textContent).toContain("Vista previa de espacios de trabajo remotos no disponible");
     expect(container.querySelector('[role="tree"]')).toBeNull();
   });
 
   it("shows the no-workspace state when the issue has no workspace", () => {
     useQueryMock.mockReturnValue(ok(unavailableResponse("no_workspace")));
     renderBrowser();
-    expect(container.textContent).toContain("No workspace yet");
+    expect(container.textContent).toContain("Todavía no hay espacio de trabajo");
   });
 
   it("opens a result from a selected other project workspace", () => {
@@ -925,11 +925,11 @@ describe("WorkspaceFileBrowser", () => {
 
 describe("describeUnavailable", () => {
   it("maps reasons to copy that matches the viewer's denial voice", () => {
-    expect(describeUnavailable("remote_workspace").title).toBe("Remote workspace preview not supported");
-    expect(describeUnavailable("no_workspace").title).toBe("No workspace yet");
-    expect(describeUnavailable("no_local_workspace").title).toBe("No workspace yet");
-    expect(describeUnavailable("workspace_unavailable").title).toBe("Workspace is no longer available");
-    expect(describeUnavailable("archived").title).toBe("Workspace is no longer available");
+    expect(describeUnavailable("remote_workspace").title).toBe("Vista previa de espacios de trabajo remotos no disponible");
+    expect(describeUnavailable("no_workspace").title).toBe("Todavía no hay espacio de trabajo");
+    expect(describeUnavailable("no_local_workspace").title).toBe("Todavía no hay espacio de trabajo");
+    expect(describeUnavailable("workspace_unavailable").title).toBe("El espacio de trabajo ya no está disponible");
+    expect(describeUnavailable("archived").title).toBe("El espacio de trabajo ya no está disponible");
   });
 
   it("never leaks the raw reason code as the body", () => {

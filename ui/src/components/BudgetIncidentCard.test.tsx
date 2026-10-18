@@ -58,9 +58,9 @@ describe("BudgetIncidentCard", () => {
 
   it("labels a hard-stop incident as paused", async () => {
     const { div, buttons, cleanup } = await renderCard(incident());
-    expect(div.textContent).toContain("agent hard stop");
-    expect(div.textContent).toContain("This scope is paused.");
-    expect(buttons()).toEqual(["Raise budget & resume", "Keep paused"]);
+    expect(div.textContent).toContain("agent parada estricta");
+    expect(div.textContent).toContain("Este ámbito está pausado.");
+    expect(buttons()).toEqual(["Aumentar presupuesto y reanudar", "Mantener pausado"]);
     expect(div.querySelector("input")?.value).toBe("1010.00");
     await cleanup();
   });
@@ -69,23 +69,23 @@ describe("BudgetIncidentCard", () => {
     const { div, buttons, onKeepPaused, cleanup } = await renderCard(
       incident({ thresholdType: "soft", amountObserved: 80_000 }),
     );
-    expect(div.textContent).toContain("agent budget warning");
-    expect(div.textContent).not.toContain("hard stop");
+    expect(div.textContent).toContain("agent aviso de presupuesto");
+    expect(div.textContent).not.toContain("parada estricta");
     expect(div.textContent).not.toContain("paused");
-    expect(div.textContent).toContain("This warning does not pause work.");
-    expect(div.textContent).toContain("Spending reached $800.00 against a limit of $1,000.00.");
-    expect(buttons()).toEqual(["Raise budget", "Dismiss warning"]);
+    expect(div.textContent).toContain("Este aviso no pausa el trabajo.");
+    expect(div.textContent).toContain("El gasto alcanzó $800.00 frente a un límite de $1,000.00.");
+    expect(buttons()).toEqual(["Aumentar presupuesto", "Descartar aviso"]);
     expect(div.querySelector("input")?.value).toBe("1010.00");
-    const dismiss = Array.from(div.querySelectorAll("button")).find((button) => button.textContent?.trim() === "Dismiss warning")!;
+    const dismiss = Array.from(div.querySelectorAll("button")).find((button) => button.textContent?.trim() === "Descartar aviso")!;
     await act(async () => dismiss.click());
     expect(onKeepPaused).toHaveBeenCalledTimes(1);
     await cleanup();
   });
 
-  it("describes a paused project for a project hard stop", async () => {
+  it("describes a paused project for a project parada estricta", async () => {
     const { div, cleanup } = await renderCard(incident({ scopeType: "project", scopeName: "Website" }));
-    expect(div.textContent).toContain("project hard stop");
-    expect(div.textContent).toContain("Project execution is paused.");
+    expect(div.textContent).toContain("project parada estricta");
+    expect(div.textContent).toContain("La ejecución del proyecto está pausada.");
     await cleanup();
   });
 });

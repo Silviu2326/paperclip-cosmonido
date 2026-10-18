@@ -85,10 +85,10 @@ describe("IssueCasesPanel", () => {
     mockCasesApi.listForIssue.mockResolvedValue(links);
     const root = await render();
     const text = container.textContent ?? "";
-    expect(text).toContain("Cases");
+    expect(text).toContain("Casos");
     expect(text).toContain("PAP-C7");
     expect(text).toContain("Launch post");
-    expect(text).toContain("work");
+    expect(text).toContain("trabajo");
     expect(text).toContain("in review");
     expect(container.querySelector('a[href="/PAP/cases/PAP-C7"]')).not.toBeNull();
     act(() => root.unmount());

@@ -22,31 +22,32 @@ import { timeAgo } from "../lib/timeAgo";
 import { Identity } from "./Identity";
 import { StatusIcon } from "./StatusIcon";
 import { Badge } from "@/components/ui/badge";
+import { t } from "@/i18n";
 
 export const issueTrailingColumns: InboxIssueColumn[] = ["assignee", "kickedOffBy", "project", "workspace", "parent", "labels", "updated"];
 
 const issueColumnLabels: Record<InboxIssueColumn, string> = {
-  status: "Status",
+  status: t("issueColumns.status"),
   id: "ID",
-  assignee: "Responsible",
-  kickedOffBy: "Kicked off by",
-  project: "Project",
-  workspace: "Workspace",
-  parent: "Parent task",
-  labels: "Tags",
-  updated: "Last updated",
+  assignee: t("issueColumns.assignee"),
+  kickedOffBy: t("issueColumns.kickedOffBy"),
+  project: t("issueColumns.project"),
+  workspace: t("issueColumns.workspace"),
+  parent: t("issueColumns.parent"),
+  labels: t("issueColumns.labels"),
+  updated: t("issueColumns.updated"),
 };
 
 const issueColumnDescriptions: Record<InboxIssueColumn, string> = {
-  status: "Task state chip on the left edge.",
-  id: "Ticket identifier like PAP-1009.",
-  assignee: "Responsible agent or board user.",
-  kickedOffBy: "Board user or agent who created the task.",
-  project: "Linked project pill with its color.",
-  workspace: "Execution or project workspace used for the task.",
-  parent: "Parent task identifier and title.",
-  labels: "Task labels and tags.",
-  updated: "Latest visible activity time.",
+  status: t("issueColumns.descStatus"),
+  id: t("issueColumns.descId"),
+  assignee: t("issueColumns.descAssignee"),
+  kickedOffBy: t("issueColumns.descKickedOff"),
+  project: t("issueColumns.descProject"),
+  workspace: t("issueColumns.descWorkspace"),
+  parent: t("issueColumns.descParent"),
+  labels: t("issueColumns.descLabels"),
+  updated: t("issueColumns.descUpdated"),
 };
 
 export function issueColumnDescription(
@@ -54,10 +55,10 @@ export function issueColumnDescription(
   presentation: "legacy" | "task" = "legacy",
 ): string {
   if (column === "id" && presentation === "task") {
-    return "Task identifier like PAP-1009 on the trailing edge.";
+    return t("issueColumns.idEdge");
   }
   if (column === "status" && presentation === "task") {
-    return "Task state icon on the leading edge.";
+    return t("issueColumns.stateEdge");
   }
   return issueColumnDescriptions[column];
 }
@@ -113,10 +114,10 @@ export function IssueColumnPicker({
           variant={iconOnly ? "outline" : "ghost"}
           size={iconOnly ? "icon" : "sm"}
           className={iconOnly ? "h-8 w-8 shrink-0" : "hidden h-8 shrink-0 px-2 text-xs sm:inline-flex"}
-          title="Columns"
+          title={t("issueColumns.columns")}
         >
           <Columns3 className={iconOnly ? "h-3.5 w-3.5" : "mr-1 h-3.5 w-3.5"} />
-          {!iconOnly && "Columns"}
+          {!iconOnly && t("issueColumns.columns")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-(--sz-300px) rounded-xl border-border/70 p-1.5 shadow-xl shadow-black/10">
@@ -309,10 +310,10 @@ export function InboxIssueTrailingColumns({
   onFilterWorkspace?: (workspaceId: string) => void;
 }) {
   const activityText = issueActivityTimestamp(issue);
-  const userLabel = assigneeUserName ?? formatAssigneeUserLabel(issue.assigneeUserId, currentUserId) ?? "User";
+  const userLabel = assigneeUserName ?? formatAssigneeUserLabel(issue.assigneeUserId, currentUserId) ?? t("issueColumns.user");
   const originatingActor = deriveOriginatingActor(issue);
   const originatingUserId = originatingActor?.kind === "user" ? originatingActor.id : null;
-  const creatorUserLabel = creatorUserName ?? formatAssigneeUserLabel(originatingUserId, currentUserId) ?? "User";
+  const creatorUserLabel = creatorUserName ?? formatAssigneeUserLabel(originatingUserId, currentUserId) ?? t("issueColumns.user");
 
   return (
     <span

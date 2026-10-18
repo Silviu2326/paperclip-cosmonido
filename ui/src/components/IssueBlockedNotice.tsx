@@ -33,6 +33,7 @@ import {
   readRecoveryRetryLineage,
 } from "../lib/recovery-lineage";
 import { StatusGlyph } from "./StatusGlyph";
+import { t } from "@/i18n";
 
 function BlockerRecoveryIndicator({
   action,
@@ -111,17 +112,17 @@ function SuccessfulRunRetryNowControl({
           {retryNow.isPending ? (
             <span className="inline-flex items-center gap-1.5">
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              Retrying...
+              {t("issueBlockedNotice.retrying")}
             </span>
           ) : success ? (
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              {retryNow.data?.outcome === "already_promoted" ? "Already promoted" : "Promoted"}
+              {retryNow.data?.outcome === "already_promoted" ? t("issueBlockedNotice.alreadyPromoted") : t("issueBlockedNotice.promoted")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5">
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              Retry now
+              {t("issueBlockedNotice.retryNow")}
             </span>
           )}
         </Button>
@@ -169,7 +170,7 @@ function WaitingChipLink({
       </span>
       {running ? (
         <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-wide text-primary dark:bg-primary/20">
-          running
+          {t("issueBlockedNotice.running")}
         </span>
       ) : null}
     </IssueLinkQuicklook>
@@ -217,8 +218,8 @@ function SuccessfulRunHandoffInFlightNotice({
           <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
         </span>
         <p className="min-w-0 leading-5">
-          A correction run is in progress — the agent is working. This alert returns if the run
-          stops without choosing a next step.
+          {t("issueBlockedNotice.correctionRun")}
+          
           {shortRunId ? (
             <>
               {" "}
@@ -294,9 +295,9 @@ function WaitingOnLiveWorkNotice({
           <div className="space-y-1">
             <p className="font-medium leading-5">Waiting on live work</p>
             <p className="leading-5">
-              Queued behind {total} {queuedNoun} being worked in order. This task
-              resumes automatically when the chain is done. Comments still notify the
-              assignee.
+              {t("issueBlockedNotice.queuedBehind", { total, noun: queuedNoun })}
+              
+              
             </p>
           </div>
 
@@ -307,7 +308,7 @@ function WaitingOnLiveWorkNotice({
             </div>
             <div
               role="progressbar"
-              aria-label="Blocker chain progress"
+              aria-label={t("issueBlockedNotice.chainProgress")}
               aria-valuemin={0}
               aria-valuenow={doneCount}
               aria-valuemax={total}
@@ -358,7 +359,7 @@ function WaitingOnLiveWorkNotice({
               </div>
               <div className="min-w-0 pb-0.5">
                 <span className="inline-block rounded-md border border-dashed border-primary/70 px-2 py-1 text-xs text-primary dark:border-primary/40">
-                  This task — resumes automatically when the chain is done
+                  {t("issueBlockedNotice.thisTaskResumes")}
                 </span>
               </div>
             </div>
@@ -370,7 +371,7 @@ function WaitingOnLiveWorkNotice({
               className="space-y-1 pt-0.5"
             >
               <div className="text-xs font-medium text-primary">
-                Now running
+                {t("issueBlockedNotice.nowRunning")}
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {nowRunning.map((blocker) => (
@@ -387,7 +388,7 @@ function WaitingOnLiveWorkNotice({
             >
               <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-800 dark:text-amber-200">
                 <Flag className="h-3 w-3" aria-hidden />
-                Blocked by parked work
+                {t("issueBlockedNotice.blockedByParked")}
               </span>
               {parkedBlockers.map((blocker) => renderParkedChip(blocker))}
             </div>
@@ -628,10 +629,10 @@ export function IssueBlockedNotice({
                 what happens next.
               </p>
               <ul className="list-disc space-y-1 pl-5 text-xs leading-5 text-amber-900 dark:text-amber-100">
-                <li>Mark it done or cancelled.</li>
-                <li>Send it for review or ask for input.</li>
-                <li>Record what is blocking it and who owns that blocker.</li>
-                <li>Delegate follow-up work or queue a continuation.</li>
+                <li>{t("issueBlockedNotice.markDone")}</li>
+                <li>{t("issueBlockedNotice.sendReview")}</li>
+                <li>{t("issueBlockedNotice.recordBlocker")}</li>
+                <li>{t("issueBlockedNotice.delegate")}</li>
               </ul>
               <div className="flex flex-wrap gap-1.5 text-xs">
                 {successfulRunHandoff.sourceRunId && successfulRunHandoff.assigneeAgentId ? (
@@ -677,7 +678,7 @@ export function IssueBlockedNotice({
                     : reopenSuppressed
                       ? <>A message won&rsquo;t restart this task yet — it stays blocked by {blockerLabel} until {blockers.length === 1 ? "it is" : "they are"} done, then it reopens automatically. Comments still notify {responsibleName} for questions or triage in the meantime.</>
                       : <>Work on this task is blocked by {blockerLabel} until {blockers.length === 1 ? "it is" : "they are"} complete. Comments still notify the assignee for questions or triage.</>
-                  : <>Work on this task is blocked until someone moves it back to To do. Comments still notify the assignee for questions or triage.</>}
+                  : <>{t("issueBlockedNotice.blockedBody")}</>}
               </p>
               {reopenSuppressed && reopenSuppressedLeafId ? (
                 <p

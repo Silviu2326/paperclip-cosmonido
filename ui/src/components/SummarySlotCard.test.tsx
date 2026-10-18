@@ -78,7 +78,7 @@ async function flushQueries() {
 }
 
 async function openRevisionSelect(container: HTMLElement) {
-  const trigger = container.querySelector<HTMLElement>('button[aria-label="Select summary revision"]');
+  const trigger = container.querySelector<HTMLElement>('button[aria-label="Seleccionar revisión del resumen"]');
   expect(trigger).not.toBeNull();
 
   await act(async () => {
@@ -283,9 +283,9 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("Set up the Summarizer");
+    expect(container.textContent).toContain("Configura el resumidor");
     const setupButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Set up Summarizer",
+      (button) => button.textContent === "Configurar resumidor",
     );
     expect(setupButton).not.toBeNull();
 
@@ -314,14 +314,14 @@ describe("SummarySlotCard", () => {
     await flushQueries();
 
     const refreshButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent?.includes("Refresh"),
+      (button) => button.textContent?.includes("Actualizar"),
     );
     await act(() => refreshButton?.click());
     await flushQueries();
-    expect(container.textContent).toContain("Summary request failed");
+    expect(container.textContent).toContain("Error en la solicitud de resumen");
 
     const setupButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Set up Summarizer",
+      (button) => button.textContent === "Configurar resumidor",
     );
     await act(() => setupButton?.click());
     await flushQueries();
@@ -330,16 +330,16 @@ describe("SummarySlotCard", () => {
     );
     await act(() => finishSetupButton?.click());
 
-    expect(container.textContent).not.toContain("Summary request failed");
+    expect(container.textContent).not.toContain("Error en la solicitud de resumen");
   });
 
   it("shows the empty state and starts generation", async () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("No summary yet");
+    expect(container.textContent).toContain("Todavía no hay resumen");
     const generateButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent?.includes("Generate summary"),
+      (button) => button.textContent?.includes("Generar resumen"),
     );
     expect(generateButton).not.toBeNull();
 
@@ -362,10 +362,10 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("Summarizer is paused");
-    expect(container.textContent).not.toContain("No summary yet");
-    expect(container.textContent).not.toContain("Generate summary");
-    expect([...container.querySelectorAll("button")].filter((button) => button.textContent === "Resume agent"))
+    expect(container.textContent).toContain("El resumidor está en pausa");
+    expect(container.textContent).not.toContain("Todavía no hay resumen");
+    expect(container.textContent).not.toContain("Generar resumen");
+    expect([...container.querySelectorAll("button")].filter((button) => button.textContent === "Reanudar agente"))
       .toHaveLength(1);
   });
 
@@ -382,7 +382,7 @@ describe("SummarySlotCard", () => {
     expect(container.firstElementChild?.tagName).toBe("SECTION");
     expect(container.firstElementChild?.className).toContain("space-y-4");
     expect(container.querySelector('[data-slot="card"]')).toBeNull();
-    expect(container.textContent).toContain("Generating summary");
+    expect(container.textContent).toContain("Generando resumen");
     expect(container.textContent).toContain("PAP-14000: Summarize project");
     expect(container.querySelector('a[href="/issues/PAP-14000"]')).not.toBeNull();
     expect(container.querySelector('a[href="/issues/PAP-14000"]')?.closest("div")?.parentElement?.className)
@@ -403,7 +403,7 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("Latest revision");
+    expect(container.textContent).toContain("Última revisión");
     expect(container.textContent).toContain("Review the launch notes.");
     expect(container.querySelector('[data-testid="markdown-body"]')?.parentElement?.className).not.toContain("border");
   });
@@ -438,25 +438,25 @@ describe("SummarySlotCard", () => {
     await flushQueries();
 
     expect(container.textContent).toContain("Current body");
-    expect(container.textContent).toContain("3 revisions");
-    expect(container.textContent).not.toContain("Latest (Rev 3)");
+    expect(container.textContent).toContain("3 revisiones");
+    expect(container.textContent).not.toContain("Última (Rev. 3)");
     expect([...container.querySelectorAll<HTMLButtonElement>("button")].some(
-      (button) => button.textContent === "Revision 1" || button.textContent === "Rev 1",
+      (button) => button.textContent === "Revision 1" || button.textContent === "Rev. 1",
     )).toBe(false);
 
     await openRevisionSelect(container);
 
-    expect(document.body.textContent).toContain("Latest (Rev 3) - Jul 14");
-    expect(document.body.textContent).toContain("Rev 1 - Jul 13");
-    expect(document.body.textContent).toContain("Rev 2 - Jul 14");
+    expect(document.body.textContent).toContain("Última (Rev. 3) - Jul 14");
+    expect(document.body.textContent).toContain("Rev. 1 - Jul 13");
+    expect(document.body.textContent).toContain("Rev. 2 - Jul 14");
 
-    await chooseRevisionOption("Rev 1 - Jul 13");
+    await chooseRevisionOption("Rev. 1 - Jul 13");
 
-    expect(container.textContent).toContain("Historical revision");
+    expect(container.textContent).toContain("Revisión anterior");
     expect(container.textContent).toContain("Old body");
 
     const latestButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Latest",
+      (button) => button.textContent === "Última",
     );
     expect(latestButton).not.toBeNull();
 
@@ -466,7 +466,7 @@ describe("SummarySlotCard", () => {
     await flushQueries();
 
     expect(container.textContent).toContain("Current body");
-    expect(container.textContent).not.toContain("Historical revision");
+    expect(container.textContent).not.toContain("Revisión anterior");
   });
 
   it("limits the revision picker to the 30 newest revisions", async () => {
@@ -496,16 +496,16 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("32 revisions");
+    expect(container.textContent).toContain("32 revisiones");
 
     await openRevisionSelect(container);
 
     const options = Array.from(document.body.querySelectorAll<HTMLElement>('[role="option"]'));
     expect(options).toHaveLength(30);
-    expect(options.some((option) => option.textContent?.includes("Latest (Rev 32)"))).toBe(true);
-    expect(options.some((option) => option.textContent?.includes("Rev 3 -"))).toBe(true);
-    expect(options.some((option) => option.textContent?.includes("Rev 2 -"))).toBe(false);
-    expect(options.some((option) => option.textContent?.includes("Rev 1 -"))).toBe(false);
+    expect(options.some((option) => option.textContent?.includes("Última (Rev. 32)"))).toBe(true);
+    expect(options.some((option) => option.textContent?.includes("Rev. 3 -"))).toBe(true);
+    expect(options.some((option) => option.textContent?.includes("Rev. 2 -"))).toBe(false);
+    expect(options.some((option) => option.textContent?.includes("Rev. 1 -"))).toBe(false);
   });
 
   it("shows stopped generation as a failed retryable state", async () => {
@@ -522,11 +522,11 @@ describe("SummarySlotCard", () => {
     root = renderCard(container);
     await flushQueries();
 
-    expect(container.textContent).toContain("Summary generation failed");
+    expect(container.textContent).toContain("Error al generar el resumen");
     expect(container.textContent).toContain("PAP-14000 finished without writing a summary");
     expect(container.querySelector('[role="note"]')?.className).toContain("text-destructive");
     const retryButton = [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent === "Retry",
+      (button) => button.textContent === "Reintentar",
     );
     expect(retryButton).not.toBeNull();
 

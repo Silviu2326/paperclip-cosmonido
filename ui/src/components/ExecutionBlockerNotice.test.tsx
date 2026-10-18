@@ -36,9 +36,9 @@ describe("stopped task recovery notice", () => {
   });
   afterEach(async () => { await act(async () => root.unmount()); client.clear(); container.remove(); });
   it("keeps the recovery guidance and an inspection link alongside Retry", () => {
-    const notice = container.querySelector('[role="status"][aria-label="Task recovery"]')!;
+    const notice = container.querySelector('[role="status"][aria-label="Recuperación de la tarea"]')!;
     expect(notice.textContent).toContain("Recorded work is preserved");
-    expect(notice.textContent).toContain("Retry");
+    expect(notice.textContent).toContain("Reintentar");
     expect(notice.classList.contains("task-context-notice")).toBe(true);
     expect(notice.querySelector("a")?.getAttribute("href")).toBe("/agents/agent/runs/failed-run");
   });
@@ -53,9 +53,9 @@ describe("stopped task recovery notice", () => {
       }} />
     </QueryClientProvider>));
     expect(container.textContent).toContain("Provider cancelled execution");
-    expect(container.textContent).toContain("2 saved messages are waiting");
+    expect(container.textContent).toContain("2 mensajes guardados están pendientes");
     expect(container.querySelector("a")?.getAttribute("href")).toContain("cancelled-run");
-    expect(container.querySelector("button")?.textContent ?? null).toBe(canContinue ? "Continue" : null);
+    expect(container.querySelector("button")?.textContent ?? null).toBe(canContinue ? "Continuar" : null);
     if (!canContinue) expect(container.textContent).toContain("sending a new message to request continuation");
     if (canContinue) {
       vi.mocked(agentsApi.retryFailedRun).mockResolvedValue({} as never);
@@ -74,7 +74,7 @@ describe("stopped task recovery notice", () => {
     expect(container.textContent).toContain("create a new task");
     expect(container.textContent).not.toContain("sending a new message");
     expect(container.querySelector("button")).toBeNull();
-    expect(container.querySelector("a")?.textContent).toBe("Inspect run");
+    expect(container.querySelector("a")?.textContent).toBe("Inspeccionar ejecución");
   });
   it("keeps the required next action for other reconciliation causes", async () => {
     await act(async () => root.render(<QueryClientProvider client={client}>
@@ -94,10 +94,10 @@ describe("stopped task recovery notice", () => {
         nextAction: "Inspect the original failure and reconcile the previous execution before continuing.",
       }} />
     </QueryClientProvider>));
-    expect(container.textContent).toContain("Recovery needed.");
-    expect(container.textContent).not.toContain("Retry");
+    expect(container.textContent).toContain("Se necesita recuperación.");
+    expect(container.textContent).not.toContain("Reintentar");
     const link = container.querySelector("a")!;
-    expect(link.textContent).toBe("Inspect run");
+    expect(link.textContent).toBe("Inspeccionar ejecución");
     expect(link.getAttribute("href")).toBe("/agents/agent/runs/failed-run");
     expect(agentsApi.retryFailedRun).not.toHaveBeenCalled();
   });
@@ -109,14 +109,14 @@ describe("stopped task recovery notice", () => {
         nextAction: "The original sandbox is retained. Recover the missing files and record workspace repair evidence.",
       }} />
     </QueryClientProvider>));
-    expect(container.textContent).toContain("could not restore the agent's workspace files");
-    expect(container.textContent).toContain("A board operator must recover the files");
+    expect(container.textContent).toContain("no pudo restaurar los archivos del espacio de trabajo del agente");
+    expect(container.textContent).toContain("Un operador del consejo debe recuperar los archivos");
     // The hold also covers unsafe archives and local runs, so the notice must not promise retries or a kept sandbox.
     expect(container.textContent).not.toContain("retrying");
     expect(container.textContent).not.toContain("no work is lost");
     expect(container.querySelector("details")?.textContent).toContain("Recover the missing files");
     expect(container.querySelector("button")).toBeNull();
-    expect(container.querySelector("a")?.textContent).toBe("Inspect run");
+    expect(container.querySelector("a")?.textContent).toBe("Inspeccionar ejecución");
     expect(agentsApi.retryFailedRun).not.toHaveBeenCalled();
   });
 
@@ -143,11 +143,11 @@ describe("stopped task recovery notice", () => {
       }} />
     </QueryClientProvider>));
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
-    expect(container.textContent).toContain("Model unavailable.");
+    expect(container.textContent).toContain("Modelo no disponible.");
     expect(container.textContent).toContain(runError);
-    expect(container.textContent).toContain("clear the task's model override, then retry");
+    expect(container.textContent).toContain("quita la anulación de modelo de la tarea y vuelve a intentarlo");
     expect(container.textContent).toContain("Inspect the original failure before continuing.");
-    expect(container.querySelector("button")?.textContent).toBe("Retry");
+    expect(container.querySelector("button")?.textContent).toBe("Reintentar");
   });
 
   it.each(["native_continuation_requires_reconciliation", "uncertain_external_action"])("offers Retry for a server-admitted native failure: %s", async cause => {
@@ -159,7 +159,7 @@ describe("stopped task recovery notice", () => {
       }} />
     </QueryClientProvider>));
     const button = container.querySelector<HTMLButtonElement>("button");
-    expect(button?.textContent).toBe("Retry");
+    expect(button?.textContent).toBe("Reintentar");
     vi.mocked(agentsApi.retryFailedRun).mockResolvedValue({} as never);
     await act(async () => button!.click());
     expect(agentsApi.retryFailedRun).toHaveBeenCalledWith("agent", "failed-run", "company");
@@ -186,7 +186,7 @@ describe("stopped task recovery notice", () => {
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
     expect(issuesApi.recoveryActions).toHaveBeenCalledWith("task");
     expect(container.querySelector("details")?.textContent).toContain("The last tool outcome could not be verified.");
-    expect(container.querySelector("details")?.textContent).toContain("stopped automatic retries");
+    expect(container.querySelector("details")?.textContent).toContain("detuvo los reintentos automáticos");
     expect(container.querySelector("button")).toBeNull();
     expect(agentsApi.retryFailedRun).not.toHaveBeenCalled();
   });

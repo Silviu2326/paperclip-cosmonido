@@ -199,7 +199,7 @@ function projectLinkLabels(container: HTMLElement) {
 }
 
 async function openProjectsMenu(container: HTMLElement) {
-  const trigger = container.querySelector('button[aria-label="Projects section actions"]');
+  const trigger = container.querySelector('button[aria-label="Acciones de la sección de proyectos"]');
   expect(trigger).not.toBeNull();
 
   await act(async () => {
@@ -209,7 +209,7 @@ async function openProjectsMenu(container: HTMLElement) {
   await flushReact();
 }
 
-async function openProjectMenu(label = "Open actions for Alpha") {
+async function openProjectMenu(label = "Abrir acciones para Alpha") {
   const trigger = document.body.querySelector(`button[aria-label="${label}"]`);
   expect(trigger).not.toBeNull();
 
@@ -376,9 +376,9 @@ describe("SidebarProjects", () => {
     expect(nameSpan?.className).toContain("overflow-hidden");
     const projectLink = container.querySelector('a[href^="/projects/"]');
     expect(projectLink?.parentElement?.getAttribute("data-slot")).toBe("tooltip-trigger");
-    expect(container.querySelector('button[aria-label="Open actions for Bravo"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Abrir acciones para Bravo"]')).toBeNull();
     // The section header collapses to a divider (no section menu trigger).
-    expect(container.querySelector('button[aria-label="Projects section actions"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Acciones de la sección de proyectos"]')).toBeNull();
   });
 
   it("keeps top mode in curated order and renders plugin project slots", async () => {
@@ -410,11 +410,11 @@ describe("SidebarProjects", () => {
   it("uses the heading for section menu and the plus button for project creation", async () => {
     await renderSidebarProjects();
 
-    const sectionMenuTrigger = container.querySelector('button[aria-label="Projects section actions"]');
-    expect(sectionMenuTrigger?.textContent).toContain("Projects");
+    const sectionMenuTrigger = container.querySelector('button[aria-label="Acciones de la sección de proyectos"]');
+    expect(sectionMenuTrigger?.textContent).toContain("Proyectos");
     expect(sectionMenuTrigger?.querySelector("svg")).toBeNull();
 
-    const newProjectButton = container.querySelector('button[aria-label="New project"]');
+    const newProjectButton = container.querySelector('button[aria-label="Nuevo proyecto"]');
     expect(newProjectButton).toBeTruthy();
     await act(async () => {
       newProjectButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -424,17 +424,17 @@ describe("SidebarProjects", () => {
     await openProjectsMenu(container);
 
     const newProjectItem = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
-      .find((element) => element.textContent?.includes("New project"));
+      .find((element) => element.textContent?.includes("Nuevo proyecto"));
     expect(newProjectItem).toBeFalsy();
     const browseLink = Array.from(document.body.querySelectorAll("a"))
-      .find((element) => element.textContent?.includes("Browse projects"));
+      .find((element) => element.textContent?.includes("Explorar proyectos"));
     expect(browseLink?.getAttribute("href")).toBe("/projects");
   });
 
   it("sorts alphabetically and persists the selected mode per company and user", async () => {
     await renderSidebarProjects();
     await openProjectsMenu(container);
-    await chooseSortMode("Alphabetical");
+    await chooseSortMode("Alfabético");
 
     expect(projectLinkLabels(container)).toEqual(["Alpha", "Bravo", "Charlie"]);
     expect(localStorage.getItem("paperclip.projectSortMode:company-1:user-1")).toBe("alphabetical");
@@ -443,7 +443,7 @@ describe("SidebarProjects", () => {
   it("sorts recent projects by updated time descending", async () => {
     await renderSidebarProjects();
     await openProjectsMenu(container);
-    await chooseSortMode("Recent");
+    await chooseSortMode("Recientes");
 
     expect(projectLinkLabels(container)).toEqual(["Charlie", "Bravo", "Alpha"]);
   });
@@ -474,7 +474,7 @@ describe("SidebarProjects", () => {
     await openProjectMenu();
 
     const leaveItem = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
-      .find((element) => element.textContent?.includes("Leave project"));
+      .find((element) => element.textContent?.includes("Salir del proyecto"));
     expect(leaveItem).toBeTruthy();
 
     await act(async () => {

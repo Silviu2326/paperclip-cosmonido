@@ -55,7 +55,7 @@ describe("WorkspaceServiceControlBar", () => {
         />,
       );
     });
-    return container.querySelector<HTMLButtonElement>('button[aria-label="Copy URL"]')!;
+    return container.querySelector<HTMLButtonElement>('button[aria-label="Copiar URL"]')!;
   }
 
   it("shows success only after the URL reaches the clipboard", async () => {
@@ -67,7 +67,7 @@ describe("WorkspaceServiceControlBar", () => {
     });
 
     expect(writeText).toHaveBeenCalledWith("http://127.0.0.1:3100");
-    expect(copyButton.getAttribute("aria-label")).toBe("URL copied");
+    expect(copyButton.getAttribute("aria-label")).toBe("URL copiada");
   });
 
   it("shows failure when the clipboard rejects the write", async () => {
@@ -79,7 +79,7 @@ describe("WorkspaceServiceControlBar", () => {
       await Promise.resolve();
     });
 
-    expect(copyButton.getAttribute("aria-label")).toBe("Copy failed");
+    expect(copyButton.getAttribute("aria-label")).toBe("Error al copiar");
     expect(copyButton.querySelector(".text-destructive")).not.toBeNull();
   });
 
@@ -156,7 +156,7 @@ describe("WorkspaceServiceControlBar", () => {
     ].join(" ");
     expect(advertisedUrls()).not.toContain("http://");
 
-    const copyButton = container.querySelector<HTMLButtonElement>('button[aria-label="Copy URL"]')!;
+    const copyButton = container.querySelector<HTMLButtonElement>('button[aria-label="Copiar URL"]')!;
     await act(async () => {
       copyButton.click();
       await Promise.resolve();
@@ -187,7 +187,7 @@ describe("WorkspaceServiceControlBar", () => {
       );
     });
 
-    expect(container.textContent).toContain("Running");
+    expect(container.textContent).toContain("En ejecución");
     expect(container.textContent).toContain("HTTPS cleanup pending");
     expect(container.querySelector(".text-destructive")).not.toBeNull();
   });

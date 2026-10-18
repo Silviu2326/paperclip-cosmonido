@@ -71,11 +71,11 @@ describe("IssueContinuationHandoff", () => {
     });
 
     expect(container.textContent).toContain("Continuation Summary");
-    expect(container.textContent).toContain("handoff");
+    expect(container.textContent).toContain("traspaso");
     expect(container.textContent).not.toContain("Resume from the activity tab.");
 
     const copyButton = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.getAttribute("aria-label") === "Continue with an agent");
+      .find((button) => button.getAttribute("aria-label") === "Continuar con un agente");
     expect(copyButton).toBeTruthy();
 
     await act(async () => {

@@ -446,7 +446,7 @@ describe("Routines page", () => {
       new Map(),
     );
 
-    expect(groups.map((group) => group.label)).toEqual(["Project Alpha", "Built-in routines"]);
+    expect(groups.map((group) => group.label)).toEqual(["Project Alpha", "Rutinas integradas"]);
     expect(groups[0]?.items.map((item) => item.title)).toEqual(["Morning sync"]);
     expect(groups[1]?.items.map((item) => item.title)).toEqual(["Reflection review"]);
   });
@@ -467,7 +467,7 @@ describe("Routines page", () => {
       ]),
     );
 
-    expect(groups.map((group) => group.label)).toEqual(["RPI", "Test", "Unfiled"]);
+    expect(groups.map((group) => group.label)).toEqual(["RPI", "Test", "Sin carpeta"]);
     expect(groups[0]?.items.map((item) => item.title)).toEqual(["RPI review"]);
     expect(groups[1]?.items.map((item) => item.title)).toEqual(["Test summary"]);
     expect(groups[2]?.items.map((item) => item.title)).toEqual(["Unfiled sweep"]);
@@ -489,7 +489,7 @@ describe("Routines page", () => {
       ]),
     );
 
-    expect(groups.map((group) => group.label)).toEqual(["Beta", "Alpha", "Unfiled"]);
+    expect(groups.map((group) => group.label)).toEqual(["Beta", "Alpha", "Sin carpeta"]);
     expect(groups.map((group) => group.key)).toEqual(["folder-beta", "folder-alpha", "__unfiled"]);
   });
 
@@ -512,7 +512,7 @@ describe("Routines page", () => {
       new Map([["folder-rpi", { name: "RPI" }]]),
     );
 
-    expect(groups.map((group) => group.label)).toEqual(["RPI", "Unfiled", "Built-in routines"]);
+    expect(groups.map((group) => group.label)).toEqual(["RPI", "Sin carpeta", "Rutinas integradas"]);
     expect(groups[0]?.items.map((item) => item.title)).toEqual(["RPI review"]);
     expect(groups[1]?.items.map((item) => item.title)).toEqual(["Unfiled sweep"]);
     expect(groups[2]?.items.map((item) => item.title)).toEqual(["Reflection review"]);
@@ -590,14 +590,14 @@ describe("Routines page", () => {
       await flush();
     });
 
-    let sortButton = container.querySelector<HTMLButtonElement>('button[title="Sort"]');
-    let groupButton = container.querySelector<HTMLButtonElement>('button[title="Group"]');
+    let sortButton = container.querySelector<HTMLButtonElement>('button[title="Ordenar"]');
+    let groupButton = container.querySelector<HTMLButtonElement>('button[title="Agrupar"]');
     for (let attempts = 0; attempts < 5 && (!sortButton || !groupButton); attempts += 1) {
       await act(async () => {
         await flush();
       });
-      sortButton = container.querySelector<HTMLButtonElement>('button[title="Sort"]');
-      groupButton = container.querySelector<HTMLButtonElement>('button[title="Group"]');
+      sortButton = container.querySelector<HTMLButtonElement>('button[title="Ordenar"]');
+      groupButton = container.querySelector<HTMLButtonElement>('button[title="Agrupar"]');
     }
 
     expect(sortButton).not.toBeNull();
@@ -680,7 +680,7 @@ describe("Routines page", () => {
 
     const sectionLabels = Array.from(container.querySelectorAll("[data-routine-section-label]"))
       .map((element) => element.textContent);
-    expect(sectionLabels).toEqual(["RPI", "Test", "Unfiled"]);
+    expect(sectionLabels).toEqual(["RPI", "Test", "Sin carpeta"]);
 
     const text = container.textContent ?? "";
     expect(text.indexOf("RPI review")).toBeLessThan(text.indexOf("Test summary"));
@@ -723,15 +723,15 @@ describe("Routines page", () => {
       await flush();
     });
 
-    for (let attempts = 0; attempts < 5 && !container.textContent?.includes("Built-in routines"); attempts += 1) {
+    for (let attempts = 0; attempts < 5 && !container.textContent?.includes("Rutinas integradas"); attempts += 1) {
       await act(async () => {
         await flush();
       });
     }
 
     const text = container.textContent ?? "";
-    expect(text.indexOf("Morning sync")).toBeLessThan(text.indexOf("Built-in routines"));
-    expect(text.indexOf("Built-in routines")).toBeLessThan(text.indexOf("Reflection review"));
+    expect(text.indexOf("Morning sync")).toBeLessThan(text.indexOf("Rutinas integradas"));
+    expect(text.indexOf("Rutinas integradas")).toBeLessThan(text.indexOf("Reflection review"));
 
     await act(async () => {
       root.unmount();
@@ -827,14 +827,14 @@ describe("Routines page", () => {
       );
       await flush();
     });
-    for (let attempts = 0; attempts < 5 && !container.textContent?.includes("This folder is empty"); attempts += 1) {
+    for (let attempts = 0; attempts < 5 && !container.textContent?.includes("Esta carpeta está vacía"); attempts += 1) {
       await act(async () => {
         await flush();
       });
     }
 
-    expect(container.textContent).toContain("This folder is empty");
-    expect(container.textContent).toContain("New routine in this folder");
+    expect(container.textContent).toContain("Esta carpeta está vacía");
+    expect(container.textContent).toContain("Nueva rutina en esta carpeta");
 
     await act(async () => {
       secondRoot.unmount();
@@ -871,7 +871,7 @@ describe("Routines page", () => {
     }
 
     const text = container.textContent ?? "";
-    expect(text).toContain("1 routine");
+    expect(text).toContain("1 rutina");
     expect(text).toContain("Morning sync");
     expect(text).not.toContain("Archived cleanup");
 
@@ -941,14 +941,14 @@ describe("Routines page", () => {
     });
 
     let createButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Create routine"),
+      button.textContent?.includes("Crear rutina"),
     );
     for (let attempts = 0; attempts < 5 && !createButton; attempts += 1) {
       await act(async () => {
         await flush();
       });
       createButton = Array.from(container.querySelectorAll("button")).find((button) =>
-        button.textContent?.includes("Create routine"),
+        button.textContent?.includes("Crear rutina"),
       );
     }
 
@@ -991,14 +991,14 @@ describe("Routines page", () => {
     });
 
     let createButton = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Create routine"),
+      button.textContent?.includes("Crear rutina"),
     );
     for (let attempts = 0; attempts < 5 && !createButton; attempts += 1) {
       await act(async () => {
         await flush();
       });
       createButton = Array.from(container.querySelectorAll("button")).find((button) =>
-        button.textContent?.includes("Create routine"),
+        button.textContent?.includes("Crear rutina"),
       );
     }
 

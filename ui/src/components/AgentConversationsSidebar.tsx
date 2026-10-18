@@ -7,9 +7,11 @@ import { useQueries } from "@tanstack/react-query";
 import { agentsApi } from "@/api/agents";
 import { queryKeys } from "@/lib/queryKeys";
 import { resourceMembershipState, useResourceMemberships } from "@/hooks/useResourceMemberships";
+import { useTranslation } from "@/i18n";
 
 /** Account- and company-scoped data for the secondary chat navigation. */
 export function AgentConversationsSidebar() {
+  const { t } = useTranslation();
   const { companyId, userId, agents, chats, session } = useAgentChatNavigation();
   const openChat = useOpenAgentChat(companyId, userId);
   const navigate = useNavigate();
@@ -42,7 +44,7 @@ export function AgentConversationsSidebar() {
       && (!memberships.isSuccess || resourceMembershipState(memberships.data, "agent", agent.id) !== "left"))
     .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
   const previews = Object.fromEntries((chats.data ?? []).filter(chat => chat.conversationState === "active")
-    .map(chat => [chat.conversationAgentId!, "Working…"]));
+    .map(chat => [chat.conversationAgentId!, t("agentConversationsSidebar.working")]));
   return <AgentConversationSidebar key={`${companyId}:${userId}`} agents={[...conversations, ...teammates]} availableAgents={roster}
     existingChatAgentIds={conversations.map(agent => agent.id)}
     activeId={active?.id} previews={previews}

@@ -84,19 +84,19 @@ describe("IssueSiblingNavigation", () => {
     );
 
     const nav = node.querySelector("nav");
-    expect(nav?.getAttribute("aria-label")).toBe("Sub-task navigation");
+    expect(nav?.getAttribute("aria-label")).toBe("Navegación de subtareas");
     expect(nav?.className).toContain("sm:grid-cols-2");
     expect(nav?.className).not.toContain("border-t");
 
     const links = Array.from(node.querySelectorAll("a"));
     expect(links).toHaveLength(2);
-    expect(links[0].textContent).toContain("Previous");
+    expect(links[0].textContent).toContain("Anterior");
     expect(links[0].textContent).toContain("PAP-1");
     expect(links[0].textContent).toContain("Previous sibling title");
-    expect(links[0].getAttribute("aria-label")).toBe("Previous sub-task: PAP-1 - Previous sibling title");
+    expect(links[0].getAttribute("aria-label")).toBe("Subtarea anterior: PAP-1 - Previous sibling title");
     expect(links[0].getAttribute("data-quicklook-align")).toBe("start");
 
-    expect(links[1].textContent).toContain("Next");
+    expect(links[1].textContent).toContain("Siguiente");
     expect(links[1].textContent).toContain("PAP-3");
     expect(links[1].textContent).toContain("Next sibling title");
     expect(links[1].getAttribute("aria-label")).toBe("Next sub-task: PAP-3 - Next sibling title");
@@ -123,8 +123,8 @@ describe("IssueSiblingNavigation", () => {
 
     const links = Array.from(node.querySelectorAll("a"));
     expect(links).toHaveLength(1);
-    expect(links[0].textContent).toContain("Next");
+    expect(links[0].textContent).toContain("Siguiente");
     expect(links[0].className).toContain("sm:col-start-2");
-    expect(node.textContent).not.toContain("Previous");
+    expect(node.textContent).not.toContain("Anterior");
   });
 });

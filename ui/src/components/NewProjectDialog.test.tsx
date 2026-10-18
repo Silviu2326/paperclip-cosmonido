@@ -50,7 +50,7 @@ describe("new project colors", () => {
       <NewProjectForm companyId="company-1" onClose={onClose} />
     </QueryClientProvider>));
     const previewColor = container.querySelector<HTMLElement>('span[style]')!.style.backgroundColor;
-    const input = container.querySelector<HTMLInputElement>('input[aria-label="Project name"]')!;
+    const input = container.querySelector<HTMLInputElement>('input[aria-label="Nombre del proyecto"]')!;
     act(() => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "Colorful project");
       input.dispatchEvent(new Event("input", { bubbles: true }));

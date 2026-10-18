@@ -396,7 +396,7 @@ describe("BlockedInboxView", () => {
     const banner = container.querySelector('[data-testid="blocked-inbox-error"]');
     expect(banner).not.toBeNull();
     expect(banner?.getAttribute("role")).toBe("alert");
-    expect(banner?.textContent).toContain("Couldn't load the Blocked tab");
+    expect(banner?.textContent).toContain("No se pudo cargar la pestaña Bloqueadas");
 
     act(() => root.unmount());
   });

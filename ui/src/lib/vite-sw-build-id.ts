@@ -56,12 +56,14 @@ export function serviceWorkerBuildIdPlugin(
   const serviceWorkerFileName = options.serviceWorkerFileName ?? "sw.js";
   let buildId: string | null = null;
   let outDir = "dist";
+  let sourceFile = "";
 
   return {
     name: "paperclip-sw-build-id",
     apply: "build",
     configResolved(config) {
-      outDir = config.build.outDir;
+      outDir = path.resolve(config.root, config.build.outDir);
+      sourceFile = path.resolve(config.root, config.publicDir || "public", serviceWorkerFileName);
     },
     generateBundle(_options, bundle) {
       const entry = Object.values(bundle).find(
@@ -72,9 +74,12 @@ export function serviceWorkerBuildIdPlugin(
       }
     },
     closeBundle() {
+      // Always stamp from the pristine public/ source: Vite may copy public/
+      // after this hook, so a stale or already-stamped dist copy must not be read.
       const swPath = path.resolve(outDir, serviceWorkerFileName);
-      const source = fs.readFileSync(swPath, "utf8");
+      const source = fs.readFileSync(sourceFile || swPath, "utf8");
       const stamped = stampServiceWorkerBuildId(source, buildId ?? "build");
+      fs.mkdirSync(path.dirname(swPath), { recursive: true });
       fs.writeFileSync(swPath, stamped);
     },
   };

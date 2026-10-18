@@ -110,30 +110,30 @@ describe("BuiltInAgentGate (PAP-12978)", () => {
   it("renders the setup empty-state for needs_setup and hides the feature", async () => {
     listMock.mockResolvedValue([makeState("needs_setup")]);
     await renderGate();
-    expect(container.textContent).toContain("Set up the Briefs Agent");
-    expect(container.textContent).toContain("Configure its model to enable the feature");
+    expect(container.textContent).toContain("Configura Briefs Agent");
+    expect(container.textContent).toContain("Configura su modelo para activar la función");
     expect(container.querySelector('[data-testid="feature"]')).toBeNull();
   });
 
   it("renders the setup empty-state for not_provisioned", async () => {
     listMock.mockResolvedValue([makeState("not_provisioned")]);
     await renderGate();
-    expect(container.textContent).toContain("Set up the Briefs Agent");
+    expect(container.textContent).toContain("Configura Briefs Agent");
     expect(container.querySelector('[data-testid="feature"]')).toBeNull();
   });
 
   it("renders a pending-approval state", async () => {
     listMock.mockResolvedValue([makeState("pending_approval")]);
     await renderGate();
-    expect(container.textContent).toContain("pending approval");
+    expect(container.textContent).toContain("pendiente de aprobación");
     expect(container.querySelector('[data-testid="feature"]')).toBeNull();
   });
 
   it("shows the paused banner and keeps children readable (stale)", async () => {
     listMock.mockResolvedValue([makeState("paused")]);
     await renderGate();
-    expect(container.textContent).toContain("Briefs is paused.");
-    expect(container.textContent).toContain("Resume agent");
+    expect(container.textContent).toContain("Briefs está en pausa.");
+    expect(container.textContent).toContain("Reanudar agente");
     // Paused ≠ hidden — children still render.
     expect(container.querySelector('[data-testid="feature"]')).not.toBeNull();
   });
@@ -143,7 +143,7 @@ describe("BuiltInAgentGate (PAP-12978)", () => {
     resumeMock.mockResolvedValue({});
     await renderGate();
     const resumeButton = Array.from(container.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("Resume agent"),
+      b.textContent?.includes("Reanudar agente"),
     );
     expect(resumeButton).toBeTruthy();
     flushSync(() => {
@@ -157,7 +157,7 @@ describe("BuiltInAgentGate (PAP-12978)", () => {
     listMock.mockResolvedValue([makeState("ready")]);
     await renderGate();
     expect(container.querySelector('[data-testid="feature"]')).not.toBeNull();
-    expect(container.textContent).not.toContain("Set up the Briefs Agent");
+    expect(container.textContent).not.toContain("Configura Briefs Agent");
   });
 
   it("does not query built-in agents when the feature flag is off", async () => {

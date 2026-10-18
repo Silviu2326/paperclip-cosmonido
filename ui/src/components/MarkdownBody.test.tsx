@@ -141,7 +141,7 @@ describe("MarkdownBody", () => {
 
     expect(html).toContain("<h1>Plan</h1>");
     expect(html).toContain("<strong>Keep this step.</strong>");
-    expect(html).toContain("Image: Evidence (https://provider.invalid/track.png)");
+    expect(html).toContain("Imagen: Evidence (https://provider.invalid/track.png)");
     expect(html).toContain('title="Provider image"');
     expect(html).toContain("Image: Relative (images/proof.png)");
     expect(html).toContain("Image: Protocol relative (//provider.invalid/other.png)");
@@ -339,7 +339,7 @@ describe("MarkdownBody", () => {
       { identifier: "PAP-1272", status: "blocked", title: "Fix hover state" },
     ]);
 
-    expect(html).toContain('aria-label="Issue PAP-1271"');
+    expect(html).toContain('aria-label="Incidencia PAP-1271"');
     expect(html).toContain('aria-label="Issue PAP-1272: Fix hover state"');
     expect(html).not.toContain('aria-label="Issue PAP-1271: PAP-1271"');
   });
@@ -650,10 +650,10 @@ describe("MarkdownBody", () => {
     expect(html).toContain("paperclip-markdown-codeblock-actions");
     expect(html).toContain("position:absolute;top:0.4rem;right:0.4rem;display:inline-flex");
     expect(html).toContain("paperclip-markdown-codeblock-wrap");
-    expect(html).toContain('aria-label="Wrap lines"');
+    expect(html).toContain('aria-label="Ajustar líneas"');
     expect(html).toContain("position:static;opacity:1;display:inline-flex");
     expect(html).toContain("paperclip-markdown-codeblock-copy");
-    expect(html).toContain('aria-label="Copy code"');
+    expect(html).toContain('aria-label="Copiar código"');
     expect(html).toContain("lucide-copy");
   });
 
@@ -662,7 +662,7 @@ describe("MarkdownBody", () => {
 
     expect(html).toContain("paperclip-markdown-codeblock");
     expect(html).toContain("paperclip-markdown-codeblock-wrap");
-    expect(html).toContain('aria-label="Wrap lines"');
+    expect(html).toContain('aria-label="Ajustar líneas"');
     expect(html).toContain("paperclip-markdown-codeblock-copy");
   });
 

@@ -35,15 +35,15 @@ describe("InviteUxLab", () => {
       root.render(<InviteUxLab />);
     });
 
-    expect(container.textContent).toContain("Invite and signup UX review surface");
+    expect(container.textContent).toContain("Superficie de revisión UX de invitaciones y registro");
     expect(container.textContent).toContain("/tests/ux/invites");
-    expect(container.textContent).toContain("Landing state coverage");
-    expect(container.textContent).toContain("Split-screen invite flows");
-    expect(container.textContent).toContain("Approval and completion screens");
-    expect(container.textContent).toContain("Auth page states");
-    expect(container.textContent).toContain("Organization invite management");
-    expect(container.textContent).toContain("Create your account");
-    expect(container.textContent).toContain("Invite history");
+    expect(container.textContent).toContain("Cobertura de estados de la landing");
+    expect(container.textContent).toContain("Flujos de invitación en dos paneles");
+    expect(container.textContent).toContain("Pantallas de aprobación y finalización");
+    expect(container.textContent).toContain("Estados de la página de autenticación");
+    expect(container.textContent).toContain("Gestión de invitaciones de la organización");
+    expect(container.textContent).toContain("Crea tu cuenta");
+    expect(container.textContent).toContain("Historial de invitaciones");
 
     await act(async () => {
       root.unmount();

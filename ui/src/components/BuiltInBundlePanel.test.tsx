@@ -135,17 +135,17 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
   it("renders four resource rows with ready + schedule-off chips when healthy", () => {
     render(makeState("ready", READY_RESOURCES));
     const text = container.textContent ?? "";
-    expect(text).toContain("Bundle status");
-    expect(text).toContain("Adapter");
-    expect(text).toContain("Skill");
-    expect(text).toContain("Instructions");
-    expect(text).toContain("Routine");
+    expect(text).toContain("Estado del paquete");
+    expect(text).toContain("Adaptador");
+    expect(text).toContain("Habilidad");
+    expect(text).toContain("Instrucciones");
+    expect(text).toContain("Rutina");
     // Zero-token guarantee copy is always present on the routine row.
-    expect(text).toContain("costs zero tokens by default");
+    expect(text).toContain("por defecto no consume tokens");
     expect(text).toContain("Schedule off");
     expect(text).toContain("Ready");
-    expect(text).toContain("Run once");
-    expect(text).toContain("Enable weekly");
+    expect(text).toContain("Ejecutar una vez");
+    expect(text).toContain("Activar semanal");
   });
 
   it("shows the active weekly schedule and disable action when enabled", () => {
@@ -157,8 +157,8 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
     const text = container.textContent ?? "";
     expect(text).toContain("Weekly · Mon 09:00 UTC");
     expect(text).toContain("can create background work");
-    expect(text).toContain("Disable schedule");
-    expect(text).not.toContain("Enable weekly");
+    expect(text).toContain("Desactivar programación");
+    expect(text).not.toContain("Activar semanal");
   });
 
   it("links to a pending proposal interaction when the routine resource reports one", () => {
@@ -171,7 +171,7 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
         pendingUpdateIssueIdentifier: "PAP-42",
       }),
     ]));
-    const link = Array.from(container.querySelectorAll("a")).find((anchor) => anchor.textContent === "Review proposal");
+    const link = Array.from(container.querySelectorAll("a")).find((anchor) => anchor.textContent === "Revisar propuesta");
     expect(container.textContent).toContain("Proposal pending");
     expect(link?.getAttribute("href")).toBe("/issues/PAP-42#interaction-interaction-1");
   });
@@ -194,7 +194,7 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
     expect(text).toContain("Paperclip shipped a newer default");
     // The per-resource Update trigger button is present.
     const buttons = Array.from(container.querySelectorAll("button")).map((b) => b.textContent);
-    expect(buttons).toContain("Update");
+    expect(buttons).toContain("Actualizar");
   });
 
   it("surfaces a Drifted chip and Reset action for operator-modified resources", () => {
@@ -207,7 +207,7 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
     expect(text).toContain("Drifted");
     expect(text).toContain("Your changes are kept");
     const buttons = Array.from(container.querySelectorAll("button")).map((b) => b.textContent);
-    expect(buttons).toContain("Reset");
+    expect(buttons).toContain("Restablecer");
   });
 
   it("shows a Missing chip when a resource is not materialized", () => {
@@ -223,7 +223,7 @@ describe("BuiltInBundlePanel (PAP-13099)", () => {
     const onConfigure = vi.fn();
     render(makeState("needs_setup", READY_RESOURCES), { onConfigure });
     const configureBtn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent === "Configure",
+      (b) => b.textContent === "Configurar",
     );
     expect(configureBtn).toBeTruthy();
     flushSync(() => configureBtn!.dispatchEvent(new MouseEvent("click", { bubbles: true })));

@@ -16,7 +16,7 @@ function act(callback: () => void) {
 function accessState(overrides: Partial<WorkspaceAccessState> = {}): WorkspaceAccessState {
   return {
     state: "ready",
-    title: "Ready",
+    title: "Listo",
     description: "Opening the workspace signs you in to the cloned board without a password.",
     action: { kind: "open", label: "Open workspace" },
     handoffAvailable: true,
@@ -61,8 +61,8 @@ describe("WorkspaceAccessCard", () => {
     const { onOpen, root } = renderCard();
     const card = container.querySelector("[data-testid='workspace-access-card']");
     expect(card?.getAttribute("data-state")).toBe("ready");
-    expect(container.textContent).toContain("Ready");
-    expect(container.textContent).toContain("single-use login handoff");
+    expect(container.textContent).toContain("Listo");
+    expect(container.textContent).toContain("traspaso de inicio de sesión de un solo uso");
 
     const button = findButton("Open workspace");
     expect(button).toBeDefined();
@@ -104,8 +104,8 @@ describe("WorkspaceAccessCard", () => {
         description: "Opening the board will ask for the credentials captured in this snapshot.",
       }),
     });
-    expect(container.textContent).toContain("snapshot-local credentials captured");
-    expect(container.textContent).not.toContain("single-use login handoff");
+    expect(container.textContent).toContain("credenciales locales de la instantánea capturadas");
+    expect(container.textContent).not.toContain("traspaso de inicio de sesión de un solo uso");
     act(() => root.unmount());
   });
 
@@ -164,7 +164,7 @@ describe("WorkspaceAccessCard", () => {
     expect(findButton("Repair in progress")?.disabled).toBe(true);
     expect(
       container.querySelector("[data-testid='workspace-access-badge']")?.textContent,
-    ).toContain("Repairing");
+    ).toContain("Reparando");
     act(() => root.unmount());
   });
 

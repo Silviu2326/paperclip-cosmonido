@@ -10,8 +10,8 @@ describe("IssueWriteDenialNotice", () => {
   it("answers all three plan §6 obligations for every code", () => {
     for (const code of ISSUE_WRITE_DENIAL_CODES) {
       const html = renderToStaticMarkup(<IssueWriteDenialNotice code={code} />);
-      expect(html, code).toContain("Who can act:");
-      expect(html, code).toContain("Try this:");
+      expect(html, code).toContain("Quién puede actuar:");
+      expect(html, code).toContain("Prueba esto:");
       expect(html, code).toContain(`data-denial-code="${code}"`);
     }
   });

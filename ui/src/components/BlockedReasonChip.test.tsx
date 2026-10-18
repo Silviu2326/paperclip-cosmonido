@@ -30,7 +30,7 @@ describe("BlockedReasonChip", () => {
     expect(chip).not.toBeNull();
     expect(chip?.getAttribute("data-variant")).toBe("needs_decision");
     expect(chip?.getAttribute("data-severity")).toBe("high");
-    expect(chip?.getAttribute("aria-label")).toBe("Reason: Needs decision, severity high");
+    expect(chip?.getAttribute("aria-label")).toBe("Motivo: Needs decision, gravedad high");
     expect(chip?.textContent).toContain("Needs decision");
     act(() => {
       root.unmount();

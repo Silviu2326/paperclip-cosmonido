@@ -267,7 +267,7 @@ async function waitForAssertion(assertion: () => void) {
 function testProviderButtons(container: HTMLElement): HTMLButtonElement[] {
   return Array.from(container.querySelectorAll("button")).filter((button) => {
     const label = button.textContent?.trim();
-    return label === "Test provider" || label === "Testing...";
+    return label === "Probar proveedor" || label === "Probando...";
   });
 }
 
@@ -280,7 +280,7 @@ function findAction(root: ParentNode, label: string): HTMLElement | undefined {
 }
 
 function editButtons(root: ParentNode): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>("button,a")).filter((element) => element.textContent?.trim() === "Edit");
+  return Array.from(root.querySelectorAll<HTMLElement>("button,a")).filter((element) => element.textContent?.trim() === "Editar");
 }
 
 function click(element: Element | null | undefined) {
@@ -572,7 +572,7 @@ describe("CompanyEnvironments — test provider button", () => {
 
     const buttonsBefore = testProviderButtons(container);
     expect(buttonsBefore).toHaveLength(2);
-    expect(buttonsBefore.every((button) => button.textContent?.trim() === "Test provider")).toBe(true);
+    expect(buttonsBefore.every((button) => button.textContent?.trim() === "Probar proveedor")).toBe(true);
     expect(buttonsBefore.every((button) => !button.disabled)).toBe(true);
 
     await act(async () => {
@@ -582,9 +582,9 @@ describe("CompanyEnvironments — test provider button", () => {
 
     const buttonsAfter = testProviderButtons(container);
     expect(buttonsAfter).toHaveLength(2);
-    expect(buttonsAfter[0].textContent?.trim()).toBe("Testing...");
+    expect(buttonsAfter[0].textContent?.trim()).toBe("Probando...");
     expect(buttonsAfter[0].disabled).toBe(true);
-    expect(buttonsAfter[1].textContent?.trim()).toBe("Test provider");
+    expect(buttonsAfter[1].textContent?.trim()).toBe("Probar proveedor");
     expect(buttonsAfter[1].disabled).toBe(false);
     expect(mockEnvironmentsApi.probe).toHaveBeenCalledExactlyOnceWith("env-1", "company-1");
   });
@@ -692,7 +692,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     const buttons = testProviderButtons(container);
-    expect(buttons[1].textContent?.trim()).toBe("Testing...");
+    expect(buttons[1].textContent?.trim()).toBe("Probando...");
     expect(buttons[1].disabled).toBe(true);
   });
 
@@ -709,15 +709,15 @@ describe("CompanyEnvironments — test provider button", () => {
     expect(options.some((option) => option.textContent?.trim() === "Local")).toBe(true);
 
     await act(async () => {
-      click(container.querySelector('[aria-label="Add environment"]'));
+      click(container.querySelector('[aria-label="Añadir entorno"]'));
     });
 
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Add environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Añadir entorno");
     });
 
     await act(async () => {
-      findButton(document.body, "Cancel")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      findButton(document.body, "Cancelar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flushReact();
 
@@ -734,11 +734,11 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     await act(async () => {
-      click(findAction(container, "Edit"));
+      click(findAction(container, "Editar"));
     });
 
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
 
     const page = getEnvironmentFormPage();
@@ -791,10 +791,10 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     await act(async () => {
-      click(findAction(container, "Edit"));
+      click(findAction(container, "Editar"));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
     const page = getEnvironmentFormPage()!;
 
@@ -808,14 +808,14 @@ describe("CompanyEnvironments — test provider button", () => {
     });
     await flushReact();
 
-    await act(async () => click(findButton(document.body, "Cancel")));
+    await act(async () => click(findButton(document.body, "Cancelar")));
     await flushReact();
 
     expect(confirmSpy).toHaveBeenCalledWith("Discard unsaved environment changes?");
     expect(getEnvironmentFormPage()).not.toBeNull();
 
     confirmSpy.mockReturnValue(true);
-    await act(async () => click(findButton(document.body, "Cancel")));
+    await act(async () => click(findButton(document.body, "Cancelar")));
     await flushReact();
 
     expect(getEnvironmentFormPage()).toBeNull();
@@ -832,10 +832,10 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     await act(async () => {
-      click(findAction(container, "Edit"));
+      click(findAction(container, "Editar"));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
     const page = getEnvironmentFormPage()!;
 
@@ -914,30 +914,30 @@ describe("CompanyEnvironments — test provider button", () => {
     });
     await flushReact();
 
-    // Daytona supports setup + capture -> "Configure image" on its edit page.
+    // Daytona supports setup + capture -> "Configurar imagen" on its edit page.
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Configure image");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Configurar imagen");
     });
     expect(mockEnvironmentsApi.customImageTemplate).toHaveBeenCalledExactlyOnceWith("env-1", "company-1");
-    await act(async () => click(findButton(document.body, "Cancel")));
+    await act(async () => click(findButton(document.body, "Cancelar")));
     await waitForAssertion(() => expect(getEnvironmentFormPage()).toBeNull());
 
     // E2B does not advertise interactive setup.
     await openEnvironmentEditPage(container, 1);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Unsupported provider");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Proveedor no compatible");
     });
-    expect(getEnvironmentFormPage()?.textContent).not.toContain("Configure image");
-    await act(async () => click(findButton(document.body, "Cancel")));
+    expect(getEnvironmentFormPage()?.textContent).not.toContain("Configurar imagen");
+    await act(async () => click(findButton(document.body, "Cancelar")));
     await waitForAssertion(() => expect(getEnvironmentFormPage()).toBeNull());
 
     // Provider advertises setup but cannot capture an image.
     await openEnvironmentEditPage(container, 2);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Setup capture unavailable");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Captura de configuración no disponible");
     });
-    expect(getEnvironmentFormPage()?.textContent).not.toContain("Configure image");
+    expect(getEnvironmentFormPage()?.textContent).not.toContain("Configurar imagen");
   });
 
   it("shows a live connect command and removes it after cancellation", async () => {
@@ -975,9 +975,9 @@ describe("CompanyEnvironments — test provider button", () => {
       expect(getEnvironmentFormPage()?.textContent).toContain(command);
     });
 
-    await act(async () => click(findButton(getEnvironmentFormPage()!, "Cancel")));
+    await act(async () => click(findButton(getEnvironmentFormPage()!, "Cancelar")));
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Setup cancelled");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Configuración cancelada");
     });
 
     expect(mockEnvironmentsApi.cancelCustomImageSetupSession).toHaveBeenCalledExactlyOnceWith(
@@ -987,7 +987,7 @@ describe("CompanyEnvironments — test provider button", () => {
     expect(getEnvironmentFormPage()?.textContent).not.toContain(command);
   });
 
-  it("opens an embedded browser terminal automatically while preserving the SSH command fallback", async () => {
+  it("opens an embedded browser terminal automatically while preserving the Alternativa con comando SSH", async () => {
     root = createRoot(container);
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const command = "ssh sandbox@setup.example.invalid -p 2222";
@@ -1013,8 +1013,8 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       expect(getEnvironmentFormPage()?.textContent).toContain(command);
-      expect(getEnvironmentFormPage()?.textContent).toContain("Browser terminal");
-      expect(getEnvironmentFormPage()?.textContent).toContain("SSH command fallback");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Terminal del navegador");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Alternativa con comando SSH");
       expect(mockEnvironmentsApi.createCustomImageTerminalSessionToken).toHaveBeenCalledExactlyOnceWith("session-1", {});
       expect(FakeWebSocket.instances).toHaveLength(1);
     });
@@ -1107,7 +1107,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await flushReact();
 
     expect(getEnvironmentFormPage()?.textContent).toContain(command);
-    expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+    expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
   });
 
   it("does not render connect details when an active session refreshes as expired", async () => {
@@ -1135,7 +1135,7 @@ describe("CompanyEnvironments — test provider button", () => {
 
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Setup expired");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Configuración caducada");
     });
     expect(getEnvironmentFormPage()?.textContent).not.toContain(command);
   });
@@ -1161,14 +1161,14 @@ describe("CompanyEnvironments — test provider button", () => {
 
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Setup connection details could not be refreshed.");
+      expect(getEnvironmentFormPage()?.textContent).toContain("No se pudieron actualizar los detalles de conexión de la configuración.");
     });
 
     const dialog = getEnvironmentFormPage()!;
-    expect(findButton(dialog, "Finished")?.disabled).toBe(false);
-    expect(findButton(dialog, "Cancel")?.disabled).toBe(false);
+    expect(findButton(dialog, "Marcar como terminado")?.disabled).toBe(false);
+    expect(findButton(dialog, "Cancelar")?.disabled).toBe(false);
 
-    await act(async () => click(findButton(dialog, "Finished")));
+    await act(async () => click(findButton(dialog, "Marcar como terminado")));
     await flushReact();
 
     expect(mockEnvironmentsApi.finishCustomImageSetupSession).toHaveBeenCalledExactlyOnceWith("session-1", {});
@@ -1198,12 +1198,12 @@ describe("CompanyEnvironments — test provider button", () => {
 
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Browser terminal is not available for this provider connection.");
+      expect(getEnvironmentFormPage()?.textContent).toContain("El terminal del navegador no está disponible para esta conexión del proveedor.");
     });
 
     const dialog = getEnvironmentFormPage()!;
-    expect(findButton(dialog, "Finished")?.disabled).toBe(false);
-    expect(findButton(dialog, "Cancel")?.disabled).toBe(false);
+    expect(findButton(dialog, "Marcar como terminado")?.disabled).toBe(false);
+    expect(findButton(dialog, "Cancelar")?.disabled).toBe(false);
   });
 
   it("shows active template controls for refresh, rollback, and disable", async () => {
@@ -1228,7 +1228,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage();
-      expect(dialog?.textContent).toContain("Active template");
+      expect(dialog?.textContent).toContain("Plantilla activa");
       expect(dialog?.textContent).toContain("redacted-template-ref");
       expect(dialog?.textContent).not.toContain("id 12345678-90a");
       expect(
@@ -1250,8 +1250,8 @@ describe("CompanyEnvironments — test provider button", () => {
       { templateId: activeTemplateId },
     );
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Browser terminal");
-      expect(getEnvironmentFormPage()?.textContent).toContain("SSH command fallback");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Terminal del navegador");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Alternativa con comando SSH");
       expect(mockEnvironmentsApi.createCustomImageTerminalSessionToken).toHaveBeenCalledExactlyOnceWith("session-1", {});
       expect(FakeWebSocket.instances).toHaveLength(1);
     });
@@ -1290,16 +1290,16 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Capturing template");
-      expect(dialog.textContent).toContain("Capture is in progress.");
-      expect(findButton(dialog, "Finished")?.disabled).toBe(true);
-      expect(findButton(dialog, "Cancel")?.disabled).toBe(false);
+      expect(dialog.textContent).toContain("Capturando plantilla");
+      expect(dialog.textContent).toContain("La captura está en curso.");
+      expect(findButton(dialog, "Marcar como terminado")?.disabled).toBe(true);
+      expect(findButton(dialog, "Cancelar")?.disabled).toBe(false);
     });
 
-    await act(async () => click(findButton(getEnvironmentFormPage()!, "Cancel")));
+    await act(async () => click(findButton(getEnvironmentFormPage()!, "Cancelar")));
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Active template");
+      expect(dialog.textContent).toContain("Plantilla activa");
       expect(findButton(dialog, "Refresh")).toBeTruthy();
     });
 
@@ -1331,8 +1331,8 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Active template");
-      expect(dialog.textContent).toContain("Not in use — the environment configuration changed");
+      expect(dialog.textContent).toContain("Plantilla activa");
+      expect(dialog.textContent).toContain("No se usa: la configuración del entorno cambió");
     });
   });
 
@@ -1362,8 +1362,8 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Not in use — Base image changed: snapshot `a` -> `b`");
-      expect(dialog.textContent).not.toContain("the environment configuration changed");
+      expect(dialog.textContent).toContain("No se usa: La imagen base cambió: snapshot `a` -> `b`");
+      expect(dialog.textContent).not.toContain("la configuración del entorno cambió");
     });
   });
 
@@ -1390,8 +1390,8 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Not in use — the environment configuration changed");
-      expect(dialog.textContent).not.toContain("Base image changed");
+      expect(dialog.textContent).toContain("No se usa: la configuración del entorno cambió");
+      expect(dialog.textContent).not.toContain("La imagen base cambió");
     });
   });
 
@@ -1417,8 +1417,8 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("Active template");
-      expect(dialog.textContent).not.toContain("Not in use");
+      expect(dialog.textContent).toContain("Plantilla activa");
+      expect(dialog.textContent).not.toContain("No se usa");
     });
   });
 
@@ -1443,7 +1443,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage();
-      expect(dialog?.textContent).toContain("Active template");
+      expect(dialog?.textContent).toContain("Plantilla activa");
       expect(findButton(dialog!, "Rollback")).toBeTruthy();
       expect(findButton(dialog!, "Disable")).toBeTruthy();
     });
@@ -1485,7 +1485,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await openEnvironmentEditPage(container);
     await waitForAssertion(() => {
       const dialog = getEnvironmentFormPage()!;
-      expect(dialog.textContent).toContain("relink this image or capture a new one");
+      expect(dialog.textContent).toContain("vincular esta imagen o captures una nueva");
       expect(findButton(dialog, "Relink")).toBeTruthy();
     });
 
@@ -1564,7 +1564,7 @@ describe("CompanyEnvironments — test provider button", () => {
       await waitForAssertion(() => {
         expect(confirmSpy).toHaveBeenCalledTimes(1);
       });
-      expect(confirmSpy.mock.calls[0]![0]).toContain("cannot verify the boot source");
+      expect(confirmSpy.mock.calls[0]![0]).toContain("no puede verificar el origen de arranque");
       expect(mockEnvironmentsApi.relinkCustomImageTemplate).toHaveBeenCalledTimes(1);
       expect(mockEnvironmentsApi.relinkCustomImageTemplate).toHaveBeenCalledWith("env-1", "company-1");
     } finally {
@@ -1607,7 +1607,7 @@ describe("CompanyEnvironments — test provider button", () => {
       root!.render(renderCompanyEnvironments(queryClient, `${ENVIRONMENTS_PATH}/env-1/edit`));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
 
     const deleteButton = document.body.querySelector<HTMLButtonElement>("[data-testid='environment-delete-button']");
@@ -1617,14 +1617,14 @@ describe("CompanyEnvironments — test provider button", () => {
     await waitForAssertion(() => {
       expect(
         document.body.querySelector("[data-testid='environment-delete-dialog']")?.textContent,
-      ).toContain("1 agent uses this environment as their default");
+      ).toContain("1 agente usa este entorno como predeterminado");
     });
     const dialog = document.body.querySelector<HTMLElement>("[data-testid='environment-delete-dialog']")!;
     // Only this company's active agents are reassignable; the terminated one is
     // left to the FK fallback and surfaces through the impact note instead.
     expect(dialog.textContent).toContain("Iris");
     expect(dialog.textContent).not.toContain("Retired");
-    expect(dialog.textContent).toContain("Other references to this environment");
+    expect(dialog.textContent).toContain("Otras referencias a este entorno");
 
     const reassignSelect = dialog.querySelector<HTMLSelectElement>(
       "[data-testid='environment-delete-reassign-select']",
@@ -1665,7 +1665,7 @@ describe("CompanyEnvironments — test provider button", () => {
       root!.render(renderCompanyEnvironments(queryClient, `${ENVIRONMENTS_PATH}/env-1/edit`));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
 
     await act(async () =>
@@ -1674,7 +1674,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await waitForAssertion(() => {
       expect(
         document.body.querySelector("[data-testid='environment-delete-dialog']")?.textContent,
-      ).toContain("permanently deleted");
+      ).toContain("se eliminará de forma permanente");
     });
     expect(
       document.body.querySelector("[data-testid='environment-delete-reassign-select']"),
@@ -1707,7 +1707,7 @@ describe("CompanyEnvironments — test provider button", () => {
       root!.render(renderCompanyEnvironments(queryClient, `${ENVIRONMENTS_PATH}/env-1/edit`));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
 
     await act(async () =>
@@ -1716,7 +1716,7 @@ describe("CompanyEnvironments — test provider button", () => {
     await waitForAssertion(() => {
       expect(
         document.body.querySelector("[data-testid='environment-delete-dialog']")?.textContent,
-      ).toContain("Cannot delete the current instance default environment");
+      ).toContain("No se puede eliminar el entorno predeterminado actual de la instancia");
     });
 
     const confirm = document.body.querySelector<HTMLButtonElement>(
@@ -1770,7 +1770,7 @@ describe("CompanyEnvironments — test provider button", () => {
       root!.render(renderCompanyEnvironments(queryClient, `${ENVIRONMENTS_PATH}/env-1/edit`));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Edit environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Editar entorno");
     });
 
     await act(async () =>
@@ -1789,9 +1789,9 @@ describe("CompanyEnvironments — test provider button", () => {
     expect(workspaceLink?.textContent).toBe("ACME-7-fix-the-thing");
     // The two leases on ws-1 collapse into one row naming both issues.
     expect(holders.querySelectorAll("li")).toHaveLength(2);
-    expect(holders.textContent).toContain("2 sandbox leases");
+    expect(holders.textContent).toContain("2 asignaciones de sandbox");
     expect(holders.textContent).toContain("ACME-7, ACME-9");
-    expect(holders.textContent).toContain("Workspace no longer on record");
+    expect(holders.textContent).toContain("El espacio de trabajo ya no consta en el registro");
 
     // Leases as the only blocker are consentable: the confirm stays enabled
     // and destroys the sandboxes as part of the delete.
@@ -1799,7 +1799,7 @@ describe("CompanyEnvironments — test provider button", () => {
       "[data-testid='environment-delete-confirm']",
     )!;
     expect(confirm.disabled).toBe(false);
-    expect(confirm.textContent?.trim()).toBe("Destroy 3 sandboxes and delete");
+    expect(confirm.textContent?.trim()).toBe("Destruir 3 sandboxes y eliminar");
 
     await act(async () => click(confirm));
     await flushReact();
@@ -1820,7 +1820,7 @@ describe("CompanyEnvironments — test provider button", () => {
       root!.render(renderCompanyEnvironments(queryClient, `${ENVIRONMENTS_PATH}/new`));
     });
     await waitForAssertion(() => {
-      expect(getEnvironmentFormPage()?.textContent).toContain("Add environment");
+      expect(getEnvironmentFormPage()?.textContent).toContain("Añadir entorno");
     });
 
     expect(document.body.querySelector("[data-testid='environment-delete-button']")).toBeNull();

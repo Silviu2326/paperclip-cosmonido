@@ -27,8 +27,8 @@ describe("IssueStatusBadge", () => {
 
   it("sentence-cases the label and uses regular weight", () => {
     const html = renderToStaticMarkup(<IssueStatusBadge status="in_review" />);
-    expect(html).toContain("In review");
-    expect(html).not.toContain("In Review"); // sentence case, not title case
+    expect(html).toContain("En revisión");
+    expect(html).not.toContain("En Revisión"); // sentence case, not title case
     expect(html).toContain("font-normal");
     expect(html).not.toContain("font-medium");
   });
@@ -45,7 +45,7 @@ describe("IssueStatusBadge", () => {
     const html = renderToStaticMarkup(<IssueStatusBadge status="todo" />);
     expect(html).toContain("status-chip");
     expect(html).toContain('viewBox="0 0 24 24"');
-    expect(html).toContain("Todo");
+    expect(html).toContain("Por hacer");
   });
 });
 
@@ -60,7 +60,7 @@ describe("AgentStatusBadge", () => {
   });
 
   it('renders "active" as the idle label', () => {
-    expect(renderToStaticMarkup(<AgentStatusBadge status="active" />)).toContain("idle");
+    expect(renderToStaticMarkup(<AgentStatusBadge status="active" />)).toContain("inactivo");
   });
 });
 

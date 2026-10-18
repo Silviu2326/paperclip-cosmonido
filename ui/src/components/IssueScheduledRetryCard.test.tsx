@@ -123,8 +123,8 @@ function getRetryNowButton() {
 describe("IssueScheduledRetryCard", () => {
   it("shows workspace contention as an automatic wait without failure or retry controls", () => {
     renderWithProviders(<IssueScheduledRetryCard issueId="issue-1" scheduledRetry={{ ...baseRetry, scheduledRetryReason: "workspace_busy" }} />);
-    expect(container.textContent).toContain("Waiting for workspace");
-    expect(container.textContent).toContain("Work starts automatically");
+    expect(container.textContent).toContain("Esperando al espacio de trabajo");
+    expect(container.textContent).toContain("El trabajo comienza automáticamente");
     expect(container.textContent).not.toMatch(/failed|Retry|Attempt|Replaces run/);
     expect(getRetryNowButton()).toBeNull();
   });
@@ -133,7 +133,7 @@ describe("IssueScheduledRetryCard", () => {
       error: "Selected model is at capacity. Please try a different model.", errorCode: "native_provider_overloaded" }} />);
     expect(container.textContent).toContain("Model at capacity");
     expect(container.textContent).toContain("Selected model is at capacity");
-    expect(container.textContent).toContain("Paperclip will retry automatically");
+    expect(container.textContent).toContain("Paperclip reintentará automáticamente");
     expect(container.textContent).not.toContain("Native session failed");
   });
 
@@ -159,8 +159,8 @@ describe("IssueScheduledRetryCard", () => {
     const card = getCard();
     expect(card).not.toBeNull();
     const text = card!.textContent ?? "";
-    expect(text).toContain("Retry scheduled");
-    expect(text).toContain("Attempt 4");
+    expect(text).toContain("Reintento programado");
+    expect(text).toContain("Intento 4");
     expect(text).toContain("Transient failure");
     expect(text).toContain("Automatic retry in 15m");
     expect(text).toContain("run-prev");
@@ -174,12 +174,12 @@ describe("IssueScheduledRetryCard", () => {
       />,
     );
     const text = getCard()?.textContent ?? "";
-    expect(text).toContain("Continuation scheduled");
-    expect(text).toContain("Automatic continuation");
-    expect(text).toContain("Pulls continuation forward immediately");
+    expect(text).toContain("Continuación programada");
+    expect(text).toContain("Continuación automática");
+    expect(text).toContain("Adelanta la continuación inmediatamente");
   });
 
-  it("uses 'due now' label when scheduledRetryAt is at the current time", () => {
+  it("uses 'vencido ahora' label when scheduledRetryAt is at the current time", () => {
     renderWithProviders(
       <IssueScheduledRetryCard
         issueId="issue-1"
@@ -187,7 +187,7 @@ describe("IssueScheduledRetryCard", () => {
       />,
     );
     const text = getCard()?.textContent ?? "";
-    expect(text).toContain("Automatic retry due now");
+    expect(text).toContain("Reintento automático vencido ahora");
   });
 
   it("invokes retry-now and shows promoted state on success", async () => {
@@ -201,10 +201,10 @@ describe("IssueScheduledRetryCard", () => {
     act(() => {
       button!.click();
     });
-    await waitForRetryButtonText("Promoted");
+    await waitForRetryButtonText("Promovido");
     expect(retryNowMock).toHaveBeenCalledWith("issue-1");
     const finalButton = getRetryNowButton();
-    expect(finalButton!.textContent ?? "").toContain("Promoted");
+    expect(finalButton!.textContent ?? "").toContain("Promovido");
     expect(finalButton!.disabled).toBe(true);
   });
 
@@ -216,13 +216,13 @@ describe("IssueScheduledRetryCard", () => {
     act(() => {
       getRetryNowButton()!.click();
     });
-    await waitForRetryButtonText("Already promoted");
-    expect(getRetryNowButton()!.textContent ?? "").toContain("Already promoted");
+    await waitForRetryButtonText("Ya promovido");
+    expect(getRetryNowButton()!.textContent ?? "").toContain("Ya promovido");
     expect(container.querySelector('[data-testid="issue-scheduled-retry-error-band"]')).toBeNull();
   });
 
   it("shows cleanup waiting without claiming success or disabling Retry now", async () => {
-    const message = "Waiting for execution cleanup. Paperclip will retry automatically once cleanup finishes.";
+    const message = "Waiting for execution cleanup. Paperclip reintentará automáticamente once cleanup finishes.";
     retryNowMock.mockResolvedValue({ outcome: "waiting", message, scheduledRetry: baseRetry });
     renderWithProviders(<IssueScheduledRetryCard issueId="issue-1" scheduledRetry={baseRetry} />);
     act(() => { getRetryNowButton()!.click(); });

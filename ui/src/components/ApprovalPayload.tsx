@@ -1,13 +1,16 @@
 import { UserPlus, Lightbulb, ShieldAlert, ShieldCheck } from "lucide-react";
 import { MarkdownBody } from "./MarkdownBody";
 import { formatCents } from "../lib/utils";
+import { t, useTranslation } from "@/i18n";
 
-export const typeLabel: Record<string, string> = {
-  hire_agent: "Hire Agent",
-  approve_ceo_strategy: "CEO Strategy",
-  budget_override_required: "Budget Override",
-  request_board_approval: "Board Approval",
-};
+export function getTypeLabels(): Record<string, string> {
+  return {
+    hire_agent: t("approvalPayload.typeHireAgent"),
+    approve_ceo_strategy: t("approvalPayload.typeCeoStrategy"),
+    budget_override_required: t("approvalPayload.typeBudgetOverride"),
+    request_board_approval: t("approvalPayload.typeBoardApproval"),
+  };
+}
 
 function firstNonEmptyString(...values: unknown[]): string | null {
   for (const value of values) {
@@ -29,7 +32,7 @@ export function approvalSubject(payload?: Record<string, unknown> | null): strin
 
 /** Build a contextual label for an approval, e.g. "Hire Agent: Designer" */
 export function approvalLabel(type: string, payload?: Record<string, unknown> | null): string {
-  const base = typeLabel[type] ?? type;
+  const base = getTypeLabels()[type] ?? type;
   const subject = approvalSubject(payload);
   if (subject) {
     return `${base}: ${subject}`;
@@ -57,6 +60,7 @@ function PayloadField({ label, value }: { label: string; value: unknown }) {
 }
 
 function SkillList({ values }: { values: unknown }) {
+  const { t } = useTranslation();
   if (!Array.isArray(values)) return null;
   const items = values
     .filter((value): value is string => typeof value === "string")
@@ -66,7 +70,7 @@ function SkillList({ values }: { values: unknown }) {
 
   return (
     <div className="flex items-start gap-2">
-      <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs pt-0.5">Skills</span>
+      <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs pt-0.5">{t("approvalPayload.skills")}</span>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item) => (
           <span
@@ -82,24 +86,25 @@ function SkillList({ values }: { values: unknown }) {
 }
 
 export function HireAgentPayload({ payload }: { payload: Record<string, unknown> }) {
+  const { t } = useTranslation();
   return (
     <div className="mt-3 space-y-1.5 text-sm">
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs">Name</span>
+        <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs">{t("approvalPayload.name")}</span>
         <span className="font-medium">{String(payload.name ?? "—")}</span>
       </div>
-      <PayloadField label="Role" value={payload.role} />
-      <PayloadField label="Title" value={payload.title} />
-      <PayloadField label="Icon" value={payload.icon} />
+      <PayloadField label={t("approvalPayload.role")} value={payload.role} />
+      <PayloadField label={t("approvalPayload.title")} value={payload.title} />
+      <PayloadField label={t("approvalPayload.icon")} value={payload.icon} />
       {!!payload.capabilities && (
         <div className="flex items-start gap-2">
-          <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs pt-0.5">Capabilities</span>
+          <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs pt-0.5">{t("approvalPayload.capabilities")}</span>
           <span className="text-muted-foreground">{String(payload.capabilities)}</span>
         </div>
       )}
       {!!payload.adapterType && (
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs">Adapter</span>
+          <span className="text-muted-foreground w-20 sm:w-24 shrink-0 text-xs">{t("approvalPayload.adapter")}</span>
           <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
             {String(payload.adapterType)}
           </span>
@@ -111,10 +116,11 @@ export function HireAgentPayload({ payload }: { payload: Record<string, unknown>
 }
 
 export function CeoStrategyPayload({ payload }: { payload: Record<string, unknown> }) {
+  const { t } = useTranslation();
   const plan = payload.plan ?? payload.description ?? payload.strategy ?? payload.text;
   return (
     <div className="mt-3 space-y-1.5 text-sm">
-      <PayloadField label="Title" value={payload.title} />
+      <PayloadField label={t("approvalPayload.title")} value={payload.title} />
       {!!plan && (
         <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground whitespace-pre-wrap font-mono text-xs max-h-48 overflow-y-auto">
           {String(plan)}
@@ -130,16 +136,17 @@ export function CeoStrategyPayload({ payload }: { payload: Record<string, unknow
 }
 
 export function BudgetOverridePayload({ payload }: { payload: Record<string, unknown> }) {
+  const { t } = useTranslation();
   const budgetAmount = typeof payload.budgetAmount === "number" ? payload.budgetAmount : null;
   const observedAmount = typeof payload.observedAmount === "number" ? payload.observedAmount : null;
   return (
     <div className="mt-3 space-y-1.5 text-sm">
-      <PayloadField label="Scope" value={payload.scopeName ?? payload.scopeType} />
-      <PayloadField label="Window" value={payload.windowKind} />
-      <PayloadField label="Metric" value={payload.metric} />
+      <PayloadField label={t("approvalPayload.scope")} value={payload.scopeName ?? payload.scopeType} />
+      <PayloadField label={t("approvalPayload.window")} value={payload.windowKind} />
+      <PayloadField label={t("approvalPayload.metric")} value={payload.metric} />
       {(budgetAmount !== null || observedAmount !== null) ? (
         <div className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          Limit {budgetAmount !== null ? formatCents(budgetAmount) : "—"} · Observed {observedAmount !== null ? formatCents(observedAmount) : "—"}
+          {t("approvalPayload.limitObserved", { limit: budgetAmount !== null ? formatCents(budgetAmount) : "—", observed: observedAmount !== null ? formatCents(observedAmount) : "—" })}
         </div>
       ) : null}
       {!!payload.guidance && (
@@ -171,6 +178,7 @@ function stripLeadingListMarker(value: string): string {
 }
 
 function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unknown> }) {
+  const { t } = useTranslation();
   const risks = Array.isArray(payload.risks)
     ? payload.risks
         .filter((value): value is string => typeof value === "string")
@@ -187,33 +195,33 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
     <div className="mt-4 space-y-3.5 text-sm">
       {title && (
         <div className="space-y-1">
-          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">Title</p>
+          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">{t("approvalPayload.title")}</p>
           <p className="font-medium leading-6 text-foreground">{title}</p>
         </div>
       )}
       {summary && (
         <div className="space-y-1">
-          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">Summary</p>
+          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">{t("approvalPayload.summary")}</p>
           <MarkdownBody className="leading-6 text-foreground/90">{summary}</MarkdownBody>
         </div>
       )}
       {recommendedAction && (
         <div className="rounded-lg border border-amber-500/20 bg-muted/10 px-3.5 py-3">
           <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-amber-700 dark:text-amber-300">
-            Recommended action
+            {t("approvalPayload.recommendedAction")}
           </p>
           <MarkdownBody className="mt-1 leading-6 text-foreground">{recommendedAction}</MarkdownBody>
         </div>
       )}
       {nextActionOnApproval && (
         <div className="rounded-lg border border-border/60 bg-background/60 px-3.5 py-3">
-          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">On approval</p>
+          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">{t("approvalPayload.onApproval")}</p>
           <MarkdownBody className="mt-1 leading-6 text-foreground">{nextActionOnApproval}</MarkdownBody>
         </div>
       )}
       {risks.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">Risks</p>
+          <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">{t("approvalPayload.risks")}</p>
           <ul className="space-y-1 text-sm text-muted-foreground">
             {risks.map((risk, index) => (
               <li key={`${index}-${risk}`} className="flex items-start gap-2">
@@ -227,7 +235,7 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
       {proposedComment && (
         <div className="space-y-1.5">
           <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">
-            Proposed comment
+            {t("approvalPayload.proposedComment")}
           </p>
           <pre className="max-h-48 overflow-auto rounded-lg border border-border/60 bg-muted/50 px-3.5 py-3 font-mono text-xs leading-5 text-muted-foreground whitespace-pre-wrap">
             {proposedComment}

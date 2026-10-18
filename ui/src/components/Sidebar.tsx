@@ -292,14 +292,14 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             <SidebarProjects />
             <SidebarAgents />
             <SidebarSection
-              label="Organization"
+              label={t("sidebar.organizationSection")}
               collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
             >
               <SidebarNavItem to="/org" label={t("nav.org")} icon={Network} />
               <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
-              <SidebarNavItem to="/timeline" label="Timeline" icon={GanttChartSquare} />
-              <SidebarNavItem to="/costs" label="Costs" icon={DollarSign} />
-              <SidebarNavItem to="/activity" label="Activity" icon={History} />
+              <SidebarNavItem to="/timeline" label={t("sidebar.timeline")} icon={GanttChartSquare} />
+              <SidebarNavItem to="/costs" label={t("sidebar.costs")} icon={DollarSign} />
+              <SidebarNavItem to="/activity" label={t("sidebar.activity")} icon={History} />
               <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
             </SidebarSection>
           </>

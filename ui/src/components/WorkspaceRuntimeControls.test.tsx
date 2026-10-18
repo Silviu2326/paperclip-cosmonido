@@ -172,7 +172,7 @@ describe("buildWorkspaceRuntimeControlSections", () => {
         statusLabel: "running",
         command: "pnpm dev",
         runtimeServiceId: "service-web",
-        disabledReason: "This runtime service no longer matches a configured workspace command.",
+        disabledReason: "Este servicio en ejecución ya no coincide con ningún comando configurado del espacio de trabajo.",
       }),
     ]);
   });
@@ -273,7 +273,7 @@ describe("WorkspaceRuntimeControls", () => {
     expect(container.textContent).not.toContain("/srv/repo");
     // The URL, the port, and the command describe the service, not the host.
     expect(container.textContent).toContain("http://127.0.0.1:5173");
-    expect(container.textContent).toContain("Port 5173");
+    expect(container.textContent).toContain("Puerto 5173");
     expect(container.textContent).toContain("pnpm dev");
 
     act(() => root.unmount());
@@ -305,9 +305,9 @@ describe("WorkspaceRuntimeControls", () => {
     });
 
     const buttons = Array.from(container.querySelectorAll("button")).map((button) => button.textContent?.trim());
-    expect(buttons).toEqual(["Stop", "Restart", "Run"]);
-    expect(container.textContent).toContain("Services");
-    expect(container.textContent).toContain("Jobs");
+    expect(buttons).toEqual(["Detener", "Reiniciar", "Ejecutar"]);
+    expect(container.textContent).toContain("Servicios");
+    expect(container.textContent).toContain("Trabajos");
 
     act(() => root.unmount());
   });
@@ -430,14 +430,14 @@ describe("WorkspaceRuntimeControls", () => {
       ));
     });
 
-    expect(container.textContent).not.toContain("unknown");
+    expect(container.textContent).not.toContain("desconocido");
 
     act(() => root.unmount());
   });
 
   it.each([
-    ["failed", "external HTTPS health probe did not validate", "HTTPS unavailable", "Check the Tailscale broker and node HTTPS configuration."],
-    ["cleanup_pending", "host broker cleanup confirmation timed out", "HTTPS cleanup pending", "Restart the host broker before reusing this port."],
+    ["failed", "external HTTPS health probe did not validate", "HTTPS no disponible", "Revisa el broker de Tailscale y la configuración HTTPS del nodo."],
+    ["cleanup_pending", "host broker cleanup confirmation timed out", "Limpieza de HTTPS pendiente", "Reinicia el broker del host antes de reutilizar este puerto."],
   ] as const)(
     "shows %s exposure state, last error, and remediation on service cards",
     (state, lastError, label, remediation) => {
@@ -516,7 +516,7 @@ describe("WorkspaceRuntimeControls", () => {
     const servicePanel = Array.from(container.querySelectorAll(".border.border-border\\/80"))
       .find((element) => element.textContent?.includes("web"));
     const startButton = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.trim() === "Start");
+      .find((button) => button.textContent?.trim() === "Iniciar");
 
     expect(summaryPanel?.className).toContain("rounded-none");
     expect(summaryPanel?.className).not.toContain("bg-background/60");
@@ -662,7 +662,7 @@ describe("buildWorkspaceServiceControlEntries", () => {
     });
 
     expect(entries[0].state).toBe("failed");
-    expect(entries[0].failureDetail).toMatch(/^Service failed · /);
+    expect(entries[0].failureDetail).toMatch(/^El servicio falló · /);
   });
 
   it("surfaces HTTPS failure independently while the backend remains running", () => {
@@ -691,7 +691,7 @@ describe("buildWorkspaceServiceControlEntries", () => {
 
     expect(entry.state).toBe("running");
     expect(entry.exposureState).toBe("failed");
-    expect(entry.exposureDetail).toMatch(/^HTTPS unavailable/);
+    expect(entry.exposureDetail).toMatch(/^HTTPS no disponible/);
     expect(entry.exposureDetail).not.toContain("cli_error");
   });
 
@@ -733,7 +733,7 @@ describe("buildWorkspaceServiceControlEntries", () => {
     expect(ready.url).toBe(httpsUrl);
     expect(ready.exposureState).toBe("ready");
     // A ready exposure reports plainly and never as a remediation prompt.
-    expect(ready.exposureDetail).toBe("HTTPS ready");
+    expect(ready.exposureDetail).toBe("HTTPS listo");
     expect(ready.exposureDetail).not.toMatch(/unavailable|cleanup|Check the/i);
 
     const pending = buildEntry(createRuntimeService({
@@ -753,7 +753,7 @@ describe("buildWorkspaceServiceControlEntries", () => {
       },
     }));
     expect(pending.url ?? null).toBeNull();
-    expect(pending.exposureDetail).toBe("Provisioning HTTPS…");
+    expect(pending.exposureDetail).toBe("Aprovisionando HTTPS…");
     expect(JSON.stringify(pending)).not.toContain("http://");
   });
 });

@@ -196,7 +196,7 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
     expect(container.textContent).toContain("Saved the useful response.");
     expect(container.textContent).toContain("Please keep this message.");
     expect(container.textContent).toContain("New session");
-    for (const status of ["Run failed", "Stopped", "Worked", "Run cancelled", "Waiting to resume", "Recovery pending", "Run completed", "previous execution needs"]) {
+    for (const status of ["La ejecución falló", "Detenida", "Worked", "Ejecución cancelada", "Esperando para reanudar", "Recovery pending", "Ejecución completada", "previous execution needs"]) {
       expect(container.textContent).not.toContain(status);
     }
     if (runtimeMode === "legacy") {
@@ -218,13 +218,13 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
     const wait = { ...run("wait", "cancelled", 1), startedAt: null, errorCode: "execution_reconciliation_required" };
     const props = { comments: [notice, comment("response", "Saved the useful response.", "old")], onAdd: async () => {}, issueStatus: "in_progress" };
     render(<TaskChatThread {...props} linkedRuns={[run("old", "failed", 0), wait]} />);
-    expect(container.textContent).toContain("Run failed");
-    expect(container.textContent).toContain("Waiting to resume");
+    expect(container.textContent).toContain("La ejecución falló");
+    expect(container.textContent).toContain("Esperando para reanudar");
     for (const linkedRuns of [[run("new", "succeeded", 2), wait, run("old", "failed", 0)], [run("old", "failed", 0), wait, run("new", "succeeded", 2)]]) {
       render(<TaskChatThread {...props} linkedRuns={linkedRuns} />);
-      expect(container.textContent).not.toContain("Run failed");
-      expect(container.textContent).not.toContain("Waiting to resume");
-      expect(container.textContent).not.toContain("Stopped");
+      expect(container.textContent).not.toContain("La ejecución falló");
+      expect(container.textContent).not.toContain("Esperando para reanudar");
+      expect(container.textContent).not.toContain("Detenida");
       expect(container.querySelector('[data-testid="task-chat-system-notice"]')).toBeNull();
       expect(container.textContent).toContain("Saved the useful response.");
     }
@@ -234,7 +234,7 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
     const retry = vi.fn();
     const linkedRuns = [run("new-failure", "failed", 2), run("old-failure", "failed", 0)];
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="blocked" linkedRuns={linkedRuns} onRetryFailedRun={retry} />);
-    expect(container.textContent?.match(/Run failed/g)).toHaveLength(1);
+    expect(container.textContent?.match(/La ejecución falló/g)).toHaveLength(1);
     const button = container.querySelector<HTMLButtonElement>('[data-testid="task-chat-run-failed-try-again"]');
     expect(button).not.toBeNull();
     flushSync(() => button!.click());
@@ -257,7 +257,7 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
       invocationSource: "on_demand", triggerDetail: null };
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="in_progress"
       linkedRuns={[old]} activeRun={live} liveRuns={[live]} />);
-    expect(container.textContent).not.toContain("Run failed");
+    expect(container.textContent).not.toContain("La ejecución falló");
     expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
   });
 
@@ -270,8 +270,8 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
       onAdd={async () => {}} issueStatus="in_progress" linkedRuns={[run("old", "failed", 0), run("new", "succeeded", 1)]} />);
     expect(container.textContent).toContain("The follow-up succeeded.");
     expect(container.textContent).toContain("Worked");
-    expect(container.textContent).not.toContain("Stopped");
-    expect(container.textContent).not.toContain("Run failed");
+    expect(container.textContent).not.toContain("Detenida");
+    expect(container.textContent).not.toContain("La ejecución falló");
   });
 });
 
@@ -364,10 +364,10 @@ it.each([true, false])("reveals saved conversation when initial history stalls (
     expect(container.querySelector('[data-testid="task-chat-history-content"]')?.hasAttribute("inert")).toBe(false);
     expect(container.querySelector('[data-testid="task-chat-composer-dock"]')?.hasAttribute("inert")).toBe(false);
     expect(container.textContent).toContain("An already saved reply.");
-    expect(container.textContent).toContain("Some task history is still loading.");
+    expect(container.textContent).toContain("Parte del historial de la tarea sigue cargándose.");
     expect(container.querySelector('[data-testid="mock-editor"]')).toBe(composer);
     render(<TaskChatThread {...props} initialHistoryPending={false} />);
-    expect(container.textContent).not.toContain("Some task history is still loading.");
+    expect(container.textContent).not.toContain("Parte del historial de la tarea sigue cargándose.");
     expect(container.querySelector('[data-testid="mock-editor"]')).toBe(composer);
 
     // A timeout on one task must not bypass coordination on the next task.
@@ -1000,7 +1000,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       }],
     });
     const marker = container.querySelector('[data-testid="task-chat-collapsible-marker"]');
-    expect(marker?.textContent).toContain("Workspace restore failed");
+    expect(marker?.textContent).toContain("Falló la restauración del espacio de trabajo");
     flushSync(() => marker!.querySelector<HTMLButtonElement>('button[aria-expanded]')!.click());
     expect(marker?.textContent).toContain("Workspace files need recovery");
     expect(marker?.textContent).toContain("No final response was recorded");
@@ -1023,7 +1023,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     });
     expect(container.textContent).toContain("The run failed");
     expect(container.textContent).not.toContain("before returning an answer");
-    expect(container.textContent).not.toContain("Workspace restore failed");
+    expect(container.textContent).not.toContain("Falló la restauración del espacio de trabajo");
   });
 
   it("directs a missing starting branch to repair instead of offering an unchanged retry", () => {
@@ -1039,8 +1039,8 @@ describe("TaskChatThread runtime transcript selection", () => {
         resultJson: { configurationIncomplete: { reason: "workspace_base_ref_unresolved", requestedRef: "main" } },
       }],
     });
-    expect(container.textContent).toContain("Starting branch unavailable");
-    expect(container.textContent).toContain("Repair the starting branch below before retrying.");
+    expect(container.textContent).toContain("Rama inicial no disponible");
+    expect(container.textContent).toContain("Repara la rama inicial de abajo antes de reintentar.");
     expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
   });
 
@@ -1080,8 +1080,8 @@ describe("TaskChatThread runtime transcript selection", () => {
         createdAt: "2026-08-25T18:00:00.000Z", startedAt: null, finishedAt: "2026-08-25T18:00:02.000Z",
       }],
     });
-    expect(container.textContent).toContain("AI connection needed");
-    expect(container.textContent).toContain("Use the connection card below to continue.");
+    expect(container.textContent).toContain("Se necesita conexión de IA");
+    expect(container.textContent).toContain("Usa la tarjeta de conexión de abajo para continuar.");
     expect(container.textContent).not.toContain("The selected AI account is unavailable");
     expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
   });
@@ -1449,7 +1449,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     const marker = container.querySelector(
       '[data-testid="task-chat-collapsible-marker"]',
     );
-    expect(marker?.textContent).toContain("Run failed");
+    expect(marker?.textContent).toContain("La ejecución falló");
     const retry = container.querySelector<HTMLButtonElement>(
       '[data-testid="task-chat-run-failed-try-again"]',
     );
@@ -1513,7 +1513,7 @@ describe("TaskChatThread runtime transcript selection", () => {
           permittedActions: ["inspect_run" as const], predecessorRunId: null, successorRunId: "fresh-run" } } : {}),
       }],
     });
-    expect(container.textContent?.includes("Run failed")).toBe(!continued);
+    expect(container.textContent?.includes("La ejecución falló")).toBe(!continued);
     expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
   });
 
@@ -1543,8 +1543,8 @@ describe("TaskChatThread runtime transcript selection", () => {
     const marker = container.querySelector(
       '[data-testid="task-chat-collapsible-marker"]',
     );
-    expect(marker?.textContent).toContain("Usage limit reached");
-    expect(marker?.textContent).not.toContain("Run failed");
+    expect(marker?.textContent).toContain("Límite de uso alcanzado");
+    expect(marker?.textContent).not.toContain("La ejecución falló");
     const disclosure = marker?.querySelector<HTMLButtonElement>(
       'button[aria-expanded="false"]',
     );
@@ -1554,7 +1554,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       '[data-testid="task-chat-collapsible-marker-details"]',
     );
     expect(details?.textContent).toContain(
-      "The model provider has reached its current usage limit. Try again after the limit resets.",
+      "El proveedor del modelo ha alcanzado su límite de uso actual. Inténtalo de nuevo cuando se restablezca.",
     );
     expect(details?.textContent).not.toContain("native_provider_usage_limit");
     const retry = container.querySelector<HTMLButtonElement>(
@@ -1577,9 +1577,9 @@ describe("TaskChatThread runtime transcript selection", () => {
         startedAt: null, finishedAt: "2026-08-25T18:00:00.012Z",
       }],
     });
-    expect(container.textContent).toContain("Waiting to resume");
+    expect(container.textContent).toContain("Esperando para reanudar");
     expect(container.textContent).not.toContain("No user-facing response");
-    expect(container.textContent).not.toContain("Run completed");
+    expect(container.textContent).not.toContain("Ejecución completada");
     expect(container.querySelector(".text-destructive")).toBeNull();
   });
 
@@ -1600,9 +1600,9 @@ describe("TaskChatThread runtime transcript selection", () => {
       heldRun("same-new-hold", "hold-2"),
     ],
     });
-    expect(container.textContent?.match(/Waiting to resume/g)).toHaveLength(2);
-    expect(container.textContent).not.toContain("Couldn't start");
-    expect(container.textContent).toContain(runtimeMode === "native" ? "Run cancelled" : "Stopped");
+    expect(container.textContent?.match(/Esperando para reanudar/g)).toHaveLength(2);
+    expect(container.textContent).not.toContain("No se pudo iniciar");
+    expect(container.textContent).toContain(runtimeMode === "native" ? "Ejecución cancelada" : "Detenida");
   });
 
   it("shows cancellation after native progress without offering a retry", () => {
@@ -1634,17 +1634,17 @@ describe("TaskChatThread runtime transcript selection", () => {
     expect(
       container.querySelector('[data-testid="task-chat-collapsible-marker"]')
         ?.textContent,
-    ).toContain("Run cancelled");
+    ).toContain("Ejecución cancelada");
     expect(
       container.querySelector('[data-testid="task-chat-run-failed-try-again"]'),
     ).toBeNull();
   });
 
   it.each([
-    ["failed", "Run failed"],
-    ["timed_out", "Run timed out"],
-    ["cancelled", "Run cancelled"],
-    ["interrupted", "Run interrupted"],
+    ["failed", "La ejecución falló"],
+    ["timed_out", "Ejecución agotada"],
+    ["cancelled", "Ejecución cancelada"],
+    ["interrupted", "Ejecución interrumpida"],
   ] as const)(
     "does not claim a native %s run returned no answer when its final response is visible",
     (status, expectedLabel) => {
@@ -1697,10 +1697,10 @@ describe("TaskChatThread runtime transcript selection", () => {
       const detail = container.querySelector(
         '[data-testid="task-chat-collapsible-marker-details"]',
       );
-      expect(detail?.textContent).toContain("after returning a final response");
+      expect(detail?.textContent).toContain("tras devolver una respuesta final");
       expect(detail?.textContent).not.toContain("before returning an answer");
       expect(container.textContent).not.toContain(
-        "The runner returned no user-facing response.",
+        "El ejecutor no devolvió ninguna respuesta para el usuario.",
       );
     },
   );
@@ -1718,7 +1718,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       }],
     });
     const marker = container.querySelector('[data-testid="task-chat-collapsible-marker"]');
-    expect(marker?.textContent).toContain("Approval required");
+    expect(marker?.textContent).toContain("Aprobación requerida");
     flushSync(() => marker!.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!.click());
     expect(container.textContent).toContain("Review the operation and update the agent's permission setting before retrying");
     expect(container.textContent).not.toContain("The runner stopped");
@@ -1747,11 +1747,11 @@ describe("TaskChatThread runtime transcript selection", () => {
       }],
     });
     const marker = container.querySelector('[data-testid="task-chat-collapsible-marker"]');
-    expect(marker?.textContent).toContain("Model unavailable");
+    expect(marker?.textContent).toContain("Modelo no disponible");
     flushSync(() => marker!.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')!.click());
     expect(container.textContent).toContain(error);
     expect(container.textContent).toContain("clear the task's model override, then retry");
-    expect(container.textContent).not.toContain("after returning a final response");
+    expect(container.textContent).not.toContain("tras devolver una respuesta final");
   });
 
   it("keeps workspace contention out of the conversation's cancellation markers", () => {
@@ -1764,8 +1764,8 @@ describe("TaskChatThread runtime transcript selection", () => {
         createdAt: "2026-09-12T18:00:00.000Z", finishedAt: "2026-09-12T18:00:01.000Z",
       }],
     });
-    expect(container.textContent).not.toContain("Run cancelled");
-    expect(container.textContent).not.toContain("Run failed");
+    expect(container.textContent).not.toContain("Ejecución cancelada");
+    expect(container.textContent).not.toContain("La ejecución falló");
     expect(container.textContent).not.toContain("before returning an answer");
   });
 
@@ -1779,8 +1779,8 @@ describe("TaskChatThread runtime transcript selection", () => {
         createdAt: "2026-09-11T18:00:00.000Z", finishedAt: "2026-09-11T18:00:01.000Z",
       }],
     });
-    expect(container.textContent).not.toContain("The runner returned no user-facing response.");
-    expect(container.textContent).not.toContain("Run completed");
+    expect(container.textContent).not.toContain("El ejecutor no devolvió ninguna respuesta para el usuario.");
+    expect(container.textContent).not.toContain("Ejecución completada");
   });
 
   it.each([
@@ -1810,11 +1810,11 @@ describe("TaskChatThread runtime transcript selection", () => {
         ],
       });
       expect(container.textContent).not.toContain(
-        "The runner returned no user-facing response.",
+        "El ejecutor no devolvió ninguna respuesta para el usuario.",
       );
-      expect(container.textContent).not.toContain("Run completed");
-      expect(container.textContent).not.toContain("Couldn't start");
-      expect(container.textContent).not.toContain("Run cancelled");
+      expect(container.textContent).not.toContain("Ejecución completada");
+      expect(container.textContent).not.toContain("No se pudo iniciar");
+      expect(container.textContent).not.toContain("Ejecución cancelada");
       expect(container.textContent).not.toContain("before returning an answer");
     },
   );
@@ -1841,7 +1841,7 @@ describe("TaskChatThread runtime transcript selection", () => {
         ],
       });
       expect(container.textContent).toContain(
-        runtimeMode === "native" ? "Run cancelled" : "Stopped",
+        runtimeMode === "native" ? "Ejecución cancelada" : "Detenida",
       );
     },
   );
@@ -2372,7 +2372,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     expect(responses[0]?.textContent).toContain("After release");
     expect(responses[0]?.textContent).not.toContain("I’m providing");
     expect(container.textContent).not.toContain(
-      "The runner returned no user-facing response.",
+      "El ejecutor no devolvió ninguna respuesta para el usuario.",
     );
   });
 
@@ -2494,9 +2494,9 @@ describe("TaskChatThread runtime transcript selection", () => {
         ],
       });
 
-      expect(container.textContent).toContain(status === "cancelled" ? "Stopped" : "Run failed");
+      expect(container.textContent).toContain(status === "cancelled" ? "Detenida" : "La ejecución falló");
       if (status !== "cancelled") {
-        expect(container.textContent).toContain("You can retry this message now.");
+        expect(container.textContent).toContain("Puedes reintentar este mensaje ahora.");
       }
       expect(
         container.querySelector('[data-testid="task-chat-collapsible-marker"]'),
@@ -2627,11 +2627,11 @@ describe("TaskChatThread runtime transcript selection", () => {
         />,
       );
       renderRun(true);
-      expect(container.textContent).toContain("Your message is preserved.");
-      expect(container.textContent).not.toContain("You can retry this message now.");
+      expect(container.textContent).toContain("Tu mensaje se ha conservado.");
+      expect(container.textContent).not.toContain("Puedes reintentar este mensaje ahora.");
       expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
       renderRun(false);
-      expect(container.textContent).toContain("You can retry this message now.");
+      expect(container.textContent).toContain("Puedes reintentar este mensaje ahora.");
       expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).not.toBeNull();
     },
   );
@@ -2675,8 +2675,8 @@ describe("TaskChatThread runtime transcript selection", () => {
     });
     expect(Boolean(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')))
       .toBe(testCase.canRetry);
-    if (testCase.canRetry) expect(container.textContent).toContain("You can retry this message now.");
-    else expect(container.textContent).not.toContain("You can retry this message now.");
+    if (testCase.canRetry) expect(container.textContent).toContain("Puedes reintentar este mensaje ahora.");
+    else expect(container.textContent).not.toContain("Puedes reintentar este mensaje ahora.");
   });
 
   it.each(DIRECT_ADAPTER_TYPES)(
@@ -3536,7 +3536,7 @@ describe("TaskChatThread queued message actions", () => {
     });
 
     const interrupt = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Interrupt",
+      (button) => button.textContent === "Interrumpir",
     );
     expect(container.textContent).toContain("Queued");
     expect(interrupt).not.toBeUndefined();
@@ -3571,7 +3571,7 @@ describe("TaskChatThread queued message actions", () => {
     });
 
     const interrupting = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Interrupting…",
+      (button) => button.textContent === "Interrumpiendo…",
     );
     expect(interrupting).not.toBeUndefined();
     expect(interrupting?.disabled).toBe(true);
@@ -3641,7 +3641,7 @@ describe("TaskChatThread Paperclip Runner queue", () => {
       composerPause: { scope: "leaf", onResume: () => {} },
     });
     expect(container.querySelector('[data-testid="paused-composer-takeover"]')).not.toBeNull();
-    expect([...container.querySelectorAll("button")].some((button) => button.textContent === "Interrupt")).toBe(false);
+    expect([...container.querySelectorAll("button")].some((button) => button.textContent === "Interrumpir")).toBe(false);
   });
 
   it("suppresses the transcript echo until the queued entry is consumed", async () => {
@@ -4004,7 +4004,7 @@ describe("TaskChatThread live transcript", () => {
     );
     expect(tail).not.toBeNull();
     expect(tail!.textContent).toContain("Syncing workspace to environment");
-    expect(tail!.textContent).not.toContain("Waiting for transcript...");
+    expect(tail!.textContent).not.toContain("Esperando la transcripción...");
 
     // Without a runtime status, the generic wait message still shows.
     renderThread({
@@ -4016,7 +4016,7 @@ describe("TaskChatThread live transcript", () => {
     const tail2 = container.querySelector(
       '[data-testid="task-chat-live-transcript"]',
     );
-    expect(tail2!.textContent).toContain("Waiting for transcript...");
+    expect(tail2!.textContent).toContain("Esperando la transcripción...");
   });
 
   it("does not send a workspace bootstrap failure to connection settings", () => {
@@ -4027,7 +4027,7 @@ describe("TaskChatThread live transcript", () => {
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="in_progress" linkedRuns={[
       { ...run, runId: run.id, status: "failed", errorCode: "workspace_git_scan_timeout", finishedAt: "2026-09-15T10:00:10Z" },
     ]} />);
-    expect(container.textContent).toContain("Workspace setup failed before the agent started.");
+    expect(container.textContent).toContain("La preparación del espacio de trabajo falló antes de que el agente empezara.");
     expect(container.textContent).not.toContain("Review the task’s connection");
   });
 
@@ -4415,7 +4415,7 @@ it("explains a missing provider runtime with an installation repair", () => {
       createdAt: "2026-10-11T11:19:08Z", startedAt: "2026-10-11T11:19:08Z", finishedAt: "2026-10-11T11:19:14Z",
     }],
   });
-  expect(container.textContent).toContain("Runtime missing");
+  expect(container.textContent).toContain("Runtime no disponible");
   const toggle = container.querySelector<HTMLButtonElement>('[data-testid="task-chat-collapsible-marker"] button[aria-expanded]')!;
   flushSync(() => toggle.click());
   expect(container.textContent).toContain("Reinstall or rebuild Paperclip");

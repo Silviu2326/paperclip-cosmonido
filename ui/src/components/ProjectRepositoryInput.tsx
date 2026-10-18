@@ -3,6 +3,7 @@ import type { ProjectRepository } from "@paperclipai/shared";
 import { projectsApi } from "@/api/projects";
 import { RepositoryEditor } from "./RepositoryEditor";
 import { Button } from "./ui/button";
+import { t } from "@/i18n";
 
 export const repositoryOptionsKey = (companyId: string) => ["project-repositories", companyId] as const;
 
@@ -22,8 +23,8 @@ export function ProjectRepositoryInput({ companyId, selected, onChange, onConnec
     <RepositoryEditor selected={selected.map((repo) => query.data?.repositories.find((available) => available.id === repo.id) ?? repo)} onChange={onChange} available={query.data?.repositories} state={state}
       onRetry={() => void query.refetch()} onConnect={onConnect} disabled={disabled} />
     {!!query.data?.failedConnectionCount && query.data.repositories.length > 0 && <div role="alert" className="flex flex-wrap items-center gap-2 text-xs text-destructive">
-      Some GitHub connections could not load. Reconnect them in Apps or try again.
-      <Button type="button" variant="ghost" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>Try again</Button>
+      {t("projectRepositoryInput.connectionsFailed")}
+      <Button type="button" variant="ghost" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>{t("projectRepositoryInput.tryAgain")}</Button>
     </div>}
   </div>;
 }

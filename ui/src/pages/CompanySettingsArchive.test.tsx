@@ -168,7 +168,7 @@ describe("CompanySettings archive departure", () => {
 
   function clickArchive() {
     const button = Array.from(container.querySelectorAll("button")).find(
-      (element) => element.textContent?.trim() === "Archive organization",
+      (element) => element.textContent?.trim() === "Archivar organización",
     );
     expect(button).toBeDefined();
     flushSync(() => {
@@ -223,7 +223,7 @@ describe("CompanySettings archive departure", () => {
       expect(mockPushToast).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Old Co is archived",
-          body: "You can unarchive it from this list.",
+          body: "Puedes volver a activarla desde esta lista.",
         }),
       );
       expect(mockNavigateTopLevel).not.toHaveBeenCalled();

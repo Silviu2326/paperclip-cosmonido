@@ -134,25 +134,25 @@ describe("IssueShareSheet", () => {
     expect(scope.querySelector('[data-testid="grant-source-badge-project"]')).not.toBeNull();
 
     const revokeButtons = [...scope.querySelectorAll("button")].filter((b) =>
-      b.textContent?.trim() === "Revoke",
+      b.textContent?.trim() === "Revocar",
     );
     // explicit + assignment are revocable; project is not.
     expect(revokeButtons).toHaveLength(2);
-    expect(scope.textContent).toContain("project-managed");
+    expect(scope.textContent).toContain("gestionado por el proyecto");
   });
 
   it("removes a saved grant while explaining that assignment access remains", async () => {
     listAccessGrants.mockResolvedValue([grant({ id: "g1", source: "assignment", subjectType: "agent", subjectId: "a1" })]);
     const client = await renderSheet(true, [{ id: "agent:a1", displayName: "Helper", roleLabel: "Current assignee" }]);
-    expect([...document.body.querySelectorAll("button")].filter(button => button.textContent?.trim() === "Revoke")).toHaveLength(0);
-    expect(document.body.textContent).toContain("access remains while this role applies");
-    const removeSaved = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Remove saved grant");
+    expect([...document.body.querySelectorAll("button")].filter(button => button.textContent?.trim() === "Revocar")).toHaveLength(0);
+    expect(document.body.textContent).toContain("el acceso se mantiene mientras aplique este rol");
+    const removeSaved = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Quitar concesión guardada");
     expect(removeSaved).toBeDefined();
     act(() => removeSaved!.click());
     await settle();
     expect(document.body.textContent).toContain("saved grant?");
     revokeAccessGrant.mockResolvedValue({});
-    const confirm = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Remove grant");
+    const confirm = [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Quitar concesión");
     act(() => confirm!.click());
     await settle();
     expect(revokeAccessGrant).toHaveBeenCalledWith("i1", "g1");
@@ -167,7 +167,7 @@ describe("IssueShareSheet", () => {
     listUserDirectory.mockResolvedValue({ users: [{ user: { id: "u1", name: "Ada", email: "ada@example.test", image: null } }] });
     createAccessGrant.mockResolvedValue(grant({ id: "direct" }));
     const client = await renderSheet();
-    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Add someone")!.click());
+    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Añadir a alguien")!.click());
     await settle();
     act(() => (document.body.querySelector('[role="combobox"]') as HTMLElement).click());
     await settle();
@@ -175,7 +175,7 @@ describe("IssueShareSheet", () => {
     expect(option).toBeDefined();
     act(() => (option as HTMLElement).click());
     await settle();
-    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Add")!.click());
+    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Añadir")!.click());
     await settle();
     expect(createAccessGrant).toHaveBeenCalledWith("i1", { subjectType: "user", subjectId: "u1" });
     expect(client.getQueryState(queryKeys.issues.accessGrants("descendant"))?.isInvalidated).toBe(true);
@@ -185,7 +185,7 @@ describe("IssueShareSheet", () => {
     listAccessGrants.mockResolvedValue([grant({ source: "assignment" })]);
     listUserDirectory.mockResolvedValue({ users: [{ user: { id: "u1", name: "Ada", image: null } }] });
     await renderSheet();
-    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Add someone")!.click());
+    act(() => [...document.body.querySelectorAll("button")].find(button => button.textContent?.trim() === "Añadir a alguien")!.click());
     await settle();
     act(() => (document.body.querySelector('[role="combobox"]') as HTMLElement).click());
     await settle();
@@ -197,7 +197,7 @@ describe("IssueShareSheet", () => {
     listAccessGrants.mockResolvedValue([grant({ id: "g1", source: "explicit" })]);
     await renderSheet(false);
     const revokeButtons = [...document.body.querySelectorAll("button")].filter((b) =>
-      b.textContent?.trim() === "Revoke",
+      b.textContent?.trim() === "Revocar",
     );
     expect(revokeButtons).toHaveLength(0);
   });
@@ -206,7 +206,7 @@ describe("IssueShareSheet", () => {
     listAccessGrants.mockResolvedValue([]);
     await renderSheet(true);
     expect(document.body.querySelector('[data-testid="share-sheet-empty"]')?.textContent).toContain(
-      "Only you can see this task",
+      "Solo tú puedes ver esta tarea",
     );
   });
 

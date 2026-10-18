@@ -150,7 +150,7 @@ describe("UserProfile", () => {
     expect(container.textContent).toContain("Jane Example");
     const editLink = container.querySelector<HTMLAnchorElement>(`a[href="${EDIT_PROFILE_HREF}"]`);
     expect(editLink).not.toBeNull();
-    expect(editLink?.textContent).toContain("Edit profile");
+    expect(editLink?.textContent).toContain("Editar perfil");
     expect(editLink?.querySelector("svg")?.classList).toContain("lucide-user-round-pen");
 
     await act(async () => root.unmount());
@@ -161,7 +161,7 @@ describe("UserProfile", () => {
 
     expect(container.textContent).toContain("Jane Example");
     expect(container.querySelector(`a[href="${EDIT_PROFILE_HREF}"]`)).toBeNull();
-    expect(container.textContent).not.toContain("Edit profile");
+    expect(container.textContent).not.toContain("Editar perfil");
 
     await act(async () => root.unmount());
   });

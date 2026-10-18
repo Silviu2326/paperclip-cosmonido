@@ -133,7 +133,7 @@ describe("PropertiesPanel", () => {
       const aside = container.querySelector("aside");
       expect(aside).not.toBeNull();
       expect(aside!.style.width).toBe("434px");
-      expect(aside!.querySelector('[role="separator"][aria-label="Resize panel"]')).not.toBeNull();
+      expect(aside!.querySelector('[role="separator"][aria-label="Redimensionar panel"]')).not.toBeNull();
       expect(container.querySelector('[aria-label="Maximize side panel"]')).not.toBeNull();
       const inner = aside!.querySelector<HTMLDivElement>(":scope > div:not([role])");
       expect(inner!.style.width).toBe("434px");
@@ -233,7 +233,7 @@ describe("PropertiesPanel", () => {
       const aside = container.querySelector("aside");
       expect(aside).not.toBeNull();
       expect(aside!.style.width).toBe("322px");
-      expect(aside!.querySelector('[role="separator"][aria-label="Resize panel"]')).not.toBeNull();
+      expect(aside!.querySelector('[role="separator"][aria-label="Redimensionar panel"]')).not.toBeNull();
       expect(container.querySelector('[aria-label="Maximize side panel"]')).not.toBeNull();
     });
 

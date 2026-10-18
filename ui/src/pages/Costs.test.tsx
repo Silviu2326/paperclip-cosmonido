@@ -133,7 +133,7 @@ describe("Shared Costs surfaces", () => {
     await act(async () => {
       await vi.waitFor(() => {
         expect(budgetOverviewMock).toHaveBeenCalledWith("company-1");
-        expect(container.textContent).toContain("Budget control plane");
+        expect(container.textContent).toContain("Plano de control de presupuestos");
       });
     });
     expect(container.textContent).not.toContain("Inference spend");
@@ -147,7 +147,7 @@ describe("Shared Costs surfaces", () => {
     costsApiMocks.byUser.mockResolvedValue({ activeUserCount: 1, rows: [] });
     costsApiMocks.summary.mockResolvedValue({ spendCents: 21, budgetCents: 0, pricingComplete: true, unknownBillingEventCount: 1, unpricedEventCount: 0, pendingRunCount: 0 });
     costsApiMocks.financeSummary.mockResolvedValue({ netCents: 0, debitCents: 0, creditCents: 0, estimatedDebitCents: 0, eventCount: 0 });
-    costsApiMocks.dataQuality.mockResolvedValue({ canRetry: true, events: [{ id: "event", runId: "run", agentId: "agent", agentName: "Codie", reason: "unknown_billing", occurredAt: "2026-10-09T12:00:00Z" }], runs: [], hasMoreEvents: false, hasMoreRuns: false });
+    costsApiMocks.dataQuality.mockResolvedValue({ canRetry: true, events: [{ id: "event", runId: "run", agentId: "agente", agentName: "Codie", reason: "unknown_billing", occurredAt: "2026-10-09T12:00:00Z" }], runs: [], hasMoreEvents: false, hasMoreRuns: false });
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     root = createRoot(container);
     await act(async () => root.render(<MemoryRouter><QueryClientProvider client={queryClient}><Costs {...props} /></QueryClientProvider></MemoryRouter>));
@@ -160,11 +160,11 @@ describe("Shared Costs surfaces", () => {
     const [, from, to] = costsApiMocks.dataQuality.mock.lastCall!;
     expect(Number.isFinite(Date.parse(from))).toBe(true);
     expect(Number.isFinite(Date.parse(to))).toBe(true);
-    await act(async () => button("Providers").dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })));
-    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Providers");
+    await act(async () => button("Proveedores").dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })));
+    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Proveedores");
     expect(container.textContent).not.toContain("1 billing type unknown");
     expect(container.textContent).not.toContain("Billing category unknown");
-    await act(async () => button("Overview").dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })));
+    await act(async () => button("Resumen").dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })));
     expect(button("1 billing type unknown")).toBeDefined();
     await act(async () => button("All Time").click());
     await act(async () => vi.waitFor(() => expect(button("1 billing type unknown")).toBeDefined()));
@@ -182,7 +182,7 @@ describe("Shared Costs surfaces", () => {
     root = createRoot(container);
     await act(async () => root.render(<MemoryRouter initialEntries={["/?tab=decisions"]}><QueryClientProvider client={queryClient}><Costs /></QueryClientProvider></MemoryRouter>));
     await act(async () => { await vi.waitFor(() => expect(container.textContent).toContain("No decision requests in this period")); });
-    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Decisions");
+    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Decisiones");
     const [companyId, from, to] = decisionHistoryMock.mock.lastCall!;
     expect(companyId).toBe("company-1");
     expect(Number.isFinite(Date.parse(from))).toBe(true);
@@ -191,11 +191,11 @@ describe("Shared Costs surfaces", () => {
   });
 
   it.each([
-    ["reservation", 500, "agent"], ["unknown price", 500, "agent"], ["amount", 500, "agent"],
-    ["amount", 0, "company"], ["amount", 0, "agent"], ["amount", 0, "project"],
+    ["reservation", 500, "agente"], ["unknown price", 500, "agente"], ["amount", 500, "agente"],
+    ["amount", 0, "company"], ["amount", 0, "agente"], ["amount", 0, "proyecto"],
   ] as const)("preserves other settings when editing %s from %s on a %s budget", async (field, previousAmount, scopeType) => {
     const summary = {
-      policyId: "policy", companyId: "company-1", scopeType, scopeId: "agent", scopeName: "Worker", metric: "billed_cents", windowKind: "lifetime",
+      policyId: "policy", companyId: "company-1", scopeType, scopeId: "agente", scopeName: "Worker", metric: "billed_cents", windowKind: "lifetime",
       amount: previousAmount, warnPercent: 65, hardStopEnabled: false, notifyEnabled: false, isActive: false, unpricedUsagePolicy: "allow", reservationCents: "2.0000000",
       observedAmount: 0, remainingAmount: 500, utilizationPercent: 0, unpricedEventCount: 0, pendingRunCount: 0, status: "ok", paused: false, pauseReason: null,
     };
@@ -228,7 +228,7 @@ describe("Shared Costs surfaces", () => {
 
   it("shows a safe policy-save failure without losing the operator's settings", async () => {
     const policy = {
-      policyId: "policy", companyId: "company-1", scopeType: "agent", scopeId: "agent", scopeName: "Worker", metric: "billed_cents", windowKind: "lifetime",
+      policyId: "policy", companyId: "company-1", scopeType: "agente", scopeId: "agente", scopeName: "Worker", metric: "billed_cents", windowKind: "lifetime",
       amount: 500, warnPercent: 65, hardStopEnabled: false, notifyEnabled: false, isActive: false, unpricedUsagePolicy: "allow", reservationCents: "2.0000000",
       observedAmount: 0, remainingAmount: 500, utilizationPercent: 0, unpricedEventCount: 0, pendingRunCount: 0, status: "ok", paused: false, pauseReason: null,
     };
@@ -254,7 +254,7 @@ describe("Shared Costs surfaces", () => {
     costsApiMocks.byUser.mockResolvedValue({ activeUserCount: 1, rows: [] });
     costsApiMocks.summary.mockResolvedValue({ spendCents: 200, budgetCents: 1000, pricingComplete: false });
     costsApiMocks.financeSummary.mockResolvedValue({ netCents: 0, debitCents: 0, creditCents: 0, estimatedDebitCents: 0, eventCount: 0 });
-    budgetOverviewMock.mockResolvedValue({ policies: [], activeIncidents: [{ id: "incident", scopeType: "agent", scopeName: "Codie", status: "open", thresholdType: "hard", amountObserved: 200, amountLimit: 1000 }], pausedAgentCount: 1, pausedProjectCount: 0 });
+    budgetOverviewMock.mockResolvedValue({ policies: [], activeIncidents: [{ id: "incident", scopeType: "agente", scopeName: "Codie", status: "open", thresholdType: "hard", amountObserved: 200, amountLimit: 1000 }], pausedAgentCount: 1, pausedProjectCount: 0 });
     resolveIncidentMock.mockRejectedValue(new Error("private database error"));
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     root = createRoot(container);
@@ -263,7 +263,7 @@ describe("Shared Costs surfaces", () => {
     await act(async () => [...container.querySelectorAll("button")].find(b => b.textContent === "Raise budget & resume")!.click());
     await act(async () => { await vi.waitFor(() => expect(container.querySelector('[role="alert"]')?.textContent).toContain("Could not update the budget")); });
     expect(resolveIncidentMock).toHaveBeenCalledWith("company-1", "incident", { incidentId: "incident", action: "raise_budget_and_resume", amount: 1200 });
-    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Overview");
+    expect(container.querySelector('[role="tab"][data-state="active"]')?.textContent).toBe("Resumen");
     expect(container.textContent).toContain("Check any pending runs or unpriced usage shown on this page");
     expect(container.textContent).not.toContain("private database error");
     queryClient.clear();
@@ -280,7 +280,7 @@ describe("Shared Costs surfaces", () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     root = createRoot(container);
     await act(async () => root.render(<MemoryRouter><QueryClientProvider client={queryClient}><Costs /></QueryClientProvider></MemoryRouter>));
-    const retry = () => [...container.querySelectorAll("button")].find(button => button.textContent === "Retry account check");
+    const retry = () => [...container.querySelectorAll("button")].find(button => button.textContent === "Reintentar la comprobación de cuentas");
     await act(async () => { await vi.waitFor(() => expect(retry()).toBeDefined()); });
     expect(container.textContent).toContain("$20.00/month");
     expect(container.textContent).not.toContain("private connection error");
@@ -304,16 +304,16 @@ describe("Shared Costs surfaces", () => {
     await act(async () => root.render(<MemoryRouter><QueryClientProvider client={queryClient}><Costs /></QueryClientProvider></MemoryRouter>));
     const card = (label: string) => [...container.querySelectorAll("div")].find(node => node.textContent === label)?.closest('[data-slot="card"]');
     await act(async () => { await vi.waitFor(() => expect(card("Subscriptions")?.textContent).toContain("$20.00/month")); });
-    expect(card("API spend")?.textContent).toContain("$2.00");
+    expect(card("Gasto de API")?.textContent).toContain("$2.00");
     subscriptionsMocks.report.mockResolvedValue({ ...report, activeCount: 1, monthlyTotals: [{ currency: "USD", amountCents: "2000", estimatedCount: 1 }], api: { ...report.api, costCents: "300" } });
     await act(async () => [...container.querySelectorAll("button")].find(button => button.textContent === "All Time")!.click());
-    await act(async () => { await vi.waitFor(() => expect(card("API spend")?.textContent).toContain("$3.00")); });
+    await act(async () => { await vi.waitFor(() => expect(card("Gasto de API")?.textContent).toContain("$3.00")); });
     expect(card("Subscriptions")?.textContent).toContain("$20.00/month");
     expect(subscriptionsMocks.report).toHaveBeenLastCalledWith("company-1", undefined, undefined);
     subscriptionsMocks.report.mockRejectedValue(new Error("private provider failure"));
     await act(async () => { await queryClient.invalidateQueries({ queryKey: ["cost-subscriptions"] }); });
     await act(async () => { await vi.waitFor(() => expect(container.textContent).toContain("Showing the last loaded API and subscription usage")); });
-    expect(card("API spend")?.textContent).toContain("$3.00");
+    expect(card("Gasto de API")?.textContent).toContain("$3.00");
     expect(card("Subscriptions")?.textContent).toContain("$20.00/month");
     expect(container.textContent).not.toContain("private provider failure");
     queryClient.clear();
@@ -327,7 +327,7 @@ describe("Shared Costs surfaces", () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     root = createRoot(container);
     await act(async () => root.render(<MemoryRouter><QueryClientProvider client={queryClient}><Costs /></QueryClientProvider></MemoryRouter>));
-    const budgetCard = () => [...container.querySelectorAll("div")].find(node => node.textContent === "Budget")?.closest('[data-slot="card"]');
+    const budgetCard = () => [...container.querySelectorAll("div")].find(node => node.textContent === "Presupuesto")?.closest('[data-slot="card"]');
     await act(async () => { await vi.waitFor(() => expect(budgetCard()?.textContent).toContain("20%")); });
     expect(budgetCard()?.textContent).toContain("$2.00 of $10.00 this month");
     costsApiMocks.summary.mockResolvedValue({ spendCents: 12000, budgetCents: 1000, utilizationPercent: 1200, pricingComplete: true });
@@ -336,7 +336,7 @@ describe("Shared Costs surfaces", () => {
     await act(async () => [...container.querySelectorAll("button")].find(b => b.textContent === "All Time")!.click());
     await act(async () => { await vi.waitFor(() => expect(container.textContent).toContain("$120.00")); });
     expect(budgetCard()?.textContent).toContain("$10.00");
-    expect(budgetCard()?.textContent).toContain("Monthly limit");
+    expect(budgetCard()?.textContent).toContain("Límite mensual");
     expect(container.textContent).not.toContain("1200%");
     expect(container.textContent).not.toContain("of monthly budget consumed");
     expect(costsApiMocks.summary).toHaveBeenLastCalledWith("company-1", undefined, undefined);
@@ -420,7 +420,7 @@ describe("Shared Costs surfaces", () => {
       { ...base, agentId: "codie", agentName: "Codie", estimatedEventCount: 2 },
       { ...base, agentId: "mixed", agentName: "Mixed", estimatedEventCount: 1 },
       { ...base, agentId: "reported", agentName: "Reported", estimatedEventCount: 0 },
-      { ...base, agentId: "legacy", agentName: "Legacy", eventCount: undefined },
+      { ...base, agentId: "legacy", agentName: "Heredado", eventCount: undefined },
     ]);
     costsApiMocks.byAgentModel.mockResolvedValue([
       { ...base, agentId: "mixed", provider: "openai", biller: "openai", billingType: "metered_api", model: "gpt-6-astra", eventCount: 1, estimatedEventCount: 1 },
@@ -435,14 +435,14 @@ describe("Shared Costs surfaces", () => {
       await vi.waitFor(() => expect(container.querySelector('[aria-label="Codie costs"]')).not.toBeNull());
     });
     const card = (name: string) => container.querySelector<HTMLElement>(`[aria-label="${name} costs"]`)!;
-    expect(card("Codie").textContent).toContain("Estimated");
+    expect(card("Codie").textContent).toContain("Estimado");
     expect(card("Codie").textContent).not.toContain("Partially estimated");
     expect(card("Mixed").textContent).toContain("Partially estimated");
     expect(card("Reported").textContent).not.toMatch(/Estimated|Partially estimated/);
-    expect(card("Legacy").textContent).not.toMatch(/Estimated|Partially estimated/);
+    expect(card("Heredado").textContent).not.toMatch(/Estimated|Partially estimated/);
     const projectBadge = (name: string) => [...container.querySelectorAll("span")]
       .find(element => element.textContent === name)!.parentElement!.querySelector('[data-slot="badge"]');
-    expect(projectBadge("Estimated project")?.textContent).toBe("Estimated");
+    expect(projectBadge("Estimated project")?.textContent).toBe("Estimado");
     expect(projectBadge("Mixed project")?.textContent).toBe("Partially estimated");
     expect(projectBadge("Reported project")).toBeNull();
     expect(container.textContent).not.toContain("Includes 3 estimated charges.");
@@ -452,7 +452,7 @@ describe("Shared Costs surfaces", () => {
     const breakdown = card("Mixed").querySelector(".border-l")!;
     expect(breakdown.textContent).toContain("gpt-6-astra");
     expect(breakdown.querySelectorAll('[data-slot="badge"]')).toHaveLength(1);
-    expect(breakdown.querySelector('[data-slot="badge"]')!.textContent).toBe("Estimated");
+    expect(breakdown.querySelector('[data-slot="badge"]')!.textContent).toBe("Estimado");
     // The count is for charges, not runs; it must not use apiRunCount or the
     // page-wide estimated count when determining whether a row is mixed.
     expect(breakdown.querySelector('[data-slot="badge"]')!.getAttribute("title")).toContain("1 estimated charge.");
@@ -469,15 +469,15 @@ describe("Shared Costs surfaces", () => {
       root.render(<MemoryRouter><QueryClientProvider client={queryClient}><Costs {...props} /></QueryClientProvider></MemoryRouter>);
     });
     const streamlined = name === "streamlined";
-    expect(container.querySelector(streamlined ? "h2" : "h1")?.textContent).toBe("Costs");
+    expect(container.querySelector(streamlined ? "h2" : "h1")?.textContent).toBe("Costes");
     if (streamlined) {
       expect(container.querySelector("h1")).toBeNull();
       expect(setBreadcrumbsMock).not.toHaveBeenCalled();
     } else {
-      expect(setBreadcrumbsMock).toHaveBeenCalledWith([{ label: "Costs" }]);
+      expect(setBreadcrumbsMock).toHaveBeenCalledWith([{ label: "Costes" }]);
     }
     expect([...container.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent)).toEqual(
-      streamlined ? ["Overview", "Providers", "Billers", "Finance", "Decisions", "Fast responses"] : ["Overview", "Budgets", "Providers", "Billers", "Finance", "Decisions", "Fast responses"],
+      streamlined ? ["Resumen", "Proveedores", "Facturadores", "Finanzas", "Decisiones", "Respuestas rápidas"] : ["Resumen", "Presupuestos", "Proveedores", "Facturadores", "Finanzas", "Decisiones", "Respuestas rápidas"],
     );
   });
 

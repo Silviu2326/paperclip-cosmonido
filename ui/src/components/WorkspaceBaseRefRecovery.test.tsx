@@ -40,10 +40,10 @@ async function render(data = metadata, unavailableReason: string | null = null) 
 it("binds the repair to the exact notice and sends an atomic recovery request", async () => {
   mocks.resolve.mockResolvedValue({ issue: { ...issue, status: "todo", executionWorkspaceSettings: { workspaceStrategy: { baseRef: "master" } } } });
   await render();
-  const button = [...container.querySelectorAll("button")].find(b => b.textContent === "Use master & retry")!;
+  const button = [...container.querySelectorAll("button")].find(b => b.textContent === "Usar master y reintentar")!;
   await act(async () => button.click());
   expect(mocks.resolve).toHaveBeenCalledExactlyOnceWith("issue", { actionId: "action", outcome: "restored", sourceIssueStatus: "todo", workspaceBaseRef: { requestedRef: "main", branch: "master" } });
-  expect(container.textContent).toContain("Branch updated · retry requested");
+  expect(container.textContent).toContain("Rama actualizada · reintento solicitado");
 });
 it("does not turn an unrelated notice into a repair", async () => {
   await render({ ...metadata, sections: [{ rows: [{ type: "key_value", label: "Recovery action", value: "other-action" }] }] });
@@ -52,9 +52,9 @@ it("does not turn an unrelated notice into a repair", async () => {
 it("does not report success from an incomplete receipt", async () => {
   mocks.resolve.mockResolvedValue({ issue });
   await render();
-  await act(async () => [...container.querySelectorAll("button")].find(b => b.textContent === "Use master & retry")!.click());
-  expect(container.querySelector('[role="alert"]')?.textContent).toContain("The task changed while saving");
-  expect(container.textContent).not.toContain("Branch updated · retry requested");
+  await act(async () => [...container.querySelectorAll("button")].find(b => b.textContent === "Usar master y reintentar")!.click());
+  expect(container.querySelector('[role="alert"]')?.textContent).toContain("La tarea cambió mientras se guardaba");
+  expect(container.textContent).not.toContain("Rama actualizada · reintento solicitado");
 });
 
 it("renders only the latest run notice when a repeated failure reuses the incident", async () => {
@@ -62,5 +62,5 @@ it("renders only the latest run notice when a repeated failure reuses the incide
   expect(container.textContent).toBe("No repair");
   await render(metadata);
   expect(mocks.get).toHaveBeenCalledWith("run");
-  expect(container.textContent).toContain("Use master & retry");
+  expect(container.textContent).toContain("Usar master y reintentar");
 });

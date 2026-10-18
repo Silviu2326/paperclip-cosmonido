@@ -29,7 +29,7 @@ export function Goals() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Target} message="Select an organization to view goals." />;
+    return <EmptyState icon={Target} message={t("goals.selectOrg")} />;
   }
 
   if (isLoading) {

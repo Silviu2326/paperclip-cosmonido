@@ -114,7 +114,7 @@ describe("CompanySettingsPluginPage", () => {
       "Permissions:company-1:PAP",
     );
     expect(mockSetBreadcrumbs).toHaveBeenCalledWith([
-      { label: "Settings", href: "/company/settings" },
+      { label: "Ajustes", href: "/company/settings" },
       { label: "Permissions" },
     ]);
 

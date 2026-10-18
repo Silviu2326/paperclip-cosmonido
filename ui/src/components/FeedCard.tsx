@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { t, useTranslation } from "@/i18n";
 
 /* ------------------------------------------------------------------ */
 /*  Canonical verb table — one verb per action, used on every card.    */
@@ -43,86 +44,86 @@ function formatVerb(
 ): string {
   switch (action) {
     case "issue.created":
-      return "opened";
+      return t("feedCard.opened");
     case "issue.updated": {
       const status = details?.status;
-      if (status === "in_review" && details?.externalConversationState === "waiting") return "moved to idle";
-      if (typeof status === "string") return `moved to ${humanize(status)}`;
+      if (status === "in_review" && details?.externalConversationState === "waiting") return t("feedCard.movedToIdle");
+      if (typeof status === "string") return t("feedCard.movedTo", { status: humanize(status) });
       const priority = details?.priority;
-      if (typeof priority === "string") return `set priority to ${humanize(priority)} on`;
-      return "updated";
+      if (typeof priority === "string") return t("feedCard.setPriority", { priority: humanize(priority) });
+      return t("feedCard.updated");
     }
     case "issue.document_created":
-      return "wrote doc on";
+      return t("feedCard.wroteDoc");
     case "issue.document_updated":
-      return "edited doc on";
+      return t("feedCard.editedDoc");
     case "issue.document_deleted":
-      return "deleted doc from";
+      return t("feedCard.deletedDoc");
     case "issue.work_product_created":
-      return "delivered work on";
+      return t("feedCard.deliveredWork");
     case "issue.work_product_updated":
-      return "updated work on";
+      return t("feedCard.updatedWork");
     case "issue.work_product_deleted":
-      return "removed work from";
+      return t("feedCard.removedWork");
     case "issue.checked_out":
-      return "picked up";
+      return t("feedCard.pickedUp");
     case "issue.released":
-      return "released";
+      return t("feedCard.released");
     case "issue.commented":
     case "issue.comment_added":
-      return "commented on";
+      return t("feedCard.commentedOn");
     case "issue.attachment_added":
-      return "attached a file to";
+      return t("feedCard.attachedFile");
     case "issue.attachment_removed":
-      return "removed attachment from";
+      return t("feedCard.removedAttachment");
     case "issue.deleted":
-      return "deleted";
+      return t("feedCard.deleted");
 
     case "approval.created":
-      return context === "pinned" ? "needs approval on" : "requested approval on";
+      return context === "pinned" ? t("feedCard.needsApproval") : t("feedCard.requestedApproval");
     case "approval.approved":
-      return "approved";
+      return t("feedCard.approved");
     case "approval.rejected":
-      return "rejected";
+      return t("feedCard.rejected");
     case "approval.revision_requested":
-      return "requested changes on";
+      return t("feedCard.requestedChanges");
 
     case "agent.created":
-      return context === "pinned" ? "wants to hire" : "hired";
+      return context === "pinned" ? t("feedCard.wantsToHire") : t("feedCard.hired");
     case "agent.paused":
-      return "paused";
+      return t("feedCard.paused");
     case "agent.resumed":
-      return "resumed";
+      return t("feedCard.resumed");
     case "agent.updated":
-      return "updated";
+      return t("feedCard.updated");
     case "agent.terminated":
-      return "terminated";
+      return t("feedCard.terminated");
 
     case "heartbeat.invoked":
-      return "started a run on";
+      return t("feedCard.startedRun");
     case "heartbeat.cancelled":
-      return "cancelled a run on";
+      return t("feedCard.cancelledRun");
 
     case "project.created":
-      return "created project";
+      return t("feedCard.createdProject");
     case "project.updated":
-      return "updated project";
+      return t("feedCard.updatedProject");
     case "project.deleted":
-      return "deleted project";
+      return t("feedCard.deletedProject");
     case "goal.created":
-      return "created goal";
+      return t("feedCard.createdGoal");
     case "goal.updated":
-      return "updated goal";
+      return t("feedCard.updatedGoal");
     case "goal.deleted":
-      return "deleted goal";
+      return t("feedCard.deletedGoal");
     case "company.created":
-      return "created organization";
+      return t("feedCard.createdOrg");
     case "company.updated":
-      return "updated organization";
+      return t("feedCard.updatedOrg");
     case "company.archived":
-      return "archived organization";
+      return t("feedCard.archivedOrg");
     case "company.budget_updated":
-      return "updated organization budget";
+      return t("feedCard.updatedOrgBudget");
 
     default:
       return action.replace(/[._]/g, " ");
@@ -295,10 +296,10 @@ function resolveContent(
   const actorName =
     actor?.name ??
     (event.actorType === "system"
-      ? "System"
+      ? t("feedCard.system")
       : event.actorType === "user"
-        ? "Board"
-        : event.actorId || "Unknown");
+        ? t("feedCard.board")
+        : event.actorId || t("feedCard.unknown"));
 
   const entityTitle = entityTitleMap?.get(`${event.entityType}:${event.entityId}`) ?? null;
 
@@ -353,7 +354,7 @@ function resolveContent(
     if (approvalAgentName) {
       identifier = approvalAgentName;
     } else {
-      identifier = approvalType ? humanize(approvalType) : "approval";
+      identifier = approvalType ? humanize(approvalType) : t("feedCard.approvalFallback");
       identifierMono = false;
     }
     title = entityTitle;
@@ -425,6 +426,7 @@ export function FeedCard({
   isPinned = false,
   className,
 }: FeedCardProps) {
+  const { t } = useTranslation();
   const details = event.details as Record<string, unknown> | null;
   const content = resolveContent(event, agentMap, entityNameMap, entityTitleMap);
   const verb = formatVerb(event.action, details, isPinned ? "pinned" : "chronological");
@@ -468,7 +470,7 @@ export function FeedCard({
         )}
       </span>
       {isPinned && (
-        <span className="shrink-0 text-xs text-muted-foreground">Review →</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{t("feedCard.review")} →</span>
       )}
       <span data-fc="time" className="shrink-0 text-muted-foreground">
         {timeAgo(event.createdAt)}

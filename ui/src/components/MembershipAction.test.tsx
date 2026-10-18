@@ -62,8 +62,8 @@ describe("MembershipAction", () => {
       />,
     );
 
-    expect(button().getAttribute("aria-label")).toBe("Leave Growth");
-    expect(button().textContent).toContain("Leave");
+    expect(button().getAttribute("aria-label")).toBe("Salir de Growth");
+    expect(button().textContent).toContain("Salir");
   });
 
   it("renders a join action for left resources", async () => {
@@ -76,8 +76,8 @@ describe("MembershipAction", () => {
       />,
     );
 
-    expect(button().getAttribute("aria-label")).toBe("Join Growth");
-    expect(button().textContent).toContain("Join");
+    expect(button().getAttribute("aria-label")).toBe("Unirse a Growth");
+    expect(button().textContent).toContain("Unirse");
   });
 
   it("prevents row navigation when clicked", async () => {
@@ -116,6 +116,6 @@ describe("MembershipAction", () => {
 
     expect(button().getAttribute("aria-busy")).toBe("true");
     expect(button().disabled).toBe(true);
-    expect(button().textContent).toContain("Joining...");
+    expect(button().textContent).toContain("Uniéndose...");
   });
 });

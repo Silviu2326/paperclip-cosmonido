@@ -1,4 +1,4 @@
-import { useTranslation } from "@/i18n";
+import { t, useTranslation } from "@/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Project } from "@paperclipai/shared";
@@ -31,10 +31,10 @@ type ProjectSortField = "name" | "updated" | "created" | "targetDate";
 type ProjectSortDir = "asc" | "desc";
 
 const PROJECT_SORT_OPTIONS: Array<{ field: ProjectSortField; label: string }> = [
-  { field: "name", label: "Name" },
-  { field: "updated", label: "Updated" },
-  { field: "created", label: "Created" },
-  { field: "targetDate", label: "Target date" },
+  { field: "name", label: t("projects.sortName") },
+  { field: "updated", label: t("projects.sortUpdated") },
+  { field: "created", label: t("projects.sortCreated") },
+  { field: "targetDate", label: t("projects.sortTargetDate") },
 ];
 
 function compareProjectNames(left: Project, right: Project) {
@@ -119,10 +119,10 @@ export function Projects() {
 
     return groups;
   }, [membershipsQuery.data, sortedProjects]);
-  const sortLabel = PROJECT_SORT_OPTIONS.find((option) => option.field === sortField)?.label ?? "Name";
+  const sortLabel = PROJECT_SORT_OPTIONS.find((option) => option.field === sortField)?.label ?? t("projects.sortName");
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Hexagon} message="Select an organization to view projects." />;
+    return <EmptyState icon={Hexagon} message={t("projects.selectOrganization")} />;
   }
 
   if (isLoading) {
@@ -163,7 +163,7 @@ export function Projects() {
                   {sortField === option.field ? (
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Check className="h-3 w-3" />
-                      {sortDir === "asc" ? "Asc" : "Desc"}
+                      {sortDir === "asc" ? t("projects.sortAsc") : t("projects.sortDesc")}
                     </span>
                   ) : null}
                 </button>
@@ -182,7 +182,7 @@ export function Projects() {
       {!isLoading && projects.length === 0 && (
         <EmptyState
           icon={Hexagon}
-          message="No projects yet."
+          message={t("projects.empty")}
           action={t("projects.addProject")}
           onAction={openNewProject}
         />
@@ -201,7 +201,7 @@ export function Projects() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-medium">{label}</h2>
                   <span className="text-xs text-muted-foreground">
-                    {sectionProjects.length} project{sectionProjects.length === 1 ? "" : "s"}
+                    {t("projects.projectCount", { count: sectionProjects.length })}
                   </span>
                 </div>
                 <Card className="block py-0 overflow-hidden divide-y divide-border">
@@ -227,9 +227,9 @@ export function Projects() {
                             {project.visibility === "private" ? <Lock className="size-4 shrink-0 text-muted-foreground" aria-label={t("projects.privateProject")} /> : null}
                             <span
                               className="hidden text-xs text-muted-foreground tabular-nums sm:inline"
-                              title={`${formatNumber(project.taskCount ?? 0)} task${(project.taskCount ?? 0) === 1 ? "" : "s"}`}
+                              title={t("projects.taskCount", { count: project.taskCount ?? 0, formatted: formatNumber(project.taskCount ?? 0) })}
                             >
-                              {formatNumber(project.taskCount ?? 0)} task{(project.taskCount ?? 0) === 1 ? "" : "s"}
+                              {t("projects.taskCount", { count: project.taskCount ?? 0, formatted: formatNumber(project.taskCount ?? 0) })}
                             </span>
                             {project.budget && (
                               <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">

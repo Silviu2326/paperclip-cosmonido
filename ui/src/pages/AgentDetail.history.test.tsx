@@ -36,7 +36,7 @@ it.each([
       <Tab runs={[]} companyId="company-1" agentId="agent-1" agentRouteId="agent-1" selectedRunId="older-run" adapterType="codex_local" adapterConfig={{}} />
     </ToastProvider></PanelProvider></MemoryRouter></QueryClientProvider>));
     await vi.waitFor(async () => { await act(async () => {}); expect(element.textContent).toContain("succeeded"); });
-    expect(element.textContent).not.toContain("No runs yet.");
+    expect(element.textContent).not.toContain("Aún no hay ejecuciones.");
     expect(get).toHaveBeenCalledWith("older-run");
   } finally { await act(async () => root.unmount()); client.clear(); element.remove(); }
 });

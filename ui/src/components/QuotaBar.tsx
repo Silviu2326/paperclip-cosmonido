@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 
 interface QuotaBarProps {
   label: string;
@@ -50,7 +51,7 @@ export function QuotaBar({
           aria-valuenow={Math.round(clampedPct)}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label={`${label}: ${Math.round(clampedPct)}%`}
+          aria-label={t("quotaBar.progressLabel", { label, percent: Math.round(clampedPct) })}
           className={cn(
             "absolute inset-y-0 left-0 transition-(--tp-width-background-color) duration-150",
             fillColor(clampedPct),

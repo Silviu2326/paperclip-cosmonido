@@ -26,6 +26,7 @@ import { externalObjectStatusIcon } from "../lib/status-colors";
 import { formatAssigneeUserLabel } from "../lib/assignees";
 import type { InboxApprovalFilter, InboxCategoryFilter } from "../lib/inbox";
 import { cn } from "../lib/utils";
+import { t } from "@/i18n";
 
 type AgentOption = {
   id: string;
@@ -60,18 +61,18 @@ type InboxScopeFilters = {
 };
 
 const INBOX_CATEGORY_OPTIONS: ReadonlyArray<[InboxCategoryFilter, string]> = [
-  ["everything", "All categories"],
-  ["issues_i_touched", "My recent tasks"],
-  ["join_requests", "Join requests"],
-  ["approvals", "Approvals"],
-  ["failed_runs", "Failed runs"],
-  ["alerts", "Alerts"],
+  ["everything", t("issueFilters.allCategories")],
+  ["issues_i_touched", t("issueFilters.myRecentTasks")],
+  ["join_requests", t("issueFilters.joinRequests")],
+  ["approvals", t("issueFilters.approvals")],
+  ["failed_runs", t("issueFilters.failedRuns")],
+  ["alerts", t("issueFilters.alerts")],
 ];
 
 const INBOX_APPROVAL_STATUS_OPTIONS: ReadonlyArray<[InboxApprovalFilter, string]> = [
-  ["all", "All approval statuses"],
-  ["actionable", "Needs action"],
-  ["resolved", "Resolved"],
+  ["all", t("issueFilters.allApprovalStatuses")],
+  ["actionable", t("issueFilters.needsAction")],
+  ["resolved", t("issueFilters.resolved")],
 ];
 
 const SEARCHABLE_FILTER_THRESHOLD = 6;
@@ -91,8 +92,8 @@ function FilterOptionSearch({
       <Input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={`Search ${label.toLowerCase()}...`}
-        aria-label={`Search ${label.toLowerCase()}`}
+        placeholder={t("issueFilters.searchNamed", { label: label.toLowerCase() })}
+        aria-label={t("issueFilters.searchAria", { label: label.toLowerCase() })}
         className="h-8 pl-7 text-xs"
       />
     </div>
@@ -215,7 +216,7 @@ export function IssueFiltersPopover({
                 className="text-xs text-muted-foreground hover:text-foreground"
                 onClick={clearFilters}
               >
-                Clear
+                {t("issueFilters.clear")}
               </button>
             ) : null}
           </div>
@@ -349,7 +350,7 @@ export function IssueFiltersPopover({
               <div className="space-y-1">
                 <span className="text-xs text-muted-foreground">Responsible</span>
                 {streamlined && (agents?.length ?? 0) + (currentUserId ? 2 : 1) > SEARCHABLE_FILTER_THRESHOLD ? (
-                  <FilterOptionSearch value={assigneeSearch} onChange={setAssigneeSearch} label="Responsible" />
+                  <FilterOptionSearch value={assigneeSearch} onChange={setAssigneeSearch} label={t("issueFilters.responsible")} />
                 ) : null}
                 <div data-filter-options="responsible" className={streamlined ? "space-y-0.5" : "max-h-32 space-y-0.5 overflow-y-auto"}>
                   <label className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50">
@@ -394,7 +395,7 @@ export function IssueFiltersPopover({
                             type="button"
                             className="rounded-full p-0.5 hover:bg-accent"
                             onClick={() => onChange({ creators: state.creators.filter((value) => value !== creator.id) })}
-                            aria-label={`Remove creator ${creator.label}`}
+                            aria-label={t("issueFilters.removeCreator", { name: creator.label })}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -407,7 +408,7 @@ export function IssueFiltersPopover({
                     <Input
                       value={creatorSearch}
                       onChange={(event) => setCreatorSearch(event.target.value)}
-                      placeholder="Search creators..."
+                      placeholder={t("issueFilters.searchCreators")}
                       className="h-8 pl-7 text-xs"
                     />
                   </div>
@@ -439,7 +440,7 @@ export function IssueFiltersPopover({
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground">Project</span>
                   {streamlined && projects.length > SEARCHABLE_FILTER_THRESHOLD ? (
-                    <FilterOptionSearch value={projectSearch} onChange={setProjectSearch} label="Projects" />
+                    <FilterOptionSearch value={projectSearch} onChange={setProjectSearch} label={t("issueFilters.projects")} />
                   ) : null}
                   <div data-filter-options="projects" className={streamlined ? "space-y-0.5" : "max-h-32 space-y-0.5 overflow-y-auto"}>
                     {(streamlined ? visibleProjects : projects).map((project) => (
@@ -461,7 +462,7 @@ export function IssueFiltersPopover({
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground">Labels</span>
                   {streamlined && labels.length > SEARCHABLE_FILTER_THRESHOLD ? (
-                    <FilterOptionSearch value={labelSearch} onChange={setLabelSearch} label="Labels" />
+                    <FilterOptionSearch value={labelSearch} onChange={setLabelSearch} label={t("issueFilters.labels")} />
                   ) : null}
                   <div data-filter-options="labels" className={streamlined ? "space-y-0.5" : "max-h-32 space-y-0.5 overflow-y-auto"}>
                     {(streamlined ? visibleLabels : labels).map((label) => (

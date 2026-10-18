@@ -116,7 +116,7 @@ describe("FrontmatterPanel", () => {
       onChange,
     });
     expandPanel(container);
-    const chipInput = container.querySelector<HTMLInputElement>('input[aria-label="Add tool"]')!;
+    const chipInput = container.querySelector<HTMLInputElement>('input[aria-label="Añadir herramienta"]')!;
     setValue(chipInput, "Grep");
     flushUi(() => {
       chipInput.dispatchEvent(
@@ -135,7 +135,7 @@ describe("FrontmatterPanel", () => {
       onChange,
     });
     expandPanel(container);
-    const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Value for author"]')!;
+    const valueInput = container.querySelector<HTMLInputElement>('input[aria-label="Valor de author"]')!;
     setValue(valueInput, "Anthropic");
     const last = onChange.mock.calls.at(-1)![0] as FrontmatterPanelChange;
     // author changes; version stays a NUMBER (not requoted) because it was untouched.
@@ -149,9 +149,9 @@ describe("FrontmatterPanel", () => {
     expandPanel(container);
 
     // Fields tab is disabled; the YAML textarea is shown instead.
-    const fieldsTab = findButtonByText(container, "Fields");
+    const fieldsTab = findButtonByText(container, "Campos");
     expect(fieldsTab?.getAttribute("aria-disabled")).toBe("true");
-    const yaml = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="Frontmatter YAML"]');
+    const yaml = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="YAML del frontmatter"]');
     expect(yaml?.value).toBe(raw);
     expect(container.querySelector("#fm-name")).toBeNull();
 
@@ -168,7 +168,7 @@ describe("FrontmatterPanel", () => {
       fileName: "SKILL.md",
     });
     const chip = container.querySelector('[data-testid="frontmatter-warning-chip"]');
-    expect(chip?.textContent).toContain("issue");
+    expect(chip?.textContent).toContain("problema");
   });
 
   it("flags a wrong-typed allowed-tools value instead of editing it as a list", () => {
@@ -177,7 +177,7 @@ describe("FrontmatterPanel", () => {
       hasFrontmatter: true,
     });
     expandPanel(container);
-    expect(container.textContent).toContain("Expected a list");
+    expect(container.textContent).toContain("Se esperaba una lista");
   });
 
   it("adds frontmatter to a file that has none, seeding name from the slug", () => {
@@ -208,8 +208,8 @@ describe("FrontmatterPanel", () => {
     const nameInput = container.querySelector<HTMLInputElement>("#fm-name");
     expect(nameInput?.readOnly).toBe(true);
     // No chip remove buttons, no add-tool input.
-    expect(container.querySelector('input[aria-label="Add tool"]')).toBeNull();
-    expect(container.querySelector('button[aria-label="Remove Read"]')).toBeNull();
+    expect(container.querySelector('input[aria-label="Añadir herramienta"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Quitar Read"]')).toBeNull();
   });
 
   it("keeps the full document byte-identical through split → panel → join with no edits", () => {

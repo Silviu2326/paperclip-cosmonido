@@ -60,6 +60,7 @@ import {
   type ContextualSidebarSurface,
 } from "../lib/shell-navigation";
 import { cn } from "../lib/utils";
+import { t } from "@/i18n";
 import { NotFoundPage } from "../pages/NotFound";
 import { PluginSlotMount, resolveRouteSidebarSlot, usePluginSlots } from "../plugins/slots";
 
@@ -312,8 +313,8 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
     });
     if (bounce) {
       pushToast?.({
-        title: `${matchedCompany.name} is archived`,
-        body: `Switched to ${bounce.name}.`,
+        title: t("layout.companyArchived", { name: matchedCompany.name }),
+        body: t("layout.switchedTo", { name: bounce.name }),
         tone: "info",
         dedupeKey: `archived-company-bounce:${matchedCompany.id}`,
       });
@@ -590,7 +591,7 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-(--z-200) focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        Skip to Main Content
+        {t("layout.skipToMain")}
       </a>
       <WorktreeBanner />
       <DevRestartBanner devServer={health?.devServer} />
@@ -600,7 +601,7 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
             type="button"
             className="fixed inset-0 z-40 bg-black/50"
             onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
+            aria-label={t("layout.closeSidebar")}
           />
         )}
 

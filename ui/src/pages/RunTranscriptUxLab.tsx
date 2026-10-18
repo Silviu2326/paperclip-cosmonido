@@ -3,6 +3,7 @@
 // are deliberate one-off decoration, reverted from --gradient-extract-*/--shadow-extract-*
 // tokens; the file is on the check-token-gates allowlist in ui/src/index.css.
 import { useState } from "react";
+import { t } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "../lib/utils";
@@ -23,26 +24,36 @@ const surfaceOptions: Array<{
 }> = [
   {
     id: "detail",
-    label: "Run Detail",
-    eyebrow: "Full transcript",
-    description: "The long-form run page with the `Nice | Raw` toggle and the most inspectable transcript view.",
+    label: t("runTranscriptUxLab.surfaceDetailLabel"),
+    eyebrow: t("runTranscriptUxLab.surfaceDetailEyebrow"),
+    description: t("runTranscriptUxLab.surfaceDetailDescription"),
     icon: MonitorCog,
   },
   {
     id: "live",
-    label: "Issue Widget",
-    eyebrow: "Live stream",
-    description: "The issue-detail live run widget, optimized for following an active run without leaving the task page.",
+    label: t("runTranscriptUxLab.surfaceLiveLabel"),
+    eyebrow: t("runTranscriptUxLab.surfaceLiveEyebrow"),
+    description: t("runTranscriptUxLab.surfaceLiveDescription"),
     icon: RadioTower,
   },
   {
     id: "dashboard",
-    label: "Dashboard Card",
-    eyebrow: "Dense card",
-    description: "The active-agents dashboard card, tuned for compact scanning while keeping the same transcript language.",
+    label: t("runTranscriptUxLab.surfaceDashboardLabel"),
+    eyebrow: t("runTranscriptUxLab.surfaceDashboardEyebrow"),
+    description: t("runTranscriptUxLab.surfaceDashboardDescription"),
     icon: PanelsTopLeft,
   },
 ];
+
+function modeLabel(mode: TranscriptMode) {
+  return mode === "nice" ? t("runTranscriptUxLab.modeNice") : t("runTranscriptUxLab.modeRaw");
+}
+
+function densityLabel(density: TranscriptDensity) {
+  return density === "compact"
+    ? t("runTranscriptUxLab.densityCompact")
+    : t("runTranscriptUxLab.densityComfortable");
+}
 
 function previewEntries(surface: SurfaceId) {
   if (surface === "dashboard") {
@@ -68,7 +79,7 @@ function RunDetailPreview({
       <div className="border-b border-border/60 bg-background/90 px-5 py-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="uppercase tracking-(--tracking-caps) text-(length:--text-nano)">
-            Run Detail
+            {t("runTranscriptUxLab.runDetailBadge")}
           </Badge>
           <StatusBadge status={streaming ? "running" : "succeeded"} />
           <span className="text-xs text-muted-foreground">
@@ -76,7 +87,7 @@ function RunDetailPreview({
           </span>
         </div>
         <div className="mt-2 text-sm font-medium">
-          Transcript ({runTranscriptFixtureEntries.length})
+          {t("runTranscriptUxLab.transcriptCount", { count: runTranscriptFixtureEntries.length })}
         </div>
       </div>
       <div className="max-h-(--sz-720px) overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(8,145,178,0.08),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.10),transparent_28%)] p-5">
@@ -104,10 +115,10 @@ function LiveWidgetPreview({
     <div className="overflow-hidden rounded-xl border border-cyan-500/25 bg-background/85 shadow-[0_20px_50px_rgba(6,182,212,0.10)]">
       <div className="border-b border-border/60 bg-secondary/[0.05] px-5 py-4">
         <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
-          Live Runs
+          {t("runTranscriptUxLab.liveRuns")}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
-          Compact live transcript stream for the issue detail page.
+          {t("runTranscriptUxLab.liveWidgetDescription")}
         </div>
       </div>
       <div className="px-5 py-4">
@@ -123,7 +134,7 @@ function LiveWidgetPreview({
             </div>
           </div>
           <Badge variant="outline" className="border-border/70 bg-background/70 px-2.5 py-1 text-(length:--text-micro) text-muted-foreground">
-            Open run
+            {t("runTranscriptUxLab.openRun")}
             <ExternalLink className="h-3 w-3" />
           </Badge>
         </div>
@@ -169,7 +180,7 @@ function DashboardPreview({
                 <Identity name={runTranscriptFixtureMeta.agentName} size="sm" />
               </div>
               <div className="mt-2 text-(length:--text-micro) text-muted-foreground">
-                {streaming ? "Live now" : "Finished 2m ago"}
+                {streaming ? t("runTranscriptUxLab.liveNow") : t("runTranscriptUxLab.finishedAgo")}
               </div>
             </div>
             <Badge variant="outline" className="[&>svg]:size-2.5 border-border/70 bg-background/70 py-1 text-(length:--text-nano) text-muted-foreground">
@@ -210,11 +221,11 @@ export function RunTranscriptUxLab() {
             <div className="mb-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-secondary/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
                 <FlaskConical className="h-3.5 w-3.5" />
-                UX Lab
+                {t("runTranscriptUxLab.labBadge")}
               </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight">Run Transcript Fixtures</h1>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight">{t("runTranscriptUxLab.pageTitle")}</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Built from a real Paperclip development run, then sanitized so no secrets, local paths, or environment details survive into the fixture.
+                {t("runTranscriptUxLab.pageDescription")}
               </p>
             </div>
 
@@ -267,7 +278,7 @@ export function RunTranscriptUxLab() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                  Source run {runTranscriptFixtureMeta.sourceRunId.slice(0, 8)}
+                  {t("runTranscriptUxLab.sourceRun", { id: runTranscriptFixtureMeta.sourceRunId.slice(0, 8) })}
                 </Badge>
                 <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
                   {runTranscriptFixtureMeta.issueIdentifier}
@@ -277,7 +288,7 @@ export function RunTranscriptUxLab() {
 
             <div className="mb-5 flex flex-wrap items-center gap-2">
               <span className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-                Controls
+                {t("runTranscriptUxLab.controls")}
               </span>
               <div className="inline-flex rounded-full border border-border/70 bg-background/80 p-1">
                 {(["nice", "raw"] as const).map((mode) => (
@@ -290,7 +301,7 @@ export function RunTranscriptUxLab() {
                     )}
                     onClick={() => setDetailMode(mode)}
                   >
-                    {mode}
+                    {modeLabel(mode)}
                   </button>
                 ))}
               </div>
@@ -305,7 +316,7 @@ export function RunTranscriptUxLab() {
                     )}
                     onClick={() => setDensity(nextDensity)}
                   >
-                    {nextDensity}
+                    {densityLabel(nextDensity)}
                   </button>
                 ))}
               </div>
@@ -315,7 +326,7 @@ export function RunTranscriptUxLab() {
                 className="rounded-full"
                 onClick={() => setStreaming((value) => !value)}
               >
-                {streaming ? "Show settled state" : "Show streaming state"}
+                {streaming ? t("runTranscriptUxLab.showSettled") : t("runTranscriptUxLab.showStreaming")}
               </Button>
             </div>
 

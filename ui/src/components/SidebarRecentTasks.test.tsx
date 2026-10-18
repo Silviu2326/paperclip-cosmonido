@@ -257,9 +257,9 @@ describe("SidebarRecentTasks", () => {
     await openActions("Menu task");
 
     const menu = document.body.querySelector('[data-slot="dropdown-menu-content"]');
-    expect(menu?.textContent).toContain("Rename");
-    expect(menu?.textContent).toContain("Archive");
-    expect(menu?.textContent).toContain("Pause/Restart");
+    expect(menu?.textContent).toContain("Renombrar");
+    expect(menu?.textContent).toContain("Archivar");
+    expect(menu?.textContent).toContain("Pausar/Reiniciar");
   });
 
   it("keeps an idle Slack conversation in recent history and labels it Idle", async () => {
@@ -272,7 +272,7 @@ describe("SidebarRecentTasks", () => {
     mockIssuesApi.get.mockResolvedValue(issue);
     await render();
     expect(container.textContent).toContain("Slack conversation");
-    expect(container.textContent).toContain("Idle");
+    expect(container.textContent).toContain("Inactiva");
   });
 
   it("archives a task from the inbox without hiding or removing the recent task", async () => {
@@ -295,7 +295,7 @@ describe("SidebarRecentTasks", () => {
     await render();
     await openActions("Archive me");
     await act(async () => {
-      menuItem("Archive")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Archivar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });
@@ -331,11 +331,11 @@ describe("SidebarRecentTasks", () => {
     const invalidateQueries = vi.spyOn(queryClient, "invalidateQueries");
     await openActions("Old title");
     await act(async () => {
-      menuItem("Rename")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Renombrar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
     });
 
-    const input = document.body.querySelector<HTMLInputElement>('input[aria-label="Task name"]');
+    const input = document.body.querySelector<HTMLInputElement>('input[aria-label="Nombre de la tarea"]');
     expect(input).not.toBeNull();
     await act(async () => {
       setInputValue(input!, "New title");
@@ -386,7 +386,7 @@ describe("SidebarRecentTasks", () => {
     await render();
     await openActions("Toggle work");
     await act(async () => {
-      menuItem("Pause/Restart")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Pausar/Reiniciar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });
@@ -398,7 +398,7 @@ describe("SidebarRecentTasks", () => {
 
     await openActions("Toggle work");
     await act(async () => {
-      menuItem("Pause/Restart")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Pausar/Reiniciar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });
@@ -451,7 +451,7 @@ describe("SidebarRecentTasks", () => {
     await render();
     await openActions("Retry restart");
     await act(async () => {
-      menuItem("Pause/Restart")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Pausar/Reiniciar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });
@@ -462,7 +462,7 @@ describe("SidebarRecentTasks", () => {
 
     await openActions("Retry restart");
     await act(async () => {
-      menuItem("Pause/Restart")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Pausar/Reiniciar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });
@@ -518,7 +518,7 @@ describe("SidebarRecentTasks", () => {
     await render();
     await openActions("Retry after upgrade");
     await act(async () => {
-      menuItem("Pause/Restart")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      menuItem("Pausar/Reiniciar")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       await Promise.resolve();
       await new Promise((resolve) => window.setTimeout(resolve, 0));
     });

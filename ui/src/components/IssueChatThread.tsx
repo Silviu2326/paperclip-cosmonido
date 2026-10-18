@@ -263,6 +263,7 @@ import {
 import { SourceTrustBadge } from "./SourceTrustBadge";
 import { CommentAttributionChip } from "./CommentAttributionChip";
 import { resolveCommentAttribution } from "../lib/comment-attribution";
+import { t } from "@/i18n";
 
 interface IssueChatMessageContext {
   feedbackDataSharingPreference: FeedbackDataSharingPreference;
@@ -451,14 +452,14 @@ function IssueChatLiveRunStatusLine({
   if (!active) return null;
 
   const primary = currentToolName
-    ? `Using ${currentToolName}`
+    ? t("issueChat.usingTool", { name: currentToolName })
     : lastAssistantSnippet
       ? lastAssistantSnippet
       : currentStatusMessage;
   const activityText = lastActivityElapsed
     ? lastActivityAgeMs !== null && lastActivityAgeMs >= 15_000
-      ? `no output for ${lastActivityElapsed} - still running`
-      : `${lastActivityElapsed} ago`
+      ? t("issueChat.noOutputFor", { time: lastActivityElapsed })
+      : t("issueChat.ago", { time: lastActivityElapsed })
     : "";
   const text = [primary, activityText].filter(Boolean).join(" · ");
   if (!text) return null;
@@ -807,12 +808,12 @@ export function IssueAssigneePausedNotice({
 
   const pauseDetail =
     agent.pauseReason === "budget"
-      ? "It was paused by a budget hard stop."
+      ? t("issueChat.pausedBudget")
       : agent.pauseReason === "import"
         ? "It arrived paused from an organization import — imported agents stay parked until you resume them."
         : agent.pauseReason === "system"
-          ? "It was paused by the system."
-          : "It was paused manually.";
+          ? t("issueChat.pausedSystem")
+          : t("issueChat.pausedManual");
   // Budget pauses clear on their own when the budget resets; resuming by hand
   // would fight the hard stop, so the action is only offered for the rest.
   const canResume = Boolean(onResume) && agent.pauseReason !== "budget";
@@ -837,7 +838,7 @@ export function IssueAssigneePausedNotice({
               disabled={resuming}
               data-testid="issue-assignee-paused-resume"
             >
-              {resuming ? "Resuming…" : "Resume agent"}
+              {resuming ? t("issueChat.resuming") : t("issueChat.resumeAgent")}
             </Button>
           ) : undefined
         }
@@ -854,9 +855,9 @@ function fallbackAuthorLabel(message: ThreadMessage) {
   if (typeof custom?.["authorName"] === "string") return custom["authorName"];
   if (typeof custom?.["runAgentName"] === "string")
     return custom["runAgentName"];
-  if (message.role === "assistant") return "Agent";
-  if (message.role === "user") return "You";
-  return "System";
+  if (message.role === "assistant") return t("issueChat.agent");
+  if (message.role === "user") return t("issueChat.you");
+  return t("issueChat.system");
 }
 
 function fallbackTextParts(message: ThreadMessage) {
@@ -1135,7 +1136,7 @@ export function SuccessfulRunHandoffCommentCallout({
 }
 
 function humanizeValue(value: string | null) {
-  if (!value) return "None";
+  if (!value) return t("issueChat.none");
   return value.replace(/_/g, " ");
 }
 
@@ -1160,10 +1161,10 @@ function formatInteractionActorLabel(args: {
     return (
       userLabelMap?.get(userId) ??
       formatAssigneeUserLabel(userId, currentUserId, userLabelMap) ??
-      "Board"
+      t("issueChat.board")
     );
   }
-  return "System";
+  return t("issueChat.system");
 }
 
 export { resolveIssueChatHumanAuthor } from "@/lib/issue-chat-human-author";
@@ -1259,15 +1260,15 @@ function IssueChatChainOfThought({
   let headerVerb: string;
   let headerSuffix: string | null = null;
   if (isActive) {
-    headerVerb = "Working";
-    if (liveElapsed) headerSuffix = `for ${liveElapsed}`;
+    headerVerb = t("issueChat.working");
+    if (liveElapsed) headerSuffix = t("issueChat.forDuration", { duration: liveElapsed });
   } else if (segmentTiming) {
     const durationMs = segmentTiming.endMs - segmentTiming.startMs;
     const durationText = formatDurationWords(durationMs);
-    headerVerb = "Worked";
-    if (durationText) headerSuffix = `for ${durationText}`;
+    headerVerb = t("issueChat.worked");
+    if (durationText) headerSuffix = t("issueChat.forDuration", { duration: durationText });
   } else {
-    headerVerb = "Worked";
+    headerVerb = t("issueChat.worked");
   }
 
   const toolSummary = toolCountSummary(toolParts);
@@ -1549,8 +1550,8 @@ function CopyablePreBlock({
           "absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-md bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity hover:text-foreground group-hover/pre:opacity-100",
           copied && "opacity-100",
         )}
-        title="Copy"
-        aria-label="Copy"
+        title={t("issueChat.copy")}
+        aria-label={t("issueChat.copy")}
         onClick={() => {
           void copyTextToClipboard(children)
             .then(() => {
@@ -1559,11 +1560,11 @@ function CopyablePreBlock({
             })
             .catch((error) => {
               toastActions?.pushToast({
-                title: "Copy failed",
+                title: t("issueChat.copyFailed"),
                 body:
                   error instanceof Error
                     ? error.message
-                    : "Unable to copy text",
+                    : t("issueChat.copyTextFailed"),
                 tone: "error",
               });
             });
@@ -1739,7 +1740,7 @@ function IssueChatProviderActivity({
       ? (value.payload as Record<string, unknown>)
       : {};
   const title =
-    typeof value.title === "string" ? value.title : "Provider activity";
+    typeof value.title === "string" ? value.title : t("issueChat.providerActivity");
   const summary = typeof value.summary === "string" ? value.summary : "";
   const steps = Array.isArray(payload.steps) ? payload.steps.slice(0, 256) : [];
   const children = Array.isArray(payload.children)
@@ -1821,7 +1822,7 @@ function IssueChatProviderActivity({
               return (
                 <div key={String(child.childId ?? index)}>
                   <span className="font-medium">
-                    {String(child.role ?? "Child agent")}
+                    {String(child.role ?? t("issueChat.childAgent"))}
                   </span>{" "}
                   · {String(child.status ?? "unknown")}
                   {child.summary ? ` — ${String(child.summary)}` : ""}
@@ -1850,7 +1851,7 @@ function IssueChatProviderActivity({
                       {String(source.title ?? href)}
                     </a>
                   ) : (
-                    <span>{String(source.title ?? "Unavailable source")}</span>
+                    <span>{String(source.title ?? t("issueChat.unavailableSource"))}</span>
                   )}{" "}
                   <span className="text-muted-foreground">
                     (provider-reported)
@@ -2020,7 +2021,7 @@ function IssueChatUserMessage({
   const queueReason =
     typeof custom.queueReason === "string" ? custom.queueReason : null;
   const queueBadgeLabel =
-    queueReason === "hold" ? "\u23f8 Deferred wake" : "Queued";
+    queueReason === "hold" ? "\u23f8 " + t("issueChat.deferredWake") : t("issueChat.queued");
   const pending = custom.clientStatus === "pending";
   const deleted = Boolean(custom.deletedAt);
   const queueTargetRunId =
@@ -2120,7 +2121,7 @@ function IssueChatUserMessage({
                 disabled={isInterruptingQueuedRun}
                 onClick={() => void onInterruptQueued(queueTargetRunId)}
               >
-                {isInterruptingQueuedRun ? "Interrupting..." : "Interrupt"}
+                {isInterruptingQueuedRun ? t("issueChat.interrupting") : t("issueChat.interrupt")}
               </Button>
             ) : null}
             {onCancelQueued ? (
@@ -2187,8 +2188,8 @@ function IssueChatUserMessage({
             <button
               type="button"
               className="inline-flex h-6 w-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-              title="Copy message"
-              aria-label="Copy message"
+              title={t("issueChat.copyMessage")}
+              aria-label={t("issueChat.copyMessage")}
               onClick={() => {
                 const text = message.content
                   .filter(
@@ -2204,11 +2205,11 @@ function IssueChatUserMessage({
                   })
                   .catch((error) => {
                     toastActions?.pushToast({
-                      title: "Copy failed",
+                      title: t("issueChat.copyFailed"),
                       body:
                         error instanceof Error
                           ? error.message
-                          : "Unable to copy message",
+                          : t("issueChat.copyMessageFailed"),
                       tone: "error",
                     });
                   });
@@ -2225,8 +2226,8 @@ function IssueChatUserMessage({
             <button
               type="button"
               className="inline-flex h-6 w-6 items-center justify-center text-muted-foreground transition-colors hover:text-destructive"
-              title="Delete comment"
-              aria-label="Delete comment"
+              title={t("issueChat.deleteComment")}
+              aria-label={t("issueChat.deleteComment")}
               onClick={handleDeleteComment}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -2262,7 +2263,7 @@ function IssueChatUserMessage({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete comment?</DialogTitle>
+            <DialogTitle>{t("issueChat.deleteCommentQuestion")}</DialogTitle>
             <DialogDescription>
               This will replace the comment with a deleted-comment marker.
             </DialogDescription>
@@ -2301,8 +2302,8 @@ function IssueChatAssistantMessage({
     onVote,
     agentMap,
     onStopRun,
-    stopRunLabel = "Stop run",
-    stoppingRunLabel = "Stopping...",
+    stopRunLabel = t("issueChat.stopRun"),
+    stoppingRunLabel = t("issueChat.stoppingRun"),
     stopRunVariant = "stop",
     runFinalizationActions = [],
     userLabelMap,
@@ -2316,7 +2317,7 @@ function IssueChatAssistantMessage({
       ? custom.authorName
       : typeof custom.runAgentName === "string"
         ? custom.runAgentName
-        : "Agent";
+        : t("issueChat.agent");
   const authorAgentId =
     typeof custom.authorAgentId === "string" ? custom.authorAgentId : null;
   const runId = typeof custom.runId === "string" ? custom.runId : null;
@@ -2427,8 +2428,8 @@ function IssueChatAssistantMessage({
       <button
         type="button"
         className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        title="Copy message"
-        aria-label="Copy message"
+        title={t("issueChat.copyMessage")}
+        aria-label={t("issueChat.copyMessage")}
         onClick={() => {
           void copyTextToClipboard(copyText)
             .then(() => {
@@ -2437,11 +2438,11 @@ function IssueChatAssistantMessage({
             })
             .catch((error) => {
               toastActions?.pushToast({
-                title: "Copy failed",
+                title: t("issueChat.copyFailed"),
                 body:
                   error instanceof Error
                     ? error.message
-                    : "Unable to copy message",
+                    : t("issueChat.copyMessageFailed"),
                 tone: "error",
               });
             });
@@ -2480,8 +2481,8 @@ function IssueChatAssistantMessage({
             variant="ghost"
             size="icon-xs"
             className="text-muted-foreground hover:text-foreground"
-            title="More actions"
-            aria-label="More actions"
+            title={t("issueChat.moreActions")}
+            aria-label={t("issueChat.moreActions")}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
@@ -2492,11 +2493,11 @@ function IssueChatAssistantMessage({
             onClick={() => {
               void copyTextToClipboard(copyText).catch((error) => {
                 toastActions?.pushToast({
-                  title: "Copy failed",
+                  title: t("issueChat.copyFailed"),
                   body:
                     error instanceof Error
                       ? error.message
-                      : "Unable to copy message",
+                      : t("issueChat.copyMessageFailed"),
                   tone: "error",
                 });
               });
@@ -2832,8 +2833,8 @@ function IssueChatFeedbackButtons({
             ? "text-green-600 dark:text-green-400"
             : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
-        title="Helpful"
-        aria-label="Helpful"
+        title={t("outputFeedback.helpful")}
+        aria-label={t("outputFeedback.helpful")}
         onClick={handleThumbsUp}
       >
         <ThumbsUp className="h-3.5 w-3.5" />
@@ -2849,8 +2850,8 @@ function IssueChatFeedbackButtons({
                 ? "text-amber-600 dark:text-amber-400"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
-            title="Needs work"
-            aria-label="Needs work"
+            title={t("outputFeedback.needsWork")}
+            aria-label={t("outputFeedback.needsWork")}
             onClick={handleThumbsDown}
           >
             <ThumbsDown className="h-3.5 w-3.5" />
@@ -2863,7 +2864,7 @@ function IssueChatFeedbackButtons({
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("outputFeedback.addNote")}
             className="min-h-20 resize-y bg-background text-sm"
             disabled={isSaving}
           />
@@ -2886,7 +2887,7 @@ function IssueChatFeedbackButtons({
               disabled={isSaving || !downvoteReason.trim()}
               onClick={handleSubmitReason}
             >
-              {isSaving ? "Saving..." : "Save note"}
+              {isSaving ? t("outputFeedback.saving") : t("outputFeedback.saveNote")}
             </Button>
           </div>
         </PopoverContent>
@@ -2903,7 +2904,7 @@ function IssueChatFeedbackButtons({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save your feedback sharing preference</DialogTitle>
+            <DialogTitle>{t("outputFeedback.sharingTitle")}</DialogTitle>
             <DialogDescription>
               Choose whether voted AI outputs can be shared with Paperclip Labs.
               This answer becomes the default for future thumbs up and thumbs
@@ -2911,7 +2912,7 @@ function IssueChatFeedbackButtons({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>This vote is always saved locally.</p>
+            <p>{t("outputFeedback.localOnly")}</p>
             <p>
               Choose{" "}
               <span className="font-medium text-foreground">Always allow</span>{" "}
@@ -2919,7 +2920,7 @@ function IssueChatFeedbackButtons({
               <span className="font-medium text-foreground">Don't allow</span>{" "}
               to keep this vote and future votes local.
             </p>
-            <p>You can change this later in Settings &gt; General.</p>
+            <p>{t("outputFeedback.changeLater")}</p>
             {termsUrl ? (
               <a
                 href={termsUrl}
@@ -2946,7 +2947,7 @@ function IssueChatFeedbackButtons({
                 ).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Don't allow"}
+              {isSaving ? t("outputFeedback.saving") : t("outputFeedback.dontAllow")}
             </Button>
             <Button
               type="button"
@@ -2961,7 +2962,7 @@ function IssueChatFeedbackButtons({
                 }).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Always allow"}
+              {isSaving ? t("outputFeedback.saving") : t("outputFeedback.alwaysAllow")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3046,7 +3047,7 @@ function ExpiredRequestConfirmationActivity({
               expanded && "rotate-180",
             )}
           />
-          {expanded ? "Hide confirmation" : "Expired confirmation"}
+          {expanded ? t("issueChat.hideConfirmation") : t("issueChat.expiredConfirmation")}
         </button>
       </div>
       {expanded ? (
@@ -3566,11 +3567,11 @@ function SystemNoticeCommentContent({
       })
       .catch((error) => {
         toastActions?.pushToast({
-          title: "Copy failed",
+          title: t("issueChat.copyFailed"),
           body:
             error instanceof Error
               ? error.message
-              : "Unable to copy system notice",
+              : t("issueChat.copyNoticeFailed"),
           tone: "error",
         });
       });
@@ -3586,11 +3587,11 @@ function SystemNoticeCommentContent({
       })
       .catch((error) => {
         toastActions?.pushToast({
-          title: "Copy failed",
+          title: t("issueChat.copyFailed"),
           body:
             error instanceof Error
               ? error.message
-              : "Unable to copy system notice link",
+              : t("issueChat.copyNoticeLinkFailed"),
           tone: "error",
         });
       });
@@ -3653,8 +3654,8 @@ function SystemNoticeCommentContent({
             <button
               type="button"
               className="inline-flex h-6 w-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-              title="Copy link"
-              aria-label="Copy link to system notice"
+              title={t("issueChat.copyLink")}
+              aria-label={t("issueChat.copyLinkNotice")}
               onClick={handleCopyLink}
             >
               {copiedLink ? (
@@ -3667,8 +3668,8 @@ function SystemNoticeCommentContent({
           <button
             type="button"
             className="inline-flex h-6 w-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-            title="Copy notice text"
-            aria-label="Copy system notice"
+            title={t("issueChat.copyNoticeText")}
+            aria-label={t("issueChat.copySystemNotice")}
             onClick={handleCopy}
           >
             {copied ? (
@@ -4531,7 +4532,7 @@ function IssueChatDeletedComment({
   const anchorId =
     typeof custom.anchorId === "string" ? custom.anchorId : undefined;
   const authorName =
-    typeof custom.authorName === "string" ? custom.authorName : "Comment";
+    typeof custom.authorName === "string" ? custom.authorName : t("issueChat.comment");
   const deletedDate = new Date(deletedAt);
   const deletedDateLabel = Number.isNaN(deletedDate.getTime())
     ? ""
@@ -4544,7 +4545,7 @@ function IssueChatDeletedComment({
       </div>
       <div className="min-w-0 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
         <span className="font-medium text-foreground/80">{authorName}</span>
-        <span> deleted this comment</span>
+        <span> {t("issueChat.deletedComment")}</span>
         {deletedDateLabel ? (
           <span className="text-xs"> · {deletedDateLabel}</span>
         ) : null}
@@ -5143,7 +5144,7 @@ const IssueChatComposer = forwardRef<
       } else if (onAttachImage) {
         const attachment = await onAttachImage(file);
         if (!attachment?.contentPath)
-          throw new Error("Upload did not return a file URL");
+          throw new Error(t("issueChat.uploadNoUrl"));
         if (
           !composerAttachmentsRef.current.some(
             (item) => item.id === attachmentId,
@@ -5175,7 +5176,7 @@ const IssueChatComposer = forwardRef<
               ? {
                   ...item,
                   status: "error",
-                  error: "This file type cannot be attached here",
+                  error: t("issueChat.fileTypeNotAllowed"),
                 }
               : item,
           ),
@@ -5188,7 +5189,7 @@ const IssueChatComposer = forwardRef<
             ? {
                 ...item,
                 status: "error",
-                error: err instanceof Error ? err.message : "Upload failed",
+                error: err instanceof Error ? err.message : t("issueChat.uploadFailed"),
               }
             : item,
         ),
@@ -5429,7 +5430,7 @@ const IssueChatComposer = forwardRef<
               setReviewError(false);
               try {
                 if (!onReviewConversation)
-                  throw new Error("Review unavailable");
+                  throw new Error(t("issueChat.reviewUnavailable"));
                 await onReviewConversation();
                 if (mountedTaskKey.current !== draftKey) return;
                 const reviewed = { ...uncertainSubmission, reviewed: true };
@@ -5448,7 +5449,7 @@ const IssueChatComposer = forwardRef<
             Review conversation
           </Button>
           {reviewError ? (
-            <p>Couldn’t refresh the conversation. Try reviewing it again.</p>
+            <p>{t("issueChat.refreshFailed")}</p>
           ) : null}
           {uncertainSubmission.reviewed ? (
             <>
@@ -5480,14 +5481,14 @@ const IssueChatComposer = forwardRef<
         readOnly={!!uncertainSubmission}
         value={body}
         onChange={changeBody}
-        placeholder="Reply"
+        placeholder={t("issueChat.reply")}
         mentions={mentions}
         onSubmit={handleSubmit}
         imageUploadHandler={
           canAcceptFiles
             ? async (file) => {
                 const url = await attachFile(file, false);
-                if (!url) throw new Error("Upload did not return a file URL");
+                if (!url) throw new Error(t("issueChat.uploadNoUrl"));
                 return url;
               }
             : undefined
@@ -5525,12 +5526,12 @@ const IssueChatComposer = forwardRef<
             const sizeLabel = formatAttachmentSize(attachment.size);
             const statusLabel =
               attachment.status === "uploading"
-                ? "Uploading to task"
+                ? t("issueChat.uploadingToTask")
                 : attachment.status === "error"
-                  ? (attachment.error ?? "Upload failed")
+                  ? (attachment.error ?? t("issueChat.uploadFailed"))
                   : attachment.inline
-                    ? "Inserted inline"
-                    : "Attached to task";
+                    ? t("issueChat.insertedInline")
+                    : t("issueChat.attachedToTask");
             return (
               <div
                 key={attachment.id}
@@ -5629,10 +5630,10 @@ const IssueChatComposer = forwardRef<
             ref={reassignTriggerRef}
             value={reassignTarget}
             options={reassignOptions}
-            placeholder="Responsible"
-            noneLabel="No responsible"
-            searchPlaceholder="Search responsible..."
-            emptyMessage="No responsible found."
+            placeholder={t("issueChat.responsible")}
+            noneLabel={t("issueChat.noResponsible")}
+            searchPlaceholder={t("issueChat.searchResponsible")}
+            emptyMessage={t("issueChat.noResponsibleFound")}
             onChange={selectAssignee}
             className="h-8 text-xs"
             renderTriggerValue={(option) => {
@@ -5677,8 +5678,8 @@ const IssueChatComposer = forwardRef<
             size="icon-sm"
             disabled={stopControl.stopping}
             onClick={() => void stopControl.stop()}
-            aria-label={stopControl.stopping ? "Stopping…" : "Stop"}
-            title="Stop response"
+            aria-label={stopControl.stopping ? t("issueChat.stopping") : t("issueChat.stop")}
+            title={t("issueChat.stopResponse")}
           >
             {stopControl.stopping ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -5692,7 +5693,7 @@ const IssueChatComposer = forwardRef<
             disabled={!canSubmit}
             onClick={() => void handleSubmit()}
           >
-            {submitting ? "Posting..." : "Send"}
+            {submitting ? t("issueChat.posting") : t("issueChat.send")}
           </Button>
         )}
       </div>
@@ -5718,7 +5719,7 @@ const IssueChatComposer = forwardRef<
           }}
         >
           <AlertDialogHeader>
-            <AlertDialogTitle>No responsible selected</AlertDialogTitle>
+            <AlertDialogTitle>{t("issueChat.noResponsibleSelected")}</AlertDialogTitle>
             <AlertDialogDescription>
               This comment will be posted without an assignee, so no agent will
               be woken to act on it. Go back to pick a responsible, or send
@@ -6546,8 +6547,8 @@ export function IssueChatThread({
   const resolvedEmptyMessage =
     emptyMessage ??
     (variant === "embedded"
-      ? "No run output yet."
-      : "This task conversation is empty. Start with a message below.");
+      ? t("issueChat.noRunOutput")
+      : t("issueChat.emptyConversation"));
   const previousErrorBoundaryMessagesRef = useRef<
     readonly ThreadMessage[] | null
   >(null);
@@ -6658,7 +6659,7 @@ export function IssueChatThread({
                     {legacyRecoverySourceIssue ? (
                       <SystemNotice
                         tone="info"
-                        label="Legacy recovery task"
+                        label={t("issueChat.legacyRecovery")}
                         body={
                           <span>
                             Legacy recovery task. Newer recovery actions live on

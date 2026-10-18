@@ -146,7 +146,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     provisionMock.mockResolvedValue({ ...makeState(), status: "ready", agentId: "a1" });
     await renderModal();
 
-    const submit = findButton("Configure");
+    const submit = findButton("Configurar");
     expect(submit).toBeTruthy();
     expect(submit!.disabled).toBe(true);
 
@@ -159,7 +159,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     });
     await flushReact();
 
-    const submitReady = findButton("Configure")!;
+    const submitReady = findButton("Configurar")!;
     expect(submitReady.disabled).toBe(false);
     flushSync(() => {
       submitReady.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -189,7 +189,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     expect(document.body.querySelector<HTMLInputElement>('[data-testid="model-input"]')?.value)
       .toBe("claude-haiku-4-5");
 
-    const submit = findButton("Configure")!;
+    const submit = findButton("Configurar")!;
     expect(submit.disabled).toBe(false);
     flushSync(() => {
       submit.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -214,12 +214,12 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     await renderModal(state);
     const summary = document.querySelector("summary")!;
     flushSync(() => summary.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-    flushSync(() => document.querySelector('[aria-label="Runner"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    flushSync(() => document.querySelector('[aria-label="Ejecutor"]')!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await flushReact();
     const runner = adapterType === "paperclip_runner" ? "legacy" : "paperclip";
     flushSync(() => document.querySelector(`[role="option"][data-value="${runner}"]`)!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await flushReact();
-    flushSync(() => findButton("Configure")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    flushSync(() => findButton("Configurar")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await flushReact();
     expect(provisionMock).toHaveBeenCalledWith("c1", "briefs", { runner });
     expect(state.agent?.adapterConfig).toEqual(savedConfig);
@@ -251,8 +251,8 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     await renderModal(state);
 
     expect(document.querySelector<HTMLInputElement>('[data-testid="model-input"]')?.value).toBe("gpt-5");
-    expect(findButton("Configure")?.disabled).toBe(false);
-    flushSync(() => findButton("Configure")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(findButton("Configurar")?.disabled).toBe(false);
+    flushSync(() => findButton("Configurar")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await flushReact();
 
     expect(provisionMock).toHaveBeenCalledWith("c1", "briefs", {
@@ -276,7 +276,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
       modelInput.dispatchEvent(new Event("input", { bubbles: true }));
     });
     await flushReact();
-    flushSync(() => findButton("Configure")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    flushSync(() => findButton("Configurar")!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     await flushReact();
     expect(provisionMock).toHaveBeenCalledWith("c1", "briefs", { adapterType: "paperclip_runner", adapterConfig: { ...savedConfig, model: "gpt-6-sol" } });
   });
@@ -297,8 +297,8 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     expect(document.body.querySelector('[role="alert"]')?.textContent)
       .toContain("claude-haiku-4-6");
     expect(document.body.querySelector('[role="alert"]')?.textContent)
-      .toContain("not available");
-    expect(findButton("Configure")?.disabled).toBe(true);
+      .toContain("no está disponible");
+    expect(findButton("Configurar")?.disabled).toBe(true);
     expect(provisionMock).not.toHaveBeenCalled();
   });
 
@@ -327,7 +327,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     await flushReact();
 
     flushSync(() => {
-      findButton("Configure")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      findButton("Configurar")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flushReact();
 
@@ -349,9 +349,9 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
       },
     }));
 
-    expect(document.body.textContent).toContain("needs command or endpoint fields");
+    expect(document.body.textContent).toContain("necesita campos de comando o de endpoint");
     expect(document.body.querySelector('[data-testid="model-input"]')).toBeNull();
-    const submit = findButton("Provision");
+    const submit = findButton("Aprovisionar");
     expect(submit).toBeTruthy();
     expect(submit!.disabled).toBe(false);
     flushSync(() => {
@@ -381,7 +381,7 @@ describe("ConfigureBuiltInAgentModal (PAP-12978)", () => {
     await flushReact();
 
     flushSync(() => {
-      findButton("Configure")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      findButton("Configurar")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flushReact();
 

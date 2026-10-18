@@ -516,7 +516,7 @@ describe("IssueProperties", () => {
     await waitForAssertion(() => {
       const link = container.querySelector('a[href="https://github.com/example/private-repo/pull/42"]');
       expect(link?.textContent).toBe("example/private-repo#42");
-      expect(container.textContent).toContain("Review requested");
+      expect(container.textContent).toContain("Revisión solicitada");
     });
     act(() => root.unmount());
   });
@@ -539,7 +539,7 @@ describe("IssueProperties", () => {
     await waitForAssertion(() => {
       expect(mockIssuesApi.listWorkProducts).toHaveBeenCalledWith("issue-1", expect.objectContaining({ refreshPullRequests: true }));
       expect(container.textContent).toContain("merged");
-      expect(container.textContent).not.toContain("Review requested");
+      expect(container.textContent).not.toContain("Revisión solicitada");
     });
     act(() => root.unmount());
   });
@@ -561,7 +561,7 @@ describe("IssueProperties", () => {
     </QueryClientProvider>));
     await waitForAssertion(() => {
       expect(container.textContent).toContain("merged");
-      expect(container.textContent).not.toContain("Review requested");
+      expect(container.textContent).not.toContain("Revisión solicitada");
     });
     act(() => root.unmount());
   });
@@ -579,12 +579,12 @@ describe("IssueProperties", () => {
     await waitForAssertion(() => {
       expect(mockIssuesApi.listWorkProducts).toHaveBeenCalledWith("issue-1", expect.objectContaining({ refreshPullRequests: true }));
       expect(container.querySelector(`a[href="${saved.url}"]`)).not.toBeNull();
-      expect(container.textContent).toContain("Review requested");
+      expect(container.textContent).toContain("Revisión solicitada");
     });
     finishRefresh([{ ...saved, metadata: { state: "merged" } }]);
     await waitForAssertion(() => {
       expect(container.textContent).toContain("merged");
-      expect(container.textContent).not.toContain("Review requested");
+      expect(container.textContent).not.toContain("Revisión solicitada");
     });
     act(() => root.unmount());
   });
@@ -615,7 +615,7 @@ describe("IssueProperties", () => {
       const row = links[0].closest("li")!;
       expect(row.textContent).toContain(provider.statusLabel);
       expect(row.querySelector("[data-external-liveness]")?.getAttribute("data-external-liveness")).toBe(provider.liveness);
-      expect(row.textContent?.includes("Review requested")).toBe(provider.review);
+      expect(row.textContent?.includes("Revisión solicitada")).toBe(provider.review);
     });
     act(() => root.unmount());
   });
@@ -2930,7 +2930,7 @@ describe("IssueProperties", () => {
     // this instant is 4:08 PM at UTC and 9:08 AM at UTC-7. What the row states
     // are actually about — the countdown and the attempt suffix — is asserted
     // exactly, and the countdown above is timezone-independent already.
-    expect(monitorRowText()).toContain("Today, 4:08 PM · Attempt 1");
+    expect(monitorRowText()).toContain("Today, 4:08 PM · Intento 1");
 
     renderMonitor(createIssue({
       executionPolicy: createExecutionPolicy({ monitor: { ...baseMonitorState, nextCheckAt: at(252) } }),

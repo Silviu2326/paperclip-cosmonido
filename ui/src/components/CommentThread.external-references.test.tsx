@@ -79,7 +79,7 @@ describe("CommentThread external object decoration (integration)", () => {
                     objectType: "pull_request",
                     statusCategory: "open",
                     liveness: "fresh",
-                    statusLabel: "Open",
+                    statusLabel: "Abierto",
                     displayTitle: "PR #77",
                   },
                 }}

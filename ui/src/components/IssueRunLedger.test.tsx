@@ -196,15 +196,15 @@ describe("IssueRunLedger", () => {
       ),
     });
 
-    expect(container.textContent).toContain("Advanced");
-    expect(container.textContent).toContain("Plan only");
-    expect(container.textContent).toContain("Empty response");
-    expect(container.textContent).toContain("Blocked");
-    expect(container.textContent).toContain("Failed");
-    expect(container.textContent).toContain("Completed");
-    expect(container.textContent).toContain("Needs follow-up");
-    expect(container.textContent).toContain("Exhausted");
-    expect(container.textContent).toContain("Continuation attempt 3");
+    expect(container.textContent).toContain("Avanzó");
+    expect(container.textContent).toContain("Solo plan");
+    expect(container.textContent).toContain("Respuesta vacía");
+    expect(container.textContent).toContain("Bloqueada");
+    expect(container.textContent).toContain("Fallida");
+    expect(container.textContent).toContain("Completada");
+    expect(container.textContent).toContain("Requiere seguimiento");
+    expect(container.textContent).toContain("Agotado");
+    expect(container.textContent).toContain("Intento de continuación 3");
   });
 
   it("renders historical runs without liveness metadata as unavailable", () => {
@@ -221,8 +221,8 @@ describe("IssueRunLedger", () => {
       ],
     });
 
-    expect(container.textContent).toContain("No liveness data");
-    expect(container.textContent).toContain("Stop Unavailable");
+    expect(container.textContent).toContain("Sin datos de actividad");
+    expect(container.textContent).toContain("Stop No disponible");
     expect(container.textContent).toContain("Last useful action Unavailable");
   });
 
@@ -278,8 +278,8 @@ describe("IssueRunLedger", () => {
       ],
     });
 
-    expect(container.textContent).toContain("Running now by CodexCoder");
-    expect(container.textContent).toContain("Checks after finish");
+    expect(container.textContent).toContain("Ejecutándose ahora por CodexCoder");
+    expect(container.textContent).toContain("Comprobaciones tras finalizar");
     expect(container.textContent).toContain("Last useful action No action recorded yet");
     expect(container.textContent).toContain("Stop Still running");
     expect(container.textContent).not.toContain("Liveness pending");
@@ -456,18 +456,18 @@ describe("IssueRunLedger", () => {
       onWatchdogDecision,
     });
 
-    expect(container.textContent).toContain("Critical output silence");
+    expect(container.textContent).toContain("Silencio crítico de salida");
     expect(container.textContent).toContain("PAP-404");
-    expect(container.textContent).toContain("Critical silence");
-    expect(container.textContent).toContain("Paperclip did not create new delegated recovery work");
+    expect(container.textContent).toContain("Silencio crítico");
+    expect(container.textContent).toContain("Paperclip no creó trabajo de recuperación delegado nuevo");
     const watchdogBanner = Array.from(container.querySelectorAll("p"))
-      .find((node) => node.textContent?.includes("Critical output silence"))
+      .find((node) => node.textContent?.includes("Silencio crítico de salida"))
       ?.closest("div");
     expect(watchdogBanner?.className).toContain("border-destructive/30");
     expect(watchdogBanner?.className).toContain("bg-destructive/10");
 
     const continueButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Continue monitoring"),
+      (button) => button.textContent?.includes("Seguir monitorizando"),
     );
     expect(continueButton).not.toBeUndefined();
     act(() => {
@@ -483,13 +483,13 @@ describe("IssueRunLedger", () => {
   it.each([
     {
       level: "suspicious" as const,
-      heading: "Output silence watchdog warning",
-      badge: "Output silence",
+      heading: "Aviso del watchdog por silencio de salida",
+      badge: "Silencio de salida",
     },
     {
       level: "critical" as const,
-      heading: "Critical output silence",
-      badge: "Critical silence",
+      heading: "Silencio crítico de salida",
+      badge: "Silencio crítico",
     },
   ])("renders a $level UI-only signal without an evaluation-task link", ({ level, heading, badge }) => {
     const onWatchdogDecision = vi.fn();
@@ -510,15 +510,15 @@ describe("IssueRunLedger", () => {
 
     expect(container.textContent).toContain(heading);
     expect(container.textContent).toContain(badge);
-    expect(container.textContent).toContain("Paperclip did not create or assign a recovery task");
+    expect(container.textContent).toContain("Paperclip no creó ni asignó una tarea de recuperación");
     expect(container.textContent).not.toContain("PAP-404");
     expect(container.querySelector('a[href^="/issues/"]')).toBeNull();
-    expect(container.textContent).toContain("Continue monitoring");
+    expect(container.textContent).toContain("Seguir monitorizando");
     expect(container.textContent).toContain("Snooze 1h");
-    expect(container.textContent).toContain("Mark false positive");
+    expect(container.textContent).toContain("Marcar como falso positivo");
 
     const continueButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.includes("Continue monitoring"),
+      (button) => button.textContent?.includes("Seguir monitorizando"),
     );
     act(() => {
       continueButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -539,11 +539,11 @@ describe("IssueRunLedger", () => {
       onWatchdogDecision,
     });
 
-    expect(container.textContent).toContain("Critical output silence");
+    expect(container.textContent).toContain("Silencio crítico de salida");
     expect(container.textContent).toContain("PAP-404");
-    expect(container.textContent).not.toContain("Continue monitoring");
+    expect(container.textContent).not.toContain("Seguir monitorizando");
     expect(container.textContent).not.toContain("Snooze 1h");
-    expect(container.textContent).not.toContain("Mark false positive");
+    expect(container.textContent).not.toContain("Marcar como falso positivo");
     expect(
       Array.from(container.querySelectorAll("button")).filter((button) =>
         /continue|snooze|false positive/i.test(button.textContent ?? ""),

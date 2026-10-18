@@ -41,6 +41,7 @@ import {
   SOURCE_COLLAPSE_MS,
   SOURCE_LINK_EXIT,
 } from "./onboarding/onboarding-motion";
+import { t } from "@/i18n";
 
 /**
  * Where the connect step's sign-in sequence is. Space and visibility land on
@@ -319,7 +320,7 @@ const onboardingDraftStorage = {
 };
 
 const INCOMPLETE_ONBOARDING_STATE_MESSAGE =
-  "Onboarding state is incomplete. Please restart onboarding and try again.";
+  t("onboardingWizard.incompleteState");
 
 /**
  * Thin gate in front of {@link OnboardingWizardInner}. The inner component's
@@ -1245,7 +1246,7 @@ function OnboardingWizardInner({
   */
   const connectCollapsed =
     connectPhase !== "idle" && connectPhase !== "unwindRow" && sourceSelected;
-  const connectProgress = adapterEnvLoading ? "Testing connection…" : loading ? "Connecting…" : null;
+  const connectProgress = adapterEnvLoading ? t("onboardingWizard.testingConnection") : loading ? t("onboardingWizard.connectingEllipsis") : null;
   const hasSavedSubscription = Boolean(savedSubscription || savedKeys.storedLogin.data ||
     (credentialMode !== "api" && managedBindingForStep()));
   const connectHasCard = credentialMode === "api" || connectStepNeedsLogin || connectStepHasNoSandbox || Boolean(connectProgress);
@@ -1390,27 +1391,27 @@ function OnboardingWizardInner({
   const connectSourceLabel = CONNECT_SOURCE_NAMES[adapterType] ?? adapterType;
   const connectCta: { label: string; icon: FooterPrimaryIcon; disabled: boolean } =
     connectProgress
-      ? { label: adapterEnvLoading ? "Testing…" : connectProgress, icon: "spinner", disabled: true }
+      ? { label: adapterEnvLoading ? t("onboardingWizard.testing") : connectProgress, icon: "spinner", disabled: true }
       : connectPhase === "waiting"
-      ? { label: "Waiting for code", icon: "spinner", disabled: true }
+      ? { label: t("onboardingWizard.waitingForCode"), icon: "spinner", disabled: true }
       : connectPhase === "connecting"
-        ? { label: "Connecting", icon: "spinner", disabled: true }
+        ? { label: t("onboardingWizard.connecting"), icon: "spinner", disabled: true }
         : connectPhase === "ready"
           ? connectStepNeedsLogin
             ? {
-                label: `Sign in to ${connectSourceLabel}`,
+                label: t("onboardingWizard.signInTo", { name: connectSourceLabel }),
                 icon: "none",
                 disabled: !connectAuthUrl,
               }
             : {
-                label: "Connect",
+                label: t("onboardingWizard.connect"),
                 icon: "arrow",
                 disabled:
                   !connectStepReady || (credentialMode === "api" && !apiKey.trim() && !selectedApiKey),
               }
           : // Nothing is chosen on arrival, and the row is what chooses. Until
             // it has been answered the button has nothing to do.
-            { label: "Next", icon: "arrow", disabled: true };
+            { label: t("onboardingWizard.next"), icon: "arrow", disabled: true };
 
   /**
    * Back, on the connect step, unwinds the sign-in before it leaves the step.
@@ -1712,7 +1713,7 @@ function OnboardingWizardInner({
     if (companyIdNow === companyIdAtStart || companyIdNow === returnedCompanyId) {
       return true;
     }
-    setError("Organization created, but onboarding switched to another organization.");
+    setError(t("onboardingWizard.orgSwitched"));
     return false;
   }
 
@@ -1788,7 +1789,7 @@ function OnboardingWizardInner({
       // dashboard) so they land on the conversation the agent will start in.
       navigate(prefix ? `/${prefix}/issues/${issueRef}` : `/issues/${issueRef}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to launch first task");
+      setError(err instanceof Error ? err.message : t("onboardingWizard.launchFailed"));
     } finally {
       setLoading(false);
     }
@@ -1831,8 +1832,8 @@ function OnboardingWizardInner({
     } catch (err) {
       setError(
         err instanceof Error
-          ? `Could not store the API key: ${err.message}`
-          : "Could not store the API key.",
+          ? t("onboardingWizard.storeKeyFailed", { message: err.message })
+          : t("onboardingWizard.storeKeyFailedPlain"),
       );
       return false;
     }
@@ -1912,7 +1913,7 @@ function OnboardingWizardInner({
   ): Promise<AdapterEnvironmentTestResult | null> {
     if (!createdCompanyId) {
       setAdapterEnvError(
-        "Create or select an organization before testing adapter environment."
+        t("onboardingWizard.createOrgFirst")
       );
       return null;
     }
@@ -1951,7 +1952,7 @@ function OnboardingWizardInner({
       } catch {
         if (!testIsCurrent()) return null;
         setAdapterEnvError(
-          "Could not load environment settings to determine which environment to test in. Retry the test.",
+          t("onboardingWizard.envSettingsFailed"),
         );
         return null;
       }
@@ -1987,7 +1988,7 @@ function OnboardingWizardInner({
         const native = adapters.find(adapter => adapter.type === "paperclip_runner");
         if (!codex || (codex.defaultRunner !== "paperclip" && codex.defaultRunner !== "legacy")
           || !codex.supportedRunners?.includes(codex.defaultRunner)) {
-          throw new Error("Could not confirm Codex runner availability for this environment. Retry setup.");
+          throw new Error(t("onboardingWizard.codexRunnerUnconfirmed"));
         }
         if (codex.defaultRunner !== "paperclip" && !codex?.disabled && !codex?.overriddenBuiltin
           && !native?.disabled && !native?.overriddenBuiltin) {
@@ -1997,7 +1998,7 @@ function OnboardingWizardInner({
             || typeof probe.details.leaseId !== "string" || !probe.details.leaseId) {
             throw new Error(typeof probe.details?.platformQualificationDiagnostic === "string"
               ? probe.details.platformQualificationDiagnostic
-              : probe.summary || "The environment's platform qualification could not be confirmed. Retry the connection probe or select Legacy runner in Advanced.");
+              : probe.summary || t("onboardingWizard.platformUnconfirmed"));
           }
           const refreshed = await queryClient.fetchQuery({ queryKey: availabilityKey, staleTime: 0,
             queryFn: () => adaptersApi.list({ companyId: createdCompanyId, environmentId }) });
@@ -2006,7 +2007,7 @@ function OnboardingWizardInner({
           const defaultRunner = refreshedCodex?.defaultRunner;
           if ((defaultRunner !== "paperclip" && defaultRunner !== "legacy")
             || !refreshedCodex?.supportedRunners?.includes(defaultRunner)) {
-            throw new Error("Could not confirm the environment's default runner. Retry setup.");
+            throw new Error(t("onboardingWizard.defaultRunnerUnconfirmed"));
           }
         }
       }
@@ -2028,7 +2029,7 @@ function OnboardingWizardInner({
       if (!testIsCurrent()) return null;
       adapterEnvErrorSelectionRef.current = selection || null;
       setAdapterEnvError(
-        err instanceof Error ? err.message : "Adapter environment test failed"
+        err instanceof Error ? err.message : t("onboardingWizard.envTestFailed")
       );
       return null;
     } finally {
@@ -2070,7 +2071,7 @@ function OnboardingWizardInner({
       setSelectedCompanyId(company.id);
       setStep(3);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create organization");
+      setError(err instanceof Error ? err.message : t("onboardingWizard.createOrgFailed"));
     } finally {
       creatingCompanyRef.current = false;
       setLoading(false);
@@ -2086,7 +2087,7 @@ function OnboardingWizardInner({
     if (adapterType === "paperclip_runner") {
       setAdapterType("claude_local");
       setModel("");
-      setError("Choose a harness to continue onboarding.");
+      setError(t("onboardingWizard.chooseHarness"));
       return;
     }
     if (createdAgentId) {
@@ -2105,7 +2106,7 @@ function OnboardingWizardInner({
         const selectedModelId = model.trim();
         if (!isValidOpenCodeModelId(selectedModelId)) {
           setError(
-            "OpenCode requires an explicit model in provider/model format."
+            t("onboardingWizard.opencodeModelFormat")
           );
           return;
         }
@@ -2113,13 +2114,13 @@ function OnboardingWizardInner({
           setError(
             adapterModelsError instanceof Error
               ? adapterModelsError.message
-              : "Failed to load OpenCode models."
+              : t("onboardingWizard.opencodeModelsFailed")
           );
           return;
         }
         if (adapterModelsLoading || adapterModelsFetching) {
           setError(
-            "OpenCode models are still loading. Please wait and try again."
+            t("onboardingWizard.opencodeModelsLoading")
           );
           return;
         }
@@ -2127,8 +2128,8 @@ function OnboardingWizardInner({
         if (!discoveredModels.some((entry) => entry.id === selectedModelId)) {
           setError(
             discoveredModels.length === 0
-              ? "No OpenCode models discovered. Run `opencode models` and authenticate providers."
-              : `Configured OpenCode model is unavailable: ${selectedModelId}`
+              ? t("onboardingWizard.opencodeNoModels")
+              : t("onboardingWizard.opencodeModelUnavailable", { model: selectedModelId })
           );
           return;
         }
@@ -2216,8 +2217,8 @@ function OnboardingWizardInner({
             ? result.checks.find(check => check.level === "error")?.message : undefined;
           setError(
             nativeCodexError || (result.status === "fail"
-              ? "The environment test failed. Fix the reported checks before you hire this agent."
-              : "No working authentication was found. Fix the reported checks before you hire this agent."),
+              ? t("onboardingWizard.envFailedHire")
+              : t("onboardingWizard.noAuthHire")),
           );
           return;
         }
@@ -2299,7 +2300,7 @@ function OnboardingWizardInner({
       setStep(5);
     } catch (err) {
       if (!isCurrent()) return;
-      setError(err instanceof Error ? err.message : "Failed to create agent");
+      setError(err instanceof Error ? err.message : t("onboardingWizard.createAgentFailed"));
     } finally {
       if (hiringAgentRef.current === attempt) hiringAgentRef.current = null;
       if (isCurrent()) setLoading(false);
@@ -2348,14 +2349,14 @@ function OnboardingWizardInner({
       const result = await runAdapterEnvironmentTest(configWithUnset);
       if (result?.status === "fail") {
         setError(
-          "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing."
+          t("onboardingWizard.retriedUnsetStillFailing")
         );
       }
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to unset ANTHROPIC_API_KEY and retry."
+          : t("onboardingWizard.unsetFailed")
       );
     } finally {
       setUnsetAnthropicLoading(false);
@@ -2614,12 +2615,12 @@ function OnboardingWizardInner({
                       title={
                         <motion.span key={step} {...titleSwapMotion} className="inline-block">
                           {step === 1
-                            ? "What is the name of your organization?"
+                            ? t("onboardingWizard.stepOrgName")
                             : step === 3
-                              ? "Create your first agent"
+                              ? t("onboardingWizard.stepFirstAgent")
                               : step === 4
-                                ? "Connect a model"
-                                : "Let's get started..."}
+                                ? t("onboardingWizard.stepConnectModel")
+                                : t("onboardingWizard.stepStart")}
                         </motion.span>
                       }
                     />
@@ -2641,8 +2642,8 @@ function OnboardingWizardInner({
                       <p className="pt-2 text-base leading-relaxed text-muted-foreground">
                         <motion.span key={step} {...titleSwapMotion} className="inline-block">
                           {step === 4
-                            ? "Paperclip works with your subscription or API keys."
-                            : `${agentName.trim() || "Your first agent"} is ready to work!`}
+                            ? t("onboardingWizard.worksWithKeys")
+                            : t("onboardingWizard.agentReady", { name: agentName.trim() || t("onboardingWizard.yourFirstAgent") })}
                         </motion.span>
                       </p>
                     </motion.div>
@@ -2668,7 +2669,7 @@ function OnboardingWizardInner({
               {step === 1 && (
                 <motion.div key="step-1" {...stepContentMotion} exit={stepHandoff ? stepContentMotion.exit : undefined} className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="onboarding-company-name">Name</Label>
+                    <Label htmlFor="onboarding-company-name">{t("onboardingWizard.name")}</Label>
                     <Input
                       id="onboarding-company-name"
                       className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none"
@@ -2696,7 +2697,7 @@ function OnboardingWizardInner({
               {step === 3 && (
                 <motion.div key="step-3" {...stepContentMotion} exit={stepHandoff ? stepContentMotion.exit : undefined} className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="onboarding-agent-name">Agent name</Label>
+                    <Label htmlFor="onboarding-agent-name">{t("onboardingWizard.agentName")}</Label>
                     {/*
                       Filled, not outlined, and the column's full width — the
                       same field the naming step before the hand-off draws.
@@ -2737,7 +2738,7 @@ function OnboardingWizardInner({
                         Picking one starts the sign-in now. The row is the
                         question, and answering it is what opens the card. */}
                     <ModelSourceTiles
-                      label="Model source"
+                      label={t("onboardingWizard.modelSource")}
                       sources={recommendedAdapters.map((opt) => ({
                         id: opt.type,
                         label: CONNECT_SOURCE_NAMES[opt.type] ?? opt.label,
@@ -2837,9 +2838,9 @@ function OnboardingWizardInner({
                       </p>
                     ) : credentialMode === "api" ? (
                       <OnboardingLoginCard
-                        instruction={savedKeys.options.length ? "Choose a saved API key or enter a new one" : `Provide your ${
+                        instruction={savedKeys.options.length ? t("onboardingWizard.chooseSavedKey") : `${t("onboardingWizard.provideKeyPrefix")} ${
                           CONNECT_SOURCE_NAMES[adapterType] ?? adapterType
-                        } API key to connect`}
+                        } ${t("onboardingWizard.provideKeySuffix")}`}
                       >
                         <SavedProviderKeySelect {...savedKeys} disabled={loading || adapterEnvLoading} value={selectedApiKey?.id ?? ""} onChange={(id) => {
                           setSelectedSavedKey(createdCompanyId ? { companyId: createdCompanyId, envKey: apiKeyEnvKeyFor(adapterType), id } : null);
@@ -2847,7 +2848,7 @@ function OnboardingWizardInner({
                         }} />
                         {!selectedApiKey && <OnboardingCardField
                           label="API key"
-                          placeholder="Enter API key here"
+                          placeholder={t("onboardingWizard.enterKey")}
                           masked
                           // The card is the answer to the tile just pressed, so
                           // the field is unambiguously the next thing. Carried
@@ -3040,8 +3041,8 @@ function OnboardingWizardInner({
                             onClick={() => void handleUnsetAnthropicApiKey()}
                           >
                             {unsetAnthropicLoading
-                              ? "Retrying..."
-                              : "Unset ANTHROPIC_API_KEY"}
+                              ? t("onboardingWizard.retrying")
+                              : t("onboardingWizard.unsetKey")}
                           </Button>
                         </div>
                       )}
@@ -3068,7 +3069,7 @@ function OnboardingWizardInner({
                           </p>
                           {adapterType === "claude_local" || adapterType === "codex_local" ? (
                             <p className="text-muted-foreground">
-                              If authentication fails, connect your subscription in the browser above or use an API key.
+                              {t("onboardingWizard.authFailsHint")}
                             </p>
                           ) : adapterType === "cursor" ||
                           adapterType === "gemini_local" ||
@@ -3110,8 +3111,8 @@ function OnboardingWizardInner({
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">
                         {adapterType === "openclaw_gateway"
-                          ? "Gateway URL"
-                          : "Webhook URL"}
+                          ? t("onboardingWizard.gatewayUrl")
+                          : t("onboardingWizard.webhookUrl")}
                       </label>
                       <input
                         className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm font-mono outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
@@ -3163,20 +3164,20 @@ function OnboardingWizardInner({
                   // prototype's own local flow draws with "Next".
                   primaryLabel={
                     step === 1
-                      ? "Continue"
+                      ? t("onboardingWizard.continue")
                       : step === 5
-                        ? "Get started"
+                        ? t("onboardingWizard.getStarted")
                         : step === 4
                           ? connectCta.label
-                          : "Next"
+                          : t("onboardingWizard.next")
                   }
                   primaryIcon={step === 4 ? connectCta.icon : undefined}
                   loadingLabel={
                     step === 1
-                      ? "Creating..."
+                      ? t("onboardingWizard.creating")
                       : step === 4
-                        ? "Connecting"
-                        : "Launching..."
+                        ? t("onboardingWizard.connecting")
+                        : t("onboardingWizard.launching")
                   }
                   // The browser-code login is finished on this screen, so the
                   // button is genuinely busy for its duration and shows it. The
@@ -3221,10 +3222,10 @@ function AdapterEnvironmentResult({
 }) {
   const statusLabel =
     result.status === "pass"
-      ? "Passed"
+      ? t("onboardingWizard.passed")
       : result.status === "warn"
-      ? "Warnings"
-      : "Failed";
+      ? t("onboardingWizard.warnings")
+      : t("onboardingWizard.failed");
   const statusClass =
     result.status === "pass"
       ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-accent dark:bg-accent/10"

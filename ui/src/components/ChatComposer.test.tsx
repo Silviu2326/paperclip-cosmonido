@@ -49,10 +49,10 @@ describe("ChatComposer", () => {
     return container.querySelector<HTMLTextAreaElement>('[data-testid="chat-composer-input"]')!;
   }
   function sendButton() {
-    return container.querySelector<HTMLButtonElement>('button[aria-label="Send message"]')!;
+    return container.querySelector<HTMLButtonElement>('button[aria-label="Enviar mensaje"]')!;
   }
   function attachButton() {
-    return container.querySelector<HTMLButtonElement>('button[aria-label="Attach files"]');
+    return container.querySelector<HTMLButtonElement>('button[aria-label="Adjuntar archivos"]');
   }
 
   it("renders a bare textarea + send and no attach button without a handler", () => {

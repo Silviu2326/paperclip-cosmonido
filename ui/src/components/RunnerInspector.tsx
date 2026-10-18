@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useCopyAction } from "@/lib/use-copy-action";
+import { t } from "@/i18n";
 
 type TraceEntry = Record<string, unknown>;
 type InspectorView = "overview" | "pipeline" | "trace";
@@ -88,9 +89,9 @@ const VIEW_OPTIONS: Array<{
   label: string;
   icon: typeof Layers3;
 }> = [
-  { value: "overview", label: "Overview", icon: Layers3 },
-  { value: "pipeline", label: "Pipeline", icon: ArrowRight },
-  { value: "trace", label: "Exact trace", icon: FileJson2 },
+  { value: "overview", label: t("runnerInspector.overview"), icon: Layers3 },
+  { value: "pipeline", label: t("runnerInspector.pipeline"), icon: ArrowRight },
+  { value: "trace", label: t("runnerInspector.exactTrace"), icon: FileJson2 },
 ];
 
 const RAW_TRACE_ACCESS_REVALIDATION_MS = 1_000;
@@ -151,13 +152,13 @@ function statusVariant(status: string | undefined) {
 }
 
 function traceBadgeLabel(status: string, expiresAt: string | Date) {
-  if (status === "capturing") return "Raw trace enabled";
-  if (status === "incomplete") return "Incomplete";
-  if (status === "truncated") return "Truncated";
-  if (status === "deleted") return "Deleted";
-  if (status === "expired") return "Expired";
+  if (status === "capturing") return t("runnerInspector.rawEnabled");
+  if (status === "incomplete") return t("runnerInspector.incomplete");
+  if (status === "truncated") return t("runnerInspector.truncated");
+  if (status === "deleted") return t("runnerInspector.deleted");
+  if (status === "expired") return t("runnerInspector.expired");
   const remainingMs = new Date(expiresAt).getTime() - Date.now();
-  if (!Number.isFinite(remainingMs) || remainingMs <= 0) return "Expired";
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) return t("runnerInspector.expired");
   const hours = Math.max(1, Math.ceil(remainingMs / (60 * 60 * 1_000)));
   return `Expires in ${hours}h`;
 }
@@ -214,11 +215,11 @@ function visibilityDecision(event: HeartbeatRunEvent) {
     return {
       visible: false,
       surface: "run_debug",
-      container: "Runner Inspector",
+      container: t("runnerInspector.title"),
       state: "hidden",
       action: "none",
       reasonCode: "presentation_surface_unregistered",
-      reason: "No production surface registration exists for this event type.",
+      reason: t("runnerInspector.noSurface"),
     };
   }
   return {
@@ -315,7 +316,7 @@ function buildOperations(
     groupEvents.forEach((event) => claimedEvents.add(event.id));
     const methods = unique(groupFrames.map(frameMethod));
     const itemTypes = unique(groupFrames.map(frameItemType));
-    const title = itemTypes.at(-1) || methods.at(-1) || text(groupFrames[0]?.direction) || "Provider frame";
+    const title = itemTypes.at(-1) || methods.at(-1) || text(groupFrames[0]?.direction) || t("runnerInspector.providerFrame");
     const firstFrame = groupFrames[0];
     const lastFrame = groupFrames.at(-1);
     const range = firstFrame === lastFrame
@@ -429,7 +430,7 @@ function JsonNode({
             type="button"
             className="mt-1 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={() => setExpanded(!isOpen)}
-            aria-label={isOpen ? "Collapse JSON value" : "Expand JSON value"}
+            aria-label={isOpen ? t("runnerInspector.collapseJson") : t("runnerInspector.expandJson")}
           >
             {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           </button>
@@ -447,7 +448,7 @@ function JsonNode({
         <span className="ml-auto hidden items-center gap-0.5 group-hover:flex">
           <button
             type="button"
-            title={pathCopy.copied ? "JSON path copied" : pathCopy.failed ? "Copy failed" : "Copy JSON path"}
+            title={pathCopy.copied ? t("runnerInspector.jsonPathCopied") : pathCopy.failed ? t("runnerInspector.copyFailed") : t("runnerInspector.copyJsonPath")}
             className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={() => void pathCopy.copy(path)}
           >
@@ -455,7 +456,7 @@ function JsonNode({
           </button>
           <button
             type="button"
-            title={valueCopy.copied ? "Value copied" : valueCopy.failed ? "Copy failed" : "Copy value"}
+            title={valueCopy.copied ? t("runnerInspector.valueCopied") : valueCopy.failed ? t("runnerInspector.copyFailed") : t("runnerInspector.copyValue")}
             className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={copyValue}
           >
@@ -484,7 +485,7 @@ function JsonNode({
   );
 }
 
-function JsonExplorer({ value, label = "Search this JSON" }: { value: unknown; label?: string }) {
+function JsonExplorer({ value, label = t("runnerInspector.searchJson") }: { value: unknown; label?: string }) {
   const [query, setQuery] = useState("");
   return (
     <div className="overflow-hidden rounded-md border border-border bg-muted/20">
@@ -524,7 +525,7 @@ function fieldMappings(entry: TraceEntry): ProviderTraceFieldMapping[] {
         .map((path) => ({
           inputPath: path,
           action: "dropped" as const,
-          reason: text(entry.reason) || "Field was not carried into the next stage",
+          reason: text(entry.reason) || t("runnerInspector.fieldNotCarried"),
         }))
     : [];
   return [...explicit, ...legacy];
@@ -592,12 +593,12 @@ function typedPrpFields(event: HeartbeatRunEvent) {
   const payload = record(prp.payload);
   const item = record(payload.item);
   return [
-    ["Event type", event.eventType],
-    ["Source event", text(prp.sourceEventId)],
-    ["Sequence", scalar(prp.sourceSequence) || String(event.seq)],
-    ["Item type", text(item.type) || text(payload.kind)],
-    ["Status", text(payload.status) || text(item.status)],
-    ["Query", text(payload.query) || text(item.query)],
+    [t("runnerInspector.eventType"), event.eventType],
+    [t("runnerInspector.sourceEvent"), text(prp.sourceEventId)],
+    [t("runnerInspector.sequence"), scalar(prp.sourceSequence) || String(event.seq)],
+    [t("runnerInspector.itemType"), text(item.type) || text(payload.kind)],
+    [t("runnerInspector.status"), text(payload.status) || text(item.status)],
+    [t("runnerInspector.query"), text(payload.query) || text(item.query)],
   ].filter(([, value]) => Boolean(value));
 }
 
@@ -610,7 +611,7 @@ function ProductionSurfacePreview({ event, runId }: { event: HeartbeatRunEvent; 
   );
   const item = transcriptToTaskChatItems(entries, {
     runId,
-    agentName: "Runner",
+    agentName: t("runnerInspector.runner"),
     running: false,
   }).find((candidate): candidate is TaskChatProtocolItem => candidate.kind === "protocol");
   if (item) return <TaskChatProtocolCard item={item} />;
@@ -757,7 +758,7 @@ export function RunnerInspector({
       })
       .catch((cause) => {
         if (!active || rawTraceAccessEpochRef.current !== loadEpoch) return;
-        setError(cause instanceof Error ? cause.message : "Runner inspection failed");
+        setError(cause instanceof Error ? cause.message : t("runnerInspector.inspectionFailed"));
       })
       .finally(() => {
         if (active && rawTraceAccessEpochRef.current === loadEpoch) {
@@ -896,7 +897,7 @@ export function RunnerInspector({
     if (requestedAccess?.runId !== runId || requestedAccess.allowed !== true) {
       return;
     }
-    if (!window.confirm("This exact provider frame may contain prompts, tool arguments, secrets, or reasoning. Reveal it now?")) return;
+    if (!window.confirm(t("runnerInspector.confirmReveal"))) return;
     const requestedRunId = runId;
     const frame = await heartbeatsApi.revealProviderTraceFrame(
       requestedRunId,
@@ -922,7 +923,7 @@ export function RunnerInspector({
     if (requestedAccess?.runId !== runId || requestedAccess.allowed !== true) {
       return;
     }
-    if (!window.confirm("Download the exact raw trace? It may contain sensitive prompts, tool arguments, and provider-only fields.")) return;
+    if (!window.confirm(t("runnerInspector.confirmDownload"))) return;
     const blob = await heartbeatsApi.downloadProviderTrace(runId);
     const currentAccess = rawTraceAccessRef.current;
     if (
@@ -941,7 +942,7 @@ export function RunnerInspector({
     if (currentAccess?.runId !== runId || currentAccess.allowed !== true) {
       return;
     }
-    if (!window.confirm("Delete this raw trace immediately? This cannot be undone.")) return;
+    if (!window.confirm(t("runnerInspector.confirmDelete"))) return;
     rawTraceAccessEpochRef.current += 1;
     const deletionAccess: RawTraceAccess = {
       ...currentAccess,
@@ -957,7 +958,7 @@ export function RunnerInspector({
     } catch (cause) {
       if (rawTraceAccessRef.current?.epoch === deletionAccess.epoch) {
         setError(
-          cause instanceof Error ? cause.message : "Raw trace deletion failed",
+          cause instanceof Error ? cause.message : t("runnerInspector.deleteFailed"),
         );
       }
       return;
@@ -1025,7 +1026,7 @@ export function RunnerInspector({
       >
         <SheetHeader className="border-b border-border pr-12">
           <div className="flex flex-wrap items-center gap-2">
-            <SheetTitle>Runner Inspector</SheetTitle>
+            <SheetTitle>{t("runnerInspector.title")}</SheetTitle>
             {inspection?.trace ? (
               <>
                 <Badge variant={statusVariant(inspection.trace.status)}>
@@ -1087,12 +1088,12 @@ export function RunnerInspector({
               <div className="space-y-6 p-5">
                 {loading ? <p className="text-sm text-muted-foreground">Loading run pipeline…</p> : null}
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                  <StatCard label="Provider" value={capturedProviders.join(", ") || inspection?.trace?.provider || "PRP only"} detail={inspection?.trace ? `captured through ${inspection.trace.provider}` : "capture was off"} />
-                  <StatCard label="Raw frames" value={frames.length} detail={inspection?.trace ? formatBytes(inspection.trace.byteCount) : "no exact bytes"} />
-                  <StatCard label="Operations" value={operations.length} detail="correlated groups" />
+                  <StatCard label={t("runnerInspector.provider")} value={capturedProviders.join(", ") || inspection?.trace?.provider || "PRP only"} detail={inspection?.trace ? `captured through ${inspection.trace.provider}` : t("runnerInspector.captureOff")} />
+                  <StatCard label={t("runnerInspector.rawFrames")} value={frames.length} detail={inspection?.trace ? formatBytes(inspection.trace.byteCount) : t("runnerInspector.noBytes")} />
+                  <StatCard label={t("runnerInspector.operations")} value={operations.length} detail={t("runnerInspector.correlatedGroups")} />
                   <StatCard label="PRP events" value={events.length} detail={`${visibleEventCount} visible`} />
-                  <StatCard label="Mappings" value={interpretations.length} detail={`${ignoredCount} ignored`} />
-                  <StatCard label="Run status" value={run?.status ?? "unknown"} detail={inspection?.trace ? traceBadgeLabel(inspection.trace.status, inspection.trace.expiresAt) : "Raw capture off"} />
+                  <StatCard label={t("runnerInspector.mappings")} value={interpretations.length} detail={t("runnerInspector.ignoredCount", { count: ignoredCount })} />
+                  <StatCard label={t("runnerInspector.runStatus")} value={run?.status ?? "unknown"} detail={inspection?.trace ? traceBadgeLabel(inspection.trace.status, inspection.trace.expiresAt) : t("runnerInspector.rawCaptureOff")} />
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   <section className="rounded-lg border border-border bg-card p-4">
@@ -1131,11 +1132,11 @@ export function RunnerInspector({
             <>
               <div className="grid gap-2 border-b border-border p-3 sm:grid-cols-2 xl:grid-cols-(--gtc-runner-inspector-filters)">
                 <div className="relative"><Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" /><Input className="pl-8" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search operations, fields, and events" /></div>
-                <Select value={direction} onValueChange={setDirection}><SelectTrigger><SelectValue placeholder="Direction" /></SelectTrigger><SelectContent><SelectItem value="all">All directions</SelectItem><SelectItem value="client_to_provider">Client → provider</SelectItem><SelectItem value="provider_to_client">Provider → client</SelectItem><SelectItem value="provider_stderr">Provider stderr</SelectItem></SelectContent></Select>
+                <Select value={direction} onValueChange={setDirection}><SelectTrigger><SelectValue placeholder={t("runnerInspector.direction")} /></SelectTrigger><SelectContent><SelectItem value="all">{t("runnerInspector.allDirections")}</SelectItem><SelectItem value="client_to_provider">{t("runnerInspector.clientToProvider")}</SelectItem><SelectItem value="provider_to_client">{t("runnerInspector.providerToClient")}</SelectItem><SelectItem value="provider_stderr">{t("runnerInspector.providerStderr")}</SelectItem></SelectContent></Select>
                 <Select value={nativeMethod} onValueChange={setNativeMethod}><SelectTrigger><SelectValue placeholder="Native method" /></SelectTrigger><SelectContent><SelectItem value="all">All native methods</SelectItem>{unique(frames.map(frameMethod)).sort().map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select>
                 <Select value={disposition} onValueChange={setDisposition}><SelectTrigger><SelectValue placeholder="Mapping" /></SelectTrigger><SelectContent><SelectItem value="all">All mappings</SelectItem>{["mapped", "generic", "ignored", "rejected", "operator_only"].map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select>
                 <Select value={prpType} onValueChange={setPrpType}><SelectTrigger><SelectValue placeholder="PRP type" /></SelectTrigger><SelectContent><SelectItem value="all">All PRP types</SelectItem>{unique(events.map((event) => event.eventType)).sort().map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select>
-                <Select value={visibility} onValueChange={setVisibility}><SelectTrigger><SelectValue placeholder="Visibility" /></SelectTrigger><SelectContent><SelectItem value="all">Visible + hidden</SelectItem><SelectItem value="visible">Visible</SelectItem><SelectItem value="hidden">Hidden</SelectItem></SelectContent></Select>
+                <Select value={visibility} onValueChange={setVisibility}><SelectTrigger><SelectValue placeholder={t("runnerInspector.visibility")} /></SelectTrigger><SelectContent><SelectItem value="all">{t("runnerInspector.visibleAndHidden")}</SelectItem><SelectItem value="visible">{t("runnerInspector.visible")}</SelectItem><SelectItem value="hidden">{t("runnerInspector.hidden")}</SelectItem></SelectContent></Select>
               </div>
               <div className="grid min-h-0 flex-1 lg:grid-cols-(--gtc-runner-inspector-pipeline)">
                 <ScrollArea className="border-r border-border">

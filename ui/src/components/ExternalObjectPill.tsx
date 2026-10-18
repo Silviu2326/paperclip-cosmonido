@@ -18,6 +18,7 @@ import {
   externalObjectTypeLabel,
 } from "../lib/external-objects";
 import { cn } from "../lib/utils";
+import { t, useTranslation } from "@/i18n";
 
 export interface ExternalObjectPillData {
   providerKey: string | null;
@@ -39,8 +40,8 @@ function githubObjectLabel(url: string | null | undefined): string | null {
     if (parsed.hostname !== "github.com") return null;
     const [, owner, repo, kind, number] = parsed.pathname.split("/");
     if (!owner || !repo || !number) return null;
-    if (kind === "pull") return `PR ${number}`;
-    if (kind === "issues") return `Issue ${number}`;
+    if (kind === "pull") return t("externalObjectPill.prNumber", { number });
+    if (kind === "issues") return t("externalObjectPill.issueNumber", { number });
     return null;
   } catch {
     return null;
@@ -110,6 +111,7 @@ export function ExternalObjectPill({
   inert,
   showProviderIcon = true,
 }: ExternalObjectPillProps) {
+  useTranslation();
   const overlay = externalObjectLivenessOverlay[object.liveness] ?? "";
   const providerLabel = externalObjectProviderLabel(object.providerKey);
   const typeLabel = externalObjectTypeLabel(object.objectType);

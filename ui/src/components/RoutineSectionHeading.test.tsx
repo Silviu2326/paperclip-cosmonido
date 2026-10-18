@@ -39,7 +39,7 @@ describe("RoutineSectionHeading", () => {
       root.render(<RoutineSectionHeading title="Overview" copyText={description} />);
     });
 
-    const button = container.querySelector('button[aria-label="Copy description"]');
+    const button = container.querySelector('button[aria-label="Copiar descripción"]');
     expect(button).not.toBeNull();
     expect(container.querySelector("#routine-section-title")?.textContent).toBe("Overview");
 
@@ -63,7 +63,7 @@ describe("RoutineSectionHeading", () => {
       root.render(<RoutineSectionHeading title="Triggers" />);
     });
 
-    expect(container.querySelector('button[aria-label="Copy description"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Copiar descripción"]')).toBeNull();
     expect(container.querySelector("#routine-section-title")?.textContent).toBe("Triggers");
 
     await act(async () => {

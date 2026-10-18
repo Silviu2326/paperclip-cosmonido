@@ -261,13 +261,13 @@ describe("ExecutionWorkspaceDetail plugin slots", () => {
     mockRouteLocation.pathname = "/execution-workspaces/workspace-1/configuration";
     await render(["workspaces.isolation"]);
     expect(container.querySelector('[data-testid="navigate"]')?.textContent).toBe("/execution-workspaces/workspace-1/issues");
-    expect(container.textContent).not.toContain("Workspace settings");
+    expect(container.textContent).not.toContain("Ajustes del espacio de trabajo");
   });
 
   it("hides configuration while keeping workspace access", async () => {
     await render(["workspaces.isolation"]);
-    expect(container.textContent).not.toContain("Configuration");
-    expect(container.textContent).toContain("Services");
+    expect(container.textContent).not.toContain("Configuración");
+    expect(container.textContent).toContain("Servicios");
   });
 
   it("scopes the plugin detail-tab discovery to execution_workspace and the workspace's company", async () => {
@@ -312,7 +312,7 @@ describe("ExecutionWorkspaceDetail plugin slots", () => {
       companyId: "company-1",
       scopeKind: "execution_workspace",
       scopeId: "workspace-1",
-      title: "Workspace summary",
+      title: "Resumen del espacio de trabajo",
     }));
     const summary = container.querySelector('[data-testid="summary-slot-card"]');
     const issues = container.querySelector('[data-testid="issues-list"]');
@@ -357,14 +357,14 @@ describe("ExecutionWorkspaceDetail plugin slots", () => {
     await render();
 
     expect(container.textContent).toContain("Workspace plugin tab is not available.");
-    expect(container.querySelector('a[href="/execution-workspaces/workspace-1/issues"]')?.textContent).toBe("Back to tasks");
-    expect(container.textContent).not.toContain("Workspace routines");
+    expect(container.querySelector('a[href="/execution-workspaces/workspace-1/issues"]')?.textContent).toBe("Volver a las tareas");
+    expect(container.textContent).not.toContain("Rutinas del espacio de trabajo");
     expect(container.querySelector('[data-testid="plugin-slot-mount"]')).toBeNull();
   });
 
   it("orders execution workspace plugin tabs against built-in tabs by slot order", async () => {
     mockPluginSlotState.slots = [
-      pluginSlot({ id: "default-tab", displayName: "Default" }),
+      pluginSlot({ id: "default-tab", displayName: "Por defecto" }),
       pluginSlot({ id: "changes-tab", displayName: "Changes", order: 25 }),
       pluginSlot({ id: "inspect-tab", displayName: "Inspect", order: 50 }),
     ];
@@ -373,14 +373,14 @@ describe("ExecutionWorkspaceDetail plugin slots", () => {
 
     const tabLabels = Array.from(container.querySelectorAll("[data-tab-value]")).map((tab) => tab.textContent);
     expect(tabLabels).toEqual([
-      "Tasks",
-      "Services",
+      "Tareas",
+      "Servicios",
       "Changes",
-      "Configuration",
-      "Runtime logs",
+      "Configuración",
+      "Logs de runtime",
       "Inspect",
-      "Routines",
-      "Default",
+      "Rutinas",
+      "Por defecto",
     ]);
   });
 });

@@ -106,9 +106,9 @@ describe("StandaloneBrowserControls", () => {
     });
     await flushReact();
 
-    expect(container.querySelector('[aria-label="Refresh"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="Share"]')).not.toBeNull();
-    expect(container.querySelector('[aria-label="Open in Browser"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Actualizar"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Compartir"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Abrir en el navegador"]')).not.toBeNull();
 
     await act(async () => {
       root.unmount();
@@ -131,7 +131,7 @@ describe("StandaloneBrowserControls", () => {
     });
     await flushReact();
 
-    expect(container.querySelector('[aria-label="Refresh"]')).toBeNull();
+    expect(container.querySelector('[aria-label="Actualizar"]')).toBeNull();
 
     await act(async () => {
       root.unmount();
@@ -154,14 +154,14 @@ describe("StandaloneBrowserControls", () => {
     });
     await flushReact();
 
-    expect(container.querySelector('[aria-label="Refresh"]')).toBeNull();
+    expect(container.querySelector('[aria-label="Actualizar"]')).toBeNull();
 
     await act(() => {
       media.setMatches("(display-mode: fullscreen)", true);
     });
     await flushReact();
 
-    expect(container.querySelector('[aria-label="Refresh"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Actualizar"]')).not.toBeNull();
 
     await act(async () => {
       root.unmount();

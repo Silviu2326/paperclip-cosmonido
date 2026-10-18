@@ -38,7 +38,7 @@ it("restores the server binding when the form is reopened after pairing without 
     return { bindingId: binding.id, pairingCode: "one-use-code", expiresAt: "2026-10-07T01:00:00Z" };
   });
   await render();
-  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Pair Dot")!.click());
+  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Vincular Dot")!.click());
   await flush();
   expect(container.querySelector("output")?.textContent).toBe(binding.id);
   // Closing the form discards its local adapter edits, while pairing is durable.
@@ -47,7 +47,7 @@ it("restores the server binding when the form is reopened after pairing without 
   await render();
   expect(container.querySelector("output")?.textContent).toBe(binding.id);
   expect(onBinding).toHaveBeenCalledTimes(1);
-  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Pair Dot")).toBe(false);
+  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Vincular Dot")).toBe(false);
 });
 
 it("does not restore a stale binding while revocation refreshes the connection", async () => {
@@ -57,11 +57,11 @@ it("does not restore a stale binding while revocation refreshes the connection",
   });
   await render();
   expect(container.querySelector("output")?.textContent).toBe(binding.id);
-  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Revoke connection")!.click());
+  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Revocar conexión")!.click());
   await flush();
   expect(container.querySelector("output")?.textContent).toBe("");
   expect(onBinding).toHaveBeenLastCalledWith("");
-  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Pair Dot")).toBe(true);
+  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Vincular Dot")).toBe(true);
 });
 
 it("keeps a revoked binding cleared when the follow-up connection read fails", async () => {
@@ -69,13 +69,13 @@ it("keeps a revoked binding cleared when the follow-up connection read fails", a
   api.delete.mockImplementation(async () => { api.get.mockRejectedValue(new Error("Connection refresh failed")); });
   await render();
   expect(container.querySelector("output")?.textContent).toBe(binding.id);
-  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Revoke connection")!.click());
+  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Revocar conexión")!.click());
   await flush();
   expect(container.querySelector("output")?.textContent).toBe("");
   expect(onBinding).toHaveBeenLastCalledWith("");
   expect(container.querySelector("[role=alert]")?.textContent).toBe("Connection refresh failed");
   expect(client.getQueryData(["dot-binding", "company", "agent"])).toMatchObject({ binding: null });
-  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Revoke connection")).toBe(false);
+  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent === "Revocar conexión")).toBe(false);
 });
 
 it("shows event testing when a connected Dot subscribes without a manual refresh", async () => {
@@ -84,12 +84,12 @@ it("shows event testing when a connected Dot subscribes without a manual refresh
   try {
     await act(async () => root.render(<QueryClientProvider client={client}><Form /></QueryClientProvider>));
     await act(async () => { await vi.advanceTimersByTimeAsync(20); });
-    expect(container.textContent).toContain("Event subscription: required");
-    expect(container.textContent).not.toContain("Test event delivery");
+    expect(container.textContent).toContain("Suscripción a eventos: requerida");
+    expect(container.textContent).not.toContain("Probar entrega de eventos");
     api.get.mockResolvedValue({ enabled: true, resourceUrl: "https://paperclip.example/mcp/runner", binding });
     await act(async () => { await vi.advanceTimersByTimeAsync(5020); });
-    expect(container.textContent).toContain("Test event delivery");
-    expect(container.textContent).toContain("Event subscription: verified");
+    expect(container.textContent).toContain("Probar entrega de eventos");
+    expect(container.textContent).toContain("Suscripción a eventos: verificada");
   } finally { vi.useRealTimers(); }
 });
 
@@ -102,10 +102,10 @@ it("copies the complete Dot setup with its server URL, one-use code and event in
   });
   vi.mocked(copyTextToClipboard).mockResolvedValue(undefined);
   await render();
-  expect(container.querySelector('[aria-label="Set up with Dot"]')).toBeNull();
-  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Pair Dot")!.click());
+  expect(container.querySelector('[aria-label="Configurar con Dot"]')).toBeNull();
+  await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Vincular Dot")!.click());
   await flush();
-  await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Set up with Dot"]')!.click());
+  await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Configurar con Dot"]')!.click());
   expect(copyTextToClipboard).toHaveBeenCalledTimes(1);
   const prompt = vi.mocked(copyTextToClipboard).mock.calls[0][0];
   expect(prompt).toContain("Add and enable a private MCP plugin");
@@ -120,15 +120,15 @@ it("copies the complete Dot setup with its server URL, one-use code and event in
   expect(prompt).toContain("paperclip_dot_inbox");
   expect(prompt).toContain("paperclip_dot_confirm_event");
   expect(prompt).toContain("Paperclip will send a test event automatically");
-  expect(document.querySelector('[aria-label="Setup prompt"]')?.textContent).toBe(prompt);
-  expect(document.querySelector(".agent-setup-copy")?.textContent).toBe("Copied to clipboard");
+  expect(document.querySelector('[aria-label="Prompt de configuración"]')?.textContent).toBe(prompt);
+  expect(document.querySelector(".agent-setup-copy")?.textContent).toBe("Copiado al portapapeles");
   expect(api.post).toHaveBeenCalledTimes(1);
   // Returning to setup cannot recover the one-use code from cached config.
   await act(async () => root.render(null));
   await render();
-  expect(container.querySelector('[aria-label="Set up with Dot"]')).toBeNull();
-  expect(document.querySelector('[aria-label="Setup prompt"]')).toBeNull();
-  expect(container.textContent).toContain("generate a fresh setup prompt");
+  expect(container.querySelector('[aria-label="Configurar con Dot"]')).toBeNull();
+  expect(document.querySelector('[aria-label="Prompt de configuración"]')).toBeNull();
+  expect(container.textContent).toContain("generar un prompt de configuración nuevo");
   expect(container.textContent).not.toContain("fresh-one-use-pairing-code");
 });
 
@@ -142,14 +142,14 @@ it("removes the copy action and open preview when the pairing code expires", asy
     vi.mocked(copyTextToClipboard).mockResolvedValue(undefined);
     await act(async () => root.render(<QueryClientProvider client={client}><Form /></QueryClientProvider>));
     await act(async () => { await vi.advanceTimersByTimeAsync(20); });
-    await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Pair Dot")!.click());
+    await act(async () => Array.from(container.querySelectorAll("button")).find(button => button.textContent === "Vincular Dot")!.click());
     await act(async () => { await vi.advanceTimersByTimeAsync(20); });
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Set up with Dot"]')!.click());
-    expect(document.querySelector('[aria-label="Setup prompt"]')?.textContent).toContain("soon-expiring-pairing-code");
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Configurar con Dot"]')!.click());
+    expect(document.querySelector('[aria-label="Prompt de configuración"]')?.textContent).toContain("soon-expiring-pairing-code");
     await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(container.querySelector('[aria-label="Set up with Dot"]')).toBeNull();
-    expect(document.querySelector('[aria-label="Setup prompt"]')).toBeNull();
-    expect(container.textContent).toContain("generate a fresh setup prompt");
+    expect(container.querySelector('[aria-label="Configurar con Dot"]')).toBeNull();
+    expect(document.querySelector('[aria-label="Prompt de configuración"]')).toBeNull();
+    expect(container.textContent).toContain("generar un prompt de configuración nuevo");
     expect(copyTextToClipboard).toHaveBeenCalledTimes(1);
   } finally { vi.useRealTimers(); }
 });

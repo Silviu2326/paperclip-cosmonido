@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TASK_VIEW_GROUPS, taskView, type TaskViewKey } from "@/lib/task-views";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
 
 /**
  * The single control that replaced both the Inbox tab bar and the implicit
@@ -26,6 +27,7 @@ export function TaskViewsMenu({
   /** Unread count surfaced next to the My-work group, mirroring the nav badge. */
   badgeCount?: number;
 }) {
+  const { t } = useTranslation();
   const active = taskView(value);
   return (
     <DropdownMenu>
@@ -34,7 +36,7 @@ export function TaskViewsMenu({
           size="sm"
           variant="outline"
           className="h-8 gap-1.5"
-          aria-label={`Change view — currently ${active.label}`}
+          aria-label={t("taskViewsMenu.changeView", { label: active.label })}
         >
           <span className="max-w-(--sz-160px) truncate font-medium">{active.label}</span>
           <ChevronDown aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground" />

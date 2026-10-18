@@ -60,7 +60,7 @@ describe("CaseChildrenTree", () => {
 
   it("shows the empty state with no children", () => {
     const root = render([]);
-    expect(container.textContent).toContain("No child cases");
+    expect(container.textContent).toContain("No hay casos secundarios.");
     act(() => root.unmount());
   });
 
@@ -91,10 +91,10 @@ describe("CaseChildrenTree", () => {
 
     expect(container.textContent).toContain("Child 5");
     expect(container.textContent).not.toContain("Child 6");
-    expect(container.textContent).toContain("Show 2 more");
+    expect(container.textContent).toContain("Mostrar 2 más");
 
     const showMore = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("Show 2 more")
+      button.textContent?.includes("Mostrar 2 más")
     );
     expect(showMore).toBeTruthy();
     act(() => {
@@ -103,7 +103,7 @@ describe("CaseChildrenTree", () => {
 
     expect(container.textContent).toContain("Child 6");
     expect(container.textContent).toContain("Child 7");
-    expect(container.textContent).not.toContain("Show 2 more");
+    expect(container.textContent).not.toContain("Mostrar 2 más");
     act(() => root.unmount());
   });
 });

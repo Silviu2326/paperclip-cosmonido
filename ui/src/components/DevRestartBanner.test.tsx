@@ -63,25 +63,25 @@ describe("DevRestartBanner", () => {
   it("confirms and requests an immediate restart while waiting for live runs", async () => {
     const node = render();
     const button = [...node.querySelectorAll("button")]
-      .find((entry) => entry.textContent?.includes("Restart now"));
+      .find((entry) => entry.textContent?.includes("Reiniciar ahora"));
 
-    expect(node.textContent).toContain("Waiting for 1 live run to finish");
+    expect(node.textContent).toContain("Esperando a que terminen 1 ejecución en curso");
     expect(button).toBeTruthy();
 
     await act(async () => {
       button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    expect(window.confirm).toHaveBeenCalledWith("Restart Paperclip now? This may interrupt 1 live run.");
+    expect(window.confirm).toHaveBeenCalledWith("¿Reiniciar Paperclip ahora? Puede interrumpir 1 ejecución en curso.");
     expect(mockHealthApi.requestDevServerRestart).toHaveBeenCalledTimes(1);
-    expect(node.textContent).toContain("Restart requested");
+    expect(node.textContent).toContain("Reinicio solicitado");
   });
 
   it("does not request restart when confirmation is declined", async () => {
     vi.mocked(window.confirm).mockReturnValue(false);
     const node = render();
     const button = [...node.querySelectorAll("button")]
-      .find((entry) => entry.textContent?.includes("Restart now"));
+      .find((entry) => entry.textContent?.includes("Reiniciar ahora"));
 
     await act(async () => {
       button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -94,20 +94,20 @@ describe("DevRestartBanner", () => {
     vi.useFakeTimers();
     const node = render();
     const button = [...node.querySelectorAll("button")]
-      .find((entry) => entry.textContent?.includes("Restart now")) as HTMLButtonElement | undefined;
+      .find((entry) => entry.textContent?.includes("Reiniciar ahora")) as HTMLButtonElement | undefined;
 
     await act(async () => {
       button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
     expect(button?.disabled).toBe(true);
-    expect(node.textContent).toContain("Restart requested");
+    expect(node.textContent).toContain("Reinicio solicitado");
 
     act(() => {
       vi.advanceTimersByTime(30_000);
     });
 
     expect(button?.disabled).toBe(false);
-    expect(node.textContent).toContain("Restart now");
+    expect(node.textContent).toContain("Reiniciar ahora");
   });
 });

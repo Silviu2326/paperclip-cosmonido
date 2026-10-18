@@ -118,7 +118,7 @@ describe("DocumentAnnotationPopover", () => {
     // The Comment button enables only after the controlled value updates, so its
     // enabled state proves the keydown handler now reads the typed text. Without
     // this wait the keydown can run against an empty composer and never submit.
-    const commentButton = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Comment")) as HTMLButtonElement;
+    const commentButton = Array.from(container.querySelectorAll("button")).find((button) => button.textContent?.includes("Comentar")) as HTMLButtonElement;
     await vi.waitFor(() => expect(commentButton.disabled).toBe(false));
     textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", metaKey: true, bubbles: true }));
     await vi.waitFor(() => expect(mutations.create).toHaveBeenCalledWith("Looks good"));
@@ -144,8 +144,8 @@ describe("DocumentAnnotationPopover", () => {
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
     await vi.waitFor(() => expect(textarea.value).toBe("A reply"));
     const buttons = Array.from(container.querySelectorAll("button"));
-    buttons.find((button) => button.textContent?.includes("Reply"))?.click();
-    buttons.find((button) => button.textContent?.includes("Resolve"))?.click();
+    buttons.find((button) => button.textContent?.includes("Responder"))?.click();
+    buttons.find((button) => button.textContent?.includes("Resolver"))?.click();
     await vi.waitFor(() => {
       expect(mutations.reply).toHaveBeenCalledWith({ threadId: "thread-1", body: "A reply" });
       expect(mutations.status).toHaveBeenCalledWith({ threadId: "thread-1", status: "resolved" });

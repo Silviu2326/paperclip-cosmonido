@@ -66,16 +66,16 @@ describe("AgentOverview", () => {
       </QueryClientProvider>,
     );
 
-    expect(markup).toContain("Identity");
-    expect(markup).toContain("Capabilities");
-    expect(markup).toContain("Harness / Runtime");
+    expect(markup).toContain("Identidad");
+    expect(markup).toContain("Capacidades");
+    expect(markup).toContain("Arnés / Entorno de ejecución");
     expect(markup).toContain("Design Guide");
     expect(markup).toContain("Simplify agent information architecture");
     expect(markup).toContain("PAP-42");
     expect(markup).toContain('href="/activity/costs?agentId=agent-1"');
     expect(markup).not.toContain("Run Activity");
     expect(markup).not.toContain("Tasks by Status");
-    expect(markup).not.toContain("Created by");
+    expect(markup).not.toContain("Creado por");
   });
 
   function renderOverview(createdByUserId: string | null, client: QueryClient) {
@@ -124,13 +124,13 @@ describe("AgentOverview", () => {
 
   it("shows who created the agent when the company has more than one human user", () => {
     const markup = renderWithDirectory("user-alice", ["user-alice", "user-bob"]);
-    expect(markup).toContain("Created by");
+    expect(markup).toContain("Creado por");
     expect(markup).toContain("Alice Admin");
   });
 
   it("hides the creator when only one human user shares the company with the Board", () => {
     const markup = renderWithDirectory("user-alice", ["user-alice", "local-board"]);
-    expect(markup).not.toContain("Created by");
+    expect(markup).not.toContain("Creado por");
   });
 
   function failedDirectoryClient() {
@@ -145,13 +145,13 @@ describe("AgentOverview", () => {
 
   it("shows an error when the company user directory cannot be loaded", () => {
     const markup = renderOverview("user-alice", failedDirectoryClient());
-    expect(markup).toContain("Created by");
-    expect(markup).toContain("Could not load creator");
+    expect(markup).toContain("Creado por");
+    expect(markup).toContain("No se pudo cargar el creador");
   });
 
   it.each([null, "local-board"])("keeps the creator row hidden for creator %s when the directory failed", (createdByUserId) => {
     const markup = renderOverview(createdByUserId, failedDirectoryClient());
-    expect(markup).not.toContain("Created by");
-    expect(markup).not.toContain("Could not load creator");
+    expect(markup).not.toContain("Creado por");
+    expect(markup).not.toContain("No se pudo cargar el creador");
   });
 });

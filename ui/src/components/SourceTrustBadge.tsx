@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { sourceTrustLabel } from "../lib/trust-policy-ui";
 import { cn } from "../lib/utils";
+import { t } from "@/i18n";
 
 export function SourceTrustBadge({
   sourceTrust,
@@ -18,9 +19,17 @@ export function SourceTrustBadge({
   if (!label) return null;
 
   const promoted = sourceTrust?.disposition === "promoted";
+  const artifactNames: Record<typeof artifactLabel, string> = {
+    comment: t("sourceTrustBadge.artifactComment"),
+    document: t("sourceTrustBadge.artifactDocument"),
+    "work product": t("sourceTrustBadge.artifactWorkProduct"),
+    content: t("sourceTrustBadge.artifactContent"),
+  };
   const tooltip = promoted
-    ? `Promoted from low-trust${sourceTrust.promotedAt ? ` on ${new Date(sourceTrust.promotedAt).toLocaleString()}` : ""}.`
-    : `Authored by a low-trust review agent. Raw ${artifactLabel} is not auto-shared with higher-trust agents.`;
+    ? sourceTrust.promotedAt
+      ? t("sourceTrustBadge.promotedOn", { date: new Date(sourceTrust.promotedAt).toLocaleString() })
+      : t("sourceTrustBadge.promoted")
+    : t("sourceTrustBadge.authoredByLowTrust", { artifact: artifactNames[artifactLabel] });
 
   return (
     <Tooltip>

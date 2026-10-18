@@ -81,7 +81,7 @@ const CLOUD_HEALTH = {
 const SELF_HOSTED_HEALTH = { status: "ok" as const, cloud: null };
 
 const RENAME_HINT =
-  "Renaming can change this company's task ID prefix. Existing task IDs are renumbered and old task links stop resolving.";
+  "Cambiar el nombre puede modificar el prefijo de ID de tareas de esta organización. Los ID de tareas existentes se renumeran y los enlaces antiguos dejan de funcionar.";
 
 describe("CompanySettings rename hint", () => {
   let container: HTMLDivElement;

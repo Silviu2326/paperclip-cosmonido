@@ -43,7 +43,7 @@ describe("StatusIcon", () => {
     expect(html).not.toContain("bg-cyan");
     expect(html).not.toContain("border-cyan");
     // Full blocked reason still rides on the accessible label.
-    expect(html).toContain("Blocked · waiting on active sub-task PAP-9");
+    expect(html).toContain("Bloqueada · esperando la subtarea activa PAP-9");
   });
 
   it("surfaces attention-required blocked copy and keeps the blocked glyph", () => {
@@ -62,7 +62,7 @@ describe("StatusIcon", () => {
         }}
       />,
     );
-    expect(html).toContain("Blocked · 3 blockers need attention; 2 covered by active work");
+    expect(html).toContain("Bloqueada · 3 bloqueos requieren atención; 2 cubiertos por trabajo activo");
     // needs_attention is not "covered", so it keeps the blocked glyph (not in_queue).
     expect(html).toContain("var(--status-task-icon-blocked)");
     expect(html).not.toContain("var(--status-task-icon-in_queue)");
@@ -84,14 +84,14 @@ describe("StatusIcon", () => {
         }}
       />,
     );
-    expect(html).toContain("Blocked · review stalled on PAP-2279");
+    expect(html).toContain("Bloqueada · revisión detenida en PAP-2279");
   });
 
   it("uses an accessible native button for the icon-only picker trigger", () => {
     const html = renderToStaticMarkup(<StatusIcon status="todo" onChange={() => {}} />);
     expect(html).toContain('viewBox="0 0 24 24"');
     expect(html).toContain('<button type="button"');
-    expect(html).toContain('aria-label="Change status (current: Todo)"');
+    expect(html).toContain('aria-label="Cambiar estado (actual: Por hacer)"');
   });
 
 });
@@ -124,17 +124,17 @@ describe("StatusIcon — glyph size (PAP-243a)", () => {
 describe("Slack idle status presentation", () => {
   it("labels verified waiting conversations Idle in icons, labels, badges and picker triggers", () => {
     const props = { status: "in_review", externalConversationState: "waiting" as const };
-    expect(renderToStaticMarkup(<StatusIcon {...props} showLabel />)).toContain(">Idle<");
-    expect(renderToStaticMarkup(<StatusIcon {...props} onChange={() => {}} />)).toContain('current: Idle');
-    expect(renderToStaticMarkup(<IssueStatusBadge {...props} />)).toContain(">Idle<");
+    expect(renderToStaticMarkup(<StatusIcon {...props} showLabel />)).toContain(">Inactiva<");
+    expect(renderToStaticMarkup(<StatusIcon {...props} onChange={() => {}} />)).toContain('actual: Inactiva');
+    expect(renderToStaticMarkup(<IssueStatusBadge {...props} />)).toContain(">Inactiva<");
   });
 
   it.each(["in_review", "blocked", "done", "cancelled"])("preserves %s without verified waiting", (status) => {
     const html = renderToStaticMarkup(<StatusIcon status={status} externalConversationState="active" showLabel />);
-    expect(html).not.toContain("Idle");
+    expect(html).not.toContain("Inactiva");
   });
 
   it("preserves an explicit terminal outcome even with stale waiting data", () => {
-    expect(renderToStaticMarkup(<IssueStatusBadge status="done" externalConversationState="waiting" />)).toContain(">Done<");
+    expect(renderToStaticMarkup(<IssueStatusBadge status="done" externalConversationState="waiting" />)).toContain(">Hecha<");
   });
 });

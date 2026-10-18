@@ -71,17 +71,17 @@ describe("IssueAssignedBacklogNotice", () => {
     });
     const notice = container.querySelector('[data-testid="issue-assigned-backlog-notice"]');
     expect(notice).not.toBeNull();
-    expect(notice?.textContent).toContain("Parked");
+    expect(notice?.textContent).toContain("En pausa");
     expect(notice?.textContent).toContain("ClaudeCoder");
     expect(notice?.textContent).toContain(
-      "will not be asked to work on this until status changes to To do or In progress.",
+      "no se le pedirá trabajar en esto hasta que el estado cambie a Por hacer o En curso.",
     );
     expect(notice?.textContent).toContain(
       "Comments still notify the assignee for questions or triage.",
     );
   });
 
-  it("falls back to 'the assignee' phrasing for a user-assigned parked issue", () => {
+  it("falls back to 'el responsable' phrasing for a user-assigned parked issue", () => {
     act(() => {
       root.render(
         <IssueAssignedBacklogNotice
@@ -94,7 +94,7 @@ describe("IssueAssignedBacklogNotice", () => {
     const notice = container.querySelector('[data-testid="issue-assigned-backlog-notice"]');
     expect(notice).not.toBeNull();
     expect(notice?.textContent).toContain(
-      "the assignee will not be asked to work on this until status changes to To do or In progress.",
+      "el responsable no se le pedirá trabajar en esto hasta que el estado cambie a Por hacer o En curso.",
     );
   });
 
@@ -112,7 +112,7 @@ describe("IssueAssignedBacklogNotice", () => {
     });
     const button = container.querySelector('[data-testid="issue-assigned-backlog-resume"]') as HTMLButtonElement | null;
     expect(button).not.toBeNull();
-    expect(button?.textContent).toBe("Resume now");
+    expect(button?.textContent).toBe("Reanudar ahora");
     act(() => {
       button?.click();
     });
@@ -134,6 +134,6 @@ describe("IssueAssignedBacklogNotice", () => {
     const button = container.querySelector('[data-testid="issue-assigned-backlog-resume"]') as HTMLButtonElement | null;
     expect(button).not.toBeNull();
     expect(button?.disabled).toBe(true);
-    expect(button?.textContent).toBe("Resuming…");
+    expect(button?.textContent).toBe("Reanudando…");
   });
 });

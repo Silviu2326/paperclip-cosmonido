@@ -64,7 +64,7 @@ describe("IssueColumnPicker presentation options", () => {
       />,
     );
 
-    const columnsButton = container?.querySelector<HTMLButtonElement>('button[title="Columns"]');
+    const columnsButton = container?.querySelector<HTMLButtonElement>('button[title="Columnas"]');
     expect(columnsButton).not.toBeNull();
     act(() => columnsButton?.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })));
 
@@ -79,8 +79,8 @@ describe("IssueColumnPicker presentation options", () => {
 
 describe("InboxIssueMetaLeading live state", () => {
   it("describes the canonical identifier at the trailing edge", () => {
-    expect(issueColumnDescription("id", "task")).toContain("trailing edge");
-    expect(issueColumnDescription("id", "legacy")).not.toContain("trailing edge");
+    expect(issueColumnDescription("id", "task")).toContain("borde final");
+    expect(issueColumnDescription("id", "legacy")).not.toContain("borde final");
   });
 
   it("shows the own Live chip for a running issue and never the subtree chip", () => {

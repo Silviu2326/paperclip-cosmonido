@@ -502,7 +502,7 @@ describe("IssueDocumentAnnotations", () => {
         '[data-testid="document-annotation-disabled-reason"]',
       );
       expect(reason).not.toBeNull();
-      expect(reason!.textContent).toMatch(/draft/i);
+      expect(reason!.textContent).toMatch(/borrador/i);
     });
   });
 

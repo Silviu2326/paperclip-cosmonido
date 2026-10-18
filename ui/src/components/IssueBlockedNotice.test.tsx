@@ -156,10 +156,10 @@ describe("IssueBlockedNotice", () => {
     expect(node.textContent).toContain(
       "A run finished successfully, but the task is still open. Paperclip needs someone to choose what happens next.",
     );
-    expect(node.textContent).toContain("Mark it done or cancelled.");
-    expect(node.textContent).toContain("Send it for review or ask for input.");
-    expect(node.textContent).toContain("Record what is blocking it and who owns that blocker.");
-    expect(node.textContent).toContain("Delegate follow-up work or queue a continuation.");
+    expect(node.textContent).toContain("Márcala como hecha o cancelada.");
+    expect(node.textContent).toContain("Envíala a revisión o pide información.");
+    expect(node.textContent).toContain("Registra qué la bloquea y quién es responsable de ese bloqueo.");
+    expect(node.textContent).toContain("Delega el trabajo de seguimiento o programa una continuación.");
     expect(node.textContent).toContain("Asked CodexCoder to choose the next step");
     expect(node.textContent).toContain("Detected progress: Updated the plan and left follow-up work.");
     expect(node.querySelector('[data-testid="issue-next-step-retry-now"]')).toBeNull();
@@ -227,7 +227,7 @@ describe("IssueBlockedNotice", () => {
     // The amber alarm and every remediation bullet are gone...
     expect(node.querySelector('[data-successful-run-handoff="required"]')).toBeNull();
     expect(node.textContent).not.toContain("This task still needs a next step.");
-    expect(node.textContent).not.toContain("Mark it done or cancelled.");
+    expect(node.textContent).not.toContain("Márcala como hecha o cancelada.");
     expect(node.querySelector(".bg-amber-50\\/90")).toBeNull();
 
     // ...replaced by one quiet line that links the live run.
@@ -235,7 +235,7 @@ describe("IssueBlockedNotice", () => {
     expect(calm).not.toBeNull();
     expect(calm!.getAttribute("data-successful-run-handoff")).toBe("in_flight");
     expect(node.textContent).toContain(
-      "A correction run is in progress — the agent is working. This alert returns if the run stops without choosing a next step.",
+      "Hay una ejecución de corrección en curso: el agente está trabajando. Esta alerta vuelve a aparecer si la ejecución se detiene sin elegir un siguiente paso.",
     );
     const runLink = calm!.querySelector("a");
     expect(runLink?.getAttribute("href")).toBe(
@@ -270,7 +270,7 @@ describe("IssueBlockedNotice", () => {
     expect(calm).not.toBeNull();
     // No `liveRunId` on the payload — the copy stands alone, with no run link.
     expect(calm!.querySelector("a")).toBeNull();
-    expect(node.textContent).toContain("A correction run is in progress");
+    expect(node.textContent).toContain("Hay una ejecución de corrección en curso");
   });
 
   it("omits the run link but keeps the calm copy when the live run has no known agent", () => {
@@ -345,7 +345,7 @@ describe("IssueBlockedNotice", () => {
     expect(node.querySelector('[data-successful-run-handoff="required"]')).not.toBeNull();
     expect(node.querySelector('[data-testid="issue-next-step-retry-now"]')).not.toBeNull();
     // The carve-out wins over the calm line: the alarm is the only thing that
-    // keeps "Retry now" reachable, so it must not be quieted or duplicated.
+    // keeps "Reintentar ahora" reachable, so it must not be quieted or duplicated.
     expect(node.querySelector('[data-testid="issue-next-step-in-flight"]')).toBeNull();
     expect(node.textContent).toContain("This task still needs a next step.");
   });
@@ -500,7 +500,7 @@ describe("IssueBlockedNotice", () => {
 
     expect(node.textContent).toContain("Waiting on live work");
     expect(node.textContent).toContain(
-      "This task resumes automatically when the chain is done.",
+      "Esta tarea se reanuda automáticamente cuando termina la cadena.",
     );
 
     const stepLinks = Array.from(
@@ -674,7 +674,7 @@ describe("IssueBlockedNotice", () => {
 
     const nowRunning = node.querySelector('[data-testid="issue-blocked-notice-now-running"]');
     expect(nowRunning).not.toBeNull();
-    expect(nowRunning!.children[0]?.textContent?.trim()).toBe("Now running");
+    expect(nowRunning!.children[0]?.textContent?.trim()).toBe("Ejecutándose ahora");
     expect(nowRunning!.children[1]?.querySelector("a")?.textContent).toContain("TASK-99");
     const stepText = node.querySelector('[data-testid="issue-blocked-notice-steps"]')?.textContent;
     expect(stepText).not.toContain("TASK-99");

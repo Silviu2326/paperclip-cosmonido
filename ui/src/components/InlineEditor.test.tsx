@@ -176,7 +176,7 @@ describe("InlineEditor", () => {
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith("");
-    expect(container.textContent).toContain("Saved");
+    expect(container.textContent).toContain("Guardado");
 
     act(() => {
       root.unmount();

@@ -79,7 +79,7 @@ describe("CloudAccessGate restart recovery", () => {
   it.each(checks)("recovers from an HTML response on %s without navigating", async (path) => {
     failingPath = path;
     await render();
-    expect(container.textContent).toContain("Reconnecting to Paperclip");
+    expect(container.textContent).toContain("Reconectando con Paperclip");
     expect(container.textContent).not.toContain("Unexpected token");
     expect(container.querySelector("[data-redirect]")).toBeNull();
     expect(container.querySelector("textarea")).toBeNull();
@@ -91,7 +91,7 @@ describe("CloudAccessGate restart recovery", () => {
     await vi.advanceTimersByTimeAsync(1_100);
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
-    expect(container.textContent).not.toContain("Reconnecting");
+    expect(container.textContent).not.toContain("Reconectando");
     const callsAfterRecovery = fetchMock.mock.calls.length;
     await vi.advanceTimersByTimeAsync(15_000);
     expect(fetchMock).toHaveBeenCalledTimes(callsAfterRecovery);
@@ -108,21 +108,21 @@ describe("CloudAccessGate restart recovery", () => {
     await flushReact();
     expect(container.querySelector("textarea")).toBe(editor);
     expect(editor.value).toBe("Keep my unsaved changes");
-    expect(container.textContent).toContain("Reconnecting automatically");
+    expect(container.textContent).toContain("Reconectando automáticamente");
 
     failingPath = null;
     await vi.advanceTimersByTimeAsync(5_100);
     await flushReact();
     expect(container.querySelector("textarea")).toBe(editor);
     expect(editor.value).toBe("Keep my unsaved changes");
-    expect(container.textContent).not.toContain("Reconnecting");
+    expect(container.textContent).not.toContain("Reconectando");
   });
 
   it.each(checks)("keeps retrying %s while the tab is hidden", async (path) => {
     focusManager.setFocused(false);
     failingPath = path;
     await render();
-    expect(container.textContent).toContain("Reconnecting to Paperclip");
+    expect(container.textContent).toContain("Reconectando con Paperclip");
     failingPath = null;
     await vi.advanceTimersByTimeAsync(5_100);
     await flushReact();
@@ -134,7 +134,7 @@ describe("CloudAccessGate restart recovery", () => {
     failure = () => Response.json({ status: "starting", deploymentMode: "authenticated", bootstrapStatus: "ready" });
     await render();
     expect(container.querySelector("textarea")).toBeNull();
-    expect(container.textContent).toContain("Reconnecting");
+    expect(container.textContent).toContain("Reconectando");
     expect(fetchMock.mock.calls.map(([path]) => path)).toEqual(checks.map(([path]) => path));
     await vi.advanceTimersByTimeAsync(5_100);
     expect(container.querySelector("textarea")).toBeNull();
@@ -142,7 +142,7 @@ describe("CloudAccessGate restart recovery", () => {
     await vi.advanceTimersByTimeAsync(5_100);
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
-    expect(container.textContent).not.toContain("Reconnecting");
+    expect(container.textContent).not.toContain("Reconectando");
   });
 
   it("supports manual retry while startup health is pending", async () => {
@@ -164,12 +164,12 @@ describe("CloudAccessGate restart recovery", () => {
     await client.refetchQueries({ queryKey: queryKeys.health });
     await flushReact();
     expect(container.querySelector("textarea")).toBe(editor);
-    expect(container.textContent).toContain("Reconnecting automatically");
+    expect(container.textContent).toContain("Reconectando automáticamente");
     await vi.advanceTimersByTimeAsync(5_100);
     await flushReact();
     expect(container.querySelector("textarea")).toBe(editor);
     expect(editor.value).toBe("Keep my unsaved changes");
-    expect(container.textContent).not.toContain("Reconnecting");
+    expect(container.textContent).not.toContain("Reconectando");
   });
 
   it("offers immediate retry while waiting for the next automatic check", async () => {
@@ -184,7 +184,7 @@ describe("CloudAccessGate restart recovery", () => {
   it("retries a dropped connection and opens the requested page when it returns", async () => {
     fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
     await render();
-    expect(container.textContent).toContain("Reconnecting to Paperclip");
+    expect(container.textContent).toContain("Reconectando con Paperclip");
     await vi.advanceTimersByTimeAsync(5_100);
     await flushReact();
     expect(container.querySelector("textarea")).not.toBeNull();
@@ -212,7 +212,7 @@ describe("CloudAccessGate restart recovery", () => {
     failure = () => Response.json({ error: "Forbidden" }, { status: 403 });
     await client.refetchQueries({ queryKey: queryKeys.access.currentBoardAccess });
     await flushReact();
-    expect(container.textContent).toContain("Unable to load Paperclip");
+    expect(container.textContent).toContain("No se pudo cargar Paperclip");
     expect(container.textContent).not.toContain("reconnect automatically");
     expect(container.querySelector("textarea")).toBeNull();
     const calls = fetchMock.mock.calls.length;

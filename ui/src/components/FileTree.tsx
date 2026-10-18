@@ -13,6 +13,7 @@ import { statusBadge, statusBadgeDefault } from "../lib/status-colors";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { t, useTranslation } from "@/i18n";
 
 // -- Tree types --------------------------------------------------------------
 
@@ -291,8 +292,9 @@ export function FileTree({
   loading = false,
   error,
   empty,
-  ariaLabel = "Files",
+  ariaLabel = t("fileTree.files"),
 }: FileTreeProps) {
+  const { t } = useTranslation();
   const effectiveCheckedFiles = checkedFiles ?? new Set<string>();
   const visibleNodes = useMemo(
     () => flattenVisibleNodes(nodes, expandedDirs).filter(({ node }) => !visiblePaths || visiblePaths.has(node.path)),
@@ -383,13 +385,13 @@ export function FileTree({
                 statusBadge.error ?? statusBadgeDefault,
               )}
             >
-              error
+              {t("fileTree.error")}
             </Badge>
             <span className="min-w-0 text-destructive">{error.message}</span>
           </div>
           {error.retry && (
             <Button type="button" size="xs" variant="outline" onClick={error.retry}>
-              Retry
+              {t("fileTree.retry")}
             </Button>
           )}
         </div>
@@ -401,9 +403,9 @@ export function FileTree({
     return (
       <div aria-label={ariaLabel} role="tree" className="p-3">
         <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
-          <div className="text-sm font-medium">{empty?.title ?? "No files"}</div>
+          <div className="text-sm font-medium">{empty?.title ?? t("fileTree.noFiles")}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {empty?.description ?? "Files will appear here when they are available."}
+            {empty?.description ?? t("fileTree.noFilesDescription")}
           </div>
         </div>
       </div>
@@ -465,7 +467,7 @@ export function FileTree({
             {layout === "explorer" && (node.kind === "dir" ? (
               <button type="button" disabled={disabled} className="flex size-4 shrink-0 items-center justify-center rounded-sm hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
                 onClick={event => { event.stopPropagation(); onToggleDir(node.path); }}
-                aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}>
+                aria-label={expanded ? t("fileTree.collapse", { name: node.name }) : t("fileTree.expand", { name: node.name })}>
                 {expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
               </button>
             ) : <span className="size-4 shrink-0" aria-hidden="true" />)}
@@ -473,7 +475,7 @@ export function FileTree({
               <label className={cn("flex items-center", layout === "explorer" ? "size-4 shrink-0 justify-center" : "pl-2")} onClick={(event) => event.stopPropagation()}>
                 <input
                   type="checkbox"
-                  aria-label={checkboxLabel?.(node) ?? `Select ${node.path}`}
+                  aria-label={checkboxLabel?.(node) ?? t("fileTree.selectPath", { path: node.path })}
                   disabled={disabled}
                   checked={allChecked}
                   ref={(element) => {
@@ -522,7 +524,7 @@ export function FileTree({
                   event.stopPropagation();
                   onToggleDir(node.path);
                 }}
-                aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
+                aria-label={expanded ? t("fileTree.collapse", { name: node.name }) : t("fileTree.expand", { name: node.name })}
               >
                 {expanded ? (
                   <ChevronDown className="h-3.5 w-3.5" />

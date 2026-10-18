@@ -121,7 +121,7 @@ describe("InviteLandingPage", () => {
       allowedJoinTypes: "both",
       humanRole: "operator",
       expiresAt: "2027-03-07T00:10:00.000Z",
-      inviteMessage: "Welcome aboard.",
+      inviteMessage: "¡Bienvenido a bordo!",
     });
     acceptInviteMock.mockReset();
     healthGetMock.mockResolvedValue({
@@ -148,7 +148,7 @@ describe("InviteLandingPage", () => {
       companyName: "Acme Robotics",
       companyLogoUrl: null,
       inviteType: "company_join",
-      allowedJoinTypes: "agent",
+      allowedJoinTypes: "agente",
       humanRole: null,
       expiresAt: "2027-03-07T00:10:00.000Z",
       inviteMessage: null,
@@ -196,11 +196,11 @@ describe("InviteLandingPage", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("You've been invited to join Paperclip");
-    expect(container.textContent).toContain("Join Acme Robotics");
-    expect(container.textContent).toContain("Create account");
-    expect(container.textContent).toContain("I already have an account");
-    expect(container.textContent).toContain("Message from inviter");
+    expect(container.textContent).toContain("Te han invitado a unirte a Paperclip");
+    expect(container.textContent).toContain("Únete a Acme Robotics");
+    expect(container.textContent).toContain("Crear cuenta");
+    expect(container.textContent).toContain("Ya tengo una cuenta");
+    expect(container.textContent).toContain("Mensaje de quien invita");
     expect(container.querySelector('[data-testid="invite-inline-auth"]')).not.toBeNull();
     expect(localStorage.getItem("paperclip:pending-invite-token")).toBe("pcp_invite_test");
     const inviteLogo = container.querySelector('img[alt="Acme Robotics logo"]');
@@ -244,9 +244,9 @@ describe("InviteLandingPage", () => {
       email: "jane@example.com",
       password: "supersecret",
     });
-    expect(container.textContent).toContain("An account already exists for jane@example.com. Sign in below to continue with this invite.");
+    expect(container.textContent).toContain("Ya existe una cuenta para jane@example.com. Inicia sesión más abajo para continuar con esta invitación.");
     expect(container.querySelector('input[name="name"]')).toBeNull();
-    expect(container.textContent).toContain("Sign in to continue");
+    expect(container.textContent).toContain("Inicia sesión para continuar");
     expect(localStorage.getItem("paperclip:pending-invite-token")).toBe("pcp_invite_test");
 
     await act(async () => {
@@ -298,7 +298,7 @@ describe("InviteLandingPage", () => {
 
   it("renders invite auth errors in an alert region referenced by the inputs", async () => {
     signInEmailMock.mockRejectedValue(
-      Object.assign(new Error("Invalid email or password"), {
+      Object.assign(new Error("Correo o contraseña no válidos"), {
         code: "INVALID_EMAIL_OR_PASSWORD",
         status: 401,
       }),
@@ -318,7 +318,7 @@ describe("InviteLandingPage", () => {
     const inputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent === "Ya tengo una cuenta",
     );
     await act(async () => {
       existingAccountButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -360,7 +360,7 @@ describe("InviteLandingPage", () => {
 
   it("turns invalid sign-in responses into a clear invite-specific message", async () => {
     signInEmailMock.mockRejectedValue(
-      Object.assign(new Error("Invalid email or password"), {
+      Object.assign(new Error("Correo o contraseña no válidos"), {
         code: "INVALID_EMAIL_OR_PASSWORD",
         status: 401,
       }),
@@ -386,7 +386,7 @@ describe("InviteLandingPage", () => {
     expect(inputValueSetter).toBeTypeOf("function");
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent === "Ya tengo una cuenta",
     );
     expect(existingAccountButton).not.toBeNull();
 
@@ -423,7 +423,7 @@ describe("InviteLandingPage", () => {
       password: "wrongpass",
     });
     expect(container.textContent).toContain(
-      "That email and password did not match an existing Paperclip account. Check both fields, or create an account first if you are new here.",
+      "El correo y la contraseña no coinciden con ninguna cuenta de Paperclip. Revisa ambos campos o crea primero una cuenta si es tu primera vez aquí.",
     );
 
     await act(async () => {
@@ -545,21 +545,21 @@ describe("InviteLandingPage", () => {
     await flushReact();
 
     expect(acceptInviteMock).toHaveBeenCalledWith("pcp_invite_test", { requestType: "human" });
-    expect(container.textContent).toContain("Request to join Acme Robotics");
+    expect(container.textContent).toContain("Solicitud para unirse a Acme Robotics");
     expect(container.textContent).toContain("An organization admin must approve your request to join.");
     expect(container.textContent).toContain(
-      "Ask them to visit Settings → Members to approve your request.",
+      "Pídeles que visiten Ajustes → Miembros para aprobar tu solicitud.",
     );
     expect(container.querySelector('img[alt="Acme Robotics logo"]')).not.toBeNull();
     expect(container.textContent).not.toContain("http://localhost/company/settings/members");
 
-    // The "Settings → Members" guidance addresses the company admin,
+    // The "Ajustes → Miembros" guidance addresses the company admin,
     // not the requester. It must render as plain text so the requester cannot
     // navigate themselves to /company/settings/members — a route they have no
     // permission to view, which renders a misleading "No company access"
     // panel and makes the invite flow look broken. See #6784.
     const approvalAnchors = Array.from(container.querySelectorAll("a")).filter(
-      (link) => link.textContent === "Settings → Members",
+      (link) => link.textContent === "Ajustes → Miembros",
     );
     expect(approvalAnchors).toHaveLength(0);
     const approvalMentions =
@@ -581,7 +581,7 @@ describe("InviteLandingPage", () => {
       allowedJoinTypes: "both",
       humanRole: "operator",
       expiresAt: "2027-03-07T00:10:00.000Z",
-      inviteMessage: "Welcome aboard.",
+      inviteMessage: "¡Bienvenido a bordo!",
       joinRequestStatus: "pending_approval",
       joinRequestType: "human",
     });
@@ -639,7 +639,7 @@ describe("InviteLandingPage", () => {
       allowedJoinTypes: "human",
       humanRole: "operator",
       expiresAt: "2027-03-07T00:10:00.000Z",
-      inviteMessage: "Welcome aboard.",
+      inviteMessage: "¡Bienvenido a bordo!",
       joinRequestStatus: "pending_approval",
       joinRequestType: "human",
     });
@@ -657,7 +657,7 @@ describe("InviteLandingPage", () => {
 
     expect(acceptInviteMock).not.toHaveBeenCalled();
     expect(container.querySelector('[data-testid="invite-inline-auth"]')).not.toBeNull();
-    expect(container.textContent).toContain("Create your account");
+    expect(container.textContent).toContain("Crea tu cuenta");
     expect(container.querySelector('[data-testid="invite-pending-approval"]')).toBeNull();
 
     await act(async () => {
@@ -693,7 +693,7 @@ describe("InviteLandingPage", () => {
     expect(inputValueSetter).toBeTypeOf("function");
 
     const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "I already have an account",
+      (button) => button.textContent === "Ya tengo una cuenta",
     );
     expect(existingAccountButton).not.toBeNull();
 
@@ -796,7 +796,7 @@ describe("InviteLandingPage", () => {
 
       const inputValueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
       const existingAccountButton = Array.from(container.querySelectorAll("button")).find(
-        (button) => button.textContent === "I already have an account",
+        (button) => button.textContent === "Ya tengo una cuenta",
       );
       await act(async () => {
         existingAccountButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
@@ -838,7 +838,7 @@ describe("InviteLandingPage", () => {
       });
       expect(setSelectedCompanyIdMock).not.toHaveBeenCalled();
       expect(acceptInviteMock).toHaveBeenCalledWith("pcp_invite_test", { requestType: "human" });
-      expect(container.textContent).toContain("Request to join Acme Robotics");
+      expect(container.textContent).toContain("Solicitud para unirse a Acme Robotics");
 
       await act(async () => {
         root.unmount();
@@ -875,9 +875,9 @@ describe("InviteLandingPage", () => {
       await flushReact();
 
       expect(listCompaniesMock).toHaveBeenCalled();
-      expect(container.textContent).not.toContain("Already in this organization");
+      expect(container.textContent).not.toContain("Ya estás en esta organización");
       expect(acceptInviteMock).toHaveBeenCalledWith("pcp_invite_test", { requestType: "human" });
-      expect(container.textContent).toContain("Request to join Acme Robotics");
+      expect(container.textContent).toContain("Solicitud para unirse a Acme Robotics");
 
       await act(async () => {
         root.unmount();
@@ -924,7 +924,7 @@ describe("InviteLandingPage", () => {
       await flushReact();
       await flushReact();
 
-      expect(container.textContent).toContain("Already in this organization");
+      expect(container.textContent).toContain("Ya estás en esta organización");
       expect(acceptInviteMock).not.toHaveBeenCalled();
 
       await act(async () => {
@@ -956,13 +956,13 @@ describe("InviteLandingPage", () => {
     await flushReact();
     await flushReact();
 
-    expect(container.textContent).toContain("Join Acme Robotics");
-    expect(container.textContent).toContain("Already in this organization");
-    expect(container.textContent).toContain("This account already belongs to Acme Robotics.");
+    expect(container.textContent).toContain("Únete a Acme Robotics");
+    expect(container.textContent).toContain("Ya estás en esta organización");
+    expect(container.textContent).toContain("Esta cuenta ya pertenece a Acme Robotics.");
     expect(acceptInviteMock).not.toHaveBeenCalled();
 
     const openButton = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "Open organization",
+      (button) => button.textContent === "Abrir organización",
     );
     expect(openButton).not.toBeNull();
 
@@ -1040,7 +1040,7 @@ describe("InviteLandingPage", () => {
     await flushReact();
 
     expect(acceptInviteMock).toHaveBeenCalledWith("pcp_invite_test", { requestType: "human" });
-    expect(container.textContent).toContain("Request to join Acme Robotics");
+    expect(container.textContent).toContain("Solicitud para unirse a Acme Robotics");
 
     await act(async () => {
       root.unmount();
@@ -1081,8 +1081,8 @@ describe("InviteLandingPage", () => {
     });
     await flushReact();
 
-    expect(container.textContent).toContain("Checking your access...");
-    expect(container.textContent).not.toContain("Accept organization invite");
+    expect(container.textContent).toContain("Comprobando tu acceso...");
+    expect(container.textContent).not.toContain("Aceptar invitación a la organización");
     expect(acceptInviteMock).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -1093,7 +1093,7 @@ describe("InviteLandingPage", () => {
     await flushReact();
 
     expect(acceptInviteMock).toHaveBeenCalledWith("pcp_invite_test", { requestType: "human" });
-    expect(container.textContent).toContain("Request to join Acme Robotics");
+    expect(container.textContent).toContain("Solicitud para unirse a Acme Robotics");
 
     await act(async () => {
       root.unmount();

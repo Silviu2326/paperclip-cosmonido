@@ -45,6 +45,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { InlineBanner } from "./InlineBanner";
 import { InlineEntitySelector, type InlineEntityOption } from "./InlineEntitySelector";
 import { getTrustPreset } from "../lib/trust-policy-ui";
+import { t } from "@/i18n";
 
 const DRAFT_KEY = "paperclip:issue-draft";
 const DEBOUNCE_MS = 800;
@@ -403,8 +404,8 @@ export function NewIssueDialog() {
   const privateParentProject = privacyParent?.project?.visibility === "private" ? privacyParent.project : null;
   const inheritedPrivateProject = privateParentProject ?? (!isPrivate && currentProject?.visibility === "private" ? currentProject : null);
   const inheritedPrivacyReason = privacyParent?.visibility === "private"
-    ? `Subtask of private task ${privacyParent.title || newIssueDefaults.parentTitle || parentIssueLabel}`
-    : inheritedPrivateProject ? `In private project ${inheritedPrivateProject.name}` : undefined;
+    ? t("newIssue.subtaskPrivate", { title: privacyParent.title || newIssueDefaults.parentTitle || parentIssueLabel })
+    : inheritedPrivateProject ? t("newIssue.inPrivateProject", { name: inheritedPrivateProject.name }) : undefined;
   const effectivePrivate = isPrivate || inheritsPrivateAccess
     || orderedProjects.some(project => project.id === projectId && project.visibility === "private");
 
@@ -470,18 +471,18 @@ export function NewIssueDialog() {
       const prefix = (companies.find((company) => company.id === companyId)?.issuePrefix ?? "").trim();
       const issueRef = issue.identifier ?? issue.id;
       const openIssueAction = prefix
-        ? { label: `Open ${issueRef}`, href: `/${prefix}/issues/${issueRef}` }
+        ? { label: t("newIssue.openRef", { ref: issueRef }), href: `/${prefix}/issues/${issueRef}` }
         : undefined;
       if (failures.length > 0) {
         pushToast({
-          title: `Created ${issueRef} with upload warnings`,
+          title: t("newIssue.createdWarnings", { ref: issueRef }),
           body: `${failures.length} staged ${failures.length === 1 ? "file" : "files"} could not be added.`,
           tone: "warn",
           action: openIssueAction,
         });
       } else {
         pushToast({
-          title: `Created ${issueRef}`,
+          title: t("newIssue.created", { ref: issueRef }),
           tone: "success",
           action: openIssueAction,
         });
@@ -1152,11 +1153,11 @@ export function NewIssueDialog() {
               workMode={workMode}
               onWorkModeChange={setWorkMode}
               disabled={createIssue.isPending || !effectiveCompanyId}
-              placeholder="Describe a task…"
+              placeholder={t("newIssue.describeTask")}
               mobile={isMobile}
               mentions={mentionOptions}
               onImageUpload={async (file) => {
-                if (!effectiveCompanyId) throw new Error("No organization selected");
+                if (!effectiveCompanyId) throw new Error(t("newIssue.noOrganization"));
                 const asset = await assetsApi.uploadImage(effectiveCompanyId, file, "issues/drafts");
                 return asset.contentPath;
               }}
@@ -1197,7 +1198,7 @@ export function NewIssueDialog() {
                     }
                   },
                 },
-                submitLabel: isSubIssueMode ? "Create sub-task" : "Create task",
+                submitLabel: isSubIssueMode ? t("newIssue.createSubTask") : t("newIssue.createTask"),
                 canSubmitWithoutBody: Boolean(title.trim()),
                 onSelectFiles: stageFiles,
                 runSettings: composerSettings,
@@ -1207,7 +1208,7 @@ export function NewIssueDialog() {
                     <div className="mb-3 flex flex-col gap-2 text-xs">
                       {hasTitle ? (
                         <input
-                          aria-label="Task title"
+                          aria-label={t("newIssue.taskTitle")}
                           value={title}
                           disabled={createIssue.isPending}
                           className="w-full bg-transparent text-sm text-foreground outline-none"
@@ -1238,14 +1239,14 @@ export function NewIssueDialog() {
                   <>
                     {parentPrivacyUnresolved ? (
                       <div role={parentPrivacyError ? "alert" : "status"} className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{parentPrivacyError ? "Couldn't check parent access." : "Checking parent access…"}</span>
-                        {parentPrivacyError ? <Button variant="ghost" size="sm" onClick={() => void refetchParentPrivacy()}>Retry</Button> : null}
+                        <span>{parentPrivacyError ? t("newIssue.parentAccessFailed") : t("newIssue.checkingParentAccess")}</span>
+                        {parentPrivacyError ? <Button variant="ghost" size="sm" onClick={() => void refetchParentPrivacy()}>{t("newIssue.retry")}</Button> : null}
                       </div>
                     ) : null}
                     {worktreeSelectionIncomplete && !worktreesLoading ? (
                       <p role="alert" className="mb-2 text-xs text-destructive">
-                        {worktreesError ? "Couldn't check the selected worktree. Retry in Worktrees or choose New worktree."
-                          : "The selected worktree is no longer available. Choose another worktree or start a new one."}
+                        {worktreesError ? t("newIssue.worktreeFailed")
+                          : t("newIssue.worktreeUnavailable")}
                       </p>
                     ) : null}
                     {stagedFiles.length > 0 ? (
@@ -1282,7 +1283,7 @@ export function NewIssueDialog() {
                                     className="shrink-0 text-muted-foreground"
                                     onClick={() => removeStagedFile(file.id)}
                                     disabled={createIssue.isPending}
-                                    title="Remove document"
+                                    title={t("newIssue.removeDocument")}
                                   >
                                     <X className="h-3.5 w-3.5" />
                                   </Button>
@@ -1316,7 +1317,7 @@ export function NewIssueDialog() {
                                     className="shrink-0 text-muted-foreground"
                                     onClick={() => removeStagedFile(file.id)}
                                     disabled={createIssue.isPending}
-                                    title="Remove attachment"
+                                    title={t("newIssue.removeAttachment")}
                                   >
                                     <X className="h-3.5 w-3.5" />
                                   </Button>
@@ -1388,17 +1389,17 @@ export function NewIssueDialog() {
                       value={projectId}
                       options={projectOptions}
                       recentOptionIds={recentProjectIds}
-                      placeholder="Project"
-                      mobileTitle="Select project"
+                      placeholder={t("newIssue.project")}
+                      mobileTitle={t("newIssue.selectProject")}
                       modal
                       className="h-8 min-w-0 flex-1 gap-1.5 border-0 bg-transparent px-2 text-xs shadow-none hover:bg-accent focus-visible:bg-accent focus-visible:ring-0 sm:max-w-64 sm:flex-none"
                       disabled={createIssue.isPending}
                       triggerDataSlot="new-issue-compact-control"
                       contentStyle={entityPickerViewportStyle}
-                      noneLabel="No project"
+                      noneLabel={t("newIssue.noProject")}
                       noneAtTop
-                      searchPlaceholder="Search projects..."
-                      emptyMessage="No projects found."
+                      searchPlaceholder={t("newIssue.searchProjects")}
+                      emptyMessage={t("newIssue.noProjects")}
                       onChange={handleProjectChange}
                       renderTriggerValue={(option) =>
                         option && currentProject ? (

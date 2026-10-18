@@ -41,44 +41,44 @@ describe("subscription costs", () => {
   }
   it("labels the monthly estimate and counts cached input exactly once", async () => {
     await render(fixture());
-    expect(container.textContent).toContain("$100.00/month");
-    expect(container.textContent).toContain("Estimated");
+    expect(container.textContent).toContain("$100.00/mes");
+    expect(container.textContent).toContain("Estimado");
     expect(container.textContent).toContain("150 in · 10 out");
     expect(container.textContent).toContain("50 input cached");
-    await click("View details");
-    expect(document.body.textContent).toContain("Used by Leela");
-    expect(document.body.textContent).toContain("before tax");
+    await click("Ver detalles");
+    expect(document.body.textContent).toContain("Usada por Leela");
+    expect(document.body.textContent).toContain("antes de impuestos");
   });
   it("retains loaded totals during reload failure and never calls an unknown price zero", async () => {
     const report = fixture();
     report.monthlyTotals = []; report.unknownPriceCount = 1; report.accounts[0].price.amountCents = null; report.accounts[0].price.monthlyCents = null;
     await render(report, new Error("private raw error"));
-    expect(container.textContent).toContain("1 price unknown");
+    expect(container.textContent).toContain("1 precio desconocido");
     expect(container.textContent).not.toContain("$0.00");
     expect(container.textContent).not.toContain("private raw error");
     await render(fixture(), new Error("private raw error"));
-    expect(container.textContent).toContain("$100.00/month");
-    expect(container.textContent).toContain("last loaded");
+    expect(container.textContent).toContain("$100.00/mes");
+    expect(container.textContent).toContain("Mostrando los últimos datos de suscripción cargados");
   });
   it("does not describe legacy subscription usage with no identified account as free", async () => {
     const report = fixture(); report.accounts = []; report.activeCount = 0; report.monthlyTotals = [];
     report.unattributedSubscription = { ...report.subscription, eventCount: 1 };
     await render(report);
-    expect(container.textContent).toContain("No visible subscriptions");
+    expect(container.textContent).toContain("No hay suscripciones visibles");
     expect(container.textContent).not.toContain("$0.00");
-    await click("View details");
-    expect(document.body.textContent).toContain("Some subscription usage has no recorded account");
+    await click("Ver detalles");
+    expect(document.body.textContent).toContain("Parte del uso de suscripción no tiene cuenta registrada");
   });
   it("keeps identity uncertainty visible even when a user has supplied the price", async () => {
     const report = fixture(); report.unidentifiedAccountCount = 1;
     report.accounts[0].identityVerified = false; report.accounts[0].price.source = "user";
     report.monthlyTotals[0].estimatedCount = 0;
     await render(report);
-    expect(container.textContent).toContain("$100.00/month");
-    expect(container.textContent).toContain("1 unconfirmed account identity");
+    expect(container.textContent).toContain("$100.00/mes");
+    expect(container.textContent).toContain("1 identidad de cuenta sin confirmar");
   });
   it("saves an annual price with the expected revision and selected currency", async () => {
-    await render(fixture()); await click("View details"); await click("Edit price");
+    await render(fixture()); await click("Ver detalles"); await click("Editar precio");
     await act(async () => {
       const amount = document.querySelector<HTMLInputElement>("#subscription-price")!;
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(amount, "1200");
@@ -94,12 +94,12 @@ describe("subscription costs", () => {
   });
   it("hides editing when the viewer does not own the account", async () => {
     const report = fixture(); report.accounts[0].canEdit = false;
-    await render(report); await click("View details");
-    expect([...document.querySelectorAll("button")].some(button => button.textContent === "Edit price")).toBe(false);
+    await render(report); await click("Ver detalles");
+    expect([...document.querySelectorAll("button")].some(button => button.textContent === "Editar precio")).toBe(false);
   });
   it.each(["ended", "excluded"])("can change tracking to %s without rounding a saved fractional price", async (status) => {
     const report = fixture(); report.accounts[0].price.amountCents = "1575.5000000";
-    await render(report); await click("View details"); await click("Edit price");
+    await render(report); await click("Ver detalles"); await click("Editar precio");
     const amount = document.querySelector<HTMLInputElement>("#subscription-price")!;
     expect(amount.value).toBe("15.755");
     expect(amount.checkValidity()).toBe(true);
@@ -107,7 +107,7 @@ describe("subscription costs", () => {
       const tracking = document.querySelector<HTMLSelectElement>("#subscription-status")!;
       tracking.value = status; tracking.dispatchEvent(new Event("change", { bubbles: true }));
     });
-    await click("Save price");
+    await click("Guardar precio");
     await vi.waitFor(() => expect(mocks.update).toHaveBeenCalledWith("company", "account-1", expect.objectContaining({
       amountCents: "1575.5000000", status,
     })));
@@ -115,21 +115,21 @@ describe("subscription costs", () => {
   it("distinguishes personal seats with multiple owners from company-shared subscriptions", async () => {
     const report = fixture();
     report.accounts[0] = { ...report.accounts[0], ownerUserId: null, ownerName: null, shared: false, canEdit: false };
-    await render(report); await click("View details");
-    expect(document.body.textContent).toContain("Personal accounts");
-    expect(document.body.textContent).not.toContain("Shared ·");
+    await render(report); await click("Ver detalles");
+    expect(document.body.textContent).toContain("Cuentas personales");
+    expect(document.body.textContent).not.toContain("Compartida ·");
     report.accounts[0].shared = true;
     await render(report);
-    expect(document.body.textContent).toContain("Shared ·");
-    expect(document.body.textContent).not.toContain("Personal accounts");
+    expect(document.body.textContent).toContain("Compartida ·");
+    expect(document.body.textContent).not.toContain("Cuentas personales");
   });
   it("links only an explicitly chosen duplicate and keeps the target price", async () => {
     const report = fixture();
     report.accounts.push({ ...report.accounts[0], id: "account-2", name: "Other connection", price: { ...report.accounts[0].price, revision: 3 } });
-    await render(report); await click("View details"); await click("Edit price");
-    expect(document.body.textContent).toContain("keeps the selected account’s price");
+    await render(report); await click("Ver detalles"); await click("Editar precio");
+    expect(document.body.textContent).toContain("se conserva el precio de la cuenta seleccionada");
     await act(async () => { const select = document.querySelector<HTMLSelectElement>("#subscription-link")!; select.value = "account-2"; select.dispatchEvent(new Event("change", { bubbles: true })); });
-    await click("Link accounts");
+    await click("Vincular cuentas");
     await vi.waitFor(() => expect(mocks.link).toHaveBeenCalledWith("company", "account-1", "account-2", 0, 3));
   });
 });

@@ -88,8 +88,8 @@ describe("SecretBindingPicker", () => {
     await render(readyContext("active"));
 
     expect(container.textContent).toContain("DAYTONA_API_KEY — Other Team");
-    expect(container.textContent).toContain("Owned by the Other Team organization");
-    expect(container.textContent).not.toContain("Missing secret");
+    expect(container.textContent).toContain("Propiedad de la organización Other Team");
+    expect(container.textContent).not.toContain("Secreto no encontrado");
     expect(container.querySelector("select")?.className).not.toContain("border-destructive");
   });
 
@@ -97,7 +97,7 @@ describe("SecretBindingPicker", () => {
     await render(readyContext("deleted"));
 
     expect(container.textContent).toContain("DAYTONA_API_KEY — Other Team");
-    expect(container.textContent).toContain("was deleted");
+    expect(container.textContent).toContain("fue eliminado");
     expect(container.querySelector("select")?.className).toContain("border-destructive");
   });
 
@@ -105,40 +105,40 @@ describe("SecretBindingPicker", () => {
     await render(readyContext("disabled"));
 
     expect(container.textContent).toContain("DAYTONA_API_KEY — Other Team");
-    expect(container.textContent).toContain("This secret is disabled");
-    expect(container.textContent).not.toContain("keeps working");
+    expect(container.textContent).toContain("Este secreto está disabled");
+    expect(container.textContent).not.toContain("sigue funcionando");
     expect(container.querySelector("select")?.className).toContain("border-destructive");
   });
 
   it("stays neutral while descriptors are loading", async () => {
     await render({ status: "loading", hints: {} });
 
-    expect(container.textContent).toContain("Checking this secret reference");
-    expect(container.textContent).not.toContain("Missing secret");
+    expect(container.textContent).toContain("Comprobando esta referencia de secreto");
+    expect(container.textContent).not.toContain("Secreto no encontrado");
     expect(container.querySelector("select")?.className).not.toContain("border-destructive");
   });
 
   it("stays neutral when the descriptor lookup failed", async () => {
     await render({ status: "error", hints: {} });
 
-    expect(container.textContent).toContain("Could not load this secret reference");
-    expect(container.textContent).not.toContain("Missing secret");
+    expect(container.textContent).toContain("No se pudieron cargar los detalles de esta referencia de secreto");
+    expect(container.textContent).not.toContain("Secreto no encontrado");
     expect(container.querySelector("select")?.className).not.toContain("border-destructive");
   });
 
   it("treats an unknown id as missing once descriptors are ready", async () => {
     await render({ status: "ready", hints: {} });
 
-    expect(container.textContent).toContain("Missing secret");
-    expect(container.textContent).toContain("no longer available");
+    expect(container.textContent).toContain("Secreto no encontrado");
+    expect(container.textContent).toContain("ya no está disponible");
     expect(container.querySelector("select")?.className).toContain("border-destructive");
   });
 
   it("keeps the generic missing-secret treatment when no hint context exists", async () => {
     await render(undefined);
 
-    expect(container.textContent).toContain("Missing secret");
-    expect(container.textContent).toContain("no longer available");
+    expect(container.textContent).toContain("Secreto no encontrado");
+    expect(container.textContent).toContain("ya no está disponible");
     expect(container.querySelector("select")?.className).toContain("border-destructive");
   });
 });

@@ -141,7 +141,7 @@ describe("CompanySettingsSidebar", () => {
     await flushReact();
 
     expect(container.textContent).not.toContain("Paperclip");
-    expect(container.textContent).not.toContain("Settings");
+    expect(container.textContent).not.toContain("Ajustes");
     expect(container.querySelector('[aria-label="Back from Settings"]')).toBeNull();
     const settingsSurface = container.querySelector('[data-contextual-sidebar="settings"]');
     expect(settingsSurface?.classList).toContain("primary-sidebar-surface");
@@ -151,7 +151,7 @@ describe("CompanySettingsSidebar", () => {
     const settingsHeader = container.querySelector('[data-slot="settings-sidebar-header"]');
     expect(settingsHeader?.classList).toContain("h-(--sz-60px)");
     expect(settingsHeader?.classList).toContain("items-center");
-    expect(settingsHeader?.textContent).toContain("Back to app");
+    expect(settingsHeader?.textContent).toContain("Volver a la aplicación");
     const backGroup = container.querySelector('[data-slot="settings-back-group"]');
     expect(backGroup?.classList).toContain("w-full");
     for (const className of primarySidebarStyles.group.split(" ")) {
@@ -160,24 +160,24 @@ describe("CompanySettingsSidebar", () => {
     expect(container.querySelector('[data-slot="contextual-sidebar-group"]')?.className).toBe(
       primarySidebarStyles.group,
     );
-    expect(container.textContent).toContain("Back to app");
-    expect(container.querySelector('nav[aria-label="Settings"]')?.textContent).not.toContain(
-      "Back to app",
+    expect(container.textContent).toContain("Volver a la aplicación");
+    expect(container.querySelector('nav[aria-label="Ajustes"]')?.textContent).not.toContain(
+      "Volver a la aplicación",
     );
     expect(container.textContent).not.toContain("Company Settings");
     expect(container.textContent).not.toContain("Instance Settings");
     expect(container.textContent).toContain("General");
-    expect(container.textContent).toContain("Environments");
-    expect(container.textContent).toContain("Export");
-    expect(container.textContent).toContain("Import");
-    expect(container.textContent).toContain("Members");
-    expect(container.textContent).toContain("Secrets");
-    expect(container.textContent).toContain("Access");
+    expect(container.textContent).toContain("Entornos");
+    expect(container.textContent).toContain("Exportar");
+    expect(container.textContent).toContain("Importar");
+    expect(container.textContent).toContain("Miembros");
+    expect(container.textContent).toContain("Secretos");
+    expect(container.textContent).toContain("Acceso");
     expect(container.textContent).not.toContain("Tools & Access");
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/dashboard",
-        label: "Back to app",
+        label: "Volver a la aplicación",
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
@@ -190,34 +190,34 @@ describe("CompanySettingsSidebar", () => {
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/export",
-        label: "Export",
+        label: "Exportar",
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/import",
-        label: "Import",
+        label: "Importar",
         end: true,
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/instance/environments",
-        label: "Environments",
+        label: "Entornos",
         end: true,
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/instance/access",
-        label: "Access",
+        label: "Acceso",
         end: true,
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/members",
-        label: "Members",
+        label: "Miembros",
         badge: 2,
         end: true,
       }),
@@ -225,14 +225,14 @@ describe("CompanySettingsSidebar", () => {
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/secrets",
-        label: "Secrets",
+        label: "Secretos",
         end: true,
       }),
     );
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/instance/profile",
-        label: "Profile",
+        label: "Perfil",
         end: true,
       }),
     );
@@ -250,7 +250,7 @@ describe("CompanySettingsSidebar", () => {
     expect(sidebarNavItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         to: "/company/settings/instance/adapters",
-        label: "Adapters",
+        label: "Adaptadores",
       }),
     );
     expect(sidebarNavItemMock).not.toHaveBeenCalledWith(
@@ -416,26 +416,26 @@ describe("CompanySettingsSidebar operator-hidden entries", () => {
 
     expect(container.textContent).not.toContain("Plugins");
     expect(container.textContent).toContain("General");
-    expect(container.textContent).toContain("Adapters");
-    expect(container.textContent).toContain("Access");
+    expect(container.textContent).toContain("Adaptadores");
+    expect(container.textContent).toContain("Acceso");
     expect(mockPluginsApi.list).not.toHaveBeenCalled();
   });
 
   it("keeps every entry when nothing is hidden", async () => {
     await renderSidebar();
 
-    expect(container.textContent).toContain("Access");
+    expect(container.textContent).toContain("Acceso");
     expect(container.textContent).toContain("Plugins");
-    expect(container.textContent).toContain("Adapters");
-    expect(container.textContent).toContain("Import");
+    expect(container.textContent).toContain("Adaptadores");
+    expect(container.textContent).toContain("Importar");
     expect(mockPluginsApi.list).toHaveBeenCalled();
   });
 
   it("hides Import but keeps Export on a Cloud-managed instance", async () => {
     await renderSidebar(undefined, { managed: true });
 
-    expect(container.textContent).not.toContain("Import");
-    expect(container.textContent).toContain("Export");
+    expect(container.textContent).not.toContain("Importar");
+    expect(container.textContent).toContain("Exportar");
   });
 
   it("hides operator-hidden company pages", async () => {
@@ -448,10 +448,10 @@ describe("CompanySettingsSidebar operator-hidden entries", () => {
     ]);
 
     expect(container.textContent).toContain("General");
-    expect(container.textContent).not.toContain("Members");
+    expect(container.textContent).not.toContain("Miembros");
     expect(container.textContent).not.toContain("Invites");
-    expect(container.textContent).not.toContain("Secrets");
-    expect(container.textContent).not.toContain("Export");
-    expect(container.textContent).not.toContain("Import");
+    expect(container.textContent).not.toContain("Secretos");
+    expect(container.textContent).not.toContain("Exportar");
+    expect(container.textContent).not.toContain("Importar");
   });
 });

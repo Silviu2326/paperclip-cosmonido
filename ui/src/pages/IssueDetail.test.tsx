@@ -1513,7 +1513,7 @@ describe("IssueDetail", () => {
     await waitForAssertion(() => expect(mockIssuesApi.update).toHaveBeenCalledTimes(1));
     expect(getLastProjectId(issue.companyId)).toBe("original-project");
     await act(async () => failedUpdate.reject(new Error("Project save failed")));
-    await waitForAssertion(() => expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ title: "Task update failed" })));
+    await waitForAssertion(() => expect(mockPushToast).toHaveBeenCalledWith(expect.objectContaining({ title: "Error al actualizar la tarea" })));
     expect(getLastProjectId(issue.companyId)).toBe("original-project");
     await act(async () => properties.onUpdate({ projectId }));
     await waitForAssertion(() => expect(mockIssuesApi.update).toHaveBeenCalledTimes(2));
@@ -1736,7 +1736,7 @@ describe("IssueDetail", () => {
     expect(titleActions?.className).toContain("absolute");
     expect(titleActions?.className).toContain("top-0");
     expect(
-      titleActions?.querySelector('button[aria-label="More task actions"]'),
+      titleActions?.querySelector('button[aria-label="Más acciones de la tarea"]'),
     ).not.toBeNull();
     expect(
       consoleErrorSpy.mock.calls.some((call: unknown[]) =>
@@ -2386,7 +2386,7 @@ describe("IssueDetail", () => {
     expect(panel?.className).toContain("inset-0 h-dvh max-h-dvh");
     expect(panel?.className).toContain("w-full");
     expect(panel?.className).toContain("max-w-none");
-    expect(panel?.textContent).toContain("Task side panel");
+    expect(panel?.textContent).toContain("Panel lateral de la tarea");
     expect(panel?.querySelector('[data-slot="sheet-close"]')).not.toBeNull();
   });
 
@@ -2469,7 +2469,7 @@ describe("IssueDetail", () => {
     await flushReact();
 
     expect(
-      container.querySelector('[aria-label="Open file in this issue"]'),
+      container.querySelector('[aria-label="Abrir archivo en esta tarea"]'),
     ).toBeNull();
 
     expect(container.textContent).not.toContain("Plan decomposition");
@@ -2692,7 +2692,7 @@ describe("IssueDetail", () => {
     expect(retry).toBeDefined();
     if (outcome === "pending question") {
       expect(retry!.disabled).toBe(true);
-      expect(container.textContent).toContain("Respond to the pending question or confirmation before retrying.");
+      expect(container.textContent).toContain("Responde a la pregunta o confirmación pendiente antes de reintentar.");
       await act(async () => retry!.click());
       expect(mockIssuesApi.resolveRecoveryAction).not.toHaveBeenCalled();
       mockIssuesApi.resolveRecoveryAction.mockReset();
@@ -2756,13 +2756,13 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     );
     await act(async () => moreButton!.click());
     const archiveButton =
       Array.from(
         document.body.querySelectorAll<HTMLButtonElement>("button"),
-      ).find((button) => button.textContent?.trim() === "Archive from inbox") ??
+      ).find((button) => button.textContent?.trim() === "Archivar desde la bandeja de entrada") ??
       null;
     expect(archiveButton).not.toBeNull();
 
@@ -2796,11 +2796,11 @@ describe("IssueDetail", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/inbox/mine", { replace: true });
     const archiveToast = mockPushToast.mock.calls
       .map(([toast]) => toast)
-      .find((toast) => toast.title === "Task archived from inbox");
+      .find((toast) => toast.title === "Tarea archivada desde la bandeja de entrada");
     expect(archiveToast).toMatchObject({
-      title: "Task archived from inbox",
+      title: "Tarea archivada desde la bandeja de entrada",
       tone: "success",
-      action: { label: "Undo" },
+      action: { label: "Deshacer" },
     });
     expect(archiveToast?.action?.onClick).toEqual(expect.any(Function));
 
@@ -2846,7 +2846,7 @@ describe("IssueDetail", () => {
         queryClient.getQueryData<Issue[]>(unreadKey)?.map((item) => item.id),
       ).toEqual(["issue-1", "issue-2"]);
       expect(mockPushToast).toHaveBeenCalledWith({
-        title: "Task restored to inbox",
+        title: "Tarea restaurada en la bandeja de entrada",
         tone: "success",
       });
     });
@@ -2882,13 +2882,13 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     );
     await act(async () => moreButton!.click());
     const archiveButton =
       Array.from(
         document.body.querySelectorAll<HTMLButtonElement>("button"),
-      ).find((button) => button.textContent?.trim() === "Archive from inbox") ??
+      ).find((button) => button.textContent?.trim() === "Archivar desde la bandeja de entrada") ??
       null;
     expect(archiveButton).not.toBeNull();
     await act(async () => {
@@ -2902,7 +2902,7 @@ describe("IssueDetail", () => {
 
     const archiveToast = mockPushToast.mock.calls
       .map(([toast]) => toast)
-      .find((toast) => toast.title === "Task archived from inbox");
+      .find((toast) => toast.title === "Tarea archivada desde la bandeja de entrada");
     expect(archiveToast?.action?.onClick).toEqual(expect.any(Function));
 
     await act(async () => {
@@ -2913,7 +2913,7 @@ describe("IssueDetail", () => {
       expect(mockIssuesApi.unarchiveFromInbox).toHaveBeenCalledWith("issue-1");
       expect(queryClient.getQueryData<Issue[]>(mineKey)).toEqual([]);
       expect(mockPushToast).toHaveBeenCalledWith({
-        title: "Undo failed",
+        title: "Error al deshacer",
         body: "Inbox policy denied",
         tone: "error",
       });
@@ -2939,12 +2939,12 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     );
     await act(async () => moreButton!.click());
     expect(
       Array.from(document.body.querySelectorAll("button")).some(
-        (button) => button.textContent?.trim() === "Archive from inbox",
+        (button) => button.textContent?.trim() === "Archivar desde la bandeja de entrada",
       ),
     ).toBe(false);
 
@@ -3019,7 +3019,7 @@ describe("IssueDetail", () => {
       .mockReturnValue(2);
     await act(async () => {
       toolbarContainer
-        .querySelector<HTMLButtonElement>('button[aria-label="Back to inbox"]')!
+        .querySelector<HTMLButtonElement>('button[aria-label="Volver a la bandeja de entrada"]')!
         .click();
     });
     expect(mockNavigate).toHaveBeenCalledWith(-1);
@@ -3049,7 +3049,7 @@ describe("IssueDetail", () => {
     flushSync(() => directToolbarRoot.render(directToolbar));
     await act(async () => {
       directToolbarContainer
-        .querySelector<HTMLButtonElement>('button[aria-label="Back to inbox"]')!
+        .querySelector<HTMLButtonElement>('button[aria-label="Volver a la bandeja de entrada"]')!
         .click();
     });
     expect(mockNavigate).toHaveBeenCalledWith("/inbox/mine");
@@ -3109,15 +3109,15 @@ describe("IssueDetail", () => {
       expect(container.textContent).toContain("Core Product");
       expect(avatarStack).toBeTruthy();
       expect(assigneeAvatar?.getAttribute("aria-label")).toBe(
-        "Assignee: CodexCoder",
+        "Asignado: CodexCoder",
       );
       expect(originatingAvatar?.getAttribute("aria-label")).toBe(
-        "Originating: Dotta",
+        "Origen: Dotta",
       );
       expect(assigneeAvatar?.getAttribute("title")).toBeNull();
       expect(originatingAvatar?.getAttribute("title")).toBeNull();
-      expect(avatarStack?.textContent).not.toContain("Assignee");
-      expect(avatarStack?.textContent).not.toContain("Originating");
+      expect(avatarStack?.textContent).not.toContain("Asignado");
+      expect(avatarStack?.textContent).not.toContain("Origen");
       expect(avatarStack?.textContent).not.toContain("CodexCoder");
       expect(avatarStack?.textContent).not.toContain("Dotta");
     });
@@ -3139,7 +3139,7 @@ describe("IssueDetail", () => {
       const tooltip = document.body.querySelector(
         '[data-testid="issue-assignee-tooltip"]',
       );
-      expect(tooltip?.textContent).toContain("Assignee");
+      expect(tooltip?.textContent).toContain("Asignado");
       expect(tooltip?.textContent).toContain("CodexCoder");
     });
 
@@ -3152,7 +3152,7 @@ describe("IssueDetail", () => {
       const tooltip = document.body.querySelector(
         '[data-testid="issue-originating-tooltip"]',
       );
-      expect(tooltip?.textContent).toContain("Originating");
+      expect(tooltip?.textContent).toContain("Origen");
       expect(tooltip?.textContent).toContain("Dotta");
     });
   });
@@ -3197,7 +3197,7 @@ describe("IssueDetail", () => {
         '[data-testid="issue-originating-avatar"]',
       );
       expect(originatingAvatar?.getAttribute("aria-label")).toBe(
-        "Originating: Dotta · via CodexCoder",
+        "Origen: Dotta · vía CodexCoder",
       );
     });
 
@@ -3215,7 +3215,7 @@ describe("IssueDetail", () => {
         '[data-testid="issue-originating-tooltip"]',
       );
       expect(tooltip?.textContent).toContain("Dotta");
-      expect(tooltip?.textContent).toContain("via CodexCoder");
+      expect(tooltip?.textContent).toContain("vía CodexCoder");
     });
   });
 
@@ -4359,7 +4359,7 @@ describe("IssueDetail", () => {
     await flushReact();
 
     expect(
-      container.querySelector('[aria-label="Open file in this issue"]'),
+      container.querySelector('[aria-label="Abrir archivo en esta tarea"]'),
     ).not.toBeNull();
   });
 
@@ -4719,7 +4719,7 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     ) as HTMLButtonElement | null;
     expect(moreButton).toBeTruthy();
 
@@ -4762,7 +4762,7 @@ describe("IssueDetail", () => {
       { id: "run-queued-2", agentId: "agent-2", status: "queued", runtimeMode: "native", issueId: "issue-1", adapterType: "paperclip_runner" },
     ]);
     await act(async () => { renderIssueView(); });
-    await waitForAssertion(() => expect(mockIssueChatThreadRender.mock.calls.at(-1)?.[0]).toMatchObject({ stopRunLabel: "Stop Paperclip work" }));
+    await waitForAssertion(() => expect(mockIssueChatThreadRender.mock.calls.at(-1)?.[0]).toMatchObject({ stopRunLabel: "Detener trabajo de Paperclip" }));
     await act(async () => { await mockIssueChatThreadRender.mock.calls.at(-1)![0].onStopRun("run-queued-2"); });
     expect(mockGrokBotApi.stop).toHaveBeenCalledExactlyOnceWith("company-1", "agent-2", "run-queued-2");
     expect(mockHeartbeatsApi.cancel).not.toHaveBeenCalled();
@@ -4828,13 +4828,13 @@ describe("IssueDetail", () => {
       await flushReact();
 
       expect(mockIssueChatThreadRender.mock.calls.at(-1)?.[0]).toMatchObject({
-        stopRunLabel: "Pause work",
-        stoppingRunLabel: "Pausing...",
+        stopRunLabel: "Pausar trabajo",
+        stoppingRunLabel: "Pausando...",
         issueWorkMode: "standard",
       });
 
       const chatPauseButton = Array.from(container.querySelectorAll("button"))
-        .filter((button) => button.textContent?.trim() === "Pause work")
+        .filter((button) => button.textContent?.trim() === "Pausar trabajo")
         .at(-1);
       expect(chatPauseButton).toBeTruthy();
 
@@ -4860,7 +4860,7 @@ describe("IssueDetail", () => {
       });
 
       const moreButton = container.querySelector(
-        'button[aria-label="More task actions"]',
+        'button[aria-label="Más acciones de la tarea"]',
       ) as HTMLButtonElement | null;
       expect(moreButton).toBeTruthy();
       await act(async () => {
@@ -4872,7 +4872,7 @@ describe("IssueDetail", () => {
 
       const pauseMenuButton = Array.from(
         container.querySelectorAll("button"),
-      ).find((button) => button.textContent?.trim() === "Pause work");
+      ).find((button) => button.textContent?.trim() === "Pausar trabajo");
       expect(pauseMenuButton).toBeTruthy();
       await act(async () => {
         pauseMenuButton!.click();
@@ -4931,7 +4931,7 @@ describe("IssueDetail", () => {
 
     const stopAndDoneButton = Array.from(
       container.querySelectorAll("button"),
-    ).find((button) => button.textContent?.trim() === "Stop and done");
+    ).find((button) => button.textContent?.trim() === "Detener y completar");
     expect(stopAndDoneButton).toBeTruthy();
 
     await act(async () => {
@@ -4949,7 +4949,7 @@ describe("IssueDetail", () => {
 
     const stopAndCancelButton = Array.from(
       container.querySelectorAll("button"),
-    ).find((button) => button.textContent?.trim() === "Stop and cancel");
+    ).find((button) => button.textContent?.trim() === "Detener y cancelar");
     expect(stopAndCancelButton).toBeTruthy();
 
     await act(async () => {
@@ -4989,7 +4989,7 @@ describe("IssueDetail", () => {
 
     const stopAndDoneButton = Array.from(
       container.querySelectorAll("button"),
-    ).find((button) => button.textContent?.trim() === "Stop and done");
+    ).find((button) => button.textContent?.trim() === "Detener y completar");
     expect(stopAndDoneButton).toBeTruthy();
 
     await act(async () => {
@@ -5000,8 +5000,8 @@ describe("IssueDetail", () => {
     expect(mockHeartbeatsApi.cancel).toHaveBeenCalledWith("run-active-1");
     expect(mockPushToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Run stopped; task update failed",
-        body: "Run was stopped, but updating the task failed: Status write failed",
+        title: "Ejecución detenida; error al actualizar la tarea",
+        body: "Se detuvo la ejecución, pero no se pudo actualizar la tarea: Status write failed",
         tone: "error",
       }),
     );
@@ -5146,12 +5146,12 @@ describe("IssueDetail", () => {
       await flushReact();
 
       const moreButton = container.querySelector<HTMLButtonElement>(
-        'button[aria-label="More task actions"]',
+        'button[aria-label="Más acciones de la tarea"]',
       );
       await act(async () => moreButton!.click());
       const copyButton = Array.from(
         document.body.querySelectorAll<HTMLButtonElement>("button"),
-      ).find((button) => button.textContent?.trim() === "Copy as markdown");
+      ).find((button) => button.textContent?.trim() === "Copiar como markdown");
       expect(copyButton).toBeTruthy();
 
       await act(async () => {
@@ -5163,7 +5163,7 @@ describe("IssueDetail", () => {
       expect(execCommand).toHaveBeenCalledWith("copy");
       expect(mockPushToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          title: "Copied to clipboard",
+          title: "Copiado al portapapeles",
           tone: "success",
         }),
       );
@@ -5444,7 +5444,7 @@ describe("IssueDetail", () => {
       await waitForAssertion(() => {
         expect(queryClient.getQueryState(treeControlKey)?.status).toBe("error");
         expect(composerProps().composerDisabledReason).toBe(
-          "Couldn’t check whether this task is paused. Refresh to try again.",
+          "No se pudo comprobar si esta tarea está en pausa. Actualiza para volver a intentarlo.",
         );
       });
     });
@@ -5609,7 +5609,7 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     ) as HTMLButtonElement | null;
     expect(moreButton).toBeTruthy();
 
@@ -5685,7 +5685,7 @@ describe("IssueDetail", () => {
     await flushReact();
 
     const moreButton = container.querySelector(
-      'button[aria-label="More task actions"]',
+      'button[aria-label="Más acciones de la tarea"]',
     )!;
     await act(async () => {
       moreButton.dispatchEvent(
@@ -5822,8 +5822,8 @@ describe("IssueDetail", () => {
       };
       expect(props.queuedCommentQueue).toBeNull();
       expect(props.runFinalizationActions).toEqual([
-        expect.objectContaining({ id: "cancel", label: "Stop and cancel" }),
-        expect.objectContaining({ id: "done", label: "Stop and done" }),
+        expect.objectContaining({ id: "cancel", label: "Detener y cancelar" }),
+        expect.objectContaining({ id: "done", label: "Detener y completar" }),
       ]);
     },
   );
@@ -6071,7 +6071,7 @@ describe("IssueDetail", () => {
     await act(async () => { delivery.reject(new Error("Connection lost")); await pending; });
     expect(await pending).toBeUndefined();
     await waitForAssertion(() => {
-      expect(container.textContent).toContain("Couldn’t interrupt. Message is still queued.");
+      expect(container.textContent).toContain("No se pudo interrumpir. El mensaje sigue en cola.");
       expect(mockIssueChatThreadRender.mock.calls.at(-1)?.[0]?.comments).toContainEqual(expect.objectContaining({ id: "queued-comment-1", queueState: "queued" }));
     });
     expect(mockPushToast).not.toHaveBeenCalled();
@@ -6239,7 +6239,7 @@ describe("IssueDetail", () => {
     );
     expect(mockPushToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Message is already being sent",
+        title: "El mensaje ya se está enviando",
         tone: "error",
         ttlMs: 15_000,
       }),

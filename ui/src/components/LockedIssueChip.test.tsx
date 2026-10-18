@@ -40,20 +40,20 @@ describe("LockedIssueChip", () => {
     expect(container.querySelector("a")).toBeNull();
     expect(chip?.querySelector("svg")).not.toBeNull();
     expect(chip?.textContent).toContain("PAP-1234");
-    expect(chip?.getAttribute("aria-label")).toContain("private");
+    expect(chip?.getAttribute("aria-label")).toContain("privada");
   });
 
   it("does not claim a missing or forbidden Markdown target is private", () => {
     renderChip(<LockedIssueChip identifier="PAP-404" unavailable />);
     const chip = container.querySelector('[data-testid="locked-issue-chip"]');
-    expect(chip?.getAttribute("aria-label")).toContain("unavailable");
-    expect(chip?.getAttribute("aria-label")).not.toContain("private");
+    expect(chip?.getAttribute("aria-label")).toContain("no disponible");
+    expect(chip?.getAttribute("aria-label")).not.toContain("privada");
   });
 
   it("falls back to a neutral Private label when the identifier is withheld", () => {
     renderChip(<LockedIssueChip identifier={null} />);
     const chip = container.querySelector('[data-testid="locked-issue-chip"]');
-    expect(chip?.textContent).toContain("Private");
+    expect(chip?.textContent).toContain("Privada");
   });
 
   it("uses a dashed, muted border (design-token classes)", () => {

@@ -128,13 +128,13 @@ describe("SidebarServerInfo", () => {
 
     await render();
 
-    expect(container.textContent).toContain("Last restarted");
-    expect(container.textContent).toContain("Running commit");
-    expect(container.textContent).toContain("Checkout state");
+    expect(container.textContent).toContain("Último reinicio");
+    expect(container.textContent).toContain("Commit en ejecución");
+    expect(container.textContent).toContain("Estado del repositorio");
     expect(container.querySelector('time[dateTime="2026-06-26T01:15:00.000Z"]')).not.toBeNull();
     expect(container.textContent).toContain("abcdef1");
     expect(container.textContent).toContain("Add server info debug view");
-    expect(container.textContent).toContain("Clean checkout");
+    expect(container.textContent).toContain("Copia limpia");
   });
 
   it("polls health while the drawer is open and the dev server is active", async () => {
@@ -222,7 +222,7 @@ describe("SidebarServerInfo", () => {
 
     await render();
 
-    expect(container.textContent).toContain("Local changes present (3 staged, 2 unstaged, 1 untracked)");
+    expect(container.textContent).toContain("Cambios locales presentes (3 preparados, 2 sin preparar, 1 sin seguimiento)");
     expect(container.textContent).not.toContain("server-info.ts");
   });
 
@@ -299,7 +299,7 @@ describe("SidebarServerInfo", () => {
 
     const secondOpen = await mountDrawer();
     expect(container.textContent).toContain("After restart");
-    expect(container.textContent).toContain("Local changes present (1 staged)");
+    expect(container.textContent).toContain("Cambios locales presentes (1 preparados)");
     expect(container.textContent).not.toContain("First boot");
     flushSync(() => secondOpen.unmount());
   });
@@ -320,6 +320,6 @@ describe("SidebarServerInfo", () => {
     await render();
 
     expect(container.querySelector('time[dateTime="2026-06-26T00:00:00.000Z"]')).not.toBeNull();
-    expect(container.textContent).toContain("Commit unavailable");
+    expect(container.textContent).toContain("Commit no disponible");
   });
 });

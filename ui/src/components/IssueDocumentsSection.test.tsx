@@ -385,7 +385,7 @@ describe("IssueDocumentsSection", () => {
       await flush();
       await flush();
 
-      const copyButton = container.querySelector('button[title="Copy document"]');
+      const copyButton = container.querySelector('button[title="Copiar documento"]');
       expect(copyButton).toBeTruthy();
 
       await act(async () => {
@@ -394,7 +394,7 @@ describe("IssueDocumentsSection", () => {
 
       expect(writeText).not.toHaveBeenCalled();
       expect(execCommand).toHaveBeenCalledWith("copy");
-      expect(container.querySelector('button[title="Copied"]')).toBeTruthy();
+      expect(container.querySelector('button[title="Copiado"]')).toBeTruthy();
     } finally {
       await act(async () => {
         root.unmount();
@@ -457,7 +457,7 @@ describe("IssueDocumentsSection", () => {
     await flush();
     await flush();
 
-    const lockButton = container.querySelector('button[title="Lock document"]');
+    const lockButton = container.querySelector('button[title="Bloquear documento"]');
     expect(lockButton).toBeTruthy();
 
     await act(async () => {
@@ -466,7 +466,7 @@ describe("IssueDocumentsSection", () => {
     await flush();
 
     expect(mockIssuesApi.lockDocument).toHaveBeenCalledWith("issue-1", "plan");
-    expect(container.querySelector('button[title="Unlock document"]')).toBeTruthy();
+    expect(container.querySelector('button[title="Desbloquear documento"]')).toBeTruthy();
 
     await act(async () => {
       root.unmount();
@@ -507,9 +507,9 @@ describe("IssueDocumentsSection", () => {
     await flush();
 
     expect(container.textContent).toContain("Locked plan body");
-    expect(container.textContent).not.toContain("Edit document");
-    expect(container.textContent).not.toContain("Delete document");
-    expect(container.querySelector('button[title="Unlock document"]')).toBeTruthy();
+    expect(container.textContent).not.toContain("Editar documento");
+    expect(container.textContent).not.toContain("Eliminar documento");
+    expect(container.querySelector('button[title="Desbloquear documento"]')).toBeTruthy();
 
     await act(async () => {
       root.unmount();
@@ -659,7 +659,7 @@ describe("IssueDocumentsSection", () => {
     expect(container.textContent).toContain("Restored plan body");
 
     const restoreButton = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.includes("Restore this revision"));
+      .find((button) => button.textContent?.includes("Restaurar esta revisión"));
     expect(restoreButton).toBeTruthy();
 
     await act(async () => {
@@ -864,7 +864,7 @@ describe("IssueDocumentsSection", () => {
     await flush();
 
     expect(container.textContent).toContain("Loaded plan body");
-    expect(container.textContent).not.toContain("Markdown body");
+    expect(container.textContent).not.toContain("Cuerpo en Markdown");
 
     await act(async () => {
       root.unmount();
@@ -1037,7 +1037,7 @@ describe("IssueDocumentsSection", () => {
     expect(container.textContent).toContain("Reusable case document body");
     expect(container.textContent).toContain("body");
 
-    const lockButton = container.querySelector('button[title="Lock document"]');
+    const lockButton = container.querySelector('button[title="Bloquear documento"]');
     expect(lockButton).toBeTruthy();
 
     await act(async () => {
@@ -1046,7 +1046,7 @@ describe("IssueDocumentsSection", () => {
     await flush();
 
     expect(setDocumentLock).toHaveBeenCalledWith("body", true);
-    expect(container.querySelector('button[title="Unlock document"]')).toBeTruthy();
+    expect(container.querySelector('button[title="Desbloquear documento"]')).toBeTruthy();
 
     await act(async () => {
       root.unmount();

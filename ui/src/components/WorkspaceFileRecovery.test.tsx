@@ -35,19 +35,19 @@ describe.each(["legacy_execution_requires_reconciliation", "native_continuation_
   }
   async function confirm() { await act(async () => container.querySelector<HTMLButtonElement>('[role="checkbox"]')!.click()); }
   async function submit() {
-    await act(async () => Array.from(container.querySelectorAll("button")).find(b => b.textContent === "Record file recovery")!.click());
+    await act(async () => Array.from(container.querySelectorAll("button")).find(b => b.textContent === "Registrar recuperación de archivos")!.click());
     await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
   }
   it.each(["blocked", "in_progress", "in_review", "done", "cancelled"] as Issue["status"][])("records verified source files without changing the %s task", async issueStatus => {
     await mount({ issueStatus });
-    const button = Array.from(container.querySelectorAll("button")).find(b => b.textContent === "Record file recovery")!;
+    const button = Array.from(container.querySelectorAll("button")).find(b => b.textContent === "Registrar recuperación de archivos")!;
     expect(button.disabled).toBe(true); await enterEvidence(); expect(button.disabled).toBe(true);
     await confirm(); expect(button.disabled).toBe(false); await submit();
     expect(resolve).toHaveBeenCalledWith("task", expect.objectContaining({ actionId: "held-source", sourceIssueStatus: issueStatus,
       outcome: "restored", executionReconciliation: expect.objectContaining({ runId: "original-run", providerStopped: true,
         workspaceRepairEvidence: "Recovered and verified both repository patches in the linked backup artifact." }) }));
     expect(onRecorded).toHaveBeenCalledOnce();
-    expect(container.querySelector('[role="status"]')?.textContent).toContain("task status is unchanged");
+    expect(container.querySelector('[role="status"]')?.textContent).toContain("El estado de la tarea no cambia");
   });
   it("keeps the hold and entered evidence when the server rejects unverified shutdown", async () => {
     resolve.mockRejectedValueOnce(new Error("The original workspace has not confirmed that it stopped."));
@@ -58,7 +58,7 @@ describe.each(["legacy_execution_requires_reconciliation", "native_continuation_
   });
   it("does not offer attestation without board runtime access", async () => {
     await mount({ canManage: false }); expect(container.querySelector("button")).toBeNull();
-    expect(container.textContent).toContain("board member with runtime access"); expect(resolve).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("miembro del consejo con acceso al entorno de ejecución"); expect(resolve).not.toHaveBeenCalled();
   });
   it.each([
     { workspaceRepairRequired: false }, { canRecordWorkspaceRepair: false }, { cause: "native_workspace_sync_out_retry_exhausted" },
