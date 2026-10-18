@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Sidebar } from "./Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { t } from "@/i18n";
 
 const mockHeartbeatsApi = vi.hoisted(() => ({
   liveRunsForCompany: vi.fn(),
@@ -21,6 +22,7 @@ const mockInstanceSettingsApi = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/router", () => ({
+  useLocation: () => ({ pathname: "/", search: "", hash: "", state: null }),
   NavLink: ({ to, children, className, ...props }: {
     to: string;
     children: ReactNode;
@@ -173,6 +175,18 @@ describe("Sidebar", () => {
     vi.clearAllMocks();
   });
 
+  // The Administration group is closed by default; open it through its header.
+  async function openAdminGroup() {
+    const expandLabel = t("sidebarSection.expandAria", { label: t("sidebarNew.groupAdmin") });
+    const trigger = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.getAttribute("aria-label") === expandLabel,
+    );
+    flushSync(() => {
+      trigger?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushReact();
+  }
+
   it("keeps the default sidebar edge borderless", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableIsolatedWorkspaces: false });
     const root = await renderSidebar();
@@ -195,9 +209,8 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     expect(container.querySelector('a[aria-label="Open search"]')).toBeNull();
-    const navSearchLink = [...container.querySelectorAll("nav a")]
-      .find((anchor) => anchor.textContent?.trim() === "Buscar");
-    expect(navSearchLink?.getAttribute("href")).toBe("/search");
+    const navSearchLink = container.querySelector('a[href="/search"]');
+    expect(navSearchLink?.textContent?.trim()).toBe(t("sidebarNew.searchPlaceholder"));
 
     flushSync(() => {
       root.unmount();
@@ -229,14 +242,15 @@ describe("Sidebar", () => {
     });
   });
 
-  it("uses the simplified work navigation with one Agents destination", async () => {
+  it("uses the simplified work navigation and lists each agent once, inside Equipo", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({
       enableIsolatedWorkspaces: false,
       enableStreamlinedLeftNavigation: true,
     });
     const root = await renderSidebar();
 
-    expect(container.textContent).toContain("Nueva tarea");
+    // Quick create lives on the Work header as a "+" button.
+    expect(container.querySelector(`button[aria-label="${t("nav.newTask")}"]`)).not.toBeNull();
     expect(container.textContent).not.toContain("New Issue");
 
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
@@ -245,10 +259,12 @@ describe("Sidebar", () => {
 
     const projectsLink = [...container.querySelectorAll("nav a")].find((a) => a.textContent?.trim() === "Proyectos");
     expect(projectsLink?.getAttribute("href")).toBe("/projects");
-    const agentLinks = [...container.querySelectorAll('a[href="/agents"]')];
-    expect(agentLinks).toHaveLength(1);
+    // The standalone Agents link is gone: the agents group in Equipo is the only entry.
+    expect(container.querySelectorAll('a[href="/agents"]')).toHaveLength(0);
+    expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
+    await openAdminGroup();
     expect([...container.querySelectorAll('a[href="/activity"]')]).toHaveLength(1);
-    expect(navLabels).toContain("Auditoría");
+    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).toContain("Auditoría");
     expect(navLabels).not.toContain("Ajustes");
     expect(navLabels).not.toContain("Actividad");
     expect(navLabels).not.toContain("Costos");
@@ -265,7 +281,7 @@ describe("Sidebar", () => {
 
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
     expect(navLabels).toContain("Proyectos");
-    expect(navLabels).toContain("Agentes");
+    expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
     expect(container.textContent).not.toContain("Organización");
     expect(container.textContent).not.toContain("Espacios de trabajo");
     expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Objetivos");
@@ -292,7 +308,7 @@ describe("Sidebar", () => {
     // Top-level Projects link + starred children stay, per-project collapsible gone.
     expect(navLabels).toContain("Proyectos");
     expect(container.querySelector('[data-testid="sidebar-starred-projects"]')).not.toBeNull();
-    expect(navLabels).toContain("Agentes");
+    expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
 
     flushSync(() => {
       root.unmount();
@@ -511,15 +527,19 @@ describe("Sidebar", () => {
     });
     const root = await renderSidebar();
 
+    await openAdminGroup();
     const sections = [...container.querySelectorAll("nav > div")];
     const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
-    const orgSection = sections.find((section) => section.textContent?.startsWith("Organización"));
+    const teamSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupTeam")));
+    const orgSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupAdmin")));
     const labels = (section: Element | undefined) => [...(section?.querySelectorAll("a") ?? [])]
       .map((anchor) => anchor.textContent?.trim());
 
     expect(labels(workSection)).toEqual(["Tareas", "Proyectos", "Rutinas", "Artefactos"]);
-    expect(labels(orgSection)).toEqual(["Agentes", "Habilidades", "Conectores", "Auditoría"]);
-    expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(orgSection!));
+    expect(teamSection?.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
+    expect(labels(orgSection)).toEqual(["Habilidades", "Conectores", "Auditoría"]);
+    expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(teamSection!));
+    expect(sections.indexOf(teamSection!)).toBeLessThan(sections.indexOf(orgSection!));
     expect(
       workSection?.querySelector('a[href="/issues"] svg')?.classList.contains("lucide-circle-check"),
     ).toBe(true);
@@ -621,9 +641,10 @@ describe("Sidebar", () => {
     });
   });
 
-  it("always shows Connectors in the Org section", async () => {
+  it("always shows Connectors in the Administration group", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableApps: false });
     const root = await renderSidebar();
+    await openAdminGroup();
 
     const links = [...container.querySelectorAll("a")];
     const link = links.find((anchor) => anchor.textContent === "Conectores");

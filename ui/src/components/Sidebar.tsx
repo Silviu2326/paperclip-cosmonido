@@ -21,12 +21,14 @@ import {
   MessageCircle,
   GanttChartSquare,
   LayoutGrid,
-  Users,
+  Plus,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarSection } from "./SidebarSection";
-import { SidebarNavItem } from "./SidebarNavItem";
+import { SidebarNavItem, SidebarPrimaryNavProvider } from "./SidebarNavItem";
+import { NavLink, useLocation } from "@/lib/router";
+import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { SidebarAgents } from "./SidebarAgents";
 import { SidebarProjects } from "./SidebarProjects";
 import { SidebarStarredProjects } from "./SidebarStarredProjects";
@@ -51,8 +53,12 @@ import { SidebarCompanyMenu } from "./SidebarCompanyMenu";
 import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useTranslation } from "@/i18n";
 
+// Routes that live in the streamlined Administration group.
+const ADMIN_ROUTE_PATTERN = /^\/(?:[^/]+\/)?(skills|apps|activity|audit)(?:\/|$)/;
+
 export function Sidebar({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { openNewIssue } = useDialogActions();
   const { enabled: agentChatEnabled } = useAgentChatEnabled();
   // Every labeled section is collapsible (session-scoped, default open) —
@@ -60,7 +66,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
   const [workOpen, setWorkOpen] = useState(true);
   const [organizationOpen, setOrganizationOpen] = useState(true);
   const { selectedCompanyId, selectedCompany } = useCompany();
-  const { collapsed, peeking } = useSidebar();
+  const { collapsed, peeking, isMobile, setSidebarOpen } = useSidebar();
   const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
   const rail = collapsed && !peeking;
   const inboxBadge = useInboxBadge(selectedCompanyId);
@@ -127,193 +133,236 @@ export function Sidebar({ children }: { children?: ReactNode }) {
     companyPrefix: selectedCompany?.issuePrefix ?? null,
   };
 
-  return (
-    <aside
-      className={cn(
-        "w-full h-full min-h-0 flex flex-col",
-        streamlinedUiEnabled
-          ? primarySidebarStyles.surface
-          : "border-r border-border bg-background",
-      )}
+  // Streamlined layout: the Administration group opens by itself when the
+  // current route belongs to it, and stays closed otherwise.
+  const adminRouteActive = ADMIN_ROUTE_PATTERN.test(location.pathname);
+  const [adminOpen, setAdminOpen] = useState(adminRouteActive);
+  useEffect(() => {
+    if (adminRouteActive) setAdminOpen(true);
+  }, [adminRouteActive]);
+
+  // Quick create: in the streamlined layout it rides the Work header as "+";
+  // the rail has no header, so it keeps the standalone row there.
+  const headerCreate = streamlinedUiEnabled && !rail;
+  const newTaskButton = (
+    <button
+      onClick={() => openNewIssue()}
+      data-slot="icon-button"
+      aria-label={rail ? t("nav.newTask") : undefined}
+      className="flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
     >
-      {/* Top bar: company name, aligned with top sections and borderless.
-          Search deliberately does NOT live here:
-          the header's spare width goes to the workspace/organization name,
-          which is the user's orientation anchor and truncates otherwise.
-          Search is the first nav item below instead. */}
-      <div className="flex h-(--sz-60px) shrink-0 items-center gap-1 px-3">
-        <SidebarCompanyMenu />
-      </div>
+      <SquarePen className="h-4 w-4 shrink-0" />
+      <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>{t("nav.newTask")}</span>
+    </button>
+  );
 
-      <nav className={primarySidebarStyles.nav}>
-        <div className={primarySidebarStyles.group}>
-          {/* New Task button aligned with nav items */}
-          {(() => {
-            const newTaskButton = (
-              <button
-                onClick={() => openNewIssue()}
-                data-slot="icon-button"
-                aria-label={rail ? t("nav.newTask") : undefined}
-                className={cn(
-                  "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                )}
-              >
-                <SquarePen className="h-4 w-4 shrink-0" />
-                <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>{t("nav.newTask")}</span>
-              </button>
-            );
-            return rail ? (
-              <Tooltip>
-                <TooltipTrigger asChild>{newTaskButton}</TooltipTrigger>
-                <TooltipContent side="right">{t("nav.newTask")}</TooltipContent>
-              </Tooltip>
-            ) : (
-              newTaskButton
-            );
-          })()}
-          {/* Search moved out of the header so the workspace name keeps the
-              width; a nav row also keeps search reachable from the
-              collapsed rail, where the old header icon was dropped entirely.
-              Cmd/Ctrl+K remains the keyboard path (command palette). */}
-          <SidebarNavItem to="/search" label={t("nav.search")} icon={Search} />
-          <SidebarNavItem to="/dashboard" label={t("nav.dashboard")} icon={LayoutDashboard} liveCount={liveRunCount} />
-          {!combinedInboxTasks ? (
-            <SidebarNavItem
-              to="/inbox"
-              label={t("nav.inbox")}
-              icon={Inbox}
-              badge={inboxBadge.inbox}
-              badgeLabel="unread"
-              badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
-              alert={inboxBadge.failedRuns > 0}
-            />
-          ) : null}
-          {agentChatEnabled && !chatRail ? <SidebarNavItem to="/chats" label={t("nav.chat")} icon={MessageCircle} /> : null}
-          {showDecisions ? (
-            <SidebarNavItem
-              to="/decisions"
-              label={t("nav.decisions")}
-              icon={ListChecks}
-              badge={attentionCount}
-              badgeLabel="decisions"
-            />
-          ) : null}
-          {showStatusCards ? (
-            <SidebarNavItem to="/status" label={t("nav.status")} icon={LayoutGrid} textBadge="beta" />
-          ) : null}
-          {conferenceRoomChatEnabled ? (
-            <SidebarNavItem to="/board-chat" label={t("nav.conferenceRoom")} icon={MessagesSquare} />
-          ) : null}
-        </div>
-
-        <SidebarSection label={t("nav.work")} collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}>
-          {/* Agent Chat: Chat leads the Work group as a single row — the
-              agents you talk to live in the Chat surface's own secondary rail
-              (ChatContextualSidebar), not in the primary nav. */}
-          {chatRail ? (
-            <SidebarNavItem to="/chats" label={t("nav.chat")} icon={MessageCircle} />
-          ) : null}
-          {/* Combined Inbox + Task List: Inbox is a view inside Tasks, so the
-              unread/failed-run badge rides on Tasks. */}
-          {combinedInboxTasks ? (
-            <SidebarNavItem
-              to="/issues"
-              label={t("nav.tasks")}
-              icon={CircleCheck}
-              badge={inboxBadge.inbox}
-              badgeLabel="unread"
-              badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
-              alert={inboxBadge.failedRuns > 0}
-            />
-          ) : (
-            <SidebarNavItem to="/issues" label={t("nav.tasks")} icon={CircleCheck} />
-          )}
-          {streamlinedUiEnabled ? (
-            <>
-              <SidebarNavItem to="/projects" label={t("nav.projects")} icon={FolderOpen} />
-              <SidebarStarredProjects />
-            </>
-          ) : null}
-          <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
-          <SidebarNavItem to="/artifacts" label={t("nav.artifacts")} icon={Package} />
-          {showCases ? (
-            <SidebarNavItem to="/cases" label={t("nav.cases")} icon={Layers} textBadge="beta" />
-          ) : null}
-          {showPipelines ? (
-            <SidebarNavItem to="/pipelines" label={t("nav.pipelines")} icon={GitBranch} />
-          ) : null}
-          {showGoalsLink ? (
-            <SidebarNavItem to="/goals" label={t("nav.goals")} icon={Target} />
-          ) : goalsLinkPending ? (
-            <div
-              data-testid="sidebar-goals-placeholder"
-              className="h-8 pointer-coarse:h-7"
-              aria-hidden="true"
-            />
-          ) : null}
-          {showWorkspacesLink ? (
-            <SidebarNavItem to="/workspaces" label={t("nav.workspaces")} icon={GitBranch} />
-          ) : null}
-          <PluginSlotOutlet
-            errorBehavior="hidden"
-            slotTypes={["sidebar"]}
-            context={pluginContext}
-            className="flex flex-col gap-0.5"
-            itemClassName="text-(length:--text-compact) font-medium"
-            missingBehavior="placeholder"
-          />
-          <PluginLauncherOutlet
-            errorBehavior="hidden"
-            placementZones={["sidebar"]}
-            context={pluginContext}
-            className="flex flex-col gap-0.5"
-            itemClassName="text-(length:--text-compact) font-medium"
-          />
-        </SidebarSection>
-
+  return (
+    <SidebarPrimaryNavProvider enabled={streamlinedUiEnabled}>
+      <aside
+        className={cn(
+          "w-full h-full min-h-0 flex flex-col",
+          streamlinedUiEnabled
+            ? primarySidebarStyles.surface
+            : "border-r border-border bg-background",
+        )}
+      >
         {streamlinedUiEnabled ? (
-          <SidebarSection
-            label={t("nav.org")}
-            collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
-          >
-            <SidebarNavItem to="/agents" label={t("nav.agents")} icon={Users} />
-            <SidebarNavItem to="/skills" label={t("nav.skills")} icon={Boxes} />
-            <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
-            <SidebarNavItem to="/activity" label={t("nav.audit")} icon={History} />
-          </SidebarSection>
-        ) : null}
-
-        {children ?? (streamlinedUiEnabled ? <SidebarAgents streamlined /> : null)}
-
-        {streamlinedUiEnabled ? (
-          <SidebarRecentTasks companyId={selectedCompanyId} liveIssueIds={liveIssueIds} />
-        ) : (
           <>
-            <SidebarProjects />
-            <SidebarAgents />
-            <SidebarSection
-              label={t("sidebar.organizationSection")}
-              collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
-            >
-              <SidebarNavItem to="/org" label={t("nav.org")} icon={Network} />
-              <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
-              <SidebarNavItem to="/timeline" label={t("sidebar.timeline")} icon={GanttChartSquare} />
-              <SidebarNavItem to="/costs" label={t("sidebar.costs")} icon={DollarSign} />
-              <SidebarNavItem to="/activity" label={t("sidebar.activity")} icon={History} />
-              <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
-            </SidebarSection>
+            {/* Compact brand header: the real Cosmonido mark and the heading face. */}
+            <div className="flex h-12 shrink-0 items-center gap-2 px-4">
+              <img src="/brand/cosmonido-logo-v1.png" alt="" height={28} className="h-7 w-auto shrink-0" />
+              {rail ? null : (
+                <span
+                  className="min-w-0 truncate text-base font-semibold text-foreground"
+                  style={{ fontFamily: "var(--font-heading)" }}
+                >
+                  {t("sidebarNew.brandName")}
+                </span>
+              )}
+            </div>
+            {/* Organization selector: its own block, separate from the navigation. */}
+            <div className="shrink-0 border-b border-border/60 px-3 pb-2 pt-1">
+              <SidebarCompanyMenu />
+            </div>
+            {/* Search sits under the organization selector and opens the search page. */}
+            <div className="shrink-0 px-3 pb-1 pt-2">
+              {rail ? (
+                <SidebarNavItem to="/search" label={t("nav.search")} icon={Search} />
+              ) : (
+                <NavLink
+                  to="/search"
+                  state={SIDEBAR_SCROLL_RESET_STATE}
+                  onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                  className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-1.5 text-(length:--text-compact) text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                >
+                  <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate">{t("sidebarNew.searchPlaceholder")}</span>
+                </NavLink>
+              )}
+            </div>
           </>
+        ) : (
+          <div className="flex h-(--sz-60px) shrink-0 items-center gap-1 px-3">
+            <SidebarCompanyMenu />
+          </div>
         )}
 
-        <PluginSlotOutlet
-          errorBehavior="hidden"
-          slotTypes={["sidebarPanel"]}
-          context={pluginContext}
-          className="flex flex-col gap-3"
-          itemClassName="rounded-lg border border-border p-3"
-          missingBehavior="placeholder"
-        />
-      </nav>
-    </aside>
+        <nav className={primarySidebarStyles.nav}>
+          <div className={primarySidebarStyles.group}>
+            {!headerCreate ? newTaskButton : null}
+            {!streamlinedUiEnabled ? <SidebarNavItem to="/search" label={t("nav.search")} icon={Search} /> : null}
+            {/* Top navigation: Inicio and Bandeja lead; experimental surfaces follow. */}
+            <SidebarNavItem to="/dashboard" label={t("nav.dashboard")} icon={LayoutDashboard} liveCount={liveRunCount} />
+            {!combinedInboxTasks ? (
+              <SidebarNavItem
+                to="/inbox"
+                label={t("nav.inbox")}
+                icon={Inbox}
+                badge={inboxBadge.inbox}
+                badgeLabel="unread"
+                badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
+                alert={inboxBadge.failedRuns > 0}
+              />
+            ) : null}
+            {agentChatEnabled && !chatRail ? <SidebarNavItem to="/chats" label={t("nav.chat")} icon={MessageCircle} /> : null}
+            {showDecisions ? (
+              <SidebarNavItem
+                to="/decisions"
+                label={t("nav.decisions")}
+                icon={ListChecks}
+                badge={attentionCount}
+                badgeLabel="decisions"
+              />
+            ) : null}
+            {showStatusCards ? (
+              <SidebarNavItem to="/status" label={t("nav.status")} icon={LayoutGrid} textBadge="beta" />
+            ) : null}
+            {conferenceRoomChatEnabled ? (
+              <SidebarNavItem to="/board-chat" label={t("nav.conferenceRoom")} icon={MessagesSquare} />
+            ) : null}
+          </div>
+
+          <SidebarSection
+            label={t("nav.work")}
+            divider={streamlinedUiEnabled}
+            collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}
+            headerAction={headerCreate ? { ariaLabel: t("nav.newTask"), icon: Plus, onClick: () => openNewIssue() } : undefined}
+          >
+            {/* Agent Chat: Chat leads the Work group as a single row. The agents
+                you talk to live in the Chat surface's own secondary rail
+                (ChatContextualSidebar), not in the primary nav. */}
+            {chatRail ? (
+              <SidebarNavItem to="/chats" label={t("nav.chat")} icon={MessageCircle} />
+            ) : null}
+            {/* Combined Inbox + Task List: Inbox is a view inside Tasks, so the
+                unread/failed-run badge rides on Tasks. */}
+            {combinedInboxTasks ? (
+              <SidebarNavItem
+                to="/issues"
+                label={t("nav.tasks")}
+                icon={CircleCheck}
+                badge={inboxBadge.inbox}
+                badgeLabel="unread"
+                badgeTone={inboxBadge.failedRuns > 0 ? "danger" : "default"}
+                alert={inboxBadge.failedRuns > 0}
+              />
+            ) : (
+              <SidebarNavItem to="/issues" label={t("nav.tasks")} icon={CircleCheck} />
+            )}
+            {streamlinedUiEnabled ? (
+              <>
+                <SidebarNavItem to="/projects" label={t("nav.projects")} icon={FolderOpen} />
+                <SidebarStarredProjects />
+              </>
+            ) : null}
+            <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
+            <SidebarNavItem to="/artifacts" label={t("nav.artifacts")} icon={Package} />
+            {showCases ? (
+              <SidebarNavItem to="/cases" label={t("nav.cases")} icon={Layers} textBadge="beta" />
+            ) : null}
+            {showPipelines ? (
+              <SidebarNavItem to="/pipelines" label={t("nav.pipelines")} icon={GitBranch} />
+            ) : null}
+            {showGoalsLink ? (
+              <SidebarNavItem to="/goals" label={t("nav.goals")} icon={Target} />
+            ) : goalsLinkPending ? (
+              <div
+                data-testid="sidebar-goals-placeholder"
+                className="h-8 pointer-coarse:h-7"
+                aria-hidden="true"
+              />
+            ) : null}
+            {showWorkspacesLink ? (
+              <SidebarNavItem to="/workspaces" label={t("nav.workspaces")} icon={GitBranch} />
+            ) : null}
+            <PluginSlotOutlet
+              errorBehavior="hidden"
+              slotTypes={["sidebar"]}
+              context={pluginContext}
+              className="flex flex-col gap-0.5"
+              itemClassName="text-(length:--text-compact) font-medium"
+              missingBehavior="placeholder"
+            />
+            <PluginLauncherOutlet
+              errorBehavior="hidden"
+              placementZones={["sidebar"]}
+              context={pluginContext}
+              className="flex flex-col gap-0.5"
+              itemClassName="text-(length:--text-compact) font-medium"
+            />
+          </SidebarSection>
+
+          {streamlinedUiEnabled ? (
+            <SidebarSection label={t("sidebarNew.groupTeam")} divider>
+              {/* Agents: one expandable group; each agent is listed once, inside it. */}
+              {children ?? <SidebarAgents streamlined />}
+            </SidebarSection>
+          ) : (
+            children ?? null
+          )}
+
+          {streamlinedUiEnabled ? (
+            <SidebarRecentTasks companyId={selectedCompanyId} liveIssueIds={liveIssueIds} />
+          ) : (
+            <>
+              <SidebarProjects />
+              <SidebarAgents />
+              <SidebarSection
+                label={t("sidebar.organizationSection")}
+                collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}
+              >
+                <SidebarNavItem to="/org" label={t("nav.org")} icon={Network} />
+                <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
+                <SidebarNavItem to="/timeline" label={t("sidebar.timeline")} icon={GanttChartSquare} />
+                <SidebarNavItem to="/costs" label={t("sidebar.costs")} icon={DollarSign} />
+                <SidebarNavItem to="/activity" label={t("sidebar.activity")} icon={History} />
+                <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
+              </SidebarSection>
+            </>
+          )}
+
+          {streamlinedUiEnabled ? (
+            <SidebarSection
+              label={t("sidebarNew.groupAdmin")}
+              divider
+              collapsible={{ open: adminOpen, onOpenChange: setAdminOpen }}
+            >
+              <SidebarNavItem to="/skills" label={t("nav.skills")} icon={Boxes} />
+              <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
+              <SidebarNavItem to="/activity" label={t("nav.audit")} icon={History} />
+            </SidebarSection>
+          ) : null}
+
+          <PluginSlotOutlet
+            errorBehavior="hidden"
+            slotTypes={["sidebarPanel"]}
+            context={pluginContext}
+            className="flex flex-col gap-3"
+            itemClassName="rounded-lg border border-border p-3"
+            missingBehavior="placeholder"
+          />
+        </nav>
+      </aside>
+    </SidebarPrimaryNavProvider>
   );
 }

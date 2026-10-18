@@ -646,6 +646,7 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
     <SidebarSection
       label={t("sidebarAgents.sectionLabel")}
       collapsible={{ open, onOpenChange: setOpen }}
+      nested={streamlined}
       headerAction={{
         ariaLabel: t("sidebarAgents.newAgent"),
         icon: Plus,
@@ -694,6 +695,18 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
           seeAllLink
         );
       })()}
+      {streamlined && !rail ? (
+        // Quick shortcut closing the Agents group; the header + stays for the
+        // classic affordance.
+        <button
+          type="button"
+          onClick={openNewAgent}
+          className="flex items-center gap-2 mx-2 rounded-lg px-2 py-1 text-(length:--text-micro) font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          <Plus className="h-3 w-3 shrink-0" aria-hidden="true" />
+          <span>{t("sidebarAgents.newAgent")}</span>
+        </button>
+      ) : null}
     </SidebarSection>
   );
 }

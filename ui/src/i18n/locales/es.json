@@ -10560,5 +10560,12 @@
     "successJoinRequest": "Solicitud de acceso: {{decision}}",
     "viewIssue": "Ver tarea",
     "you": "tú"
+  },
+  "sidebarNew": {
+    "brandName": "Cosmonido",
+    "groupTeam": "Equipo",
+    "groupAdmin": "Administración",
+    "searchPlaceholder": "Buscar en Cosmonido",
+    "personalAccount": "Cuenta personal"
   }
 }

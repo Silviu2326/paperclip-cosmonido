@@ -10560,5 +10560,12 @@
     "successJoinRequest": "Join request {{decision}}",
     "viewIssue": "View issue",
     "you": "you"
+  },
+  "sidebarNew": {
+    "brandName": "Cosmonido",
+    "groupTeam": "Team",
+    "groupAdmin": "Administration",
+    "searchPlaceholder": "Search in Cosmonido",
+    "personalAccount": "Personal account"
   }
 }

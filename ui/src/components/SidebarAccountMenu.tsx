@@ -186,7 +186,12 @@ export function SidebarAccountMenu({
                 {session?.user.image ? <AvatarImage src={session.user.image} alt={displayName} /> : null}
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
-              <span className={cn("min-w-0 flex-1 truncate", rail && SIDEBAR_RAIL_HIDDEN_LABEL)}>{displayName}</span>
+              <span className={cn("flex min-w-0 flex-1 flex-col", rail && SIDEBAR_RAIL_HIDDEN_LABEL)}>
+                <span className="truncate text-foreground">{displayName}</span>
+                <span className="truncate text-(length:--text-micro) font-normal text-muted-foreground">
+                  {t("sidebarNew.personalAccount")}
+                </span>
+              </span>
             </button>
           </PopoverTrigger>
           <PopoverContent
@@ -275,6 +280,16 @@ export function SidebarAccountMenu({
             </div>
           </PopoverContent>
         </Popover>
+        {!rail ? (
+          <Link
+            to="/company/settings"
+            aria-label={t("nav.settings")}
+            onClick={closeNavigationChrome}
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Settings className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        ) : null}
         {!rail && !isCloud ? (
           <Tooltip>
             <TooltipTrigger asChild>

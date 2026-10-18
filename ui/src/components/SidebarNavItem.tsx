@@ -31,6 +31,28 @@ export function useSidebarNavExpanded() {
   return useContext(SidebarNavExpandedContext);
 }
 
+/**
+ * Marks the streamlined primary navigation (Sidebar.tsx). Rows beneath it use
+ * the inequivocal active treatment: cream surface, ink bold text and a 3px
+ * orange accent bar. Contextual sidebars never mount this provider, so their
+ * rows keep the shared highlight.
+ */
+const SidebarPrimaryNavContext = createContext(false);
+
+export function SidebarPrimaryNavProvider({
+  children,
+  enabled = true,
+}: {
+  children: ReactNode;
+  enabled?: boolean;
+}) {
+  return (
+    <SidebarPrimaryNavContext.Provider value={enabled}>
+      {children}
+    </SidebarPrimaryNavContext.Provider>
+  );
+}
+
 interface SidebarNavItemProps {
   to: string;
   label: string;
@@ -92,6 +114,7 @@ export function SidebarNavItem({
   // A contextual takeover forces full labels even when the saved global app
   // sidebar preference is collapsed.
   const forceExpanded = useSidebarNavExpanded();
+  const primaryNav = useContext(SidebarPrimaryNavContext);
   // The icon-only rail presentation only applies when pinned collapsed and not
   // peeking; a peek/expanded panel — or a contextual takeover — restores
   // the full label + badge.
@@ -128,9 +151,13 @@ export function SidebarNavItem({
           // the icon breathing room inside the pill. Rows with hover menus
           // (agents/projects) reserve extra right padding via className.
           "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
-          (active ?? isActive)
-            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-            : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          primaryNav
+            ? (active ?? isActive)
+              ? "relative bg-background font-semibold text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-[#E8752B] dark:bg-secondary"
+              : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+            : (active ?? isActive)
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
           className,
         )
       }

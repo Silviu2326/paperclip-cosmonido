@@ -62,14 +62,19 @@ interface SidebarSectionProps {
   };
   menu?: SidebarSectionMenu;
   headerAction?: SidebarSectionHeaderAction;
+  /** Streamlined primary nav: a thin rule runs from the label to the right edge. */
+  divider?: boolean;
+  /** Streamlined primary nav: children hang from a thin vertical guide on the left. */
+  nested?: boolean;
 }
 
 function SidebarSectionHeader({
   collapsible,
+  divider,
   headerAction,
   label,
   menu,
-}: Pick<SidebarSectionProps, "collapsible" | "headerAction" | "label" | "menu">) {
+}: Pick<SidebarSectionProps, "collapsible" | "divider" | "headerAction" | "label" | "menu">) {
   const { isMobile } = useSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
   const hasMenu = Boolean(
@@ -168,6 +173,7 @@ function SidebarSectionHeader({
           </CollapsibleTrigger>
         ) : null}
         {headingControl}
+        {divider ? <span className="mx-1 h-px min-w-4 flex-1 bg-border/60" aria-hidden="true" /> : null}
         {headerAction && HeaderActionIcon ? (
           <Button
             variant="ghost"
@@ -190,11 +196,22 @@ export function SidebarSection({
   collapsible,
   menu,
   headerAction,
+  divider = false,
+  nested = false,
 }: SidebarSectionProps) {
   const { collapsed, peeking } = useSidebar();
   const forceExpanded = useSidebarNavExpanded();
   const rail = collapsed && !peeking && !forceExpanded;
-  const content = <div className="flex flex-col gap-0.5 mt-0.5">{children}</div>;
+  const content = (
+    <div
+      className={cn(
+        "flex flex-col gap-0.5 mt-0.5",
+        nested && "ml-4 border-l border-border/60 pl-1",
+      )}
+    >
+      {children}
+    </div>
+  );
 
   // Collapsed rail: the section header would only show a clipped sliver of its
   // label, so replace it with a thin divider. The label stays in the a11y tree,
@@ -225,6 +242,7 @@ export function SidebarSection({
         <SidebarSectionHeader
           label={label}
           collapsible={collapsible}
+          divider={divider}
           menu={menu}
           headerAction={headerAction}
         />
@@ -235,7 +253,7 @@ export function SidebarSection({
 
   return (
     <div>
-      <SidebarSectionHeader label={label} menu={menu} headerAction={headerAction} />
+      <SidebarSectionHeader label={label} divider={divider} menu={menu} headerAction={headerAction} />
       {content}
     </div>
   );
