@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +40,7 @@ export function CompanySettings() {
     selectedCompanyId,
     setSelectedCompanyId
   } = useCompany();
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -196,7 +198,7 @@ export function CompanySettings() {
   useEffect(() => {
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Settings" }
+      { label: t("nav.settings") }
     ]);
   }, [setBreadcrumbs, selectedCompany?.name]);
 
@@ -326,7 +328,7 @@ export function CompanySettings() {
             onClick={handleSaveGeneral}
             disabled={generalMutation.isPending || !companyName.trim()}
           >
-            {generalMutation.isPending ? "Saving..." : "Save changes"}
+            {generalMutation.isPending ? t("common.saving") : t("common.saveChanges")}
           </Button>
           {generalMutation.isSuccess && (
             <span className="text-xs text-muted-foreground">Saved</span>

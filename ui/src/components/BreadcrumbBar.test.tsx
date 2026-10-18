@@ -139,7 +139,7 @@ describe("BreadcrumbBar", () => {
     expect(settings?.closest('[aria-disabled="true"]')).toBeNull();
     act(() => settings?.click());
     expect(configure).toHaveBeenCalledOnce();
-    expect(container.querySelector('button[aria-label="Hide properties"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="Ocultar propiedades"]')).not.toBeNull();
   });
 
   it("shows only the title followed by its identifier for a company-scoped mobile task header", async () => {
@@ -156,7 +156,7 @@ describe("BreadcrumbBar", () => {
     expect(identifier?.textContent).toBe("TES-3");
     expect(identifier?.previousElementSibling?.textContent).toBe("Hire your first engineer and create a hiring plan");
     expect(identifier?.previousElementSibling?.className).toContain("truncate");
-    expect(container.querySelector('button[aria-label="Open sidebar"]')).not.toBeNull();
+    expect(container.querySelector('button[aria-label="Abrir barra lateral"]')).not.toBeNull();
   });
 
   it("renders a page toolbar in the same persistent row as the task breadcrumb", async () => {
@@ -241,10 +241,10 @@ describe("BreadcrumbBar", () => {
     });
 
     const launcher = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Show properties"]',
+      'button[aria-label="Mostrar propiedades"]',
     );
     expect(launcher).not.toBeNull();
-    expect(container.querySelector('button[aria-label="Hide properties"]')).toBeNull();
+    expect(container.querySelector('button[aria-label="Ocultar propiedades"]')).toBeNull();
 
     act(() => launcher?.click());
     expect(onToggle).toHaveBeenCalledOnce();
@@ -263,7 +263,7 @@ describe("BreadcrumbBar", () => {
       'button[aria-label="Collapse sidebar"]',
     );
     const rightControl = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Hide properties"]',
+      'button[aria-label="Ocultar propiedades"]',
     );
 
     expect(leftControl).toBeNull();

@@ -5,5 +5,105 @@
       "description": "با ایجاد یک شرکت شروع کنید.",
       "newCompany": "شرکت جدید"
     }
+  },
+  "breadcrumbs": {
+    "openSidebar": "Open sidebar",
+    "showProperties": "Show properties",
+    "hideProperties": "Hide properties"
+  },
+  "common": {
+    "edit": "Edit",
+    "done": "Done",
+    "sort": "Sort",
+    "saveChanges": "Save changes",
+    "saving": "Saving..."
+  },
+  "companyMenu": {
+    "noOrganizations": "No organizations",
+    "invitePeople": "Invite people",
+    "inviteTo": "Invite people to {{name}}",
+    "signOut": "Sign out",
+    "signingOut": "Signing out..."
+  },
+  "nav": {
+    "newTask": "New Task",
+    "search": "Search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "chat": "Chat",
+    "decisions": "Decisions",
+    "status": "Status",
+    "conferenceRoom": "Conference Room",
+    "work": "Work",
+    "tasks": "Tasks",
+    "projects": "Projects",
+    "routines": "Routines",
+    "artifacts": "Artifacts",
+    "cases": "Cases",
+    "pipelines": "Pipelines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "org": "Org",
+    "agents": "Agents",
+    "skills": "Skills",
+    "connectors": "Connectors",
+    "audit": "Audit",
+    "recentTasks": "Recent Tasks",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "welcome": "Welcome to Paperclip. Set up your first organization and agent to get started.",
+    "getStarted": "Get Started",
+    "agentsEnabled": "Agents Enabled",
+    "tasksInProgress": "Tasks In Progress",
+    "monthSpend": "Month Spend",
+    "pendingApprovals": "Pending Approvals",
+    "unlimitedBudget": "Unlimited budget",
+    "awaitingReview": "Awaiting board review",
+    "runActivity": "Run Activity",
+    "tasksByStatus": "Tasks by Status",
+    "successRate": "Success Rate",
+    "last14Days": "Last 14 days"
+  },
+  "issues": {
+    "newTask": "New Task",
+    "searchLabel": "Search tasks",
+    "searchPlaceholder": "Search tasks...",
+    "listView": "List view",
+    "boardView": "Board view"
+  },
+  "agents": {
+    "newAgent": "New Agent",
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "paused": "Paused",
+      "error": "Error",
+      "builtin": "Built-in"
+    },
+    "listView": "List view",
+    "orgChartView": "Org chart view"
+  },
+  "projects": {
+    "addProject": "Add Project",
+    "sortBy": "Sort: {{label}}",
+    "myProjects": "My Projects",
+    "otherProjects": "Other Projects",
+    "privateProject": "Private project"
+  },
+  "goals": {
+    "addGoal": "Add Goal",
+    "newGoal": "New Goal",
+    "empty": "No goals yet."
+  },
+  "inbox": {
+    "tabs": {
+      "mine": "Mine",
+      "recent": "Recent",
+      "unread": "Unread",
+      "blocked": "Blocked",
+      "all": "All"
+    },
+    "searchPlaceholder": "Search {{surface}}…"
   }
 }

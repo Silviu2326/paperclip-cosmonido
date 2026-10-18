@@ -663,7 +663,7 @@ describe("Inbox toolbar", () => {
       );
     });
 
-    expect(container.querySelector('input[placeholder="Search inbox…"]')).not.toBeNull();
+    expect(container.querySelector('input[placeholder="Buscar bandeja…"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="inbox-blocked-tab-badge"]')).toBeNull();
     expect(container.querySelector('button[title="Filter"]')).not.toBeNull();
     expect(container.querySelector('button[title="Group"]')).not.toBeNull();
@@ -694,11 +694,11 @@ describe("Inbox toolbar", () => {
       });
 
       const toolbar = container.querySelector('[data-slot="collection-toolbar"]');
-      expect(toolbar?.getAttribute("aria-label")).toBe("Inbox controls");
+      expect(toolbar?.getAttribute("aria-label")).toBe("Bandeja controls");
       expect(toolbar?.querySelector('[data-slot="collection-toolbar-context"]')).not.toBeNull();
-      expect(toolbar?.querySelector('[data-slot="collection-toolbar-search"] input[placeholder="Search inbox…"]')).not.toBeNull();
+      expect(toolbar?.querySelector('[data-slot="collection-toolbar-search"] input[placeholder="Buscar bandeja…"]')).not.toBeNull();
       expect(toolbar?.querySelector('[data-slot="collection-toolbar-controls"]')).not.toBeNull();
-      expect(container.querySelectorAll('input[placeholder="Search inbox…"]')).toHaveLength(1);
+      expect(container.querySelectorAll('input[placeholder="Buscar bandeja…"]')).toHaveLength(1);
 
       act(() => root.unmount());
       container.replaceChildren();

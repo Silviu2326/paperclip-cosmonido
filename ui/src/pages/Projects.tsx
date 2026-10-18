@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Project } from "@paperclipai/shared";
@@ -80,12 +81,13 @@ function sortProjects(projects: Project[], sortField: ProjectSortField, sortDir:
 export function Projects() {
   const { selectedCompanyId } = useCompany();
   const { openNewProject } = useDialogActions();
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [sortField, setSortField] = useState<ProjectSortField>("name");
   const [sortDir, setSortDir] = useState<ProjectSortDir>("asc");
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Projects" }]);
+    setBreadcrumbs([{ label: t("nav.projects") }]);
   }, [setBreadcrumbs]);
 
   const { data: allProjects, isLoading, error } = useQuery({
@@ -132,9 +134,9 @@ export function Projects() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-fit text-xs" title="Sort">
+            <Button variant="ghost" size="sm" className="w-fit text-xs" title={t("common.sort")}>
               <ArrowUpDown className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-              <span>Sort: {sortLabel}</span>
+              <span>{t("projects.sortBy", { label: sortLabel })}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-44 p-0">
@@ -171,7 +173,7 @@ export function Projects() {
         </Popover>
         <Button size="sm" variant="outline" onClick={openNewProject}>
           <Plus className="h-4 w-4 mr-1" />
-          Add Project
+          {t("projects.addProject")}
         </Button>
       </div>
 
@@ -181,7 +183,7 @@ export function Projects() {
         <EmptyState
           icon={Hexagon}
           message="No projects yet."
-          action="Add Project"
+          action={t("projects.addProject")}
           onAction={openNewProject}
         />
       )}
@@ -189,8 +191,8 @@ export function Projects() {
       {projects.length > 0 && (
         <div className="space-y-6">
           {([
-            ["My Projects", groupedProjects.mine],
-            ["Other Projects", groupedProjects.other],
+            [t("projects.myProjects"), groupedProjects.mine],
+            [t("projects.otherProjects"), groupedProjects.other],
           ] as const).map(([label, sectionProjects]) => {
             if (sectionProjects.length === 0) return null;
 
@@ -222,7 +224,7 @@ export function Projects() {
                         className={state === "left" ? "group text-foreground/55" : "group"}
                         trailing={
                           <div className="flex items-center gap-3">
-                            {project.visibility === "private" ? <Lock className="size-4 shrink-0 text-muted-foreground" aria-label="Private project" /> : null}
+                            {project.visibility === "private" ? <Lock className="size-4 shrink-0 text-muted-foreground" aria-label={t("projects.privateProject")} /> : null}
                             <span
                               className="hidden text-xs text-muted-foreground tabular-nums sm:inline"
                               title={`${formatNumber(project.taskCount ?? 0)} task${(project.taskCount ?? 0) === 1 ? "" : "s"}`}

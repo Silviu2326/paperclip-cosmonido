@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { useShowAgentCreatedTasks } from "../hooks/useShowAgentCreatedTasks";
 import { useEffect, useMemo, useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -138,17 +139,18 @@ function StreamlinedTasks() {
     <TaskViewsMenu value={view} onChange={selectView} badgeCount={inboxBadge.inbox} />
   );
 
+  const { t } = useTranslation();
   if (definition.surface === "inbox") {
     return (
       <Inbox
         tab={definition.inboxTab}
-        surfaceLabel="Tasks"
+        surfaceLabel={t("nav.tasks")}
         toolbarContext={(
           <div className="flex min-w-0 items-center gap-2">
             {viewsMenu}
-            <Button size="sm" variant="outline" aria-label="New Task" onClick={() => openNewIssue()}>
+            <Button size="sm" variant="outline" aria-label={t("issues.newTask")} onClick={() => openNewIssue()}>
               <Plus className="h-4 w-4 sm:mr-1" />
-              <span className="hidden sm:inline">New Task</span>
+              <span className="hidden sm:inline">{t("issues.newTask")}</span>
             </Button>
           </div>
         )}
@@ -166,6 +168,7 @@ function OrganizationIssues({
   const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
   const issuesPresentation = resolveIssuesPresentation(streamlinedUiEnabled);
   const { selectedCompanyId } = useCompany();
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -227,7 +230,7 @@ function OrganizationIssues({
   const issueLinkState = useMemo(
     () =>
       createIssueDetailLocationState(
-        "Tasks",
+        t("nav.tasks"),
         `${location.pathname}${location.search}${location.hash}`,
         "issues",
       ),
@@ -235,7 +238,7 @@ function OrganizationIssues({
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Tasks" }]);
+    setBreadcrumbs([{ label: t("nav.tasks") }]);
   }, [setBreadcrumbs]);
 
   const issuePageSize = workspaceIdFilter ? WORKSPACE_FILTER_ISSUE_LIMIT : ISSUES_PAGE_SIZE;

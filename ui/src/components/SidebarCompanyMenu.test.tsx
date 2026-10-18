@@ -212,7 +212,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs organization switcher");
 
     expect(document.body.textContent).toContain("Couldn't load organizations");
-    expect(document.body.textContent).not.toContain("No organizations");
+    expect(document.body.textContent).not.toContain("No hay organizaciones");
 
     const retryItem = Array.from(document.body.querySelectorAll('[role="menuitem"]')).find(
       (item) => item.textContent?.includes("Try again"),
@@ -240,7 +240,7 @@ describe("SidebarCompanyMenu", () => {
     await flushReact();
     await openMenu("Open Acme Labs organization switcher");
 
-    expect(document.body.textContent).toContain("No organizations");
+    expect(document.body.textContent).toContain("No hay organizaciones");
     expect(document.body.textContent).not.toContain("Couldn't load organizations");
 
     act(() => {
@@ -279,16 +279,16 @@ describe("SidebarCompanyMenu", () => {
     await flushReact();
 
     expect(document.body.textContent).toContain("Organizations");
-    expect(document.body.textContent).toContain("Edit");
+    expect(document.body.textContent).toContain("Editar");
     expect(document.body.textContent).toContain("Strata");
     expect(document.body.textContent).toContain("ANA");
     expect(document.body.textContent).toContain("Create organization");
-    expect(document.body.textContent).toContain("Invite people to Acme Labs");
+    expect(document.body.textContent).toContain("Invitar personas a Acme Labs");
     expect(document.body.textContent).not.toContain("Company settings");
-    expect(document.body.textContent).toContain("Sign out");
+    expect(document.body.textContent).toContain("Cerrar sesión");
 
     const signOutButton = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
-      .find((element) => element.textContent?.includes("Sign out"));
+      .find((element) => element.textContent?.includes("Cerrar sesión"));
     expect(signOutButton).toBeTruthy();
 
     act(() => {
@@ -349,7 +349,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs company switcher");
 
     expect(document.body.textContent).toContain("Organizations");
-    expect(document.body.textContent).not.toContain("Invite people");
+    expect(document.body.textContent).not.toContain("Invitar personas");
 
     act(() => {
       root.unmount();
@@ -366,7 +366,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs organization switcher");
 
     expect(document.body.textContent).toContain("Organizations");
-    expect(document.body.textContent).not.toContain("Invite people");
+    expect(document.body.textContent).not.toContain("Invitar personas");
 
     act(() => {
       root.unmount();
@@ -383,7 +383,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs organization switcher");
 
     expect(document.body.textContent).toContain("Organizations");
-    expect(document.body.textContent).not.toContain("Invite people");
+    expect(document.body.textContent).not.toContain("Invitar personas");
 
     act(() => {
       root.unmount();
@@ -400,7 +400,7 @@ describe("SidebarCompanyMenu", () => {
     await openMenu("Open Acme Labs organization switcher");
 
     expect(document.body.textContent).toContain("Organizations");
-    expect(document.body.textContent).not.toContain("Invite people");
+    expect(document.body.textContent).not.toContain("Invitar personas");
 
     act(() => {
       root.unmount();
@@ -446,7 +446,7 @@ describe("SidebarCompanyMenu", () => {
     expect(document.body.textContent).not.toContain("Add company...");
 
     const editButton = Array.from(document.body.querySelectorAll("button"))
-      .find((element) => element.textContent === "Edit");
+      .find((element) => element.textContent === "Editar");
     expect(editButton).toBeTruthy();
 
     act(() => {
@@ -454,7 +454,7 @@ describe("SidebarCompanyMenu", () => {
     });
     await flushReact();
 
-    expect(document.body.textContent).toContain("Done");
+    expect(document.body.textContent).toContain("Listo");
     expect(document.body.textContent).not.toContain("PAP");
     expect(document.body.textContent).not.toContain("ANA");
     const reorderButton = document.body.querySelector<HTMLButtonElement>(
@@ -584,7 +584,7 @@ describe("SidebarCompanyMenu", () => {
       await openMenu("Open Acme Labs organization switcher");
 
       const signOutItem = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
-        .find((element) => element.textContent?.includes("Sign out"));
+        .find((element) => element.textContent?.includes("Cerrar sesión"));
       expect(signOutItem).toBeTruthy();
 
       act(() => {

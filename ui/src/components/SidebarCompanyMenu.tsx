@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import {
   Check,
   ChevronsUpDown,
@@ -153,6 +154,7 @@ export function SidebarCompanyMenu(props: SidebarCompanyMenuProps = {}) {
 }
 
 function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompanyMenuProps) {
+  const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState(false);
   const { companies, selectedCompany, setSelectedCompanyId, companyListUnavailable, retryCompanies } =
@@ -309,7 +311,7 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
             }}
             className="rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
-            {isEditingOrder ? "Done" : "Edit"}
+            {isEditingOrder ? t("common.done") : t("common.edit")}
           </button>
         </div>
         <div className="flex max-h-96 flex-col gap-0.5 overflow-y-auto px-2.5 pb-2 pt-1">
@@ -353,7 +355,7 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
                 </DropdownMenuItem>
               </>
             ) : (
-              <DropdownMenuItem disabled>No organizations</DropdownMenuItem>
+              <DropdownMenuItem disabled>{t("companyMenu.noOrganizations")}</DropdownMenuItem>
             )
           ) : null}
         </div>
@@ -386,7 +388,7 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
                   <UserPlus className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1 truncate">
-                  {currentName ? `Invite people to ${currentName}` : "Invite people"}
+                  {currentName ? t("companyMenu.inviteTo", { name: currentName }) : t("companyMenu.invitePeople")}
                 </span>
               </Link>
             </DropdownMenuItem>
@@ -401,7 +403,7 @@ function BuiltinCompanyMenu({ open: controlledOpen, onOpenChange }: SidebarCompa
                 <LogOut className="size-4" />
               </span>
               <span className="min-w-0 flex-1 truncate">
-                {signOutMutation.isPending ? "Signing out..." : "Sign out"}
+                {signOutMutation.isPending ? t("companyMenu.signingOut") : t("companyMenu.signOut")}
               </span>
             </DropdownMenuItem>
           ) : null}

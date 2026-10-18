@@ -122,7 +122,7 @@ describe("SidebarRecentTasks", () => {
 
   it("hides the section when there are no recent tasks", async () => {
     await render();
-    expect(container.textContent).not.toContain("Recent Tasks");
+    expect(container.textContent).not.toContain("Tareas recientes");
     expect(container.textContent).not.toContain("Open or create a task");
   });
 
@@ -302,7 +302,7 @@ describe("SidebarRecentTasks", () => {
 
     expect(mockIssuesApi.archiveFromInbox).toHaveBeenCalledWith("issue-1");
     expect(mockIssuesApi.update).not.toHaveBeenCalled();
-    expect(container.textContent).toContain("Recent Tasks");
+    expect(container.textContent).toContain("Tareas recientes");
     expect(container.querySelector('a[href="/issues/issue-1"]')?.textContent).toContain(
       "Archive me",
     );

@@ -196,7 +196,7 @@ describe("Sidebar", () => {
 
     expect(container.querySelector('a[aria-label="Open search"]')).toBeNull();
     const navSearchLink = [...container.querySelectorAll("nav a")]
-      .find((anchor) => anchor.textContent?.trim() === "Search");
+      .find((anchor) => anchor.textContent?.trim() === "Buscar");
     expect(navSearchLink?.getAttribute("href")).toBe("/search");
 
     flushSync(() => {
@@ -217,12 +217,12 @@ describe("Sidebar", () => {
     // The Work section is a Collapsible now (one extra wrapper level), so
     // resolve the section root by walking up until the header label appears.
     let workSectionContainer = workSection?.parentElement ?? null;
-    while (workSectionContainer && !workSectionContainer.textContent?.includes("Work")) {
+    while (workSectionContainer && !workSectionContainer.textContent?.includes("Trabajo")) {
       workSectionContainer = workSectionContainer.parentElement;
     }
-    expect(workSectionContainer?.textContent).toContain("Work");
-    expect(workSectionContainer?.textContent).toContain("Tasks");
-    expect(workSectionContainer?.textContent).not.toContain("Goals");
+    expect(workSectionContainer?.textContent).toContain("Trabajo");
+    expect(workSectionContainer?.textContent).toContain("Tareas");
+    expect(workSectionContainer?.textContent).not.toContain("Objetivos");
 
     flushSync(() => {
       root.unmount();
@@ -236,20 +236,20 @@ describe("Sidebar", () => {
     });
     const root = await renderSidebar();
 
-    expect(container.textContent).toContain("New Task");
+    expect(container.textContent).toContain("Nueva tarea");
     expect(container.textContent).not.toContain("New Issue");
 
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
-    expect(navLabels).toContain("Tasks");
+    expect(navLabels).toContain("Tareas");
     expect(navLabels).not.toContain("Issues");
 
-    const projectsLink = [...container.querySelectorAll("nav a")].find((a) => a.textContent?.trim() === "Projects");
+    const projectsLink = [...container.querySelectorAll("nav a")].find((a) => a.textContent?.trim() === "Proyectos");
     expect(projectsLink?.getAttribute("href")).toBe("/projects");
     const agentLinks = [...container.querySelectorAll('a[href="/agents"]')];
     expect(agentLinks).toHaveLength(1);
     expect([...container.querySelectorAll('a[href="/activity"]')]).toHaveLength(1);
-    expect(navLabels).toContain("Audit");
-    expect(navLabels).not.toContain("Settings");
+    expect(navLabels).toContain("Auditoría");
+    expect(navLabels).not.toContain("Ajustes");
     expect(navLabels).not.toContain("Activity");
     expect(navLabels).not.toContain("Costs");
     expect(container.querySelector('[data-testid="sidebar-recent-tasks"]')).not.toBeNull();
@@ -264,13 +264,13 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
-    expect(navLabels).toContain("Projects");
-    expect(navLabels).toContain("Agents");
+    expect(navLabels).toContain("Proyectos");
+    expect(navLabels).toContain("Agentes");
     expect(container.textContent).not.toContain("Organization");
-    expect(container.textContent).not.toContain("Workspaces");
-    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Goals");
+    expect(container.textContent).not.toContain("Espacios de trabajo");
+    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Objetivos");
     expect(container.querySelector('[data-testid="sidebar-goals-placeholder"]')).not.toBeNull();
-    expect(container.textContent).not.toContain("Conference Room");
+    expect(container.textContent).not.toContain("Sala de reuniones");
     expect(container.textContent).not.toContain("Pipelines");
 
     flushSync(() => {
@@ -288,11 +288,11 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const navLabels = [...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim());
-    expect(navLabels).toContain("Tasks");
+    expect(navLabels).toContain("Tareas");
     // Top-level Projects link + starred children stay, per-project collapsible gone.
-    expect(navLabels).toContain("Projects");
+    expect(navLabels).toContain("Proyectos");
     expect(container.querySelector('[data-testid="sidebar-starred-projects"]')).not.toBeNull();
-    expect(navLabels).toContain("Agents");
+    expect(navLabels).toContain("Agentes");
 
     flushSync(() => {
       root.unmount();
@@ -311,9 +311,9 @@ describe("Sidebar", () => {
     expect(container.querySelector('[data-testid="sidebar-projects"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="sidebar-agents"]')?.getAttribute("data-streamlined")).toBe("undefined");
     expect(container.textContent).toContain("Organization");
-    expect(labels).toEqual(expect.arrayContaining(["Org", "Connectors", "Timeline", "Costs", "Activity", "Settings"]));
-    expect(labels).not.toContain("Audit");
-    expect(labels).not.toContain("Projects");
+    expect(labels).toEqual(expect.arrayContaining(["Organización", "Conectores", "Timeline", "Costs", "Activity", "Ajustes"]));
+    expect(labels).not.toContain("Auditoría");
+    expect(labels).not.toContain("Proyectos");
     expect(container.querySelector('a[href="/agents"]')).toBeNull();
     expect(container.querySelector("aside")?.classList).toContain("border-r");
 
@@ -344,12 +344,12 @@ describe("Sidebar", () => {
     expect(sidebarSlot?.textContent).toContain("Plugin slot outlet");
     const workSectionContainer = sidebarSlot?.parentElement?.parentElement;
     const workText = workSectionContainer?.textContent ?? "";
-    expect(workText).toContain("Work");
-    expect(workText).toContain("Workspaces");
-    expect(workText.indexOf("Workspaces")).toBeLessThan(workText.indexOf("Plugin slot outlet"));
+    expect(workText).toContain("Tareas");
+    expect(workText).toContain("Espacios de trabajo");
+    expect(workText.indexOf("Espacios de trabajo")).toBeLessThan(workText.indexOf("Plugin slot outlet"));
 
     const primaryNavText = container.querySelector("nav > div:first-child")?.textContent ?? "";
-    expect(primaryNavText).toContain("Inbox");
+    expect(primaryNavText).toContain("Bandeja");
     expect(primaryNavText).not.toContain("Plugin slot outlet");
 
     flushSync(() => {
@@ -380,7 +380,7 @@ describe("Sidebar", () => {
 
       const workSection = chatLink?.closest("div")?.parentElement?.parentElement;
       const workText = workSection?.textContent ?? "";
-      expect(workText.indexOf("Chat")).toBeLessThan(workText.indexOf("Tasks"));
+      expect(workText.indexOf("Chat")).toBeLessThan(workText.indexOf("Tareas"));
 
       flushSync(() => {
         root.unmount();
@@ -403,7 +403,7 @@ describe("Sidebar", () => {
       mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableAgentChat: true, enableIsolatedWorkspaces: true });
       const root = await renderSidebar();
 
-      expect(container.textContent).not.toContain("Workspaces");
+      expect(container.textContent).not.toContain("Espacios de trabajo");
       expect([...container.querySelectorAll("a")].some((anchor) => anchor.getAttribute("href") === "/workspaces")).toBe(false);
 
       flushSync(() => {
@@ -449,7 +449,7 @@ describe("Sidebar", () => {
       expect([...container.querySelectorAll("a")].some((anchor) => anchor.getAttribute("href") === "/inbox")).toBe(false);
 
       const tasksLink = [...container.querySelectorAll("a")].find((anchor) => anchor.getAttribute("href") === "/issues");
-      expect(tasksLink?.textContent).toContain("Tasks");
+      expect(tasksLink?.textContent).toContain("Tareas");
       expect(tasksLink?.textContent).toContain("7");
 
       flushSync(() => {
@@ -489,11 +489,11 @@ describe("Sidebar", () => {
 
     const primaryNavLinks = [...container.querySelectorAll("nav > div:first-child a")];
     const decisionsLink = primaryNavLinks.find(
-      (anchor) => anchor.textContent?.trim() === "Decisions",
+      (anchor) => anchor.textContent?.trim() === "Decisiones",
     );
     const statusLink = primaryNavLinks.find((anchor) => anchor.getAttribute("href") === "/status");
 
-    expect(statusLink?.textContent).toContain("Status");
+    expect(statusLink?.textContent).toContain("Estado");
     expect(statusLink?.textContent).toContain("beta");
     expect(statusLink?.textContent).not.toContain("exp");
     expect(statusLink?.textContent).not.toContain("cards");
@@ -512,13 +512,13 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const sections = [...container.querySelectorAll("nav > div")];
-    const workSection = sections.find((section) => section.textContent?.startsWith("Work"));
-    const orgSection = sections.find((section) => section.textContent?.startsWith("Org"));
+    const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
+    const orgSection = sections.find((section) => section.textContent?.startsWith("Organización"));
     const labels = (section: Element | undefined) => [...(section?.querySelectorAll("a") ?? [])]
       .map((anchor) => anchor.textContent?.trim());
 
-    expect(labels(workSection)).toEqual(["Tasks", "Projects", "Routines", "Artifacts"]);
-    expect(labels(orgSection)).toEqual(["Agents", "Skills", "Connectors", "Audit"]);
+    expect(labels(workSection)).toEqual(["Tareas", "Proyectos", "Rutinas", "Artefactos"]);
+    expect(labels(orgSection)).toEqual(["Agentes", "Habilidades", "Conectores", "Auditoría"]);
     expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(orgSection!));
     expect(
       workSection?.querySelector('a[href="/issues"] svg')?.classList.contains("lucide-circle-check"),
@@ -536,7 +536,7 @@ describe("Sidebar", () => {
     });
     const root = await renderSidebar();
 
-    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Goals");
+    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).not.toContain("Objetivos");
 
     flushSync(() => {
       root.unmount();
@@ -550,11 +550,11 @@ describe("Sidebar", () => {
     });
     const root = await renderSidebar();
 
-    const link = [...container.querySelectorAll("a")].find((anchor) => anchor.textContent === "Goals");
+    const link = [...container.querySelectorAll("a")].find((anchor) => anchor.textContent === "Objetivos");
     expect(link?.getAttribute("href")).toBe("/goals");
 
     const navText = container.querySelector("nav")?.textContent ?? "";
-    expect(navText.indexOf("Artifacts")).toBeLessThan(navText.indexOf("Goals"));
+    expect(navText.indexOf("Artefactos")).toBeLessThan(navText.indexOf("Objetivos"));
 
     flushSync(() => {
       root.unmount();
@@ -566,8 +566,8 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const sections = [...container.querySelectorAll("nav > div")];
-    const workSection = sections.find((section) => section.textContent?.startsWith("Work"));
-    expect(workSection?.textContent).toContain("Projects");
+    const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
+    expect(workSection?.textContent).toContain("Proyectos");
     expect(workSection?.textContent).not.toContain("Timeline");
     expect(container.querySelector('a[href="/timeline"]')).toBeNull();
 
@@ -584,7 +584,7 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const link = [...container.querySelectorAll("nav a")].find(
-      (anchor) => anchor.textContent?.trim() === "Conference Room",
+      (anchor) => anchor.textContent?.trim() === "Sala de reuniones",
     );
     expect(link?.getAttribute("href")).toBe("/board-chat");
 
@@ -600,7 +600,7 @@ describe("Sidebar", () => {
     });
     const root = await renderSidebar();
 
-    expect(container.textContent).not.toContain("Conference Room");
+    expect(container.textContent).not.toContain("Sala de reuniones");
 
     flushSync(() => {
       root.unmount();
@@ -626,14 +626,14 @@ describe("Sidebar", () => {
     const root = await renderSidebar();
 
     const links = [...container.querySelectorAll("a")];
-    const link = links.find((anchor) => anchor.textContent === "Connectors");
+    const link = links.find((anchor) => anchor.textContent === "Conectores");
     expect(link?.getAttribute("href")).toBe("/apps");
     expect(link?.querySelector("svg")?.classList).toContain("lucide-unplug");
-    expect(links.findIndex((anchor) => anchor.textContent === "Connectors")).toBeGreaterThan(
-      links.findIndex((anchor) => anchor.textContent === "Skills"),
+    expect(links.findIndex((anchor) => anchor.textContent === "Conectores")).toBeGreaterThan(
+      links.findIndex((anchor) => anchor.textContent === "Habilidades"),
     );
-    expect(links.findIndex((anchor) => anchor.textContent === "Connectors")).toBeLessThan(
-      links.findIndex((anchor) => anchor.textContent === "Audit"),
+    expect(links.findIndex((anchor) => anchor.textContent === "Conectores")).toBeLessThan(
+      links.findIndex((anchor) => anchor.textContent === "Auditoría"),
     );
 
     flushSync(() => {
@@ -660,7 +660,7 @@ describe("Sidebar", () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableIsolatedWorkspaces: true });
     const root = await renderSidebar();
 
-    const link = [...container.querySelectorAll("a")].find((anchor) => anchor.textContent === "Workspaces");
+    const link = [...container.querySelectorAll("a")].find((anchor) => anchor.textContent === "Espacios de trabajo");
     expect(link?.getAttribute("href")).toBe("/workspaces");
 
     flushSync(() => {

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useShowAgentCreatedTasks } from "../hooks/useShowAgentCreatedTasks";
 import { useIssueHierarchyContext } from "../hooks/useIssueHierarchyContext";
 import { includeIssueHierarchyContext } from "../lib/issue-hierarchy-context";
@@ -584,9 +585,9 @@ function IssueSearchInput({
             e.currentTarget.blur();
           }
         }}
-        placeholder="Search tasks..."
+        placeholder={t("issues.searchPlaceholder")}
         className="pl-7 text-xs sm:text-sm"
-        aria-label="Search tasks"
+        aria-label={t("issues.searchLabel")}
         data-page-search-target="true"
       />
     </div>
@@ -1734,7 +1735,7 @@ function StreamlinedIssuesList({
   ]);
 
   const createActionLabel = createIssueLabel ? `Create ${createIssueLabel}` : "Create Task";
-  const createButtonLabel = createIssueLabel ? `New ${createIssueLabel}` : "New Task";
+  const createButtonLabel = createIssueLabel ? `New ${createIssueLabel}` : t("issues.newTask");
   const openCreateIssueDialog = useCallback((group?: { key: string; items: Issue[] }) => {
     openNewIssue(newIssueDefaults(group));
   }, [newIssueDefaults, openNewIssue]);
@@ -1819,8 +1820,8 @@ function StreamlinedIssuesList({
             <button
               className={`flex h-8 w-8 items-center justify-center transition-colors ${viewState.viewMode === "list" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => updateView({ viewMode: "list" })}
-              title="List view"
-              aria-label="List view"
+              title={t("issues.listView")}
+              aria-label={t("issues.listView")}
               aria-pressed={viewState.viewMode === "list"}
             >
               <List className="h-3.5 w-3.5" />
@@ -1828,8 +1829,8 @@ function StreamlinedIssuesList({
             <button
               className={`flex h-8 w-8 items-center justify-center transition-colors ${viewState.viewMode === "board" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => updateView({ viewMode: "board" })}
-              title="Board view"
-              aria-label="Board view"
+              title={t("issues.boardView")}
+              aria-label={t("issues.boardView")}
               aria-pressed={viewState.viewMode === "board"}
             >
               <SquareKanban className="h-3.5 w-3.5" />

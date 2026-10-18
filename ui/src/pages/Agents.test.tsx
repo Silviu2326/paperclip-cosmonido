@@ -389,7 +389,7 @@ describe("Agents", () => {
     });
     await flushReact();
     await flushReact();
-    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"]');
+    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"], button[aria-label="Vista de lista"]');
     await act(async () => { listToggle?.click(); });
     await flushReact();
 
@@ -428,8 +428,8 @@ describe("Agents", () => {
     });
     await flushReact();
 
-    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"]');
-    const orgToggle = container.querySelector<HTMLButtonElement>('button[aria-label="Org chart view"]');
+    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"], button[aria-label="Vista de lista"]');
+    const orgToggle = container.querySelector<HTMLButtonElement>('button[aria-label="Org chart view"], button[aria-label="Vista de organigrama"]');
     expect(listToggle?.getAttribute("aria-pressed")).toBe("true");
     expect(orgToggle?.getAttribute("aria-pressed")).toBe("false");
     expect(orgToggle?.querySelector(".lucide-network")).not.toBeNull();
@@ -797,7 +797,7 @@ describe("Agents", () => {
     await flushReact();
 
     expect(mockBuiltInAgentsApi.list).not.toHaveBeenCalled();
-    expect(container.textContent).not.toContain("Built-in");
+    expect(container.textContent).not.toContain("Integrados");
     expect(mockRouterState.navigate).toHaveBeenCalledWith("/agents/all", { replace: true });
   });
 
@@ -844,7 +844,7 @@ describe("Agents", () => {
 
     expect(container.textContent).toContain("1 agent");
     expect(mockBuiltInAgentsApi.list).toHaveBeenCalledWith("company-1");
-    expect(container.textContent).toContain("Built-in");
+    expect(container.textContent).toContain("Integrados");
     expect(container.textContent).toContain("Briefs Agent");
     expect(container.textContent).not.toContain("Regular Agent");
     expect(container.querySelector('[title="Ships with Paperclip"]')).toBeNull();
@@ -900,7 +900,7 @@ describe("Agents", () => {
     await flushReact();
 
     // Explicitly select the list view and assert the row renders there.
-    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"]');
+    const listToggle = container.querySelector<HTMLButtonElement>('button[aria-label="List view"], button[aria-label="Vista de lista"]');
     expect(listToggle).not.toBeNull();
     await act(async () => {
       listToggle!.click();
@@ -913,7 +913,7 @@ describe("Agents", () => {
     expect(container.querySelector('[aria-label="Star Alpha"]')).toBeNull();
 
     // Explicitly select the org view and assert no membership actions there.
-    const orgToggle = container.querySelector<HTMLButtonElement>('button[aria-label="Org chart view"]');
+    const orgToggle = container.querySelector<HTMLButtonElement>('button[aria-label="Org chart view"], button[aria-label="Vista de organigrama"]');
     expect(orgToggle).not.toBeNull();
     await act(async () => {
       orgToggle!.click();

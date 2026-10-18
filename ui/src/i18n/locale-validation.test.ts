@@ -6,7 +6,7 @@ import { validateLocaleMessages } from "./locale-validation";
 
 describe("locale validation", () => {
   it("resolves English messages with key and default fallbacks", () => {
-    expect(t("app.noCompanies.title")).toBe(en.app.noCompanies.title);
+    expect(t("app.noCompanies.title")).toBe("Crea tu primera empresa");
     expect(t("app.missing", { defaultValue: "Fallback" })).toBe("Fallback");
     expect(t("app.missing")).toBe("app.missing");
   });

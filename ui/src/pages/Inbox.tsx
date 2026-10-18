@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -822,7 +823,7 @@ export function Inbox(props: InboxSurfaceProps = {}) {
 function StreamlinedInbox({
   tab: tabOverride,
   toolbarContext,
-  surfaceLabel = "Inbox",
+  surfaceLabel = t("nav.inbox"),
 }: InboxSurfaceProps) {
   const streamlinedUiEnabled = true;
   const { selectedCompanyId } = useCompany();
@@ -2434,11 +2435,11 @@ function StreamlinedInbox({
           <Tabs value={tab} onValueChange={(value) => navigate(`/inbox/${value}`)}>
             <PageTabBar
               items={[
-                { value: "mine", label: "Mine" },
-                { value: "recent", label: "Recent" },
-                { value: "unread", label: "Unread" },
-                { value: "blocked", label: "Blocked" },
-                { value: "all", label: "All" },
+                { value: "mine", label: t("inbox.tabs.mine") },
+                { value: "recent", label: t("inbox.tabs.recent") },
+                { value: "unread", label: t("inbox.tabs.unread") },
+                { value: "blocked", label: t("inbox.tabs.blocked") },
+                { value: "all", label: t("inbox.tabs.all") },
               ]}
             />
           </Tabs>
@@ -2448,7 +2449,7 @@ function StreamlinedInbox({
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder={`Search ${surfaceLabel.toLowerCase()}…`}
+              placeholder={t("inbox.searchPlaceholder", { surface: surfaceLabel.toLowerCase() })}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {

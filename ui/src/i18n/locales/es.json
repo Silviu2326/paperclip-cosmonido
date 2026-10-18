@@ -5,5 +5,105 @@
       "description": "Comienza creando una empresa.",
       "newCompany": "Nueva empresa"
     }
+  },
+  "breadcrumbs": {
+    "openSidebar": "Abrir barra lateral",
+    "showProperties": "Mostrar propiedades",
+    "hideProperties": "Ocultar propiedades"
+  },
+  "common": {
+    "edit": "Editar",
+    "done": "Listo",
+    "sort": "Ordenar",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando..."
+  },
+  "companyMenu": {
+    "noOrganizations": "No hay organizaciones",
+    "invitePeople": "Invitar personas",
+    "inviteTo": "Invitar personas a {{name}}",
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión..."
+  },
+  "nav": {
+    "newTask": "Nueva tarea",
+    "search": "Buscar",
+    "dashboard": "Inicio",
+    "inbox": "Bandeja",
+    "chat": "Chat",
+    "decisions": "Decisiones",
+    "status": "Estado",
+    "conferenceRoom": "Sala de reuniones",
+    "work": "Trabajo",
+    "tasks": "Tareas",
+    "projects": "Proyectos",
+    "routines": "Rutinas",
+    "artifacts": "Artefactos",
+    "cases": "Casos",
+    "pipelines": "Pipelines",
+    "goals": "Objetivos",
+    "workspaces": "Espacios de trabajo",
+    "org": "Organización",
+    "agents": "Agentes",
+    "skills": "Habilidades",
+    "connectors": "Conectores",
+    "audit": "Auditoría",
+    "recentTasks": "Tareas recientes",
+    "settings": "Ajustes"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido a Paperclip. Configura tu primera organización y tu primer agente para empezar.",
+    "getStarted": "Empezar",
+    "agentsEnabled": "Agentes activos",
+    "tasksInProgress": "Tareas en curso",
+    "monthSpend": "Gasto del mes",
+    "pendingApprovals": "Aprobaciones pendientes",
+    "unlimitedBudget": "Presupuesto ilimitado",
+    "awaitingReview": "Pendiente de revisión por el consejo",
+    "runActivity": "Actividad de ejecuciones",
+    "tasksByStatus": "Tareas por estado",
+    "successRate": "Tasa de éxito",
+    "last14Days": "Últimos 14 días"
+  },
+  "issues": {
+    "newTask": "Nueva tarea",
+    "searchLabel": "Buscar tareas",
+    "searchPlaceholder": "Buscar tareas...",
+    "listView": "Vista de lista",
+    "boardView": "Vista de tablero"
+  },
+  "agents": {
+    "newAgent": "Nuevo agente",
+    "filters": {
+      "all": "Todos",
+      "active": "Activos",
+      "paused": "Pausados",
+      "error": "Con error",
+      "builtin": "Integrados"
+    },
+    "listView": "Vista de lista",
+    "orgChartView": "Vista de organigrama"
+  },
+  "projects": {
+    "addProject": "Añadir proyecto",
+    "sortBy": "Orden: {{label}}",
+    "myProjects": "Mis proyectos",
+    "otherProjects": "Otros proyectos",
+    "privateProject": "Proyecto privado"
+  },
+  "goals": {
+    "addGoal": "Añadir objetivo",
+    "newGoal": "Nuevo objetivo",
+    "empty": "Todavía no hay objetivos."
+  },
+  "inbox": {
+    "tabs": {
+      "mine": "Mías",
+      "recent": "Recientes",
+      "unread": "Sin leer",
+      "blocked": "Bloqueadas",
+      "all": "Todas"
+    },
+    "searchPlaceholder": "Buscar {{surface}}…"
   }
 }

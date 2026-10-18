@@ -186,7 +186,7 @@ describe("Projects", () => {
   }
 
   async function openSortMenu() {
-    const trigger = container.querySelector<HTMLButtonElement>('button[title="Sort"]');
+    const trigger = container.querySelector<HTMLButtonElement>('button[title="Ordenar"]');
     expect(trigger).not.toBeNull();
 
     await act(async () => {
@@ -211,11 +211,11 @@ describe("Projects", () => {
     await renderProjects();
 
     const content = container.textContent ?? "";
-    expect(container.querySelector('button[title="Sort"]')?.textContent).toContain("Sort: Name");
-    expect(content.indexOf("My Projects")).toBeLessThan(content.indexOf("Alpha"));
+    expect(container.querySelector('button[title="Ordenar"]')?.textContent).toContain("Orden: Name");
+    expect(content.indexOf("Mis proyectos")).toBeLessThan(content.indexOf("Alpha"));
     expect(content.indexOf("Alpha")).toBeLessThan(content.indexOf("Charlie"));
-    expect(content.indexOf("Charlie")).toBeLessThan(content.indexOf("Other Projects"));
-    expect(content.indexOf("Other Projects")).toBeLessThan(content.indexOf("Bravo"));
+    expect(content.indexOf("Charlie")).toBeLessThan(content.indexOf("Otros proyectos"));
+    expect(content.indexOf("Otros proyectos")).toBeLessThan(content.indexOf("Bravo"));
     expect(content).toContain("in progress");
   });
 
@@ -225,9 +225,9 @@ describe("Projects", () => {
     await chooseSortField("Updated");
 
     const content = container.textContent ?? "";
-    expect(content.indexOf("My Projects")).toBeLessThan(content.indexOf("Charlie"));
+    expect(content.indexOf("Mis proyectos")).toBeLessThan(content.indexOf("Charlie"));
     expect(content.indexOf("Charlie")).toBeLessThan(content.indexOf("Alpha"));
-    expect(content.indexOf("Alpha")).toBeLessThan(content.indexOf("Other Projects"));
+    expect(content.indexOf("Alpha")).toBeLessThan(content.indexOf("Otros proyectos"));
   });
 
   it("reserves description line height for projects without descriptions", async () => {

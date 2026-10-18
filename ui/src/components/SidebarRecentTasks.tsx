@@ -13,6 +13,7 @@ import {
   type RecentTaskEntry,
 } from "@/lib/recent-tasks";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/i18n";
 import {
   Dialog,
   DialogContent,
@@ -107,6 +108,7 @@ function RecentTasksList({
   liveIssueIds: ReadonlySet<string>;
   rail: boolean;
 }) {
+  const { t } = useTranslation();
   const { entries, storageKey } = useRecentTasks({ companyId, userId });
   const queryClient = useQueryClient();
   const toastActions = useOptionalToastActions();
@@ -249,7 +251,7 @@ function RecentTasksList({
 
   return (
     <>
-      <SidebarSection label="Recent Tasks">
+      <SidebarSection label={t("nav.recentTasks")}>
         {entries.map((entry) => (
           <div key={entry.id} className="sidebar-action-row group/recent-task relative">
             <SidebarNavItem

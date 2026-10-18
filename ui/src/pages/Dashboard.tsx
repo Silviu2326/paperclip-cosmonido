@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { AgentIdentity } from "../components/AgentIdentity";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "@/lib/router";
@@ -74,6 +75,7 @@ export function Dashboard() {
   const { selectedCompanyId, companies } = useCompany();
   const { openOnboarding } = useDialogActions();
   const location = useLocation();
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
   const seenActivityIdsRef = useRef<Set<string>>(new Set());
@@ -155,7 +157,7 @@ export function Dashboard() {
   }, [shouldOpenOnboarding, selectedCompanyId, openOnboarding]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Dashboard" }]);
+    setBreadcrumbs([{ label: t("nav.dashboard") }]);
   }, [setBreadcrumbs]);
 
   const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
@@ -297,8 +299,8 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message="Welcome to Paperclip. Set up your first organization and agent to get started."
-          action="Get Started"
+          message={t("dashboard.welcome")}
+          action={t("dashboard.getStarted")}
           onAction={openOnboarding}
         />
       );
@@ -401,7 +403,7 @@ export function Dashboard() {
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label="Agents Enabled"
+              label={t("dashboard.agentsEnabled")}
               to="/agents"
               description={
                 <span>
@@ -414,7 +416,7 @@ export function Dashboard() {
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label="Tasks In Progress"
+              label={t("dashboard.tasksInProgress")}
               to="/issues"
               description={
                 <span>
@@ -426,26 +428,26 @@ export function Dashboard() {
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label="Month Spend"
+              label={t("dashboard.monthSpend")}
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
                     ? `${data.costs.monthUtilizationPercent}% of ${formatCents(data.costs.monthBudgetCents)} budget`
-                    : "Unlimited budget"}
+                    : t("dashboard.unlimitedBudget")}
                 </span>
               }
             />
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label="Pending Approvals"
+              label={t("dashboard.pendingApprovals")}
               to="/approvals"
               description={
                 <span>
                   {data.budgets.pendingApprovals > 0
                     ? `${data.budgets.pendingApprovals} budget overrides awaiting board review`
-                    : "Awaiting board review"}
+                    : t("dashboard.awaitingReview")}
                 </span>
               }
             />
@@ -454,19 +456,19 @@ export function Dashboard() {
           <SmokeLabDashboardCard companyId={selectedCompanyId!} />
 
           <div className={cn("grid grid-cols-2 gap-4", SHOW_TASK_PRIORITY_UI ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.runActivity")} subtitle={t("dashboard.last14Days")}>
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
             {/* PAP-411: "Tasks by Priority" chart hidden behind SHOW_TASK_PRIORITY_UI. */}
             {SHOW_TASK_PRIORITY_UI && (
-              <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
+              <ChartCard title="Tasks by Priority" subtitle={t("dashboard.last14Days")}>
                 <PriorityChart issues={issues ?? []} />
               </ChartCard>
             )}
-            <ChartCard title="Tasks by Status" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.tasksByStatus")} subtitle={t("dashboard.last14Days")}>
               <IssueStatusChart issues={issues ?? []} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.successRate")} subtitle={t("dashboard.last14Days")}>
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>

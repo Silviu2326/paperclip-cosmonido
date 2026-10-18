@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import { PrimaryAgentIndicator } from "@/components/primary-agent/PrimaryAgentPresentation";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { useAgentChatEnabled } from "../hooks/useAgentChatEnabled";
@@ -194,6 +195,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   const agentChat = useAgentChatEnabled();
   const { selectedCompanyId } = useCompany();
   const { openNewAgent } = useDialogActions();
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const navigate = useNavigate();
   const location = useLocation();
@@ -217,7 +219,9 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   const builtInAgentsEnabled = instanceSettings?.experimental.enableBuiltInAgents === true;
   const tab: FilterTab = requestedTab === "builtin" && !builtInAgentsEnabled ? "all" : requestedTab;
   const visibleTabItems = useMemo(
-    () => AGENT_FILTER_TAB_ITEMS.filter((item) => item.value !== "builtin" || builtInAgentsEnabled),
+    () => AGENT_FILTER_TAB_ITEMS
+      .filter((item) => item.value !== "builtin" || builtInAgentsEnabled)
+      .map((item) => ({ ...item, label: t(`agents.filters.${item.value}`) })),
     [builtInAgentsEnabled],
   );
 
@@ -319,7 +323,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   }, [agents, environmentsById, environmentCapabilities, instanceSettings?.defaultEnvironmentId]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Agents" }]);
+    setBreadcrumbs([{ label: t("nav.agents") }]);
   }, [setBreadcrumbs]);
 
   useEffect(() => {
@@ -417,7 +421,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         metaSpacerClassName="hidden @5xl:block"
         trailing={
           <div className="flex items-center gap-3">
-            {agentChat.enabled && <Button variant="ghost" size="sm" onClick={event => { event.preventDefault(); event.stopPropagation(); navigate(`/chats/${agentRouteRef(agent)}`); }}>Chat</Button>}
+            {agentChat.enabled && <Button variant="ghost" size="sm" onClick={event => { event.preventDefault(); event.stopPropagation(); navigate(`/chats/${agentRouteRef(agent)}`); }}>{t("nav.chat")}</Button>}
             <div className="hidden sm:flex items-center gap-3">
               {liveRunByAgent.has(agent.id) && (
                 <LiveRunIndicator
@@ -459,8 +463,8 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
                 variant={effectiveView === "list" ? "secondary" : "ghost"}
                 className="rounded-none"
                 onClick={() => setView("list")}
-                title="List view"
-                aria-label="List view"
+                title={t("agents.listView")}
+                aria-label={t("agents.listView")}
                 aria-pressed={effectiveView === "list"}
               >
                 <List className="h-3.5 w-3.5" />
@@ -471,8 +475,8 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
                 variant={effectiveView === "org" ? "secondary" : "ghost"}
                 className="rounded-none border-l border-border"
                 onClick={() => setView("org")}
-                title="Org chart view"
-                aria-label="Org chart view"
+                title={t("agents.orgChartView")}
+                aria-label={t("agents.orgChartView")}
                 aria-pressed={effectiveView === "org"}
               >
                 <Network className="h-3.5 w-3.5" />
@@ -495,7 +499,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         <EmptyState
           icon={Bot}
           message="Create your first agent to get started."
-          action="New Agent"
+          action={t("agents.newAgent")}
           onAction={openNewAgent}
         />
       )}

@@ -1,0 +1,159 @@
+/*
+ * Cosmonido motion: sutil y con personalidad, solo sobre iconos lucide.
+ * Solo transform / opacity para animaciones; transiciones solo de color y opacidad.
+ * No cambia tamano ni posicion del texto ni del layout.
+ */
+
+/* ---------- Keyframes ---------- */
+
+@keyframes cosmo-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(-6deg);
+  }
+  30% {
+    transform: rotate(6deg);
+  }
+  45% {
+    transform: rotate(-4deg);
+  }
+  60% {
+    transform: rotate(3deg);
+  }
+  75% {
+    transform: rotate(-1deg);
+  }
+}
+
+@keyframes cosmo-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes cosmo-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cosmo-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cosmo-sparkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+/* ---------- Navegacion: wiggle una vez al pasar el raton ---------- */
+
+nav a:hover svg.lucide,
+aside a:hover svg.lucide,
+[data-sidebar] a:hover svg.lucide {
+  animation: cosmo-wiggle 0.6s ease-in-out 1;
+}
+
+/* Solo botones de navegacion; los submit quedan fuera a proposito */
+nav button:not([type="submit"]):hover svg.lucide,
+aside button:not([type="submit"]):hover svg.lucide,
+[data-sidebar] button:not([type="submit"]):hover svg.lucide {
+  animation: cosmo-wiggle 0.6s ease-in-out 1;
+}
+
+/* ---------- Iconos de estado: pop una vez al aparecer ---------- */
+/* Los loaders (loader-circle / loader-2 / loader) no se tocan: ya usan animate-spin */
+
+svg.lucide-circle-check,
+svg.lucide-circle-check-big,
+svg.lucide-circle-alert,
+svg.lucide-alert-circle,
+svg.lucide-triangle-alert,
+svg.lucide-alert-triangle,
+svg.lucide-clock,
+svg.lucide-pause,
+svg.lucide-circle-dot {
+  animation: cosmo-pop 0.35s ease-out both;
+}
+
+/* ---------- Iconos de actividad "en vivo": sparkle suave infinito ---------- */
+/* Nota: svg.lucide-zap aparece tambien en el toggle de modo rapido del composer */
+
+svg.lucide-activity,
+svg.lucide-zap,
+svg.lucide-sparkles {
+  animation: cosmo-sparkle 2s ease-in-out infinite;
+}
+
+/* ---------- Clases opt-in para iconos decorativos ---------- */
+
+.cosmo-bob svg.lucide {
+  animation: cosmo-bob 2.4s ease-in-out infinite;
+}
+
+.cosmo-spin-slow svg.lucide {
+  animation: cosmo-spin-slow 6s linear infinite;
+}
+
+/* ---------- Transiciones: solo color y opacidad ---------- */
+
+nav a svg.lucide,
+aside a svg.lucide,
+[data-sidebar] a svg.lucide,
+nav button svg.lucide,
+aside button svg.lucide,
+[data-sidebar] button svg.lucide {
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+/* ---------- Accesibilidad: sin movimiento si el usuario lo pide ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  nav a:hover svg.lucide,
+  aside a:hover svg.lucide,
+  [data-sidebar] a:hover svg.lucide,
+  nav button:not([type="submit"]):hover svg.lucide,
+  aside button:not([type="submit"]):hover svg.lucide,
+  [data-sidebar] button:not([type="submit"]):hover svg.lucide,
+  svg.lucide-circle-check,
+  svg.lucide-circle-check-big,
+  svg.lucide-circle-alert,
+  svg.lucide-alert-circle,
+  svg.lucide-triangle-alert,
+  svg.lucide-alert-triangle,
+  svg.lucide-clock,
+  svg.lucide-pause,
+  svg.lucide-circle-dot,
+  svg.lucide-activity,
+  svg.lucide-zap,
+  svg.lucide-sparkles,
+  .cosmo-bob svg.lucide,
+  .cosmo-spin-slow svg.lucide {
+    animation: none !important;
+  }
+}

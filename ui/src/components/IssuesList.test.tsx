@@ -1254,7 +1254,7 @@ describe("IssuesList", () => {
       container,
     );
 
-    const input = container.querySelector('input[aria-label="Search tasks"]') as HTMLInputElement | null;
+    const input = container.querySelector('input[aria-label="Buscar tareas"]') as HTMLInputElement | null;
     expect(input).not.toBeNull();
     const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
     expect(valueSetter).toBeTypeOf("function");
@@ -2157,13 +2157,13 @@ describe("IssuesList", () => {
     );
 
     await waitForAssertion(() => {
-      const input = container.querySelector('input[aria-label="Search tasks"]') as HTMLInputElement | null;
+      const input = container.querySelector('input[aria-label="Buscar tareas"]') as HTMLInputElement | null;
       expect(input).not.toBeNull();
       input?.focus();
       expect(document.activeElement).toBe(input);
     });
 
-    const input = container.querySelector('input[aria-label="Search tasks"]') as HTMLInputElement;
+    const input = container.querySelector('input[aria-label="Buscar tareas"]') as HTMLInputElement;
     act(() => {
       input.dispatchEvent(new KeyboardEvent("keydown", {
         key: "Enter",
@@ -2193,13 +2193,13 @@ describe("IssuesList", () => {
     );
 
     await waitForAssertion(() => {
-      const input = container.querySelector('input[aria-label="Search tasks"]') as HTMLInputElement | null;
+      const input = container.querySelector('input[aria-label="Buscar tareas"]') as HTMLInputElement | null;
       expect(input).not.toBeNull();
       input?.focus();
       expect(document.activeElement).toBe(input);
     });
 
-    const input = container.querySelector('input[aria-label="Search tasks"]') as HTMLInputElement;
+    const input = container.querySelector('input[aria-label="Buscar tareas"]') as HTMLInputElement;
     act(() => {
       input.dispatchEvent(new KeyboardEvent("keydown", {
         key: "Escape",

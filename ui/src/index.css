@@ -1,5 +1,7 @@
 @import "./motion-tokens.css";
 @import "tailwindcss";
+@import "./cosmonido-motion.css";
+@import "./cosmonido-personality.css";
 @plugin "@tailwindcss/typography";
 
 @font-face {
