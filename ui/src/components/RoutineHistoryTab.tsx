@@ -333,7 +333,7 @@ function HistoricalPreviewBanner({
   pending: boolean;
 }) {
   return (
-    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+    <div className="rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
@@ -372,7 +372,7 @@ function ConflictBanner({
     : ["the routine"];
   const fieldsText = formatDirtyFieldList(labels);
   return (
-    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+    <div className="rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Unsaved routine edits</p>
@@ -441,13 +441,13 @@ function RevisionList({
         const blockedByEdits = isEditDirty && isHistorical;
         const baseClass = "w-full rounded-md border px-3 py-2 text-left transition-colors";
         const stateClass = isHighlighted
-          ? "border-emerald-500/40 bg-emerald-500/10"
+          ? "border-emerald-500/40 bg-accent/10"
           : isSelected && isHistorical
-          ? "border-amber-500/40 bg-amber-500/10"
+          ? "border-amber-500/40 bg-muted/10"
           : isSelected
           ? "border-border bg-accent/40"
           : blockedByEdits
-          ? "border-amber-500/30 bg-amber-500/5 opacity-70 cursor-not-allowed"
+          ? "border-amber-500/30 bg-muted/5 opacity-70 cursor-not-allowed"
           : "border-border/60 hover:bg-accent/40";
         return (
           <button
@@ -466,7 +466,7 @@ function RevisionList({
                 </Badge>
               )}
               {revision.restoredFromRevisionId && (
-                <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
+                <Badge variant="outline" className="border-amber-500/40 bg-muted/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
                   Restored
                 </Badge>
               )}
@@ -513,7 +513,7 @@ function RevisionPreview({
   const currentSnapshot = currentRevision?.snapshot.routine ?? null;
   const restoreLabel = isHistorical ? "Restore this revision" : "Restore this revision";
   const cardWrapper = `rounded-md border transition-colors duration-1000 ${
-    highlighted ? "border-emerald-500/40 bg-emerald-500/10" : "border-border"
+    highlighted ? "border-emerald-500/40 bg-accent/10" : "border-border"
   }`;
 
   const envSummary = summarizeEnv(snapshot.env ?? null);
@@ -612,7 +612,7 @@ function RevisionPreview({
               <p className="text-sm">
                 {row.value || <span className="text-muted-foreground">—</span>}
                 {row.differs && (
-                  <Badge variant="outline" className="ml-2 border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
+                  <Badge variant="outline" className="ml-2 border-amber-500/40 bg-muted/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
                     differs from current
                   </Badge>
                 )}
@@ -859,7 +859,7 @@ function RoutineRevisionDiffModal({
                   {fieldChanges.map((change) => (
                     <tr key={change.field} className="border-t border-border/60">
                       <td className="px-3 py-2 align-top text-xs font-medium">{change.field}</td>
-                      <td className="px-3 py-2 align-top text-xs text-red-700 dark:text-red-300">
+                      <td className="px-3 py-2 align-top text-xs text-destructive">
                         {change.oldValue ?? "—"}
                       </td>
                       <td className="px-3 py-2 align-top text-xs text-emerald-700 dark:text-emerald-300">
@@ -908,8 +908,8 @@ function RevisionPicker({
   tone: "red" | "green";
 }) {
   const toneClass = tone === "red"
-    ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
-    : "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300";
+    ? "border-destructive/30 bg-destructive/10 text-destructive"
+    : "border-green-500/30 bg-accent/10 text-green-700 dark:text-green-300";
   return (
     <div className="flex items-center gap-2">
       <Badge variant="outline"
@@ -942,8 +942,8 @@ function DiffTable({ rows }: { rows: DiffRow[] }) {
   }
   const lineClassesByKind: Record<DiffRow["kind"], string> = {
     context: "bg-transparent",
-    removed: "bg-red-500/10 text-red-900 dark:text-red-100",
-    added: "bg-green-500/10 text-green-900 dark:text-green-100",
+    removed: "bg-destructive/10 text-destructive",
+    added: "bg-accent/10 text-green-900 dark:text-green-100",
   };
   const markerByKind: Record<DiffRow["kind"], string> = {
     context: " ",

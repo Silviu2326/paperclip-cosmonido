@@ -176,14 +176,14 @@ export function IssueRow({
       }}
       className={cn(
         "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
-        selected ? "hover:bg-muted/80" : "hover:bg-blue-500/20",
+        selected ? "hover:bg-muted/80" : "hover:bg-primary/20",
       )}
       aria-label="Mark as read"
     >
       <span
         className={cn(
           "block h-2 w-2 rounded-full transition-opacity duration-300",
-          selected ? "bg-muted-foreground/70" : "bg-blue-600 dark:bg-blue-400",
+          selected ? "bg-muted-foreground/70" : "bg-primary",
           unreadState === "fading" ? "opacity-0" : "opacity-100",
         )}
       />
@@ -206,7 +206,7 @@ export function IssueRow({
   const parkedBlockerIndicator = hasAssignedBacklogBlocker(issue.blockedBy) ? (
     <Badge variant="outline"
       data-testid="issue-row-parked-blocker"
-      className="[&>svg]:size-2.5 ml-1.5 gap-0.5 border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
+      className="[&>svg]:size-2.5 ml-1.5 gap-0.5 border-amber-500/60 bg-muted/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
       title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
     >
       <Flag className="h-2.5 w-2.5" aria-hidden />

@@ -69,16 +69,16 @@ function statusBadge(status: string) {
   switch (status) {
     case "active":
     case "draft":
-      return { label: "In Progress", className: "bg-blue-500/10 text-blue-600 dark:text-blue-400" };
+      return { label: "In Progress", className: "bg-primary/10 text-primary" };
     case "ready_for_review":
-      return { label: "For Review", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400" };
+      return { label: "For Review", className: "bg-muted/10 text-amber-600 dark:text-amber-400" };
     case "approved":
     case "merged":
-      return { label: "Completed", className: "bg-green-500/10 text-green-600 dark:text-green-400" };
+      return { label: "Completed", className: "bg-accent/10 text-green-600 dark:text-green-400" };
     case "changes_requested":
-      return { label: "Changes Requested", className: "bg-orange-500/10 text-orange-600 dark:text-orange-400" };
+      return { label: "Changes Requested", className: "bg-muted/10 text-orange-600 dark:text-orange-400" };
     case "failed":
-      return { label: "Failed", className: "bg-red-500/10 text-red-600 dark:text-red-400" };
+      return { label: "Failed", className: "bg-destructive/10 text-destructive" };
     default:
       return { label: status, className: "bg-muted text-muted-foreground" };
   }
@@ -194,8 +194,8 @@ export function ArtifactsPanel({ taskId, isAgentWorking, openDocKey, openDocTitl
                     {showGenerating ? (
                       <div className="mt-0.5 shrink-0">
                         <span className="relative flex h-4 w-4">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500" />
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                          <span className="relative inline-flex rounded-full h-4 w-4 bg-primary" />
                         </span>
                       </div>
                     ) : (
@@ -213,7 +213,7 @@ export function ArtifactsPanel({ taskId, isAgentWorking, openDocKey, openDocTitl
                           {wp.type.replace(/_/g, " ")}
                         </span>
                         {showGenerating ? (
-                          <Badge variant="ghost" className="[&>svg]:size-2.5 text-(length:--text-nano) px-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                          <Badge variant="ghost" className="[&>svg]:size-2.5 text-(length:--text-nano) px-1.5 bg-primary/10 text-primary">
                             <Loader2 className="h-2.5 w-2.5 animate-spin" />
                             Generating...
                           </Badge>
@@ -304,7 +304,7 @@ function DocumentViewer({
             <Button size="lg" className="h-11 px-8 text-base font-semibold flex-1 rounded-lg bg-green-700 hover:bg-green-800 text-white border-0" onClick={onApprove}>
               Approve
             </Button>
-            <Button size="lg" className="h-11 px-8 text-base font-semibold flex-1 rounded-lg bg-red-900 hover:bg-red-950 text-white border-0" onClick={() => {
+            <Button size="lg" className="h-11 px-8 text-base font-semibold flex-1 rounded-lg bg-destructive hover:bg-destructive text-destructive-foreground border-0" onClick={() => {
               onReject?.();
               onBack();
             }}>
@@ -314,7 +314,7 @@ function DocumentViewer({
         </div>
       )}
       {isApproved && (
-        <div className="border-t border-green-500/30 bg-green-500/5 px-4 py-3 shrink-0">
+        <div className="border-t border-green-500/30 bg-accent/5 px-4 py-3 shrink-0">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
             <p className="text-(length:--text-compact) font-medium text-green-700 dark:text-green-400">
@@ -324,7 +324,7 @@ function DocumentViewer({
         </div>
       )}
       {isRejected && (
-        <div className="border-t border-orange-500/30 bg-orange-500/5 px-4 py-3 shrink-0">
+        <div className="border-t border-orange-500/30 bg-muted/5 px-4 py-3 shrink-0">
           <div className="flex items-center gap-2">
             <XCircle className="h-4 w-4 text-orange-500" />
             <p className="text-(length:--text-compact) font-medium text-orange-700 dark:text-orange-400">

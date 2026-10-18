@@ -20,11 +20,11 @@
 export const issueStatusIcon: Record<string, string> = {
   backlog: "text-muted-foreground border-muted-foreground",
   todo: "text-amber-600 border-amber-600 dark:text-amber-400 dark:border-amber-400",
-  in_progress: "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400",
+  in_progress: "text-primary border-primary",
   in_review: "text-violet-600 border-violet-600 dark:text-violet-400 dark:border-violet-400",
   done: "text-green-600 border-green-600 dark:text-green-400 dark:border-green-400",
-  cancelled: "text-neutral-500 border-neutral-500",
-  blocked: "text-red-600 border-red-600 dark:text-red-400 dark:border-red-400",
+  cancelled: "text-muted-foreground border-border",
+  blocked: "text-destructive border-destructive",
 };
 
 export const issueStatusIconDefault = "text-muted-foreground border-muted-foreground";
@@ -33,11 +33,11 @@ export const issueStatusIconDefault = "text-muted-foreground border-muted-foregr
 export const issueStatusText: Record<string, string> = {
   backlog: "text-muted-foreground",
   todo: "text-amber-600 dark:text-amber-400",
-  in_progress: "text-blue-600 dark:text-blue-400",
+  in_progress: "text-primary",
   in_review: "text-violet-600 dark:text-violet-400",
   done: "text-green-600 dark:text-green-400",
-  cancelled: "text-neutral-500",
-  blocked: "text-red-600 dark:text-red-400",
+  cancelled: "text-muted-foreground",
+  blocked: "text-destructive",
 };
 
 export const issueStatusTextDefault = "text-muted-foreground";
@@ -54,12 +54,12 @@ export const issueStatusTextDefault = "text-muted-foreground";
 export type BrandChipColor = "gray" | "blue" | "amber" | "green" | "violet" | "red";
 
 export const brandChipBadge: Record<BrandChipColor, string> = {
-  gray: "bg-[#F5F3F0] text-[#52585D] border-[#A8AEB2] dark:bg-[#6e696024] dark:text-[#9A958A] dark:border-[#9e958a73]",
-  blue: "bg-[#DBEAFE] text-[#1D4ED8] border-[#2563EB] dark:bg-[#2563eb2e] dark:text-[#2563EB] dark:border-[#2563eb73]",
-  amber: "bg-[#FEF3C7] text-[#B45309] border-[#F59E0B] dark:bg-[#f59e0b24] dark:text-[#F59E0B] dark:border-[#f59e0b73]",
-  green: "bg-[#DCFCE7] text-[#188A3C] border-[#22C55E] dark:bg-[#22c55e1f] dark:text-[#22C55E] dark:border-[#22c55e73]",
-  violet: "bg-[#EDE9FE] text-[#5B21B6] border-[#7C3AED] dark:bg-[#7c3aed2e] dark:text-[#7C3AED] dark:border-[#7c3aed73]",
-  red: "bg-[#FEE2E2] text-[#991B1B] border-[#DC2626] dark:bg-[#dc26262e] dark:text-[#DC2626] dark:border-[#dc262673]",
+  gray: "bg-muted text-muted-foreground border-border",
+  blue: "bg-primary/10 text-[#1D4ED8] border-[#2563EB] dark:text-[#2563EB] dark:border-[#2563eb73]",
+  amber: "bg-muted text-[#B45309] border-[#F59E0B] dark:text-[#F59E0B] dark:border-[#f59e0b73]",
+  green: "bg-accent text-[#188A3C] border-[#22C55E] dark:text-[#22C55E] dark:border-[#22c55e73]",
+  violet: "bg-secondary text-[#5B21B6] border-[#7C3AED] dark:text-[#7C3AED] dark:border-[#7c3aed73]",
+  red: "bg-destructive/10 text-destructive border-destructive/40",
 };
 
 // ---------------------------------------------------------------------------
@@ -75,34 +75,34 @@ export const statusBadge: Record<string, string> = {
   // shared run-status red entry below.
   active: `border ${brandChipBadge.green}`,
   running: `border ${brandChipBadge.blue}`, // r1 made this blue; r3 routes through brandChipBadge.blue.
-  scheduled_retry: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
+  scheduled_retry: "bg-secondary text-sky-700 dark:bg-secondary/50 dark:text-sky-300",
   paused: `border ${brandChipBadge.amber}`,
   idle: `border ${brandChipBadge.gray}`,
   archived: "bg-muted text-muted-foreground",
 
   // Goal statuses
   planned: "bg-muted text-muted-foreground",
-  achieved: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  completed: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
+  achieved: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  completed: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
 
   // Run statuses
-  failed: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  timed_out: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300",
-  succeeded: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  ok: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  warning: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  error: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  info: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
-  terminated: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
+  failed: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  timed_out: "bg-muted text-orange-700 dark:bg-muted/50 dark:text-orange-300",
+  succeeded: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  ok: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  warning: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  error: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  info: "bg-secondary text-sky-700 dark:bg-secondary/50 dark:text-sky-300",
+  terminated: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  pending: "bg-muted text-yellow-700 dark:bg-muted/50 dark:text-yellow-300",
   // Skill Studio test-run "queued" aligns with pending (yellow). PAP-12962 D6.
-  queued: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
+  queued: "bg-muted text-yellow-700 dark:bg-muted/50 dark:text-yellow-300",
 
   // Approval statuses
-  pending_approval: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  revision_requested: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  approved: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  rejected: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
+  pending_approval: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  revision_requested: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  approved: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  rejected: "bg-destructive/10 text-destructive dark:bg-destructive/50",
 
   // Case statuses (PAP-12968 E3) — `draft` is the neutral pre-work state,
   // rendered as a muted gray alias of `backlog`/`planned`. The other case
@@ -112,26 +112,26 @@ export const statusBadge: Record<string, string> = {
   // Issue statuses — consistent hues with issueStatusIcon above (PAP-75 brand
   // mapping: todo → amber, in_progress → blue "liveness").
   backlog: "bg-muted text-muted-foreground",
-  todo: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  in_progress: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
-  in_review: "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
-  blocked: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  done: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
+  todo: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  in_progress: "bg-primary/10 text-primary dark:bg-primary/50",
+  in_review: "bg-secondary text-violet-700 dark:bg-secondary/50 dark:text-violet-300",
+  blocked: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  done: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
   cancelled: "bg-muted text-muted-foreground",
 
   // Tool access — policy decisions, catalog, and runtime health (Tools & Access, PAP-10389)
-  allowed: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  denied: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  block: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  "require-approval": "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  redacted: "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
-  "rate-limit": "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300",
-  deferred: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
+  allowed: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  denied: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  block: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  "require-approval": "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  redacted: "bg-secondary text-violet-700 dark:bg-secondary/50 dark:text-violet-300",
+  "rate-limit": "bg-muted text-orange-700 dark:bg-muted/50 dark:text-orange-300",
+  deferred: "bg-secondary text-sky-700 dark:bg-secondary/50 dark:text-sky-300",
   hidden: "bg-muted text-muted-foreground",
-  quarantined: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  "runtime-error": "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  healthy: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  degraded: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
+  quarantined: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  "runtime-error": "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  healthy: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  degraded: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
   unchecked: "bg-muted text-muted-foreground",
 };
 
@@ -161,10 +161,10 @@ export const agentStatusColorDefault: AgentBadgeColor = "gray";
 
 /** Heartbeat-capsule fill (solid) per colour name. gray darkens in dark mode. */
 export const agentStatusCapsule: Record<AgentBadgeColor, string> = {
-  gray: "bg-[#A8AEB2] dark:bg-[#6E6960]",
+  gray: "bg-muted-foreground",
   blue: "bg-[#2563EB]",
   amber: "bg-[#F59E0B]",
-  red: "bg-[#DC2626]",
+  red: "bg-destructive",
 };
 
 /** Per-status capsule motion (running pulses, error blinks). Honors reduced-motion. */
@@ -187,7 +187,7 @@ export const runningLabelText = "text-[#1D4ED8] dark:text-[#2563EB]";
  * (translucent blue fill + border + blue text). One source of truth so every
  * live/running indicator reads as the same blue.
  */
-export const liveBlueBadge = "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400";
+export const liveBlueBadge = "bg-primary/10 border-primary/30 text-primary";
 
 /**
  * Issue/task status → brand colour name (PAP-75). `in_progress` is blue
@@ -208,14 +208,14 @@ export const liveBlueBadge = "bg-blue-500/10 border-blue-500/30 text-blue-600 da
 export type BannerTone = "info" | "warning" | "danger";
 
 export const brandBanner: Record<BannerTone, string> = {
-  info: "border-[#2563EB]/40 bg-[#DBEAFE]/50 text-[#1D4ED8] dark:border-[#2563eb59] dark:bg-[#2563eb14] dark:text-[#93C5FD]",
-  warning: "border-[#F59E0B]/50 bg-[#FEF3C7]/60 text-[#B45309] dark:border-[#f59e0b59] dark:bg-[#f59e0b12] dark:text-[#F59E0B]",
-  // PAP-14031: aligned to the proven `failed`/`error` chip recipe (bg-red-100 /
-  // text-red-700 pair) so title + body both clear WCAG AA 4.5:1 in light and
+  info: "border-[#2563EB]/40 bg-primary/10 text-[#1D4ED8] dark:border-[#2563eb59] dark:text-[#93C5FD]",
+  warning: "border-[#F59E0B]/50 bg-muted text-[#B45309] dark:border-[#f59e0b59] dark:text-[#F59E0B]",
+  // PAP-14031: aligned to the proven `failed`/`error` chip recipe (bg-destructive/10 /
+  // text-destructive pair) so title + body both clear WCAG AA 4.5:1 in light and
   // dark on either `--background` or `--card`. The prior `text-destructive` on
   // `bg-destructive/10` measured ~3.7–4.3:1 — under AA for normal text. Border
   // keeps the destructive hue for continuity with other danger surfaces.
-  danger: "border-destructive/40 bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
+  danger: "border-destructive/40 bg-destructive/10 text-destructive dark:bg-destructive/50",
 };
 
 export const issueStatusColor: Record<string, BrandChipColor> = {
@@ -288,26 +288,26 @@ export const taskStatusIconVarDefault = "--status-task-icon-backlog";
 // ---------------------------------------------------------------------------
 
 export const agentStatusDot: Record<string, string> = {
-  running: "bg-blue-400 animate-pulse", // Gallery feedback r1: running dot = blue, not cyan.
+  running: "bg-primary animate-pulse", // Gallery feedback r1: running dot = blue, not cyan.
   active: "bg-green-400",
   paused: "bg-yellow-400",
   idle: "bg-yellow-400",
   pending_approval: "bg-amber-400",
-  error: "bg-red-400",
-  archived: "bg-neutral-400",
+  error: "bg-destructive/20",
+  archived: "bg-muted",
 };
 
-export const agentStatusDotDefault = "bg-neutral-400";
+export const agentStatusDotDefault = "bg-muted";
 
 // ---------------------------------------------------------------------------
 // Priority colors
 // ---------------------------------------------------------------------------
 
 export const priorityColor: Record<string, string> = {
-  critical: "text-red-600 dark:text-red-400",
+  critical: "text-destructive",
   high: "text-orange-600 dark:text-orange-400",
   medium: "text-yellow-600 dark:text-yellow-400",
-  low: "text-blue-600 dark:text-blue-400",
+  low: "text-primary",
 };
 
 export const priorityColorDefault = "text-yellow-600 dark:text-yellow-400";
@@ -334,33 +334,33 @@ export const priorityColorDefault = "text-yellow-600 dark:text-yellow-400";
 
 export const externalObjectStatusIcon: Record<string, string> = {
   unknown: "text-muted-foreground border-muted-foreground",
-  open: "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400",
+  open: "text-primary border-primary",
   waiting: "text-amber-600 border-amber-600 dark:text-amber-400 dark:border-amber-400",
-  running: "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400", // Gallery feedback r2: running = status blue (pulse animation still distinguishes it from static blue `open`).
+  running: "text-primary border-primary", // Gallery feedback r2: running = status blue (pulse animation still distinguishes it from static blue `open`).
   succeeded: "text-green-600 border-green-600 dark:text-green-400 dark:border-green-400",
   merged: "text-violet-600 border-violet-600 dark:text-violet-400 dark:border-violet-400",
-  failed: "text-red-600 border-red-600 dark:text-red-400 dark:border-red-400",
-  blocked: "text-red-600 border-red-600 dark:text-red-400 dark:border-red-400",
-  closed: "text-neutral-500 border-neutral-500",
-  archived: "text-neutral-500 border-neutral-500",
+  failed: "text-destructive border-destructive",
+  blocked: "text-destructive border-destructive",
+  closed: "text-muted-foreground border-border",
+  archived: "text-muted-foreground border-border",
   auth_required: "text-amber-600 border-amber-600 dark:text-amber-400 dark:border-amber-400",
-  unreachable: "text-red-600 border-red-600 dark:text-red-400 dark:border-red-400",
+  unreachable: "text-destructive border-destructive",
 };
 
 export const externalObjectStatusIconDefault = "text-muted-foreground border-muted-foreground";
 
 export const externalObjectStatusBadge: Record<string, string> = {
   unknown: "bg-muted text-muted-foreground",
-  open: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
-  waiting: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  running: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300", // Gallery feedback r2: running = status blue (now shares tint with `open`; liveness animation differentiates).
-  succeeded: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
-  failed: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
-  blocked: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
+  open: "bg-primary/10 text-primary dark:bg-primary/50",
+  waiting: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  running: "bg-primary/10 text-primary dark:bg-primary/50", // Gallery feedback r2: running = status blue (now shares tint with `open`; liveness animation differentiates).
+  succeeded: "bg-accent text-green-700 dark:bg-accent/50 dark:text-green-300",
+  failed: "bg-destructive/10 text-destructive dark:bg-destructive/50",
+  blocked: "bg-destructive/10 text-destructive dark:bg-destructive/50",
   closed: "bg-muted text-muted-foreground",
   archived: "bg-muted text-muted-foreground",
-  auth_required: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
-  unreachable: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
+  auth_required: "bg-muted text-amber-700 dark:bg-muted/50 dark:text-amber-300",
+  unreachable: "bg-destructive/10 text-destructive dark:bg-destructive/50",
 };
 
 export const externalObjectStatusBadgeDefault = "bg-muted text-muted-foreground";

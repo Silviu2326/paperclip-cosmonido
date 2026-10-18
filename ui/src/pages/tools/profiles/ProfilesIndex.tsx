@@ -247,7 +247,7 @@ export function ProfilesIndex({
                       <span className="inline-flex items-center gap-2">
                         <span>{allowsLabel(profile.summary)}</span>
                         {(profile.newToolsPendingCount ?? 0) > 0 ? (
-                          <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-amber-800 dark:text-amber-200">
+                          <Badge variant="outline" className="border-amber-500/50 bg-muted/10 text-amber-800 dark:text-amber-200">
                             {profile.newToolsPendingCount} new
                           </Badge>
                         ) : null}

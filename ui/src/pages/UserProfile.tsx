@@ -128,7 +128,7 @@ function UsageChart({ points }: { points: UserProfileDailyPoint[] }) {
               />
               {completedPct > 0 ? (
                 <div
-                  className="mt-1 w-full rounded-full bg-emerald-500/80"
+                  className="mt-1 w-full rounded-full bg-accent/80"
                   style={{ height: 2, opacity: Math.min(1, 0.35 + completedPct / 100) }}
                 />
               ) : null}
@@ -148,7 +148,7 @@ function UsageChart({ points }: { points: UserProfileDailyPoint[] }) {
           <span className="h-2 w-2 bg-foreground/80" /> tokens / day
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-(--sz-3px) w-4 rounded-full bg-emerald-500/80" /> completions
+          <span className="h-(--sz-3px) w-4 rounded-full bg-accent/80" /> completions
         </span>
       </div>
     </section>

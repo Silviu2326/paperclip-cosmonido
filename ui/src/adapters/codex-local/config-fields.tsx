@@ -818,7 +818,7 @@ export function CodexLocalConfigFields({
             }
           />
           {fastModeEnabled && (
-            <div className="rounded-md border border-amber-300/70 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+            <div className="rounded-md border border-amber-300/70 bg-muted/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100">
               {fastModeMessage}
             </div>
           )}

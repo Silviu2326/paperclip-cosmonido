@@ -635,9 +635,9 @@ export function ProjectProperties({ project, repositories, onUpdate, onFieldUpda
                           className={cn(
                             "px-1.5 text-(length:--text-nano) uppercase tracking-wide",
                             service.status === "running"
-                              ? "bg-green-500/15 text-green-700 dark:text-green-300"
+                              ? "bg-accent/15 text-green-700 dark:text-green-300"
                               : service.status === "failed"
-                                ? "bg-red-500/15 text-red-700 dark:text-red-300"
+                                ? "bg-destructive/15 text-destructive"
                                 : "bg-muted text-muted-foreground",
                           )}
                         >

@@ -132,9 +132,9 @@ function workspaceDetailLink(input: {
 
 function statusBadge(status: string) {
   const colors: Record<string, string> = {
-    active: "bg-green-500/15 text-green-700 dark:text-green-400",
+    active: "bg-accent/15 text-green-700 dark:text-green-400",
     idle: "bg-muted text-muted-foreground",
-    in_review: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
+    in_review: "bg-primary/15 text-primary",
     archived: "bg-muted text-muted-foreground",
   };
   return (

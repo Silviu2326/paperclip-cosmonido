@@ -29,14 +29,14 @@ export function ResponsibleUserDenialNotice({
   const Icon = isUnavailable ? UserX : ShieldX;
 
   const tone = isUnavailable
-    ? "border-amber-300/70 bg-amber-50/90 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
-    : "border-red-300/70 bg-red-50/90 text-red-950 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100";
+    ? "border-amber-300/70 bg-muted/90 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100"
+    : "border-destructive/70 bg-destructive/90 text-destructive dark:border-destructive/40 dark:bg-destructive/10";
   const iconTone = isUnavailable
     ? "text-amber-600 dark:text-amber-300"
-    : "text-red-600 dark:text-red-300";
+    : "text-destructive";
   const actionTone = isUnavailable
     ? "text-amber-800 dark:text-amber-200"
-    : "text-red-800 dark:text-red-200";
+    : "text-destructive";
 
   return (
     <div

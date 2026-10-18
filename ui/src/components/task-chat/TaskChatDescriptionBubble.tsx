@@ -138,7 +138,7 @@ export function TaskChatDescriptionBubble({ brief }: TaskChatDescriptionBubblePr
             collapsedHeight={FOLD_COLLAPSED_HEIGHT_PX}
             // The curtain's fade is a mask (background-agnostic); only the
             // toggle's muted colors need a lift on the solid blue bubble.
-            toggleClassName={isHuman ? "text-white/80 hover:text-white hover:bg-white/10" : undefined}
+            toggleClassName={isHuman ? "text-white/80 hover:text-foreground hover:bg-white/10" : undefined}
           >
             <MarkdownBody
               // On the solid --liveness-blue human bubble, keep prose body text

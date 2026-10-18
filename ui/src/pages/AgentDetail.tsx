@@ -152,12 +152,12 @@ import {
 
 const runStatusIcons: Record<string, { icon: typeof CheckCircle2; color: string }> = {
   succeeded: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
-  failed: { icon: XCircle, color: "text-red-600 dark:text-red-400" },
-  running: { icon: Loader2, color: "text-blue-600 dark:text-blue-400" }, // Gallery feedback r1: running = status blue, not cyan.
+  failed: { icon: XCircle, color: "text-destructive" },
+  running: { icon: Loader2, color: "text-primary" }, // Gallery feedback r1: running = status blue, not cyan.
   queued: { icon: Clock, color: "text-yellow-600 dark:text-yellow-400" },
   scheduled_retry: { icon: Clock, color: "text-sky-600 dark:text-sky-400" },
   timed_out: { icon: Timer, color: "text-orange-600 dark:text-orange-400" },
-  cancelled: { icon: Slash, color: "text-neutral-500 dark:text-neutral-400" },
+  cancelled: { icon: Slash, color: "text-muted-foreground" },
 };
 
 const RUN_LOG_PAGE_BYTES = 256_000;
@@ -502,7 +502,7 @@ export function RunInvocationCard({
             {payload.prompt !== undefined && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Prompt</div>
-                <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
+                <pre className="bg-muted dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
                   {typeof payload.prompt === "string"
                     ? redactPathText(payload.prompt, censorUsernameInLogs)
                     : JSON.stringify(redactPathValue(payload.prompt, censorUsernameInLogs), null, 2)}
@@ -512,7 +512,7 @@ export function RunInvocationCard({
             {payload.context !== undefined && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Context</div>
-                <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
+                <pre className="bg-muted dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
                   {JSON.stringify(redactPathValue(payload.context, censorUsernameInLogs), null, 2)}
                 </pre>
               </div>
@@ -520,7 +520,7 @@ export function RunInvocationCard({
             {payload.env !== undefined && (
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Environment</div>
-                <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                <pre className="bg-muted dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap font-mono">
                   {formatEnvForDisplay(payload.env, censorUsernameInLogs)}
                 </pre>
               </div>
@@ -572,13 +572,13 @@ function workspaceOperationPhaseLabel(phase: WorkspaceOperation["phase"]) {
 function workspaceOperationStatusTone(status: WorkspaceOperation["status"]) {
   switch (status) {
     case "succeeded":
-      return "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300";
+      return "border-green-500/20 bg-accent/10 text-green-700 dark:text-green-300";
     case "failed":
-      return "border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300";
+      return "border-destructive/20 bg-destructive/10 text-destructive";
     case "running":
-      return "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300";
+      return "border-primary/20 bg-primary/10 text-primary";
     case "skipped":
-      return "border-yellow-500/20 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300";
+      return "border-yellow-500/20 bg-muted/10 text-yellow-700 dark:text-yellow-300";
     default:
       return "border-border bg-muted/40 text-muted-foreground";
   }
@@ -638,19 +638,19 @@ function WorkspaceOperationLogViewer({
             <div className="text-xs text-muted-foreground">No persisted log lines.</div>
           )}
           {chunks.length > 0 && (
-            <div className="max-h-64 overflow-y-auto rounded bg-neutral-100 p-2 font-mono text-xs dark:bg-neutral-950">
+            <div className="max-h-64 overflow-y-auto rounded bg-muted p-2 font-mono text-xs dark:bg-card">
               {chunks.map((chunk, index) => (
                 <div key={`${chunk.ts}-${index}`} className="flex gap-2">
-                  <span className="shrink-0 text-neutral-500">
+                  <span className="shrink-0 text-muted-foreground">
                     {new Date(chunk.ts).toLocaleTimeString("en-US", { hour12: false })}
                   </span>
                   <span
                     className={cn(
                       "shrink-0 w-14",
                       chunk.stream === "stderr"
-                        ? "text-red-600 dark:text-red-300"
+                        ? "text-destructive"
                         : chunk.stream === "system"
-                          ? "text-blue-600 dark:text-blue-300"
+                          ? "text-primary"
                           : "text-muted-foreground",
                     )}
                   >
@@ -736,8 +736,8 @@ function WorkspaceOperationsSection({
               )}
               {operation.stderrExcerpt && operation.stderrExcerpt.trim() && (
                 <div>
-                  <div className="mb-1 text-xs text-red-700 dark:text-red-300">stderr excerpt</div>
-                  <pre className="rounded-md bg-red-50 p-2 text-xs whitespace-pre-wrap break-all text-red-800 dark:bg-neutral-950 dark:text-red-100">
+                  <div className="mb-1 text-xs text-destructive">stderr excerpt</div>
+                  <pre className="rounded-md bg-destructive/10 p-2 text-xs whitespace-pre-wrap break-all text-destructive dark:bg-card">
                     {redactPathText(operation.stderrExcerpt, censorUsernameInLogs)}
                   </pre>
                 </div>
@@ -745,7 +745,7 @@ function WorkspaceOperationsSection({
               {operation.stdoutExcerpt && operation.stdoutExcerpt.trim() && (
                 <div>
                   <div className="mb-1 text-xs text-muted-foreground">stdout excerpt</div>
-                  <pre className="rounded-md bg-neutral-100 p-2 text-xs whitespace-pre-wrap break-all dark:bg-neutral-950">
+                  <pre className="rounded-md bg-muted p-2 text-xs whitespace-pre-wrap break-all dark:bg-card">
                     {redactPathText(operation.stdoutExcerpt, censorUsernameInLogs)}
                   </pre>
                 </div>
@@ -1190,7 +1190,7 @@ export function AgentDetail() {
   return (
     <div className={cn("agent-settings-content mx-auto max-w-5xl space-y-8", `agent-settings-${activeView}`)}>
       {showLeftAgentNotice ? (
-        <div className="flex items-center gap-3 border border-yellow-300/35 bg-yellow-300/10 px-3 py-2 text-sm text-yellow-900 dark:text-yellow-100">
+        <div className="flex items-center gap-3 border border-yellow-300/35 bg-muted/10 px-3 py-2 text-sm text-yellow-900 dark:text-yellow-100">
           <p className="min-w-0 flex-1">
             You left this agent. It no longer appears in your sidebar.
           </p>
@@ -1224,7 +1224,7 @@ export function AgentDetail() {
         </div>
       ) : null}
       {pausedEscalationWarning ? (
-        <div className="flex items-start gap-3 border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+        <div className="flex items-start gap-3 border border-amber-300/35 bg-muted/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 space-y-1">
             <p className="font-medium">Escalation path is paused</p>
@@ -1233,7 +1233,7 @@ export function AgentDetail() {
         </div>
       ) : null}
       {hasInvalidOrgChain ? (
-        <div className="flex items-start gap-3 border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+        <div className="flex items-start gap-3 border border-amber-300/35 bg-muted/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 space-y-1">
             <p className="font-medium">Invalid reporting chain</p>
@@ -1317,13 +1317,13 @@ export function AgentDetail() {
             {mobileLiveRun && (
               <Link
                 to={`/agents/${canonicalAgentRef}/runs/${mobileLiveRun.id}`}
-                className="sm:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors no-underline"
+                className="sm:hidden flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors no-underline"
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                  <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                 </span>
-                <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">Live</span>
+                <span className="text-(length:--text-micro) font-medium text-primary">Live</span>
               </Link>
             )}
           </AgentActionButtons>
@@ -1381,7 +1381,7 @@ export function AgentDetail() {
 
       {actionError && <p className="text-sm text-destructive">{actionError}</p>}
       {isPendingApproval && (
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-200">
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300/60 bg-muted px-3 py-2 text-sm text-amber-900 dark:border-amber-400/40 dark:bg-muted/30 dark:text-amber-200">
           <span>This agent is pending board approval and cannot be invoked yet.</span>
           <Button
             variant="outline"
@@ -1642,7 +1642,7 @@ function LatestRunCard({
         })
       : issuesById;
   const { task, runHref, rowHref } = resolveLatestRunNavigation(run, agentId, effectiveIssuesById);
-  const statusInfo = runStatusIcons[run.status] ?? { icon: Clock, color: "text-neutral-400" };
+  const statusInfo = runStatusIcons[run.status] ?? { icon: Clock, color: "text-muted-foreground" };
   const StatusIcon = statusInfo.icon;
 
   return (
@@ -1655,8 +1655,8 @@ function LatestRunCard({
           <h3 className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-foreground">
             {isLive && (
               <span className="relative flex h-2 w-2">
-                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
             )}
             <span>{isLive ? "Live Run" : "Latest Run"}</span>
@@ -1671,7 +1671,7 @@ function LatestRunCard({
         to={rowHref}
         className={cn(
           "block border rounded-lg p-4 space-y-2 w-full no-underline transition-colors hover:bg-muted/50 cursor-pointer",
-          isLive ? "border-blue-500/30 shadow-(--shadow-extract-14)" : "border-border"
+          isLive ? "border-primary/30 shadow-(--shadow-extract-14)" : "border-border"
         )}
       >
         <div className="flex items-center gap-2">
@@ -1690,9 +1690,9 @@ function LatestRunCard({
               <span className="font-mono text-xs text-muted-foreground">{run.id.slice(0, 8)}</span>
               <Badge variant="ghost" className={cn(
                 "px-1.5 text-(length:--text-nano)",
-                run.invocationSource === "timer" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                  : run.invocationSource === "assignment" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300"
-                  : run.invocationSource === "on_demand" ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300"
+                run.invocationSource === "timer" ? "bg-primary/10 text-primary dark:bg-primary/50"
+                  : run.invocationSource === "assignment" ? "bg-secondary text-violet-700 dark:bg-secondary/50 dark:text-violet-300"
+                  : run.invocationSource === "on_demand" ? "bg-secondary text-cyan-700 dark:bg-secondary/50 dark:text-cyan-300"
                   : "bg-muted text-muted-foreground"
               )}>
                 {sourceLabels[run.invocationSource] ?? run.invocationSource}
@@ -2694,7 +2694,7 @@ export function PromptsTab({
       {(bundle?.warnings ?? []).length > 0 && (
         <div className="space-y-2">
           {(bundle?.warnings ?? []).map((warning) => (
-            <div key={warning} className="rounded-md border border-sky-500/25 bg-sky-500/10 px-3 py-2 text-xs text-sky-900 dark:text-sky-100">
+            <div key={warning} className="rounded-md border border-sky-500/25 bg-secondary/10 px-3 py-2 text-xs text-sky-900 dark:text-sky-100">
               {warning}
             </div>
           ))}
@@ -2975,7 +2975,7 @@ export function PromptsTab({
                 return (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="ml-3 shrink-0 rounded border border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 text-(length:--text-nano) uppercase tracking-wide cursor-help">
+                      <span className="ml-3 shrink-0 rounded border border-amber-500/40 bg-muted/10 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 text-(length:--text-nano) uppercase tracking-wide cursor-help">
                         virtual file
                       </span>
                     </TooltipTrigger>
@@ -3266,7 +3266,7 @@ function PromptEditorSkeleton() {
 /* ---- Runs Tab ---- */
 
 function RunListItem({ run, isSelected, agentId }: { run: HeartbeatRun; isSelected: boolean; agentId: string }) {
-  const statusInfo = runStatusIcons[run.status] ?? { icon: Clock, color: "text-neutral-400" };
+  const statusInfo = runStatusIcons[run.status] ?? { icon: Clock, color: "text-muted-foreground" };
   const StatusIcon = statusInfo.icon;
   const metrics = runMetrics(run);
   const summary = run.resultJson
@@ -3289,9 +3289,9 @@ function RunListItem({ run, isSelected, agentId }: { run: HeartbeatRun; isSelect
         </span>
         <Badge variant="ghost" className={cn(
           "px-1.5 text-(length:--text-nano)",
-          run.invocationSource === "timer" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-            : run.invocationSource === "assignment" ? "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300"
-            : run.invocationSource === "on_demand" ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300"
+          run.invocationSource === "timer" ? "bg-primary/10 text-primary dark:bg-primary/50"
+            : run.invocationSource === "assignment" ? "bg-secondary text-violet-700 dark:bg-secondary/50 dark:text-violet-300"
+            : run.invocationSource === "on_demand" ? "bg-secondary text-cyan-700 dark:bg-secondary/50 dark:text-cyan-300"
             : "bg-muted text-muted-foreground"
         )}>
           {sourceLabels[run.invocationSource] ?? run.invocationSource}
@@ -3792,7 +3792,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
             <AgentFileRunNotice resultJson={run.resultJson} />
             {run.error && (
               <div className="text-xs">
-                <span className="text-red-600 dark:text-red-400">{run.error}</span>
+                <span className="text-destructive">{run.error}</span>
                 {run.errorCode && <span className="text-muted-foreground ml-1">({run.errorCode})</span>}
               </div>
             )}
@@ -3819,7 +3819,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                     Login URL:
                     <a
                       href={claudeLoginResult.loginUrl}
-                      className="text-blue-600 underline underline-offset-2 ml-1 break-all dark:text-blue-400"
+                      className="text-primary underline underline-offset-2 ml-1 break-all"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -3830,12 +3830,12 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                 {claudeLoginResult && (
                   <>
                     {!!claudeLoginResult.stdout && (
-                      <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto whitespace-pre-wrap">
+                      <pre className="bg-muted dark:bg-card rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto whitespace-pre-wrap">
                         {claudeLoginResult.stdout}
                       </pre>
                     )}
                     {!!claudeLoginResult.stderr && (
-                      <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-3 text-xs font-mono text-red-700 dark:text-red-300 overflow-x-auto whitespace-pre-wrap">
+                      <pre className="bg-muted dark:bg-card rounded-md p-3 text-xs font-mono text-destructive overflow-x-auto whitespace-pre-wrap">
                         {claudeLoginResult.stderr}
                       </pre>
                     )}
@@ -3850,7 +3850,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
               />
             )}
             {hasNonZeroExit && (
-              <div className="text-xs text-red-600 dark:text-red-400">
+              <div className="text-xs text-destructive">
                 Exit code {run.exitCode}
                 {run.signal && <span className="text-muted-foreground ml-1">(signal: {run.signal})</span>}
               </div>
@@ -3965,8 +3965,8 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
       {/* stderr excerpt for failed runs */}
       {run.stderrExcerpt && (
         <div className="space-y-1">
-          <span className="text-xs font-medium text-red-600 dark:text-red-400">stderr</span>
-          <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-3 text-xs font-mono text-red-700 dark:text-red-300 overflow-x-auto whitespace-pre-wrap">{run.stderrExcerpt}</pre>
+          <span className="text-xs font-medium text-destructive">stderr</span>
+          <pre className="bg-muted dark:bg-card rounded-md p-3 text-xs font-mono text-destructive overflow-x-auto whitespace-pre-wrap">{run.stderrExcerpt}</pre>
         </div>
       )}
 
@@ -3974,7 +3974,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
       {run.stdoutExcerpt && !run.logRef && (
         <div className="space-y-1">
           <span className="text-xs font-medium text-muted-foreground">stdout</span>
-          <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto whitespace-pre-wrap">{run.stdoutExcerpt}</pre>
+          <pre className="bg-muted dark:bg-card rounded-md p-3 text-xs font-mono text-foreground overflow-x-auto whitespace-pre-wrap">{run.stdoutExcerpt}</pre>
         </div>
       )}
 
@@ -4482,13 +4482,13 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
   const levelColors: Record<string, string> = {
     info: "text-foreground",
     warn: "text-yellow-600 dark:text-yellow-400",
-    error: "text-red-600 dark:text-red-400",
+    error: "text-destructive",
   };
 
   const streamColors: Record<string, string> = {
     stdout: "text-foreground",
-    stderr: "text-red-600 dark:text-red-300",
-    system: "text-blue-600 dark:text-blue-300",
+    stderr: "text-destructive",
+    system: "text-primary",
   };
 
   return (
@@ -4539,10 +4539,10 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
             </Button>
           )}
           {isLive && (
-            <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+            <span className="flex items-center gap-1 text-xs text-primary">
               <span className="relative flex h-2 w-2">
-                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
               Live
             </span>
@@ -4578,7 +4578,7 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
           </div>
         )}
         {logError && (
-          <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/[0.06] px-3 py-2 text-xs text-red-700 dark:text-red-300">
+          <div className="mt-3 rounded-xl border border-destructive/20 bg-destructive/[0.06] px-3 py-2 text-xs text-destructive">
             {logError}
           </div>
         )}
@@ -4586,34 +4586,34 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
       </div>
 
       {(run.status === "failed" || run.status === "timed_out") && (
-        <div className="rounded-lg border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-950/20 p-3 space-y-2">
-          <div className="text-xs font-medium text-red-700 dark:text-red-300">Failure details</div>
+        <div className="rounded-lg border border-destructive dark:border-destructive/30 bg-destructive/10 dark:bg-destructive/20 p-3 space-y-2">
+          <div className="text-xs font-medium text-destructive">Failure details</div>
           {run.error && (
-            <div className="text-xs text-red-600 dark:text-red-200">
-              <span className="text-red-700 dark:text-red-300">Error: </span>
+            <div className="text-xs text-destructive">
+              <span className="text-destructive">Error: </span>
               {redactPathText(run.error, censorUsernameInLogs)}
             </div>
           )}
           {run.stderrExcerpt && run.stderrExcerpt.trim() && (
             <div>
-              <div className="text-xs text-red-700 dark:text-red-300 mb-1">stderr excerpt</div>
-              <pre className="bg-red-50 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-red-800 dark:text-red-100">
+              <div className="text-xs text-destructive mb-1">stderr excerpt</div>
+              <pre className="bg-destructive/10 dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-destructive">
                 {redactPathText(run.stderrExcerpt, censorUsernameInLogs)}
               </pre>
             </div>
           )}
           {run.resultJson && (
             <div>
-              <div className="text-xs text-red-700 dark:text-red-300 mb-1">adapter result JSON</div>
-              <pre className="bg-red-50 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-red-800 dark:text-red-100">
+              <div className="text-xs text-destructive mb-1">adapter result JSON</div>
+              <pre className="bg-destructive/10 dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-destructive">
                 {JSON.stringify(redactPathValue(run.resultJson, censorUsernameInLogs), null, 2)}
               </pre>
             </div>
           )}
           {run.stdoutExcerpt && run.stdoutExcerpt.trim() && !run.resultJson && (
             <div>
-              <div className="text-xs text-red-700 dark:text-red-300 mb-1">stdout excerpt</div>
-              <pre className="bg-red-50 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-red-800 dark:text-red-100">
+              <div className="text-xs text-destructive mb-1">stdout excerpt</div>
+              <pre className="bg-destructive/10 dark:bg-card rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap text-destructive">
                 {redactPathText(run.stdoutExcerpt, censorUsernameInLogs)}
               </pre>
             </div>
@@ -4624,7 +4624,7 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
       {events.length > 0 && (
         <div>
           <div className="mb-2 text-xs font-medium text-muted-foreground">Events ({events.length})</div>
-          <div className="bg-neutral-100 dark:bg-neutral-950 rounded-lg p-3 font-mono text-xs space-y-0.5">
+          <div className="bg-muted dark:bg-card rounded-lg p-3 font-mono text-xs space-y-0.5">
             {events.map((evt) => {
               const color = evt.color
                 ?? (evt.level ? levelColors[evt.level] : null)
@@ -4633,10 +4633,10 @@ export function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType
 
               return (
                 <div key={evt.id} className="flex gap-2">
-                  <span className="text-neutral-400 dark:text-neutral-600 shrink-0 select-none w-16">
+                  <span className="text-muted-foreground shrink-0 select-none w-16">
                     {new Date(evt.createdAt).toLocaleTimeString("en-US", { hour12: false })}
                   </span>
-                  <span className={cn("shrink-0 w-14", evt.stream ? (streamColors[evt.stream] ?? "text-neutral-500") : "text-neutral-500")}>
+                  <span className={cn("shrink-0 w-14", evt.stream ? (streamColors[evt.stream] ?? "text-muted-foreground") : "text-muted-foreground")}>
                     {evt.stream ? `[${evt.stream}]` : ""}
                   </span>
                   <span className={cn("break-all", color)}>
@@ -4707,12 +4707,12 @@ export function KeysTab({ agentId, companyId }: { agentId: string; companyId?: s
     <div className="space-y-6">
       {/* New token banner */}
       {newToken && (
-        <div className="border border-yellow-300 dark:border-yellow-600/40 bg-yellow-50 dark:bg-yellow-500/5 rounded-lg p-4 space-y-2">
+        <div className="border border-yellow-300 dark:border-yellow-600/40 bg-muted dark:bg-muted/5 rounded-lg p-4 space-y-2">
           <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
             API key created — copy it now, it will not be shown again.
           </p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 bg-neutral-100 dark:bg-neutral-950 rounded px-3 py-1.5 text-xs font-mono text-green-700 dark:text-green-300 truncate">
+            <code className="flex-1 bg-muted dark:bg-card rounded px-3 py-1.5 text-xs font-mono text-green-700 dark:text-green-300 truncate">
               {tokenVisible ? newToken : newToken.replace(/./g, "•")}
             </code>
             <Button

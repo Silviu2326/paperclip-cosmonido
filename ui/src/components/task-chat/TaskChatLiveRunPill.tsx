@@ -83,7 +83,7 @@ export function TaskChatLiveRunPill({
           </span>
         ) : (
           <span className="flex size-5 shrink-0 items-center justify-center">
-            <span className={cn("h-1.5 w-1.5 rounded-full", (failed || active) ? "bg-muted-foreground/40" : "bg-emerald-500/70")} />
+            <span className={cn("h-1.5 w-1.5 rounded-full", (failed || active) ? "bg-muted-foreground/40" : "bg-accent/70")} />
           </span>
         )}
         {active ? <span className={cn("shimmer-text")}>{verb}</span> : verb}

@@ -79,8 +79,8 @@ export function DocumentDiffModal({
 
   const lineClassesByKind: Record<DiffRow["kind"], string> = {
     context: "bg-transparent",
-    removed: "bg-red-500/10 text-red-900 dark:text-red-100",
-    added: "bg-green-500/10 text-green-900 dark:text-green-100",
+    removed: "bg-destructive/10 text-destructive",
+    added: "bg-accent/10 text-green-900 dark:text-green-100",
   };
 
   const markerByKind: Record<DiffRow["kind"], string> = {
@@ -101,7 +101,7 @@ export function DocumentDiffModal({
 
           <div className="flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-red-500/30 bg-red-500/10 text-(length:--text-nano) uppercase tracking-wider text-red-400">Old</Badge>
+              <Badge variant="outline" className="border-destructive/30 bg-destructive/10 text-(length:--text-nano) uppercase tracking-wider text-destructive">Old</Badge>
               <Select
                 value={effectiveLeftId ?? ""}
                 onValueChange={(value) => setLeftRevisionId(value)}
@@ -119,7 +119,7 @@ export function DocumentDiffModal({
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-(length:--text-nano) uppercase tracking-wider text-green-400">New</Badge>
+              <Badge variant="outline" className="border-green-500/30 bg-accent/10 text-(length:--text-nano) uppercase tracking-wider text-green-400">New</Badge>
               <Select
                 value={effectiveRightId ?? ""}
                 onValueChange={(value) => setRightRevisionId(value)}

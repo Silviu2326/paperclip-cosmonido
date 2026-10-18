@@ -1009,7 +1009,7 @@ function IssueDetailLoadingState({
               headerSeed.originId ? (
                 <Badge
                   variant="outline"
-                  className="border-violet-500/30 bg-violet-500/10 text-(length:--text-nano) text-violet-600 dark:text-violet-400"
+                  className="border-violet-500/30 bg-secondary/10 text-(length:--text-nano) text-violet-600 dark:text-violet-400"
                   title={`Routine execution from routine ${headerSeed.originId}`}
                 >
                   <Repeat className="h-3 w-3" />
@@ -7247,8 +7247,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             className={cn("gap-1.5 text-(length:--text-nano)", liveBlueBadge)}
           >
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
+              <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
             </span>
             Live
           </Badge>
@@ -7257,7 +7257,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         {issue.originKind === "routine_execution" && issue.originId && (
           <Link
             to={`/routines/${issue.originId}`}
-            className="inline-flex items-center gap-1 rounded-full bg-violet-500/10 border border-violet-500/30 px-2 py-0.5 text-(length:--text-nano) font-medium text-violet-600 dark:text-violet-400 shrink-0 hover:bg-violet-500/20 transition-colors"
+            className="inline-flex items-center gap-1 rounded-full bg-secondary/10 border border-violet-500/30 px-2 py-0.5 text-(length:--text-nano) font-medium text-violet-600 dark:text-violet-400 shrink-0 hover:bg-secondary/20 transition-colors"
             title={`Routine execution from routine ${issue.originId}`}
           >
             <Repeat className="h-3 w-3" />
@@ -7268,7 +7268,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
         {issue.originKind === "task_watchdog" ? (
           <Badge
             variant="outline"
-            className="border-sky-500/40 bg-sky-500/10 text-(length:--text-nano) text-sky-700 dark:text-sky-300"
+            className="border-sky-500/40 bg-secondary/10 text-(length:--text-nano) text-sky-700 dark:text-sky-300"
             title="This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate."
           >
             <ScanEye className="h-3 w-3" />
@@ -7305,7 +7305,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           <Badge
             variant="outline"
             data-testid="issue-detail-parked-blocker"
-            className="border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
+            className="border-amber-500/60 bg-muted/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
             title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
           >
             <Flag className="h-3 w-3" />

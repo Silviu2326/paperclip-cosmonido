@@ -28,12 +28,12 @@ const enforcementBanner = cva(
       variant: {
         default: "border-border bg-muted/40 text-muted-foreground",
         "denied-detected":
-          "border-amber-500/40 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+          "border-amber-500/40 bg-muted text-amber-900 dark:bg-muted/40 dark:text-amber-200",
         info: "border-border bg-muted/40 text-muted-foreground",
         warning:
-          "border-amber-500/40 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+          "border-amber-500/40 bg-muted text-amber-900 dark:bg-muted/40 dark:text-amber-200",
         error:
-          "border-destructive/40 bg-destructive/5 text-destructive dark:text-destructive",
+          "border-destructive/40 bg-destructive/5 text-destructive",
       },
     },
     defaultVariants: { variant: "default" },

@@ -213,7 +213,7 @@ export function StatusCardTile({
             type="button"
             onClick={stopClick(onRefresh)}
             disabled={refreshPending}
-            className="flex w-full items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-amber-500/10 disabled:opacity-60"
+            className="flex w-full items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-muted/5 px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-muted/10 disabled:opacity-60"
           >
             <span>
               {card.pendingChangeCount} {card.pendingChangeCount === 1 ? "change" : "changes"} since last update
@@ -240,7 +240,7 @@ export function StatusCardTile({
         ) : null}
 
         {lifecycle === "paused_budget" || lifecycle === "paused_hours" ? (
-          <div className="flex items-center gap-2 rounded-md border border-orange-500/40 bg-orange-500/5 px-3 py-1.5 text-xs text-foreground">
+          <div className="flex items-center gap-2 rounded-md border border-orange-500/40 bg-muted/5 px-3 py-1.5 text-xs text-foreground">
             <PauseCircle className="h-3.5 w-3.5 shrink-0 text-orange-500" />
             <span>
               {lifecycle === "paused_budget"

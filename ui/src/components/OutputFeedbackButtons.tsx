@@ -120,7 +120,7 @@ export function OutputFeedbackButtons({
           size="sm"
           variant="outline"
           disabled={disabled || isSaving}
-          className={cn(visibleVote === "up" && "border-green-600/50 bg-green-500/10 text-green-700")}
+          className={cn(visibleVote === "up" && "border-green-600/50 bg-accent/10 text-green-700")}
           onClick={() => handleVote("up")}
         >
           <ThumbsUp className="mr-1.5 h-3.5 w-3.5" />
@@ -131,7 +131,7 @@ export function OutputFeedbackButtons({
           size="sm"
           variant="outline"
           disabled={disabled || isSaving}
-          className={cn(visibleVote === "down" && "border-amber-600/50 bg-amber-500/10 text-amber-800")}
+          className={cn(visibleVote === "down" && "border-amber-600/50 bg-muted/10 text-amber-800")}
           onClick={() => handleVote("down")}
         >
           <ThumbsDown className="mr-1.5 h-3.5 w-3.5" />

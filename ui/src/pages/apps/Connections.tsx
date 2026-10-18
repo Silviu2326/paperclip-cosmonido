@@ -104,8 +104,8 @@ function rowNeedsAttention(row: AppRow): boolean {
 }
 
 const STATUS_CLASS: Record<AppStatus["tone"], string> = {
-  connected: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  attention: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  connected: "border-emerald-500/40 bg-accent/10 text-emerald-700 dark:text-emerald-300",
+  attention: "border-amber-500/40 bg-muted/10 text-amber-700 dark:text-amber-300",
   paused: "border-border bg-muted text-muted-foreground",
   not_connected: "border-border bg-background text-muted-foreground",
 };
@@ -360,7 +360,7 @@ export function Connections() {
             <button
               type="button"
               onClick={() => navigate("/apps/review")}
-              className="flex w-full items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-left transition-colors hover:bg-amber-500/15"
+              className="flex w-full items-center gap-3 rounded-xl border border-amber-500/40 bg-muted/10 px-4 py-3 text-left transition-colors hover:bg-muted/15"
             >
               <ShieldQuestion className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 flex-1">
@@ -379,18 +379,18 @@ export function Connections() {
             <button
               type="button"
               onClick={() => setFilter("attention")}
-              className="flex w-full items-center gap-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left transition-colors hover:bg-red-500/15"
+              className="flex w-full items-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-left transition-colors hover:bg-destructive/15"
             >
-              <ShieldAlert className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+              <ShieldAlert className="h-5 w-5 shrink-0 text-destructive" />
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-red-900 dark:text-red-100">
+                <div className="text-sm font-semibold text-destructive">
                   {rowsNeedingAttention.length} {rowsNeedingAttention.length === 1 ? "connection needs" : "connections need"} attention
                 </div>
-                <div className="truncate text-xs text-red-700 dark:text-red-300">
+                <div className="truncate text-xs text-destructive">
                   {floatSummary(rowsNeedingAttention)}
                 </div>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-red-800 dark:text-red-200">Fix →</span>
+              <span className="shrink-0 text-xs font-semibold text-destructive">Fix →</span>
             </button>
           )}
 
@@ -439,7 +439,7 @@ export function Connections() {
                       onClick={() => navigate(appHref)}
                       className={cn(
                         "cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/30",
-                        attention && "bg-amber-500/[0.06]",
+                        attention && "bg-muted/[0.06]",
                       )}
                     >
                       <td className="px-4 py-3">
@@ -647,7 +647,7 @@ function FilterChip({
         disabled && "cursor-not-allowed opacity-50",
         active
           ? tone === "danger"
-            ? "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300"
+            ? "border-destructive/40 bg-destructive/10 text-destructive"
             : "border-foreground/30 bg-foreground/[0.06] text-foreground"
           : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground",
       )}

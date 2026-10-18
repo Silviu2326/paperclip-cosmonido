@@ -4619,7 +4619,7 @@ export function ConnectionSetupCompletionScreen({
 }) {
   return (
     <div className="mx-auto max-w-md py-10 text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-emerald-500 bg-emerald-500/10">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-emerald-500 bg-accent/10">
         <Check className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="mt-6 flex items-center justify-center gap-2">

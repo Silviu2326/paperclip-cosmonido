@@ -43,7 +43,7 @@ export function ReportsToPicker({
           type="button"
           className={cn(
             "inline-flex max-w-full min-w-0 items-center gap-1.5 overflow-hidden rounded-md border border-border px-2 py-1 text-xs hover:bg-accent/50 transition-colors",
-            terminatedManager && "border-amber-600/45 bg-amber-500/5",
+            terminatedManager && "border-amber-600/45 bg-muted/5",
             disabled && "opacity-60 cursor-not-allowed",
           )}
           disabled={disabled}

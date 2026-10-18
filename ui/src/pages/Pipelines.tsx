@@ -268,7 +268,7 @@ function RetryMetric({
     <div className={cn(
       "rounded-sm border px-3 py-2",
       tone === "warning"
-        ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100"
+        ? "border-amber-300 bg-muted text-amber-950 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-100"
         : "border-border bg-background text-foreground",
     )}>
       <div className="text-base font-semibold">{formatNumber(value)}</div>
@@ -593,7 +593,7 @@ function PipelineStatusChip({ archivedAt }: { archivedAt: Date | string | null }
         "font-semibold",
         paused
           ? "border-muted-foreground/20 bg-muted text-muted-foreground"
-          : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300",
+          : "border-emerald-200 bg-accent text-emerald-700 dark:border-emerald-900/60 dark:bg-accent/30 dark:text-emerald-300",
       )}
     >
       {paused ? "Paused" : "Active"}
@@ -785,8 +785,8 @@ export function PipelinesIndexTable({
                     <td className="px-4 text-sm">
                       <div className="flex items-center gap-3 whitespace-nowrap">
                         {attentionCount > 0 ? (
-                          <span className="inline-flex items-center gap-1.5 font-semibold text-red-700 dark:text-red-400">
-                            <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden="true" />
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-destructive">
+                            <span className="h-2 w-2 rounded-full bg-destructive" aria-hidden="true" />
                             {formatNumber(attentionCount)} to review
                           </span>
                         ) : null}
@@ -1256,23 +1256,23 @@ function PipelineCaseCard({
         <p className="font-medium leading-snug text-foreground">{title}</p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {isWorking ? (
-            <Badge variant="outline" className="relative border-emerald-400/40 bg-emerald-50 text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-900/30 dark:text-emerald-300">
+            <Badge variant="outline" className="relative border-emerald-400/40 bg-accent text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-accent/30 dark:text-emerald-300">
               <span className="absolute -left-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
               Working
             </Badge>
           ) : null}
           {hasNeedsAttention ? (
-            <Badge variant="outline" className="border-amber-400/40 bg-amber-50 text-(length:--text-nano) text-amber-700 dark:border-amber-300/30 dark:bg-amber-900/25 dark:text-amber-300">
+            <Badge variant="outline" className="border-amber-400/40 bg-muted text-(length:--text-nano) text-amber-700 dark:border-amber-300/30 dark:bg-muted/25 dark:text-amber-300">
               Needs attention
             </Badge>
           ) : null}
           {hasChangedNotice ? (
-            <Badge variant="outline" className="border-indigo-400/40 bg-indigo-50 text-(length:--text-nano) text-indigo-700 dark:border-indigo-300/30 dark:bg-indigo-900/25 dark:text-indigo-300">
+            <Badge variant="outline" className="border-indigo-400/40 bg-secondary text-(length:--text-nano) text-indigo-700 dark:border-indigo-300/30 dark:bg-secondary/25 dark:text-indigo-300">
               This changed
             </Badge>
           ) : null}
           {liveDownstreamCount > 0 ? (
-            <Badge variant="outline" className="border-emerald-400/35 bg-emerald-50 text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-900/25 dark:text-emerald-300">
+            <Badge variant="outline" className="border-emerald-400/35 bg-accent text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-accent/25 dark:text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
               {formatLiveDownstream(liveDownstreamCount)}
             </Badge>
@@ -1329,7 +1329,7 @@ function PipelineBoardColumn({
       className={cn(
         "flex min-w-(--sz-260px) max-w-(--sz-320px) shrink-0 flex-col rounded-md border",
         tone.outer,
-        isBlockedDropTarget && "ring-1 ring-red-500/45",
+        isBlockedDropTarget && "ring-1 ring-destructive/45",
       )}
     >
       <div className={cn("group/stage-header flex items-center justify-between border-b px-3 py-2 text-sm font-semibold", tone.header)}>
@@ -1384,11 +1384,11 @@ function PipelineBoardColumn({
         ref={setNodeRef}
         className={cn(
           "min-h-(--sz-160px) flex-1 space-y-2 rounded-b-md px-2 py-2 transition-colors",
-          isBlockedDropTarget ? "bg-red-50 dark:bg-red-950/30" : isOver ? tone.bodyOver : tone.body,
+          isBlockedDropTarget ? "bg-destructive/10 dark:bg-destructive/30" : isOver ? tone.bodyOver : tone.body,
         )}
       >
         {isBlockedDropTarget ? (
-          <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-(length:--text-micro) text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+          <p className="rounded border border-destructive bg-destructive/10 px-3 py-2 text-(length:--text-micro) text-destructive dark:border-destructive/30">
             This move skips the normal flow
           </p>
         ) : null}
@@ -2925,7 +2925,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="rounded-sm border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
+            <div className="rounded-sm border border-amber-300 bg-muted p-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-100">
               <div className="flex gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
@@ -3207,7 +3207,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
       ) : null}
 
       {changedNotice ? (
-        <section className="mb-5 flex flex-col gap-3 border-y border-amber-300 bg-amber-50 py-4 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100 md:flex-row md:items-center md:justify-between">
+        <section className="mb-5 flex flex-col gap-3 border-y border-amber-300 bg-muted py-4 text-amber-950 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-100 md:flex-row md:items-center md:justify-between">
           <div className="flex gap-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
@@ -3459,13 +3459,13 @@ function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActi
   return (
     <section
       aria-label={title}
-      className="mb-5 flex flex-col gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-4 text-blue-950 dark:border-blue-900/70 dark:bg-blue-950/25 dark:text-blue-100 md:flex-row md:items-center md:justify-between"
+      className="mb-5 flex flex-col gap-3 rounded-lg border border-primary bg-primary/10 px-4 py-4 text-primary dark:border-primary/70 dark:bg-primary/25 md:flex-row md:items-center md:justify-between"
     >
       <div className="flex min-w-0 gap-3">
-        <CircleDot className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+        <CircleDot className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
             {title}
           </h2>
           <p className="mt-1 text-sm opacity-85">
@@ -3481,7 +3481,7 @@ function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActi
         asChild
         size="sm"
         variant="outline"
-        className="border-blue-300 bg-transparent hover:bg-blue-100 dark:border-blue-900/70 dark:hover:bg-blue-950/40"
+        className="border-primary bg-transparent hover:bg-primary/10 dark:border-primary/70 dark:hover:bg-primary/40"
       >
         <Link to={issuePath}>
           <ExternalLink className="mr-2 h-4 w-4" />
@@ -3658,7 +3658,7 @@ function ReviewDecisionPanel({
   return (
     <section>
       <h2 className="mb-3 text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Review</h2>
-      <div className="border-y border-amber-300 bg-amber-50/70 p-5 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100 sm:p-6">
+      <div className="border-y border-amber-300 bg-muted/70 p-5 text-amber-950 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-100 sm:p-6">
         <div className="space-y-5">
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-1 h-5 w-5 shrink-0" />
@@ -4575,7 +4575,7 @@ export function buildReviewQueueRows({
 function ReviewQueueStatusChip({ failed }: { failed: boolean }) {
   if (!failed) return null;
   return (
-    <Badge variant="outline" className="border-amber-200 bg-amber-50 font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-300">
+    <Badge variant="outline" className="border-amber-200 bg-muted font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-300">
       <AlertTriangle className="h-3 w-3" />
       Needs attention
     </Badge>
@@ -5236,7 +5236,7 @@ export function Learnings() {
                       key={event.id}
                       className={cn(
                         "grid min-h-11 grid-cols-(--gtc-15) items-center gap-3 border-b border-border/70 px-3 py-2 text-sm last:border-b-0",
-                        forcedMove && "border-l-2 border-l-amber-400 bg-amber-50/50 dark:bg-amber-400/10",
+                        forcedMove && "border-l-2 border-l-amber-400 bg-muted/50 dark:bg-muted/10",
                       )}
                     >
                       <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString()}>

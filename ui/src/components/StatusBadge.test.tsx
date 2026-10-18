@@ -66,7 +66,7 @@ describe("AgentStatusBadge", () => {
 
 describe("StatusBadge", () => {
   it("uses the graduated brand hues", () => {
-    expect(renderToStaticMarkup(<StatusBadge status="todo" />)).toContain("bg-amber-100");
-    expect(renderToStaticMarkup(<StatusBadge status="in_progress" />)).toContain("bg-blue-100");
+    expect(renderToStaticMarkup(<StatusBadge status="todo" />)).toContain("bg-muted");
+    expect(renderToStaticMarkup(<StatusBadge status="in_progress" />)).toContain("bg-primary/10");
   });
 });

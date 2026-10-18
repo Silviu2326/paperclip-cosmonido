@@ -192,11 +192,11 @@ export function ActionTestDialog({
 const DECISION_META: Record<ToolConnectionTestDecision, DecisionMeta> = {
   allowed: {
     label: "Allowed",
-    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    className: "border-emerald-500/40 bg-accent/10 text-emerald-700 dark:text-emerald-300",
   },
   ask_first: {
     label: "Ask first",
-    className: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    className: "border-amber-500/40 bg-muted/10 text-amber-700 dark:text-amber-300",
   },
   off: {
     label: "Off",
@@ -860,7 +860,7 @@ function AllowedResult({
   const value = outcome.result.result;
   const preview = resultPreview(value);
   return (
-    <div className="rounded-md border border-emerald-500/40 bg-emerald-500/5 p-4">
+    <div className="rounded-md border border-emerald-500/40 bg-accent/5 p-4">
       <div className="flex items-center gap-2">
         <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
         <span className="text-sm font-medium text-foreground">{successHeadline(preview.summary, entry, appName)}</span>
@@ -1058,7 +1058,7 @@ function ErrorResult({
   const hints = errorHints(error.message, error.reasonCode);
   const needsReconnect = isReconnectError(error.reasonCode);
   return (
-    <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
+    <div className="rounded-md border border-amber-500/40 bg-muted/5 p-4">
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         <span className="text-sm font-medium text-foreground">It didn't work.</span>
@@ -1199,7 +1199,7 @@ function AskFirstResult({
   const settled = phase === "denied" || phase === "cancelled" || phase === "expired";
 
   return (
-    <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
+    <div className="rounded-md border border-amber-500/40 bg-muted/5 p-4">
       <div className="flex items-center gap-2">
         <ShieldQuestion className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         <span className="text-sm font-medium text-foreground">Sent for your OK.</span>

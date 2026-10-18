@@ -132,7 +132,7 @@ export function describeDenial(code: string, fallback: string): { title: string;
   }
   if (lower.includes("outside") || lower.includes("traversal")) {
     return {
-      icon: <Ban aria-hidden="true" className="h-6 w-6 text-red-500" />,
+      icon: <Ban aria-hidden="true" className="h-6 w-6 text-destructive" />,
       title: "Path is outside the workspace",
       body: "The viewer can only open files that live under the issue's workspace.",
     };
@@ -166,7 +166,7 @@ export function describeDenial(code: string, fallback: string): { title: string;
     };
   }
   return {
-    icon: <Ban aria-hidden="true" className="h-6 w-6 text-red-500" />,
+    icon: <Ban aria-hidden="true" className="h-6 w-6 text-destructive" />,
     title: "Can't preview this file",
     body: fallback || "The viewer was unable to load this file.",
   };

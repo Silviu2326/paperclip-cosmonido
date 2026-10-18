@@ -20,17 +20,17 @@ type IconComponent = ComponentType<{ className?: string; "aria-hidden"?: boolean
 
 const VARIANT_STYLES: Record<BlockedReasonVariant, string> = {
   needs_decision:
-    "border-violet-300/70 bg-violet-50 text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300",
+    "border-violet-300/70 bg-secondary text-violet-800 dark:border-violet-500/30 dark:bg-secondary/10 dark:text-violet-300",
   recovery_required:
-    "border-cyan-300/70 bg-cyan-50 text-cyan-800 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300",
+    "border-cyan-300/70 bg-secondary text-cyan-800 dark:border-cyan-500/30 dark:bg-secondary/10 dark:text-cyan-300",
   stalled:
-    "border-amber-400/70 bg-amber-100 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200",
+    "border-amber-400/70 bg-muted text-amber-900 dark:border-amber-500/40 dark:bg-muted/15 dark:text-amber-200",
   needs_attention:
-    "border-amber-300/70 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300",
+    "border-amber-300/70 bg-muted text-amber-800 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-300",
   external_wait:
-    "border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-500/30 dark:bg-slate-500/15 dark:text-slate-300",
+    "border-border bg-muted text-foreground dark:border-border/30 dark:bg-muted/15",
   owner_paused:
-    "border-red-300/70 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+    "border-destructive/70 bg-destructive/10 text-destructive dark:border-destructive/30",
 };
 
 const VARIANT_ICONS: Record<BlockedReasonVariant, IconComponent> = {
@@ -43,7 +43,7 @@ const VARIANT_ICONS: Record<BlockedReasonVariant, IconComponent> = {
 };
 
 const SEVERITY_DOT: Partial<Record<IssueBlockedInboxSeverity, string>> = {
-  critical: "bg-red-500",
+  critical: "bg-destructive",
   high: "bg-orange-500",
 };
 

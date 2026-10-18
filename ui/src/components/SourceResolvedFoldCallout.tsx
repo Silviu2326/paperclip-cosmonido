@@ -64,8 +64,8 @@ export function SourceResolvedFoldCallout({
       data-source-resolved-fold
       className={cn(
         "relative w-full overflow-hidden rounded-lg border text-sm shadow-(--shadow-extract-8)",
-        "border-emerald-300/70 bg-emerald-50/80 text-emerald-950",
-        "dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100",
+        "border-emerald-300/70 bg-accent/80 text-emerald-950",
+        "dark:border-emerald-500/40 dark:bg-accent/10 dark:text-emerald-100",
         className,
       )}
     >
@@ -73,7 +73,7 @@ export function SourceResolvedFoldCallout({
         <span
           className={cn(
             "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-            "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200",
+            "bg-accent text-emerald-800 dark:bg-accent/20 dark:text-emerald-200",
           )}
           aria-hidden
         >

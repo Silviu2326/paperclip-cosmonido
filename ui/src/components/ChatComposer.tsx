@@ -235,9 +235,9 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
           : "border-border bg-card",
         // No blue focus ring — neutral border darkening only.
         isAsk &&
-          "border-sky-500/55 bg-sky-50/50 focus-within:border-sky-500/70 dark:border-sky-500/50 dark:bg-sky-500/[0.07]",
+          "border-sky-500/55 bg-secondary/50 focus-within:border-sky-500/70 dark:border-sky-500/50 dark:bg-secondary/[0.07]",
         isPlanning &&
-          "border-amber-500/55 bg-amber-50/50 focus-within:border-amber-500/70 dark:border-amber-500/50 dark:bg-amber-500/[0.07]",
+          "border-amber-500/55 bg-muted/50 focus-within:border-amber-500/70 dark:border-amber-500/50 dark:bg-muted/[0.07]",
         isDragOver && canAttach && "border-muted-foreground/50 bg-accent/20",
         disabled && "opacity-60",
         className,

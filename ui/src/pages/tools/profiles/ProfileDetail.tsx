@@ -232,7 +232,7 @@ export function ProfileDetail({
       ) : null}
 
       {archived ? (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <div className="rounded-lg border border-amber-300 bg-muted px-4 py-3 text-sm text-amber-950">
           This profile is archived. It does not apply to agents until it is restored.
         </div>
       ) : null}
@@ -338,7 +338,7 @@ function NewToolsReviewBanner({
 }) {
   const appLabel = newToolsAppLabel(tools);
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-muted px-4 py-3 text-sm text-amber-950">
       <div>
         <p className="font-medium">
           {loading ? "New tools need review" : `${appLabel} added ${count} new ${count === 1 ? "tool" : "tools"} since your last review`}
@@ -446,7 +446,7 @@ function NewToolsReviewDialog({
 function AllowList({ rows, total }: { rows: AllowRow[]; total: number }) {
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+      <div className="rounded-lg border border-amber-300 bg-muted px-4 py-3 text-sm text-amber-950">
         This profile allows 0 tools. Agents with only this profile will not be able to use app tools.
       </div>
     );
@@ -483,7 +483,7 @@ function AllowList({ rows, total }: { rows: AllowRow[]; total: number }) {
               <td className="px-3 py-2 text-muted-foreground">{row.capabilities}</td>
               <td className="px-3 py-2">
                 {row.source.startsWith("added by rule") ? (
-                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-950">{row.source}</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-amber-950">{row.source}</span>
                 ) : (
                   <span className="text-muted-foreground">{row.source}</span>
                 )}

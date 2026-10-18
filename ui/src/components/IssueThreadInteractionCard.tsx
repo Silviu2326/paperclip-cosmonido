@@ -235,24 +235,24 @@ function statusClasses(status: IssueThreadInteraction["status"]) {
     case "answered":
       return {
         shell: "border-emerald-400/70 bg-transparent",
-        badge: "border-emerald-500/60 bg-emerald-500/10 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100",
+        badge: "border-emerald-500/60 bg-accent/10 text-emerald-900 dark:bg-accent/15 dark:text-emerald-100",
       };
     case "rejected":
     case "cancelled":
       return {
-        shell: "border-rose-400/70 bg-transparent",
-        badge: "border-rose-500/60 bg-rose-500/10 text-rose-900 dark:bg-rose-500/15 dark:text-rose-100",
+        shell: "border-destructive/70 bg-transparent",
+        badge: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
       };
     case "failed":
     case "expired":
       return {
         shell: "border-amber-400/70 bg-transparent",
-        badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
+        badge: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
       };
     default:
       return {
         shell: "border-sky-500/70 bg-transparent",
-        badge: "border-sky-500/70 bg-sky-500/10 text-sky-900 dark:bg-sky-500/15 dark:text-sky-100",
+        badge: "border-sky-500/70 bg-secondary/10 text-sky-900 dark:bg-secondary/15 dark:text-sky-100",
       };
   }
 }
@@ -285,22 +285,22 @@ function planStatusClasses(
       if (resumeFailure) {
         return {
           shell: "border-2 border-amber-500/70 bg-transparent",
-          badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
+          badge: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
           label: "Approved — agent resume failed",
           Icon: AlertTriangle,
         };
       }
       return {
         shell: "border-2 border-green-500/80 bg-transparent",
-        badge: "border-green-500/60 bg-green-500/10 text-green-900 dark:bg-green-500/15 dark:text-green-100",
+        badge: "border-green-500/60 bg-accent/10 text-green-900 dark:bg-accent/15 dark:text-green-100",
         label: "Approved",
         Icon: CheckCircle2,
       };
     case "rejected":
     case "cancelled":
       return {
-        shell: "border-2 border-red-500/80 bg-transparent",
-        badge: "border-red-500/60 bg-red-500/10 text-red-900 dark:bg-red-500/15 dark:text-red-100",
+        shell: "border-2 border-destructive/80 bg-transparent",
+        badge: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
         label: outcome === "withdrawn" ? "Withdrawn" : "Changes requested",
         Icon: XCircle,
       };
@@ -308,14 +308,14 @@ function planStatusClasses(
     case "expired":
       return {
         shell: "border-2 border-amber-500/70 bg-transparent",
-        badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
+        badge: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
         label: "Expired",
         Icon: AlertTriangle,
       };
     default:
       return {
         shell: "border-2 border-violet-500/80 bg-transparent",
-        badge: "border-violet-500/60 bg-violet-500/10 text-violet-900 dark:bg-violet-500/15 dark:text-violet-100",
+        badge: "border-violet-500/60 bg-secondary/10 text-violet-900 dark:bg-secondary/15 dark:text-violet-100",
         label: "In review",
         Icon: FileText,
       };
@@ -476,7 +476,7 @@ function toolActionStatusClasses(state: ToolActionCardState): {
     case "running":
       return {
         shell: "border-2 border-amber-500/70 bg-transparent",
-        badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
+        badge: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
         label: "Running…",
         Icon: Loader2,
         spin: true,
@@ -484,21 +484,21 @@ function toolActionStatusClasses(state: ToolActionCardState): {
     case "executed":
       return {
         shell: "border-2 border-green-500/80 bg-transparent",
-        badge: "border-green-500/60 bg-green-500/10 text-green-900 dark:bg-green-500/15 dark:text-green-100",
+        badge: "border-green-500/60 bg-accent/10 text-green-900 dark:bg-accent/15 dark:text-green-100",
         label: "Executed",
         Icon: CheckCircle2,
       };
     case "failed":
       return {
         shell: "border-2 border-amber-500/70 bg-transparent",
-        badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
+        badge: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
         label: "Failed",
         Icon: XCircle,
       };
     case "declined":
       return {
-        shell: "border-2 border-red-500/80 bg-transparent",
-        badge: "border-red-500/60 bg-red-500/10 text-red-900 dark:bg-red-500/15 dark:text-red-100",
+        shell: "border-2 border-destructive/80 bg-transparent",
+        badge: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
         label: "Declined",
         Icon: XCircle,
         dimmed: true,
@@ -516,7 +516,7 @@ function toolActionStatusClasses(state: ToolActionCardState): {
     default:
       return {
         shell: "border-2 border-violet-500/80 bg-transparent",
-        badge: "border-violet-500/60 bg-violet-500/10 text-violet-900 dark:bg-violet-500/15 dark:text-violet-100",
+        badge: "border-violet-500/60 bg-secondary/10 text-violet-900 dark:bg-secondary/15 dark:text-violet-100",
         label: "Awaiting approval",
         Icon: ShieldAlert,
       };
@@ -650,13 +650,13 @@ function TaskTreeNode({
           {createdTask?.issueId ? (
             <Link
               to={`/issues/${createdTask.identifier ?? createdTask.issueId}`}
-              className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-2.5 py-1 text-(length:--text-micro) font-medium text-emerald-900 transition-colors hover:bg-emerald-500/15 dark:text-emerald-100"
+              className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-emerald-500/50 bg-accent/10 px-2.5 py-1 text-(length:--text-micro) font-medium text-emerald-900 transition-colors hover:bg-accent/15 dark:text-emerald-100"
             >
               {createdTask.identifier ?? createdTask.issueId.slice(0, 8)}
               <ChevronRight className="h-3 w-3" />
             </Link>
           ) : isSkipped ? (
-            <span className="inline-flex shrink-0 items-center rounded-sm border border-amber-500/60 bg-amber-500/10 px-2.5 py-1 text-(length:--text-micro) font-medium text-amber-900 dark:text-amber-100">
+            <span className="inline-flex shrink-0 items-center rounded-sm border border-amber-500/60 bg-muted/10 px-2.5 py-1 text-(length:--text-micro) font-medium text-amber-900 dark:text-amber-100">
               Skipped
             </span>
           ) : null}
@@ -680,7 +680,7 @@ function TaskTreeNode({
         ) : null}
 
         {hiddenChildCount > 0 ? (
-          <div className="mt-2 flex items-center gap-2 rounded-sm border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+          <div className="mt-2 flex items-center gap-2 rounded-sm border border-amber-500/60 bg-muted/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
             <GitBranch className="h-3.5 w-3.5 shrink-0" />
             <span>
               {hiddenChildCount === 1
@@ -865,7 +865,7 @@ function SuggestTasksCard({
       </div>
 
       {interaction.status === "accepted" ? (
-        <div className="rounded-sm border border-emerald-500/60 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100">
+        <div className="rounded-sm border border-emerald-500/60 bg-accent/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100">
           <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-emerald-700">
             Resolution summary
           </div>
@@ -878,13 +878,13 @@ function SuggestTasksCard({
       ) : null}
 
       {interaction.status === "rejected" ? (
-        <div className="rounded-sm border border-rose-500/60 bg-rose-500/10 px-4 py-3 text-sm text-rose-900 dark:text-rose-100">
-          <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-rose-700">
+        <div className="rounded-sm border border-destructive/60 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-destructive">
             Rejection reason
           </div>
           <p className={cn(
             "mt-1 leading-6",
-            !interaction.result?.rejectionReason && "text-rose-900/75",
+            !interaction.result?.rejectionReason && "text-destructive/75",
           )}>
             {interaction.result?.rejectionReason || "No reason provided."}
           </p>
@@ -1001,8 +1001,8 @@ function QuestionOptionButton({
       className={cn(
         "w-full rounded-sm border px-4 py-3 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-(length:--rad-3) focus-visible:ring-ring/50",
         selected
-          ? "border-sky-500/80 bg-sky-500/10 text-sky-950 dark:border-sky-400/80 dark:bg-sky-400/15 dark:text-sky-50"
-          : "border-border/70 bg-transparent text-foreground hover:border-sky-500/70 hover:bg-sky-500/10 dark:hover:border-sky-400/70 dark:hover:bg-sky-400/10",
+          ? "border-sky-500/80 bg-secondary/10 text-sky-950 dark:border-sky-400/80 dark:bg-secondary/15 dark:text-sky-50"
+          : "border-border/70 bg-transparent text-foreground hover:border-sky-500/70 hover:bg-secondary/10 dark:hover:border-sky-400/70 dark:hover:bg-secondary/10",
       )}
       id={id}
       onClick={onClick}
@@ -1396,7 +1396,7 @@ function AskUserQuestionsCard({
           <InteractionActionError message={actionError} />
         </div>
       ) : interaction.status === "cancelled" ? (
-        <div className="rounded-2xl border border-rose-300/60 bg-rose-50/85 p-4 text-sm leading-6 text-rose-950 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-100">
+        <div className="rounded-2xl border border-destructive/60 bg-destructive/85 p-4 text-sm leading-6 text-destructive dark:border-destructive/40 dark:bg-destructive/10">
           <div className="font-semibold">
             {interaction.result?.outcome === "withdrawn"
               ? questions.length === 1 ? "Question withdrawn" : "Questions withdrawn"
@@ -1411,7 +1411,7 @@ function AskUserQuestionsCard({
           )}
         </div>
       ) : interaction.status === "expired" ? (
-        <div className="rounded-2xl border border-amber-300/70 bg-amber-50/85 p-4 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="rounded-2xl border border-amber-300/70 bg-muted/85 p-4 text-sm leading-6 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100">
           <div className="flex items-center gap-2 font-semibold">
             <AlertTriangle className="h-4 w-4" />
             {interaction.result?.outcome === "issue_closed"
@@ -1465,7 +1465,7 @@ function AskUserQuestionsCard({
           })}
 
           {interaction.result?.summaryMarkdown ? (
-            <div className="rounded-2xl border border-emerald-300/60 bg-emerald-50/85 p-4">
+            <div className="rounded-2xl border border-emerald-300/60 bg-accent/85 p-4">
               <div className="mb-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-emerald-700">
                 Submitted summary
               </div>
@@ -1528,7 +1528,7 @@ function RequestConfirmationTargetChip({
     tone === "default"
       ? "border-border/70 bg-transparent text-foreground"
       : "border-border/60 bg-transparent text-muted-foreground",
-    href && "transition-colors hover:border-sky-500/70 hover:bg-sky-500/10",
+    href && "transition-colors hover:border-sky-500/70 hover:bg-secondary/10",
   );
   const content = (
     <>
@@ -1570,7 +1570,7 @@ function RequestConfirmationResolution({
             <span className="font-medium">Confirmed</span>
             <RequestConfirmationTargetChip interaction={interaction} target={target} />
           </div>
-          <div className="rounded-sm border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
+          <div className="rounded-sm border border-amber-500/60 bg-muted/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
             <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-amber-700">
               Agent resume failed
             </div>
@@ -1604,7 +1604,7 @@ function RequestConfirmationResolution({
           <RequestConfirmationTargetChip interaction={interaction} target={target} />
         </div>
         {interaction.result?.reason ? (
-          <div className="rounded-sm border-l-2 border-rose-500/70 bg-rose-500/10 px-3 py-2 text-sm leading-6 text-rose-900 dark:text-rose-100">
+          <div className="rounded-sm border-l-2 border-destructive/70 bg-destructive/10 px-3 py-2 text-sm leading-6 text-destructive">
             <MarkdownBody>{interaction.result.reason}</MarkdownBody>
           </div>
         ) : null}
@@ -1630,7 +1630,7 @@ function RequestConfirmationResolution({
     const expiredByIssueClosed = outcome === "issue_closed";
     const expiredByTargetChange = outcome === "stale_target";
     return (
-      <div className="space-y-3 rounded-sm border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
+      <div className="space-y-3 rounded-sm border border-amber-500/60 bg-muted/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
         {/*
          * issue_closed already carries its label in the header status badge
          * ("Expired · issue closed"), so this eyebrow would duplicate it
@@ -1650,7 +1650,7 @@ function RequestConfirmationResolution({
               : "The requested target changed before this confirmation was resolved."}
         </p>
         {expiredByComment && interaction.result?.commentId ? (
-          <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-amber-950 hover:bg-amber-500/15 dark:text-amber-50">
+          <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-amber-950 hover:bg-muted/15 dark:text-amber-50">
             <a href={`#comment-${interaction.result.commentId}`}>Jump to comment</a>
           </Button>
         ) : null}
@@ -1840,8 +1840,8 @@ function secretProposalCardState(
 function secretProposalStatusClasses(state: SecretProposalCardState) {
   if (state === "failed") {
     return {
-      shell: "border-2 border-red-500/80 bg-transparent",
-      badge: "border-red-500/60 bg-red-500/10 text-red-900 dark:bg-red-500/15 dark:text-red-100",
+      shell: "border-2 border-destructive/80 bg-transparent",
+      badge: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
       label: "FAILED",
       Icon: XCircle,
     };
@@ -1920,7 +1920,7 @@ function SecretProposalResolution({
 
   if (state === "running") {
     return (
-      <div aria-live="polite" className="flex items-start gap-2 rounded-sm border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
+      <div aria-live="polite" className="flex items-start gap-2 rounded-sm border border-amber-500/50 bg-muted/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
         <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
         <div>
           <div className="font-medium">Approved by {who} — creating the binding</div>
@@ -1934,7 +1934,7 @@ function SecretProposalResolution({
 
   if (state === "executed") {
     return (
-      <div aria-live="polite" className="flex items-start gap-2 rounded-sm border border-green-500/50 bg-green-500/10 px-4 py-3 text-sm text-green-900 dark:text-green-100">
+      <div aria-live="polite" className="flex items-start gap-2 rounded-sm border border-green-500/50 bg-accent/10 px-4 py-3 text-sm text-green-900 dark:text-green-100">
         <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
         <div>
           <div className="font-medium">Binding created · approved by {who}</div>
@@ -1949,20 +1949,20 @@ function SecretProposalResolution({
   if (state === "failed") {
     const errorCode = result?.errorCode?.trim();
     return (
-      <div aria-live="assertive" className="space-y-2 rounded-sm border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-900 dark:text-red-100">
+      <div aria-live="assertive" className="space-y-2 rounded-sm border border-destructive/60 bg-destructive/10 px-4 py-3 text-sm text-destructive">
         <div className="flex items-start gap-2">
           <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <div className="font-semibold uppercase tracking-(--tracking-eyebrow)">
               FAILED · binding was not created
             </div>
-            <p className="mt-1 text-red-900/80 dark:text-red-100/80">
+            <p className="mt-1 text-destructive/80">
               The request was accepted, but execution failed closed. No secret value was exposed.
             </p>
           </div>
         </div>
         {errorCode ? (
-          <div className="rounded-sm border border-red-500/50 bg-background/60 px-3 py-2">
+          <div className="rounded-sm border border-destructive/50 bg-background/60 px-3 py-2">
             <span className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow)">
               Error code
             </span>{" "}
@@ -1976,16 +1976,16 @@ function SecretProposalResolution({
   if (state === "declined") {
     const reason = interaction.result?.reason?.trim();
     return (
-      <div className="space-y-2 rounded-sm border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-900 dark:text-red-100">
+      <div className="space-y-2 rounded-sm border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
         <div className="flex items-start gap-2">
           <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <div className="font-medium">Rejected by {who}</div>
-            <p className="mt-1 text-red-900/80 dark:text-red-100/80">The binding was not created.</p>
+            <p className="mt-1 text-destructive/80">The binding was not created.</p>
           </div>
         </div>
         {reason ? (
-          <div className="rounded-sm border border-red-500/40 bg-background/60 px-3 py-2 text-foreground">
+          <div className="rounded-sm border border-destructive/40 bg-background/60 px-3 py-2 text-foreground">
             <MarkdownBody>{reason}</MarkdownBody>
           </div>
         ) : null}
@@ -2262,7 +2262,7 @@ function ConfirmationActionRow({
             aria-invalid={attempted && reasonMissing}
             className={cn(
               "min-h-24 bg-background text-sm",
-              attempted && reasonMissing && "border-rose-500 focus-visible:ring-rose-500/25",
+              attempted && reasonMissing && "border-destructive focus-visible:ring-destructive/25",
             )}
           />
           {attempted && reasonMissing ? (
@@ -2318,7 +2318,7 @@ function connectionAuthorizationStatusClasses(
     case "actionable":
       return {
         shell: "border-2 border-sky-500/70 bg-transparent",
-        badge: "border-sky-500/60 bg-sky-500/10 text-sky-900 dark:bg-sky-500/15 dark:text-sky-100",
+        badge: "border-sky-500/60 bg-secondary/10 text-sky-900 dark:bg-secondary/15 dark:text-sky-100",
         label: "Action required",
         Icon: KeyRound,
       };
@@ -2334,7 +2334,7 @@ function connectionAuthorizationStatusClasses(
     case "connected":
       return {
         shell: "border-2 border-green-500/80 bg-transparent",
-        badge: "border-green-500/60 bg-green-500/10 text-green-900 dark:bg-green-500/15 dark:text-green-100",
+        badge: "border-green-500/60 bg-accent/10 text-green-900 dark:bg-accent/15 dark:text-green-100",
         label: `${copy.providerName} connected`,
         Icon: CheckCircle2,
       };
@@ -2871,7 +2871,7 @@ function CheckboxOptionRow({
       htmlFor={id}
       className={cn(
         "flex cursor-pointer items-start gap-2.5 border-b border-border/60 px-3 py-2 last:border-b-0 transition-colors",
-        checked ? "bg-sky-500/10" : "hover:bg-sky-500/5",
+        checked ? "bg-secondary/10" : "hover:bg-secondary/5",
         disabled && "cursor-not-allowed opacity-60",
       )}
     >
@@ -3140,9 +3140,9 @@ const VERDICT_RESOLVED_LABEL: Record<RequestItemVerdictValue, string> = {
 function verdictChipClasses(verdict: RequestItemVerdictValue) {
   switch (verdict) {
     case "approve":
-      return "border-emerald-500/60 bg-emerald-500/10 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100";
+      return "border-emerald-500/60 bg-accent/10 text-emerald-900 dark:bg-accent/15 dark:text-emerald-100";
     case "reject":
-      return "border-rose-500/60 bg-rose-500/10 text-rose-900 dark:bg-rose-500/15 dark:text-rose-100";
+      return "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15";
     default:
       return "border-border/70 bg-muted/40 text-muted-foreground";
   }
@@ -3400,7 +3400,7 @@ function RequestItemVerdictsCard({
 
       {/* Stale / superseded notice (S6) */}
       {isExpired ? (
-        <div className="rounded-sm border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
+        <div className="rounded-sm border border-amber-500/50 bg-muted/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
           <div className="flex items-center gap-2 font-medium">
             <AlertTriangle className="h-4 w-4" aria-hidden />
             {interaction.result?.outcome === "superseded_by_comment"
@@ -3498,7 +3498,7 @@ function RequestItemVerdictsCard({
                     aria-invalid={attempted && invalidDraftIds.has(item.id)}
                     className={cn(
                       "min-h-16 bg-background text-sm",
-                      attempted && invalidDraftIds.has(item.id) && "border-rose-500 focus-visible:ring-rose-500/25",
+                      attempted && invalidDraftIds.has(item.id) && "border-destructive focus-visible:ring-destructive/25",
                     )}
                   />
                   {attempted && invalidDraftIds.has(item.id) ? (
@@ -3513,7 +3513,7 @@ function RequestItemVerdictsCard({
 
       {/* Complete summary (S5) */}
       {isComplete && !isExpired ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-900 dark:text-emerald-100">
+        <div className="flex flex-wrap items-center gap-2 rounded-sm border border-emerald-500/50 bg-accent/10 px-3 py-2 text-sm text-emerald-900 dark:text-emerald-100">
           <CheckCircle2 className="h-4 w-4" aria-hidden />
           <span className="font-medium">
             {progress.decided} decided · {progress.approved} approved · {progress.rejected} rejected
@@ -3581,7 +3581,7 @@ function VerdictProgressBadge({
     <div className="flex items-center gap-2">
       {/* Von Restorff accent when a draft reject is missing its reason */}
       {pendingReason ? (
-        <span className="inline-flex items-center gap-1 rounded-sm border border-amber-500/60 bg-amber-500/10 px-1.5 py-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow) text-amber-900 dark:text-amber-100">
+        <span className="inline-flex items-center gap-1 rounded-sm border border-amber-500/60 bg-muted/10 px-1.5 py-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow) text-amber-900 dark:text-amber-100">
           <AlertTriangle className="h-3 w-3" aria-hidden />
           Reason needed
         </span>

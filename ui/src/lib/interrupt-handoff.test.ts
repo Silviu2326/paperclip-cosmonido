@@ -50,7 +50,7 @@ describe("resolveRunStatusPresentation", () => {
   });
 
   it("leaves failed/succeeded untouched", () => {
-    expect(resolveRunStatusPresentation("failed").className).toContain("red");
+    expect(resolveRunStatusPresentation("failed").className).toContain("destructive");
     expect(resolveRunStatusPresentation("timed_out").label).toBe("timed out");
   });
 });

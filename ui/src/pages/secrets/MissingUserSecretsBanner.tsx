@@ -52,7 +52,7 @@ export function MissingUserSecretsBanner({
   return (
     <div
       className={
-        "rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-800 dark:text-amber-200" +
+        "rounded-md border border-amber-500/40 bg-muted/5 p-3 text-xs text-amber-800 dark:text-amber-200" +
         (className ? ` ${className}` : "")
       }
     >

@@ -251,7 +251,7 @@ export function CrossIssueCollaborationUxLab() {
         >
           <Frame label="Before — what the incident actually saw">
             <div className="text-xs">
-              <span className="text-red-600 dark:text-red-400">
+              <span className="text-destructive">
                 403 Forbidden: Issue is outside this actor&apos;s authorization boundary
               </span>
               <p className="mt-1 text-muted-foreground">

@@ -360,7 +360,7 @@ function TaskChatBubbleContent({
       ) : null}
       {!isHuman && item.verificationCaveats?.length ? (
         <div
-          className="mx-1 w-(--sz-calc-7) rounded-md border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-xs"
+          className="mx-1 w-(--sz-calc-7) rounded-md border border-amber-500/25 bg-muted/5 px-3 py-2 text-xs"
           data-testid="task-chat-verification-caveats"
         >
           <p className="font-medium text-amber-800 dark:text-amber-200">

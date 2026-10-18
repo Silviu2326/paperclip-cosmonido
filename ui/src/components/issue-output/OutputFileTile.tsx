@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils";
 import { getOutputFileGlyph, type OutputFileTone } from "@/lib/issue-output";
 
 const TONE_CLASSES: Record<OutputFileTone, string> = {
-  video: "bg-indigo-500/15 text-indigo-300",
-  pdf: "bg-red-500/15 text-red-700 dark:text-red-300",
-  zip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  image: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  video: "bg-secondary/15 text-indigo-300",
+  pdf: "bg-destructive/15 text-destructive",
+  zip: "bg-muted/15 text-amber-700 dark:text-amber-300",
+  image: "bg-accent/15 text-emerald-700 dark:text-emerald-300",
   bin: "bg-muted text-muted-foreground",
 };
 

@@ -245,7 +245,7 @@ export function OverviewSection({
       </div>
 
       {!routine.assigneeAgentId ? (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-lg border border-amber-500/30 bg-muted/5 p-4 text-sm text-amber-900 dark:text-amber-200">
           Default agent required. This routine can stay as a draft and still run manually, but
           automation stays paused until you assign a default agent.
         </div>

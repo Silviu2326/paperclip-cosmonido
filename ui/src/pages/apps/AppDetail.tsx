@@ -896,8 +896,8 @@ function statusFor(connection: ToolConnection): StatusInfo {
 
 function StatusBadge({ status }: { status: StatusInfo }) {
   const klass: Record<StatusInfo["tone"], string> = {
-    connected: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-    attention: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    connected: "border-emerald-500/40 bg-accent/10 text-emerald-700 dark:text-emerald-300",
+    attention: "border-amber-500/40 bg-muted/10 text-amber-700 dark:text-amber-300",
     paused: "border-border bg-muted text-muted-foreground",
   };
   return (

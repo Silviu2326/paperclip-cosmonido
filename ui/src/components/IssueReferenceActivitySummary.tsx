@@ -64,7 +64,7 @@ export function IssueReferenceActivitySummary({ event }: { event: Pick<ActivityE
       />
       <Section
         label="Removed references"
-        icon={<Minus className="h-3 w-3 text-red-600 dark:text-red-400" aria-hidden="true" />}
+        icon={<Minus className="h-3 w-3 text-destructive" aria-hidden="true" />}
         items={removed}
         strikethrough
       />

@@ -194,7 +194,7 @@ function BundleRow({ label, secondary, chips, detail, detailTone = "muted", acti
           <p
             className={cn(
               "text-(length:--text-micro) leading-snug",
-              detailTone === "error" ? "text-red-600 dark:text-red-400" : "text-muted-foreground",
+              detailTone === "error" ? "text-destructive" : "text-muted-foreground",
             )}
           >
             {detail}

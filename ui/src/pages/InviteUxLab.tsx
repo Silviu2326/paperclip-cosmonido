@@ -94,8 +94,8 @@ const inviteHistory = [
 ] as const;
 
 const fieldClassName =
-  "w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500";
-const panelClassName = "border border-zinc-800 bg-zinc-950/95 p-6";
+  "w-full border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-border";
+const panelClassName = "border border-border bg-card/95 p-6";
 
 function LabSection({
   eyebrow,
@@ -144,9 +144,9 @@ function StatusCard({
 }) {
   const toneClassName = {
     default: "border-border/70 bg-background/85",
-    warn: "border-amber-400/40 bg-amber-500/[0.08]",
-    success: "border-emerald-400/40 bg-emerald-500/[0.08]",
-    error: "border-rose-400/40 bg-rose-500/[0.08]",
+    warn: "border-amber-400/40 bg-muted/[0.08]",
+    success: "border-emerald-400/40 bg-accent/[0.08]",
+    error: "border-destructive/40 bg-destructive/[0.08]",
   }[tone];
 
   return (
@@ -172,10 +172,10 @@ function InviteLandingShell({
   right: ReactNode;
 }) {
   return (
-    <div className="overflow-hidden rounded-(--rad-28) border border-zinc-800 bg-zinc-950 shadow-[0_30px_80px_rgba(2,6,23,0.55)]">
-      <div className="grid gap-px bg-zinc-800 lg:grid-cols-(--gtc-37)">
-        <section className={cn(panelClassName, "space-y-6 bg-zinc-950")}>{left}</section>
-        <section className={cn(panelClassName, "h-full bg-zinc-950")}>{right}</section>
+    <div className="overflow-hidden rounded-(--rad-28) border border-border bg-card shadow-[0_30px_80px_rgba(2,6,23,0.55)]">
+      <div className="grid gap-px bg-card lg:grid-cols-(--gtc-37)">
+        <section className={cn(panelClassName, "space-y-6 bg-card")}>{left}</section>
+        <section className={cn(panelClassName, "h-full bg-card")}>{right}</section>
       </div>
     </div>
   );
@@ -200,12 +200,12 @@ function InviteSummaryPanel({
         <CompanyPatternIcon
           companyName="Acme Robotics"
           logoUrl="/api/invites/pcp_invite_test/logo"
-          className="h-16 w-16 rounded-none border border-zinc-800"
+          className="h-16 w-16 rounded-none border border-border"
         />
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-(--tracking-caps) text-zinc-500">You&apos;ve been invited to join Paperclip</p>
-          <h3 className="mt-2 text-2xl font-semibold text-zinc-100">{title}</h3>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">{description}</p>
+          <p className="text-xs uppercase tracking-(--tracking-caps) text-muted-foreground">You&apos;ve been invited to join Paperclip</p>
+          <h3 className="mt-2 text-2xl font-semibold text-foreground">{title}</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">{description}</p>
         </div>
       </div>
 
@@ -217,14 +217,14 @@ function InviteSummaryPanel({
       </div>
 
       {inviteMessage ? (
-        <div className="border border-amber-500/40 bg-amber-500/10 p-4">
+        <div className="border border-amber-500/40 bg-muted/10 p-4">
           <div className="text-xs uppercase tracking-(--tracking-caps) text-amber-200/80">Message from inviter</div>
           <p className="mt-2 text-sm leading-6 text-amber-50">{inviteMessage}</p>
         </div>
       ) : null}
 
       {signedInLabel ? (
-        <div className="border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-50">
+        <div className="border border-emerald-500/40 bg-accent/10 p-4 text-sm text-emerald-50">
           Signed in as <span className="font-medium">{signedInLabel}</span>.
         </div>
       ) : null}
@@ -234,9 +234,9 @@ function InviteSummaryPanel({
 
 function MetaCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-zinc-800 p-3">
-      <div className="text-xs uppercase tracking-(--tracking-caps) text-zinc-500">{label}</div>
-      <div className="mt-1 text-sm text-zinc-100">{value}</div>
+    <div className="border border-border p-3">
+      <div className="text-xs uppercase tracking-(--tracking-caps) text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm text-foreground">{value}</div>
     </div>
   );
 }
@@ -253,10 +253,10 @@ function InlineAuthPreview({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-semibold text-zinc-100">
+        <h3 className="text-lg font-semibold text-foreground">
           {mode === "sign_up" ? "Create your account" : "Sign in to continue"}
         </h3>
-        <p className="mt-1 text-sm text-zinc-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           {mode === "sign_up"
             ? "Start with a Paperclip account. After that, you'll come right back here to accept the invite for Acme Robotics."
             : "Use the Paperclip account that already matches this invite. If you do not have one yet, switch back to create account."}
@@ -269,8 +269,8 @@ function InlineAuthPreview({
           className={cn(
             "flex-1 border px-3 py-2 text-sm transition-colors",
             mode === "sign_up"
-              ? "border-zinc-100 bg-zinc-100 text-zinc-950"
-              : "border-zinc-800 text-zinc-300 hover:border-zinc-600",
+              ? "border-border bg-muted text-foreground"
+              : "border-border text-foreground hover:border-border",
           )}
         >
           Create account
@@ -280,8 +280,8 @@ function InlineAuthPreview({
           className={cn(
             "flex-1 border px-3 py-2 text-sm transition-colors",
             mode === "sign_in"
-              ? "border-zinc-100 bg-zinc-100 text-zinc-950"
-              : "border-zinc-800 text-zinc-300 hover:border-zinc-600",
+              ? "border-border bg-muted text-foreground"
+              : "border-border text-foreground hover:border-border",
           )}
         >
           I already have an account
@@ -291,20 +291,20 @@ function InlineAuthPreview({
       <form className="space-y-4">
         {mode === "sign_up" ? (
           <label className="block text-sm">
-            <span className="mb-1 block text-zinc-400">Name</span>
+            <span className="mb-1 block text-muted-foreground">Name</span>
             <input name="name" className={fieldClassName} defaultValue="Jane Example" readOnly />
           </label>
         ) : null}
         <label className="block text-sm">
-          <span className="mb-1 block text-zinc-400">Email</span>
+          <span className="mb-1 block text-muted-foreground">Email</span>
           <input name="email" type="email" className={fieldClassName} defaultValue="jane@example.com" readOnly />
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block text-zinc-400">Password</span>
+          <span className="mb-1 block text-muted-foreground">Password</span>
           <input name="password" type="password" className={fieldClassName} defaultValue="supersecret" readOnly />
         </label>
         {feedback ? (
-          <p className={cn("text-xs", feedback.tone === "info" ? "text-amber-300" : "text-red-400")}>
+          <p className={cn("text-xs", feedback.tone === "info" ? "text-amber-300" : "text-destructive")}>
             {feedback.text}
           </p>
         ) : null}
@@ -313,7 +313,7 @@ function InlineAuthPreview({
         </Button>
       </form>
 
-      <p className="text-xs leading-5 text-zinc-500">
+      <p className="text-xs leading-5 text-muted-foreground">
         {mode === "sign_up"
           ? "Already signed up before? Use the existing-account option instead so the invite lands on the right Paperclip user."
           : "No account yet? Switch back to create account so you can accept the invite with a new login."}
@@ -326,17 +326,17 @@ function AgentRequestPreview() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-zinc-100">Submit agent details</h3>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h3 className="text-lg font-semibold text-foreground">Submit agent details</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           This invite will create an approval request for a new agent in Acme Robotics.
         </p>
       </div>
       <label className="block text-sm">
-        <span className="mb-1 block text-zinc-400">Agent name</span>
+        <span className="mb-1 block text-muted-foreground">Agent name</span>
         <input className={fieldClassName} defaultValue="Acme Ops Agent" readOnly />
       </label>
       <label className="block text-sm">
-        <span className="mb-1 block text-zinc-400">Adapter type</span>
+        <span className="mb-1 block text-muted-foreground">Adapter type</span>
         <select className={fieldClassName} defaultValue="codex_local" disabled>
           <option value="codex_local">Codex</option>
           <option value="claude_local">Claude Code</option>
@@ -344,7 +344,7 @@ function AgentRequestPreview() {
         </select>
       </label>
       <label className="block text-sm">
-        <span className="mb-1 block text-zinc-400">Capabilities</span>
+        <span className="mb-1 block text-muted-foreground">Capabilities</span>
         <textarea
           className={fieldClassName}
           rows={4}
@@ -371,8 +371,8 @@ function AcceptInvitePreview({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-zinc-100">Accept organization invite</h3>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h3 className="text-lg font-semibold text-foreground">Accept organization invite</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           {autoAccept
             ? "Granting your access to Acme Robotics."
             : isCurrentMember
@@ -380,9 +380,9 @@ function AcceptInvitePreview({
               : "This will grant or complete your access to Acme Robotics."}
         </p>
       </div>
-      {error ? <p className="text-xs text-red-400">{error}</p> : null}
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
       {autoAccept ? (
-        <div className="text-sm text-zinc-400">Submitting request...</div>
+        <div className="text-sm text-muted-foreground">Submitting request...</div>
       ) : (
         <Button type="button" className="w-full rounded-none" disabled={isCurrentMember}>
           Accept invite
@@ -406,43 +406,43 @@ function InviteResultPreview({
   joinedNow?: boolean;
 }) {
   return (
-    <div className="mx-auto max-w-md border border-zinc-800 bg-zinc-950 p-6 text-zinc-100">
+    <div className="mx-auto max-w-md border border-border bg-card p-6 text-foreground">
       <div className="flex items-center gap-3">
         <CompanyPatternIcon
           companyName="Acme Robotics"
           logoUrl="/api/invites/pcp_invite_test/logo"
-          className="h-12 w-12 rounded-none border border-zinc-800"
+          className="h-12 w-12 rounded-none border border-border"
         />
         <h3 className="text-lg font-semibold">{title}</h3>
       </div>
       <div className="mt-4 space-y-3">
-        <p className="text-sm text-zinc-400">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
         {joinedNow ? (
           <Button type="button" className="w-full rounded-none">
             Open board
           </Button>
         ) : (
           <>
-            <div className="border border-zinc-800 p-3">
-              <p className="mb-1 text-xs text-zinc-500">Approval page</p>
-              <a className="text-sm text-zinc-200 underline underline-offset-2" href="/company/settings/members">
+            <div className="border border-border p-3">
+              <p className="mb-1 text-xs text-muted-foreground">Approval page</p>
+              <a className="text-sm text-foreground underline underline-offset-2" href="/company/settings/members">
                 Settings → Members
               </a>
             </div>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               Refresh this page after you&apos;ve been approved — you&apos;ll be redirected automatically.
             </p>
           </>
         )}
         {claimSecret ? (
-          <div className="space-y-1 border border-zinc-800 p-3 text-xs text-zinc-400">
-            <div className="text-zinc-200">Claim secret</div>
+          <div className="space-y-1 border border-border p-3 text-xs text-muted-foreground">
+            <div className="text-foreground">Claim secret</div>
             <div className="font-mono break-all">{claimSecret}</div>
             <div className="font-mono break-all">POST /api/agents/claim-api-key</div>
           </div>
         ) : null}
         {onboardingTextUrl ? (
-          <div className="text-xs text-zinc-400">
+          <div className="text-xs text-muted-foreground">
             Onboarding: <span className="font-mono break-all">{onboardingTextUrl}</span>
           </div>
         ) : null}
@@ -510,12 +510,12 @@ function AuthScreenPreview({ mode, error }: { mode: "sign_in" | "sign_up"; error
           </div>
         </div>
         <div className="hidden min-h-(--sz-420px) items-center justify-center bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.18),transparent_48%),linear-gradient(180deg,rgba(15,23,42,0.96),rgba(2,6,23,1))] px-8 py-10 md:flex">
-          <div className="max-w-sm space-y-4 text-zinc-200">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps) text-cyan-200">
+          <div className="max-w-sm space-y-4 text-foreground">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-secondary/[0.08] px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps) text-cyan-200">
               Auth preview
             </div>
             <div className="text-2xl font-semibold">Side-by-side signup styling review</div>
-            <p className="text-sm leading-6 text-zinc-400">
+            <p className="text-sm leading-6 text-muted-foreground">
               This frame mirrors the production auth surface so spacing, label density, button treatments, and desktop composition are easy to compare.
             </p>
           </div>
@@ -683,7 +683,7 @@ function CompanyInvitesPreview() {
                 No invites have been created for this organization yet.
               </div>
             </div>
-            <div className="rounded-2xl border border-rose-400/40 bg-rose-500/[0.07] p-4">
+            <div className="rounded-2xl border border-destructive/40 bg-destructive/[0.07] p-4">
               <div className="text-sm font-medium text-foreground">Permission error</div>
               <div className="mt-2 text-sm text-muted-foreground">
                 You do not have permission to manage organization invites.
@@ -702,7 +702,7 @@ export function InviteUxLab() {
       <div className="overflow-hidden rounded-(--rad-32) border border-border/70 bg-[linear-gradient(135deg,rgba(8,145,178,0.10),transparent_28%),linear-gradient(180deg,rgba(245,158,11,0.10),transparent_44%),var(--background)] shadow-[0_30px_80px_rgba(15,23,42,0.10)]">
         <div className="grid gap-6 lg:grid-cols-(--gtc-39)">
           <div className="p-6 sm:p-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-secondary/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
               <FlaskConical className="h-3.5 w-3.5" />
               Invite UX Lab
             </div>

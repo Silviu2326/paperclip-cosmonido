@@ -2671,7 +2671,7 @@ function OnboardingWizardInner({
                     <Label htmlFor="onboarding-company-name">Name</Label>
                     <Input
                       id="onboarding-company-name"
-                      className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none dark:bg-muted"
+                      className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none"
                       placeholder="e.g. Northwind Labs"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
@@ -2708,7 +2708,7 @@ function OnboardingWizardInner({
                     */}
                     <Input
                       id="onboarding-agent-name"
-                      className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none dark:bg-muted"
+                      className="h-(--sz-44px) rounded-lg border-transparent bg-muted shadow-none"
                       placeholder="e.g. Chief of staff"
                       value={agentName}
                       onChange={(e) => setAgentName(e.target.value)}
@@ -3023,7 +3023,7 @@ function OnboardingWizardInner({
                       ) : null}
 
                       {shouldSuggestUnsetAnthropicApiKey && (
-                        <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-2.5 py-2 space-y-2">
+                        <div className="rounded-md border border-amber-300/60 bg-muted/40 px-2.5 py-2 space-y-2">
                           <p className="text-(length:--text-micro) text-amber-900/90 leading-relaxed">
                             Claude failed while{" "}
                             <span className="font-mono">ANTHROPIC_API_KEY</span>{" "}
@@ -3227,10 +3227,10 @@ function AdapterEnvironmentResult({
       : "Failed";
   const statusClass =
     result.status === "pass"
-      ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10"
+      ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-accent dark:bg-accent/10"
       : result.status === "warn"
-      ? "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10"
-      : "text-red-700 dark:text-red-300 border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10";
+      ? "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40 bg-muted dark:bg-muted/10"
+      : "text-destructive border-destructive dark:border-destructive/40 bg-destructive/10";
 
   return (
     <div className={`rounded-md border px-2.5 py-2 text-(length:--text-micro) ${statusClass}`}>

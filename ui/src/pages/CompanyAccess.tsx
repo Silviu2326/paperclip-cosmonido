@@ -307,7 +307,7 @@ export function CompanyAccess() {
         <TabsContent value="members" className="space-y-8">
 
       {access && !access.currentUserRole && (
-        <div className="rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+        <div className="rounded-xl bg-muted/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
           This account can manage access here through instance-admin privileges, but it does not currently hold an active organization membership.
         </div>
       )}

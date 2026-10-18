@@ -73,7 +73,7 @@ export function ProjectWorkspaceSummaryCard({
                   className={cn(
                     "gap-1.5 px-2.5 py-1",
                     hasRunningServices
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                      ? "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300"
                       : "border-border/70 bg-background text-muted-foreground",
                   )}
                 >

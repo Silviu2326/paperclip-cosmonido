@@ -54,7 +54,7 @@ export function MyUserSecretsTab({ companyId }: { companyId: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-start gap-2 rounded-md border border-violet-500/30 bg-violet-500/5 px-4 py-3 text-xs text-violet-800 dark:text-violet-200">
+      <div className="flex items-start gap-2 rounded-md border border-violet-500/30 bg-secondary/5 px-4 py-3 text-xs text-violet-800 dark:text-violet-200">
         <UserRound className="h-4 w-4 mt-0.5 shrink-0" />
         <p>
           These are credentials only you provide. Each value is yours alone — used when you are the
@@ -131,7 +131,7 @@ function MyUserSecretRow({
       className={cn(
         "flex items-start gap-3 rounded-md border p-3",
         state === "not_set" && !disabledDefinition
-          ? "border-amber-500/40 bg-amber-500/5"
+          ? "border-amber-500/40 bg-muted/5"
           : "border-border",
       )}
     >

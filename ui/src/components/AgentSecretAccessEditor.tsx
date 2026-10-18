@@ -175,7 +175,7 @@ function DeliveryBadge({ mode }: { mode: "env" | "api" }) {
     return (
       <Badge
         variant="outline"
-        className="h-5 gap-1 px-1.5 text-(length:--text-nano) font-normal border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+        className="h-5 gap-1 px-1.5 text-(length:--text-nano) font-normal border-sky-500/30 bg-secondary/10 text-sky-700 dark:text-sky-300"
       >
         <Variable className="size-3" /> Env var
       </Badge>
@@ -184,7 +184,7 @@ function DeliveryBadge({ mode }: { mode: "env" | "api" }) {
   return (
     <Badge
       variant="outline"
-      className="h-5 gap-1 px-1.5 text-(length:--text-nano) font-normal border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+      className="h-5 gap-1 px-1.5 text-(length:--text-nano) font-normal border-violet-500/30 bg-secondary/10 text-violet-700 dark:text-violet-300"
     >
       <ServerCog className="size-3" /> API access
     </Badge>
@@ -300,7 +300,7 @@ export function AgentSecretAccessEditor({
             return (
               <div
                 key={proposal.id}
-                className="flex flex-col gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-2.5 py-2 text-xs sm:flex-row sm:items-center"
+                className="flex flex-col gap-2 rounded-md border border-amber-500/30 bg-muted/5 px-2.5 py-2 text-xs sm:flex-row sm:items-center"
               >
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex min-w-0 flex-wrap items-center gap-1.5">

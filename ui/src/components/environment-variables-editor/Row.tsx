@@ -201,7 +201,7 @@ export function EnvironmentVariableRow({
       className={cn(
         "group/row grid grid-cols-(--gtc-13) items-start gap-x-1.5 gap-y-1 rounded-md px-1 py-1",
         "@[40rem]/env:grid-cols-(--gtc-14) @[40rem]/env:items-center",
-        isDirty && "bg-amber-500/[0.06] ring-1 ring-amber-500/20",
+        isDirty && "bg-muted/[0.06] ring-1 ring-amber-500/20",
       )}
     >
       {/* Name cell — mobile col 1 / desktop col 1 */}
@@ -210,7 +210,7 @@ export function EnvironmentVariableRow({
           ref={nameInputRef}
           className={cn(
             nameInputClass,
-            dirtyFields.name && "border-amber-500/70 bg-amber-500/10 focus-visible:ring-amber-500/40",
+            dirtyFields.name && "border-amber-500/70 bg-muted/10 focus-visible:ring-amber-500/40",
             showNameIssue && nameIssue?.level === "error" && "border-destructive focus-visible:ring-destructive/40",
             showNameIssue && nameIssue?.level === "warn" && "border-amber-500 focus-visible:ring-amber-500/40",
           )}
@@ -251,7 +251,7 @@ export function EnvironmentVariableRow({
               ref={valueCellRef}
               className={cn(
                 "relative flex items-stretch overflow-hidden rounded-md border border-border bg-transparent focus-within:ring-2 focus-within:ring-ring/40",
-                dirtyFields.value && "border-amber-500/70 bg-amber-500/10 focus-within:ring-amber-500/40",
+                dirtyFields.value && "border-amber-500/70 bg-muted/10 focus-within:ring-amber-500/40",
                 disabled && "opacity-60",
               )}
             >
@@ -321,7 +321,7 @@ export function EnvironmentVariableRow({
                         type="button"
                         onClick={openStoreAsSecret}
                         disabled={disabled}
-                        className="flex items-center gap-1 px-2 text-(length:--text-micro) text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+                        className="flex items-center gap-1 px-2 text-(length:--text-micro) text-amber-700 hover:bg-muted/10 dark:text-amber-400"
                         title="This value looks sensitive — store it as a secret"
                       >
                         <ShieldAlert className="size-3.5" />
@@ -333,7 +333,7 @@ export function EnvironmentVariableRow({
                         disabled={disabled}
                         aria-label="Dismiss sensitive-value suggestion"
                         title="Dismiss — keep this value as plain text"
-                        className="flex items-center px-1.5 text-amber-700/60 hover:bg-amber-500/10 hover:text-amber-700 dark:text-amber-400/60 dark:hover:text-amber-400"
+                        className="flex items-center px-1.5 text-amber-700/60 hover:bg-muted/10 hover:text-amber-700 dark:text-amber-400/60 dark:hover:text-amber-400"
                       >
                         <X className="size-3" />
                       </button>
@@ -371,7 +371,7 @@ export function EnvironmentVariableRow({
                           className={cn(
                             "absolute right-8 top-1/2 z-10 -translate-y-1/2 rounded px-1.5 py-0.5 text-(length:--text-nano) font-medium",
                             versionPinned
-                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                              ? "bg-muted/15 text-amber-700 dark:text-amber-400"
                               : "text-muted-foreground hover:bg-accent",
                           )}
                         >

@@ -1228,7 +1228,7 @@ function ReviewStep({ drafts, reviewErrors, updateDraft, removeDraft, importing 
               key={draft.candidate.externalRef}
               className={cn(
                 "border-b border-border/60 p-4",
-                error && "border-l-2 border-l-amber-500/60 bg-amber-500/5",
+                error && "border-l-2 border-l-amber-500/60 bg-muted/5",
               )}
               data-testid={`review-row-${draft.candidate.externalRef}`}
             >

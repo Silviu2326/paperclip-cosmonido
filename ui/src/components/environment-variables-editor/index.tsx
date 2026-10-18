@@ -524,7 +524,7 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
       {hasUnsavedChanges && !disabled && !hideDraftActions ? (
         <div
           role="status"
-          className="mt-3 flex w-full flex-col gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-amber-950 shadow-sm dark:bg-amber-500/15 dark:text-amber-100 @[34rem]/env:flex-row @[34rem]/env:items-center @[34rem]/env:justify-between"
+          className="mt-3 flex w-full flex-col gap-3 rounded-md border border-amber-500/30 bg-muted/10 px-3 py-3 text-amber-950 shadow-sm dark:bg-muted/15 dark:text-amber-100 @[34rem]/env:flex-row @[34rem]/env:items-center @[34rem]/env:justify-between"
         >
           <div className="flex min-w-0 flex-col gap-0.5">
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -541,7 +541,7 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
             <button
               type="button"
               onClick={revertDraft}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-amber-500/30 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-amber-500/10 dark:bg-background/80"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-amber-500/30 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 dark:bg-background/80"
             >
               <RotateCcw className="size-4" />
               Revert

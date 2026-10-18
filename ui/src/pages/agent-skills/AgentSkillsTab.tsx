@@ -459,7 +459,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
           {staleDesiredKeys.map((key) => (
             <div
               key={key}
-              className="flex items-center justify-between gap-3 border-b border-amber-300/40 bg-amber-50/60 px-3 py-2 text-xs text-amber-800 last:border-b-0 dark:border-amber-500/20 dark:bg-amber-950/20 dark:text-amber-200"
+              className="flex items-center justify-between gap-3 border-b border-amber-300/40 bg-muted/60 px-3 py-2 text-xs text-amber-800 last:border-b-0 dark:border-amber-500/20 dark:bg-muted/20 dark:text-amber-200"
             >
               <span className="min-w-0 truncate">
                 <span className="font-medium">{key}</span> is enabled but missing from the organization library.
@@ -467,7 +467,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               <button
                 type="button"
                 onClick={() => toggleSkill(key, false)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/50 px-2 py-0.5 font-medium transition-colors hover:bg-amber-100/60 dark:hover:bg-amber-900/30"
+                className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/50 px-2 py-0.5 font-medium transition-colors hover:bg-muted/60 dark:hover:bg-muted/30"
               >
                 <X className="h-3 w-3" />
                 Remove

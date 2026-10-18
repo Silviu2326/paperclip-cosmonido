@@ -102,7 +102,7 @@ function LiveWidgetPreview({
 }) {
   return (
     <div className="overflow-hidden rounded-xl border border-cyan-500/25 bg-background/85 shadow-[0_20px_50px_rgba(6,182,212,0.10)]">
-      <div className="border-b border-border/60 bg-cyan-500/[0.05] px-5 py-4">
+      <div className="border-b border-border/60 bg-secondary/[0.05] px-5 py-4">
         <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
           Live Runs
         </div>
@@ -155,7 +155,7 @@ function DashboardPreview({
       <div className={cn(
         "flex h-(--sz-320px) flex-col overflow-hidden rounded-xl border shadow-[0_20px_40px_rgba(15,23,42,0.10)]",
         streaming
-          ? "border-cyan-500/25 bg-cyan-500/[0.04]"
+          ? "border-cyan-500/25 bg-secondary/[0.04]"
           : "border-border bg-background/75",
       )}>
         <div className="border-b border-border/60 px-4 py-4">
@@ -208,7 +208,7 @@ export function RunTranscriptUxLab() {
         <div className="grid gap-6 lg:grid-cols-(--gtc-19)">
           <aside className="border-b border-border/60 bg-background/75 p-5 lg:border-b-0 lg:border-r">
             <div className="mb-5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-secondary/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
                 <FlaskConical className="h-3.5 w-3.5" />
                 UX Lab
               </div>
@@ -229,8 +229,8 @@ export function RunTranscriptUxLab() {
                     className={cn(
                       "w-full rounded-xl border px-4 py-3 text-left transition-all",
                       selectedSurface === option.id
-                        ? "border-cyan-500/35 bg-cyan-500/[0.10] shadow-[0_12px_24px_rgba(6,182,212,0.12)]"
-                        : "border-border/70 bg-background/70 hover:border-cyan-500/20 hover:bg-cyan-500/[0.04]",
+                        ? "border-cyan-500/35 bg-secondary/[0.10] shadow-[0_12px_24px_rgba(6,182,212,0.12)]"
+                        : "border-border/70 bg-background/70 hover:border-cyan-500/20 hover:bg-secondary/[0.04]",
                     )}
                   >
                     <div className="flex items-start gap-3">

@@ -74,7 +74,7 @@ export function RoutineSaveBar({
           "motion-safe:transition-colors motion-safe:duration-200",
           "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
           saveConflict
-            ? "border-amber-500/30 bg-amber-500/5"
+            ? "border-amber-500/30 bg-muted/5"
             : "border-border bg-background/95",
         )}
       >

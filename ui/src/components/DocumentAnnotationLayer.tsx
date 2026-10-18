@@ -578,7 +578,7 @@ export function DocumentAnnotationLayer({
                 key={`tail-${rect.threadId}-${index}`}
                 aria-hidden="true"
                 data-thread-id={rect.threadId}
-                className="paperclip-doc-annotation-tail pointer-events-none absolute inline-flex items-center justify-center rounded-sm bg-amber-500/95 text-amber-50 shadow-sm dark:bg-amber-500/90 dark:text-amber-50"
+                className="paperclip-doc-annotation-tail pointer-events-none absolute inline-flex items-center justify-center rounded-sm bg-muted/95 text-amber-50 shadow-sm dark:bg-muted/90"
                 style={{
                   top: rect.top + Math.max(0, rect.height / 2 - 8),
                   left: rect.left + rect.width + 2,

@@ -91,7 +91,7 @@ export function Approvals() {
             { value: "pending", label: <>Pending{pendingCount > 0 && (
               <Badge variant="ghost" className={cn(
                 "ml-1.5 px-1.5 text-(length:--text-nano)",
-                "bg-yellow-500/20 text-yellow-500"
+                "bg-muted/20 text-yellow-500"
               )}>
                 {pendingCount}
               </Badge>

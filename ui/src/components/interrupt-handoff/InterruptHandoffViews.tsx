@@ -196,7 +196,7 @@ export function ComposerMentionCoach({
 }) {
   return (
     <div
-      className="flex items-center gap-2 rounded-md border border-amber-300/40 bg-amber-50/70 px-2 py-1.5 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+      className="flex items-center gap-2 rounded-md border border-amber-300/40 bg-muted/70 px-2 py-1.5 text-xs text-amber-700 dark:bg-muted/10 dark:text-amber-300"
       data-testid="composer-mention-coach"
       role="alert"
       aria-live="polite"
@@ -209,7 +209,7 @@ export function ComposerMentionCoach({
       <button
         type="button"
         onClick={onInsert}
-        className="shrink-0 rounded border border-amber-400/50 px-1.5 py-0.5 font-medium hover:bg-amber-100/60 dark:hover:bg-amber-500/20"
+        className="shrink-0 rounded border border-amber-400/50 px-1.5 py-0.5 font-medium hover:bg-muted/60 dark:hover:bg-muted/20"
         aria-label={`Insert mention for ${agentDisplayName} into your comment`}
       >
         Insert mention
@@ -217,7 +217,7 @@ export function ComposerMentionCoach({
       <button
         type="button"
         onClick={onDismiss}
-        className="shrink-0 rounded p-0.5 hover:bg-amber-100/60 dark:hover:bg-amber-500/20"
+        className="shrink-0 rounded p-0.5 hover:bg-muted/60 dark:hover:bg-muted/20"
         aria-label="Dismiss suggestion"
       >
         <X className="h-3.5 w-3.5" aria-hidden />
@@ -241,7 +241,7 @@ export function AssigneeRunningBanner({
       aria-live="polite"
       data-testid="assignee-running-banner"
       className={cn(
-        "flex items-start gap-1.5 rounded-md border border-amber-300/40 bg-amber-50/70 px-2 py-1.5 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+        "flex items-start gap-1.5 rounded-md border border-amber-300/40 bg-muted/70 px-2 py-1.5 text-xs text-amber-700 dark:bg-muted/10 dark:text-amber-300",
         className,
       )}
     >
@@ -270,7 +270,7 @@ export function InterruptAssignConfirm({
   return (
     <div
       data-testid="interrupt-assign-confirm"
-      className="space-y-2 rounded-md border border-amber-300/40 bg-amber-50/70 p-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+      className="space-y-2 rounded-md border border-amber-300/40 bg-muted/70 p-2 text-xs text-amber-700 dark:bg-muted/10 dark:text-amber-300"
     >
       <div className="flex items-start gap-1.5">
         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -286,7 +286,7 @@ export function InterruptAssignConfirm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded border border-amber-400/50 px-2 py-0.5 font-medium hover:bg-amber-100/60 dark:hover:bg-amber-500/20"
+          className="rounded border border-amber-400/50 px-2 py-0.5 font-medium hover:bg-muted/60 dark:hover:bg-muted/20"
         >
           {copy.cancelAction}
         </button>

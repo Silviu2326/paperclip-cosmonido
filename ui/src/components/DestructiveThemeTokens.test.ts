@@ -25,7 +25,15 @@ function oklch(value: string): [number, number, number] {
 }
 
 // WCAG 2 relative luminance of an oklch() color, via OKLab and linear sRGB.
+function hexLuminance(value: string): number {
+  const hex = value.slice(1);
+  const channels = [0, 2, 4].map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255);
+  const [r, g, b] = channels.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function relativeLuminance(value: string): number {
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return hexLuminance(value);
   const [l, c, h] = oklch(value);
   const a = c * Math.cos((h * Math.PI) / 180);
   const b = c * Math.sin((h * Math.PI) / 180);

@@ -144,7 +144,7 @@ export function SystemNoticeUxLab() {
       <div className="overflow-hidden rounded-(--rad-32) border border-border/70 bg-[linear-gradient(135deg,rgba(245,158,11,0.10),transparent_28%),linear-gradient(180deg,rgba(8,145,178,0.08),transparent_44%),var(--background)] shadow-[0_30px_80px_rgba(15,23,42,0.10)]">
         <div className="grid gap-6 lg:grid-cols-(--gtc-39)">
           <div className="p-6 sm:p-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-amber-700 dark:text-amber-300">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-muted/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-amber-700 dark:text-amber-300">
               <FlaskConical className="h-3.5 w-3.5" />
               System Notice Lab
             </div>
@@ -300,9 +300,9 @@ export function SystemNoticeUxLab() {
               <div className="flex min-w-0 max-w-(--pct-85) flex-col">
                 <div className="mb-1 px-1 text-sm font-medium text-foreground">You</div>
                 <div className="min-w-0 max-w-full rounded-2xl bg-muted px-4 py-2.5 text-sm leading-6 text-foreground">
-                  <div className="rounded-md border border-red-500/35 bg-red-500/10 px-3 py-2.5 text-sm text-red-950 dark:text-red-100">
+                  <div className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
                     <div className="flex items-start gap-2">
-                      <Sparkles className="mt-1 h-4 w-4 shrink-0 text-red-600 dark:text-red-300" />
+                      <Sparkles className="mt-1 h-4 w-4 shrink-0 text-destructive" />
                       <div className="min-w-0">
                         <p className="m-0 font-semibold">Successful run handoff missing</p>
                         <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-(length:--text-compact) leading-5">

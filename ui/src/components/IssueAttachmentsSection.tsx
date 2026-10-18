@@ -311,11 +311,11 @@ export function IssueAttachmentsSection({
                   className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-black/60"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  <p className="text-xs font-medium text-white">Delete?</p>
+                  <p className="text-xs font-medium text-destructive-foreground">Delete?</p>
                   <div className="flex gap-1.5">
                     <button
                       type="button"
-                      className="rounded bg-destructive px-2 py-0.5 text-xs text-white hover:bg-destructive/80"
+                      className="rounded bg-destructive px-2 py-0.5 text-xs text-destructive-foreground hover:bg-destructive/80"
                       onClick={(event) => {
                         event.stopPropagation();
                         confirmDelete(attachment.id);

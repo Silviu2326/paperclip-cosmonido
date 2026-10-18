@@ -146,12 +146,12 @@ const issueStatusLabels: Record<IssueStatus, string> = {
 };
 const progressSegmentClasses: Record<IssueStatus, string> = {
   backlog: "bg-muted-foreground/40",
-  todo: "bg-blue-500",
+  todo: "bg-primary",
   in_progress: "bg-yellow-500",
   in_review: "bg-violet-500",
   done: "bg-green-500",
-  blocked: "bg-red-500",
-  cancelled: "bg-neutral-400",
+  blocked: "bg-destructive",
+  cancelled: "bg-muted",
 };
 
 /* ── View state ── */
@@ -2212,7 +2212,7 @@ function StreamlinedIssuesList({
                         target.scrollIntoView({ behavior: "smooth", block: "nearest" });
                         target.focus?.();
                       }}
-                      className="inline-flex items-center rounded-full border border-amber-400/45 bg-amber-50/60 px-1.5 py-0.5 text-(length:--text-nano) font-medium text-amber-700 hover:bg-amber-100/80 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
+                      className="inline-flex items-center rounded-full border border-amber-400/45 bg-muted/60 px-1.5 py-0.5 text-(length:--text-nano) font-medium text-amber-700 hover:bg-muted/80 dark:border-amber-300/35 dark:bg-muted/10 dark:text-amber-300"
                       title={firstVisibleBlockerTitle}
                       aria-label={firstVisibleBlockerTitle}
                     >
@@ -2265,14 +2265,14 @@ function StreamlinedIssuesList({
                                   Paused
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="ml-1.5 border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) text-amber-700 dark:text-amber-300">
+                                <Badge variant="outline" className="ml-1.5 border-amber-500/40 bg-muted/10 px-1.5 text-(length:--text-nano) text-amber-700 dark:text-amber-300">
                                   {issueBadge}
                                 </Badge>
                               )
                             ) : null}
                             {isSuccessfulRunHandoffRequired(issue) ? (
                               <Badge variant="outline"
-                                className="ml-1.5 border-amber-400/45 bg-amber-50/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
+                                className="ml-1.5 border-amber-400/45 bg-muted/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-muted/10 dark:text-amber-300"
                                 aria-label="Needs next step"
                                 title="This task needs a next step"
                               >

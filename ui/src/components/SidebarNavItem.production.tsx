@@ -138,14 +138,14 @@ export function SidebarNavItem({
       <span className="relative shrink-0">
         {iconNode ?? (Icon ? <Icon className="h-4 w-4" /> : null)}
         {alert && (
-          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-red-500 shadow-(--shadow-extract-12)" aria-hidden="true" />
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive shadow-(--shadow-extract-12)" aria-hidden="true" />
         )}
         {/* Collapsed rail: numeric badge / live count collapse to a dot on the
             icon. The icon markup is untouched so it stays pixel-aligned. */}
         {rail && !alert && hasLive && (
           <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2" aria-hidden="true">
-            <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-600 dark:bg-blue-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400 shadow-(--shadow-extract-12)" />
+            <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary shadow-(--shadow-extract-12)" />
           </span>
         )}
         {rail && !alert && !hasLive && hasBadge && (
@@ -153,7 +153,7 @@ export function SidebarNavItem({
             className={cn(
               "absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full shadow-(--shadow-extract-12)",
               badgeTone === "danger"
-                ? "bg-red-600"
+                ? "bg-destructive"
                 : badgeTone === "warning"
                   ? "bg-amber-500"
                   : "bg-primary",
@@ -169,7 +169,7 @@ export function SidebarNavItem({
           className={cn(
             "ml-auto px-1.5 text-(length:--text-nano) leading-none",
             textBadgeTone === "amber"
-              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+              ? "bg-muted text-amber-800 dark:bg-muted/30 dark:text-amber-400"
               : "bg-muted text-muted-foreground",
           )}
         >
@@ -182,10 +182,10 @@ export function SidebarNavItem({
           {hasLive && (
             <>
               <span className="relative flex h-2 w-2">
-                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-600 dark:bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400" />
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
-              <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">{liveCount} live</span>
+              <span className="text-(length:--text-micro) font-medium text-primary">{liveCount} live</span>
             </>
           )}
         </span>
@@ -195,9 +195,9 @@ export function SidebarNavItem({
           className={cn(
             "ml-auto px-1.5 leading-none",
             badgeTone === "danger"
-              ? "bg-red-600/90 text-red-50"
+              ? "bg-destructive/90 text-destructive"
               : badgeTone === "warning"
-                ? "bg-amber-500/90 text-amber-50"
+                ? "bg-muted/90 text-amber-50"
                 : "bg-primary text-primary-foreground",
           )}
         >

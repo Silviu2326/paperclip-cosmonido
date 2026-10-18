@@ -15,3 +15,10 @@ the same sans-serif text stack without relying on host font packages.
 
 Redistribution note: Inter is redistributed under the SIL Open Font License 1.1.
 The bundled WOFF2 files are included unmodified from the upstream v4.1 release.
+
+## Fraunces and Instrument Sans
+
+- Fraunces: https://github.com/undercasetype/Fraunces (Latin subset, woff2)
+- Instrument Sans: https://github.com/Instrument/instrument-sans (Latin subset, woff2)
+- License: SIL Open Font License 1.1
+- Files: fraunces-latin.woff2, fraunces-italic-latin.woff2, instrument-sans-latin.woff2

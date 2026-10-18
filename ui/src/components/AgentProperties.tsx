@@ -47,7 +47,7 @@ export function AgentProperties({ agent, runtimeState }: AgentPropertiesProps) {
         </PropertyRow>
         {lastErrorIsActive && agent.errorReason && (
           <PropertyRow label="Error reason">
-            <span className="text-xs text-red-600 dark:text-red-400 break-words min-w-0">
+            <span className="text-xs text-destructive break-words min-w-0">
               {agent.errorReason}
             </span>
           </PropertyRow>
@@ -80,7 +80,7 @@ export function AgentProperties({ agent, runtimeState }: AgentPropertiesProps) {
             <span
               className={
                 lastErrorIsActive
-                  ? "text-xs text-red-600 dark:text-red-400 break-words min-w-0"
+                  ? "text-xs text-destructive break-words min-w-0"
                   : "text-xs text-muted-foreground break-words min-w-0"
               }
             >

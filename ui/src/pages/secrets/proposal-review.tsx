@@ -142,8 +142,8 @@ export function DeliveryBadge({ configPath }: { configPath: string | null }) {
       variant="outline"
       className={cn(
         "h-5 gap-1 px-1.5 text-(length:--text-nano) font-normal",
-        isEnv && "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-        isApi && "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+        isEnv && "border-sky-500/30 bg-secondary/10 text-sky-700 dark:text-sky-300",
+        isApi && "border-violet-500/30 bg-secondary/10 text-violet-700 dark:text-violet-300",
         !isEnv && !isApi && "border-border bg-muted/40 text-muted-foreground",
       )}
     >
@@ -160,7 +160,7 @@ export function ProposedBadge({ className }: { className?: string }) {
       variant="outline"
       className={cn(
         "h-5 gap-1 px-1.5 text-(length:--text-nano) font-medium",
-        "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+        "border-amber-500/40 bg-muted/10 text-amber-700 dark:text-amber-300",
         className,
       )}
     >
@@ -559,7 +559,7 @@ function BindingApproveBody({
 
       {/* Cascade pairing: the secret is itself still a pending proposal. */}
       {proposal.secretProposalId ? (
-        <label className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 text-xs">
+        <label className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-muted/5 p-2.5 text-xs">
           <Checkbox
             checked={draft.cascade}
             onCheckedChange={(checked) => onChange({ ...draft, cascade: checked === true })}

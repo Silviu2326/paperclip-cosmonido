@@ -103,7 +103,7 @@ function SuccessfulRunRetryNowControl({
           type="button"
           variant="outline"
           size="sm"
-          className="shrink-0 border-amber-300/80 bg-background/80 text-amber-950 shadow-none hover:bg-amber-100 dark:border-amber-500/50 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-amber-500/15"
+          className="shrink-0 border-amber-300/80 bg-background/80 text-amber-950 shadow-none hover:bg-muted dark:border-amber-500/50 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-muted/15"
           onClick={() => retryNow.mutate()}
           disabled={retryNow.isPending || success}
           data-testid="issue-next-step-retry-now"
@@ -128,7 +128,7 @@ function SuccessfulRunRetryNowControl({
       </div>
       <RetryErrorBand
         error={retryNow.lastError}
-        className="mt-2 border-amber-300/70 bg-amber-100/70 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-100"
+        className="mt-2 border-amber-300/70 bg-muted/70 text-amber-950 dark:border-amber-500/40 dark:bg-muted/15 dark:text-amber-100"
         onRetry={() => {
           retryNow.reset();
           retryNow.mutate();
@@ -156,7 +156,7 @@ function WaitingChipLink({
     <IssueLinkQuicklook
       issuePathId={issuePathId}
       to={createIssueDetailPath(issuePathId)}
-      className="inline-flex max-w-full items-center gap-1 rounded-md border border-blue-300/70 bg-background/80 px-2 py-1 font-mono text-xs text-blue-950 transition-colors hover:border-blue-500 hover:bg-blue-100 hover:underline dark:border-blue-500/40 dark:bg-background/40 dark:text-blue-100 dark:hover:bg-blue-500/15"
+      className="inline-flex max-w-full items-center gap-1 rounded-md border border-primary/70 bg-background/80 px-2 py-1 font-mono text-xs text-primary transition-colors hover:border-primary hover:bg-primary/10 hover:underline dark:border-primary/40 dark:bg-background/40 dark:hover:bg-primary/15"
     >
       <StatusGlyph
         status={blocker.status}
@@ -164,11 +164,11 @@ function WaitingChipLink({
         title={`${waitingTaskStatusLabel(blocker.status)} status`}
       />
       <span>{blocker.identifier ?? blocker.id.slice(0, 8)}</span>
-      <span className="max-w-(--sz-18rem) truncate font-sans text-(length:--text-micro) text-blue-800 dark:text-blue-200">
+      <span className="max-w-(--sz-18rem) truncate font-sans text-(length:--text-micro) text-primary">
         {blocker.title}
       </span>
       {running ? (
-        <span className="ml-0.5 rounded-full bg-blue-500/15 px-1.5 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-wide text-blue-700 dark:bg-blue-400/20 dark:text-blue-200">
+        <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-wide text-primary dark:bg-primary/20">
           running
         </span>
       ) : null}
@@ -178,16 +178,16 @@ function WaitingChipLink({
 
 function WaitingStepGlyph({ status }: { status: WaitingBlockerStatus }) {
   if (status === "done") {
-    return <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" aria-hidden />;
+    return <CheckCircle2 className="h-3.5 w-3.5 text-primary" aria-hidden />;
   }
   if (status === "running") {
     return (
       <span className="flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
-        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-400" />
+        <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary" />
       </span>
     );
   }
-  return <Circle className="h-3.5 w-3.5 text-blue-300 dark:text-blue-500/50" aria-hidden />;
+  return <Circle className="h-3.5 w-3.5 text-primary dark:text-primary/50" aria-hidden />;
 }
 
 /**
@@ -214,7 +214,7 @@ function SuccessfulRunHandoffInFlightNotice({
     >
       <div className="flex items-start gap-2">
         <span className="mt-1 flex h-3.5 w-3.5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
         </span>
         <p className="min-w-0 leading-5">
           A correction run is in progress — the agent is working. This alert returns if the run
@@ -284,11 +284,11 @@ function WaitingOnLiveWorkNotice({
     <div
       data-blocker-attention-state={blockerAttentionState}
       data-testid="issue-blocked-notice-live"
-      className="mb-3 rounded-md border border-blue-300/70 bg-blue-50/90 px-3 py-2.5 text-sm text-blue-950 shadow-sm dark:border-blue-500/40 dark:bg-blue-500/10 dark:text-blue-100"
+      className="mb-3 rounded-md border border-primary/70 bg-primary/90 px-3 py-2.5 text-sm text-primary shadow-sm dark:border-primary/40 dark:bg-primary/10"
     >
       <div className="flex items-start gap-2">
         <span className="mt-1.5 flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden>
-          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-400" />
+          <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary" />
         </span>
         <div className="min-w-0 flex-1 space-y-2">
           <div className="space-y-1">
@@ -301,7 +301,7 @@ function WaitingOnLiveWorkNotice({
           </div>
 
           <div className="space-y-1" data-testid="issue-blocked-notice-progress">
-            <div className="text-xs font-medium text-blue-800 dark:text-blue-200">
+            <div className="text-xs font-medium text-primary">
               {doneCount} of {total} done
               {runningCount > 0 ? ` · ${runningCount} running` : null}
             </div>
@@ -311,18 +311,18 @@ function WaitingOnLiveWorkNotice({
               aria-valuemin={0}
               aria-valuenow={doneCount}
               aria-valuemax={total}
-              className="flex h-2 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-500/20"
+              className="flex h-2 w-full overflow-hidden rounded-full bg-primary/10 dark:bg-primary/20"
             >
               {steps.map(({ blocker, status }) => (
                 <span
                   key={blocker.id}
                   className={cn(
-                    "h-full border-r border-blue-50/80 last:border-r-0 dark:border-blue-950/40",
+                    "h-full border-r border-primary/80 last:border-r-0 dark:border-primary/40",
                     status === "done"
-                      ? "bg-blue-500 dark:bg-blue-400"
+                      ? "bg-primary"
                       : status === "running"
-                        ? "animate-pulse bg-blue-400"
-                        : "bg-blue-200 dark:bg-blue-500/30",
+                        ? "animate-pulse bg-primary"
+                        : "bg-primary/10 dark:bg-primary/30",
                   )}
                   style={{ width: `${100 / total}%` }}
                   title={`${blocker.identifier ?? blocker.id.slice(0, 8)}: ${status}`}
@@ -340,7 +340,7 @@ function WaitingOnLiveWorkNotice({
                     <WaitingStepGlyph status={status} />
                   </span>
                   <span
-                    className="w-px flex-1 bg-blue-300/50 dark:bg-blue-500/30"
+                    className="w-px flex-1 bg-primary/50 dark:bg-primary/30"
                     aria-hidden
                   />
                 </div>
@@ -352,12 +352,12 @@ function WaitingOnLiveWorkNotice({
             <div className="flex items-stretch gap-2">
               <div className="flex w-3.5 flex-col items-center">
                 <span
-                  className="mt-1.5 h-3 w-3 rounded-full border border-dashed border-blue-400/60 dark:border-blue-400/50"
+                  className="mt-1.5 h-3 w-3 rounded-full border border-dashed border-primary/60 dark:border-primary/50"
                   aria-hidden
                 />
               </div>
               <div className="min-w-0 pb-0.5">
-                <span className="inline-block rounded-md border border-dashed border-blue-300/70 px-2 py-1 text-xs text-blue-800 dark:border-blue-500/40 dark:text-blue-200">
+                <span className="inline-block rounded-md border border-dashed border-primary/70 px-2 py-1 text-xs text-primary dark:border-primary/40">
                   This task — resumes automatically when the chain is done
                 </span>
               </div>
@@ -369,7 +369,7 @@ function WaitingOnLiveWorkNotice({
               data-testid="issue-blocked-notice-now-running"
               className="space-y-1 pt-0.5"
             >
-              <div className="text-xs font-medium text-blue-800 dark:text-blue-200">
+              <div className="text-xs font-medium text-primary">
                 Now running
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -566,7 +566,7 @@ export function IssueBlockedNotice({
         key={blocker.id}
         issuePathId={issuePathId}
         to={createIssueDetailPath(issuePathId)}
-        className="inline-flex max-w-full items-center gap-1 rounded-md border border-amber-300/70 bg-background/80 px-2 py-1 font-mono text-xs text-amber-950 transition-colors hover:border-amber-500 hover:bg-amber-100 hover:underline dark:border-amber-500/40 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-amber-500/15"
+        className="inline-flex max-w-full items-center gap-1 rounded-md border border-amber-300/70 bg-background/80 px-2 py-1 font-mono text-xs text-amber-950 transition-colors hover:border-amber-500 hover:bg-muted hover:underline dark:border-amber-500/40 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-muted/15"
       >
         <span>{blocker.identifier ?? blocker.id.slice(0, 8)}</span>
         <span className="max-w-(--sz-18rem) truncate font-sans text-(length:--text-micro) text-amber-800 dark:text-amber-200">
@@ -615,7 +615,7 @@ export function IssueBlockedNotice({
     <div
       data-blocker-attention-state={blockerAttention?.state}
       data-successful-run-handoff={showSuccessfulRunHandoff ? "required" : undefined}
-      className="mb-3 rounded-md border border-amber-300/70 bg-amber-50/90 px-3 py-2.5 text-sm text-amber-950 shadow-sm dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+      className="mb-3 rounded-md border border-amber-300/70 bg-muted/90 px-3 py-2.5 text-sm text-amber-950 shadow-sm dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100"
     >
       <div className="flex items-start gap-2">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
@@ -637,7 +637,7 @@ export function IssueBlockedNotice({
                 {successfulRunHandoff.sourceRunId && successfulRunHandoff.assigneeAgentId ? (
                   <Link
                     to={`/agents/${successfulRunHandoff.assigneeAgentId}/runs/${successfulRunHandoff.sourceRunId}`}
-                    className="rounded-md border border-amber-300/70 bg-background/80 px-2 py-1 font-mono text-amber-950 hover:border-amber-500 hover:bg-amber-100 hover:underline dark:border-amber-500/40 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-amber-500/15"
+                    className="rounded-md border border-amber-300/70 bg-background/80 px-2 py-1 font-mono text-amber-950 hover:border-amber-500 hover:bg-muted hover:underline dark:border-amber-500/40 dark:bg-background/40 dark:text-amber-100 dark:hover:bg-muted/15"
                   >
                     run {successfulRunHandoff.sourceRunId.slice(0, 8)}
                   </Link>

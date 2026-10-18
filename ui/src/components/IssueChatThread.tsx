@@ -900,7 +900,7 @@ function IssueChatFallbackThread({
 }) {
   return (
     <div className={cn(variant === "embedded" ? "space-y-3" : "space-y-4")}>
-      <div className="rounded-xl border border-amber-300/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/20 dark:text-amber-200">
+      <div className="rounded-xl border border-amber-300/60 bg-muted/80 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-muted/20 dark:text-amber-200">
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="space-y-1">
@@ -1108,8 +1108,8 @@ export function SuccessfulRunHandoffCommentCallout({
       className={cn(
         "rounded-md border px-3 py-2.5 text-sm shadow-sm",
         escalated
-          ? "border-red-500/35 bg-red-500/10 text-red-950 dark:text-red-100"
-          : "border-amber-300/70 bg-amber-50/90 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100",
+          ? "border-destructive/35 bg-destructive/10 text-destructive"
+          : "border-amber-300/70 bg-muted/90 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100",
       )}
       style={recessed ? { opacity: 0.55 } : undefined}
     >
@@ -1118,7 +1118,7 @@ export function SuccessfulRunHandoffCommentCallout({
           className={cn(
             "mt-1 h-4 w-4 shrink-0",
             escalated
-              ? "text-red-600 dark:text-red-300"
+              ? "text-destructive"
               : "text-amber-600 dark:text-amber-300",
           )}
         />
@@ -1289,7 +1289,7 @@ function IssueChatChainOfThought({
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
               ) : (
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/70" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-accent/70" />
                 </span>
               )}
               {isActive ? (
@@ -2093,7 +2093,7 @@ function IssueChatUserMessage({
           // the bubble points at it (bottom-right for the right-aligned human).
           isCurrentUser ? "rounded-br-(--rad-4)" : "rounded-bl-(--rad-4)",
           queued
-            ? "bg-amber-50/80 dark:bg-amber-500/10"
+            ? "bg-muted/80 dark:bg-muted/10"
             : deleted
               ? "bg-muted/50 text-muted-foreground"
               : isCurrentUser
@@ -2108,7 +2108,7 @@ function IssueChatUserMessage({
           <div className="mb-1.5 flex items-center gap-2">
             <Badge
               variant="outline"
-              className="border-amber-400/60 bg-amber-100/70 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:border-amber-400/40 dark:bg-amber-500/20 dark:text-amber-200"
+              className="border-amber-400/60 bg-muted/70 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:border-amber-400/40 dark:bg-muted/20 dark:text-amber-200"
             >
               {queueBadgeLabel}
             </Badge>
@@ -2116,7 +2116,7 @@ function IssueChatUserMessage({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-6 border-red-300 px-2 text-(length:--text-micro) text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+                className="h-6 border-destructive px-2 text-(length:--text-micro) text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive/40 dark:hover:bg-destructive/10"
                 disabled={isInterruptingQueuedRun}
                 onClick={() => void onInterruptQueued(queueTargetRunId)}
               >
@@ -2127,7 +2127,7 @@ function IssueChatUserMessage({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-6 border-amber-300 px-2 text-(length:--text-micro) text-amber-900 hover:bg-amber-100/80 hover:text-amber-950 dark:border-amber-500/40 dark:text-amber-100 dark:hover:bg-amber-500/10"
+                className="h-6 border-amber-300 px-2 text-(length:--text-micro) text-amber-900 hover:bg-muted/80 hover:text-amber-950 dark:border-amber-500/40 dark:text-amber-100 dark:hover:bg-muted/10"
                 onClick={() => onCancelQueued(commentId)}
               >
                 Cancel
@@ -2511,7 +2511,7 @@ function IssueChatAssistantMessage({
               className={cn(
                 stopRunVariant === "pause"
                   ? "text-amber-700 focus:text-amber-800 dark:text-amber-300 dark:focus:text-amber-200"
-                  : "text-red-700 focus:text-red-800 dark:text-red-300 dark:focus:text-red-200",
+                  : "text-destructive focus:text-destructive dark:focus:text-destructive",
               )}
               onSelect={() => {
                 void onStopRun(runId);
@@ -3394,7 +3394,7 @@ const COMPACT_TONE_DOT: Record<SystemNoticeTone, string> = {
   info: "bg-sky-500 dark:bg-sky-400",
   success: "bg-emerald-500 dark:bg-emerald-400",
   warning: "bg-amber-500 dark:bg-amber-400",
-  danger: "bg-red-500 dark:bg-red-400",
+  danger: "bg-destructive dark:bg-destructive/20",
 };
 
 // A system notice whose presentation opts into `density: "compact"` collapses to
@@ -5347,7 +5347,7 @@ const IssueChatComposer = forwardRef<
 
   if (composerDisabledReason) {
     return (
-      <div className="rounded-md border border-amber-300/70 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+      <div className="rounded-md border border-amber-300/70 bg-muted/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100">
         {composerDisabledReason}
       </div>
     );

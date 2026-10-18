@@ -62,7 +62,7 @@ export function AppsToolsPanel({
                           "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
                           app.needsAttention
                             ? "border-foreground bg-foreground text-background"
-                            : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                            : "border-emerald-500/40 bg-accent/10 text-emerald-700 dark:text-emerald-300",
                         )}
                       >
                         {app.needsAttention ? "Needs attention" : "Healthy"}

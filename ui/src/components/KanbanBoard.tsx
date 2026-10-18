@@ -64,65 +64,65 @@ const defaultKanbanColumnTone = {
 export const kanbanColumnTones: Partial<Record<IssueStatus, typeof defaultKanbanColumnTone>> = {
   backlog: {
     rail: "border-border bg-muted/30",
-    railOver: "bg-muted/50 ring-1 ring-neutral-400/25",
+    railOver: "bg-muted/50 ring-1 ring-ring/25",
     header: "text-muted-foreground",
     count: "text-muted-foreground/60",
     body: "bg-muted/30 ring-1 ring-inset ring-border/50",
-    bodyOver: "bg-muted/50 ring-1 ring-inset ring-neutral-400/25",
+    bodyOver: "bg-muted/50 ring-1 ring-inset ring-ring/25",
     card: "",
   },
   todo: {
-    rail: "border-amber-500/25 bg-amber-50/60 dark:bg-amber-950/20",
-    railOver: "bg-amber-100/70 ring-1 ring-amber-500/25 dark:bg-amber-950/35",
+    rail: "border-amber-500/25 bg-muted/60 dark:bg-muted/20",
+    railOver: "bg-muted/70 ring-1 ring-amber-500/25 dark:bg-muted/35",
     header: "text-amber-700 dark:text-amber-300",
     count: "text-amber-700/65 dark:text-amber-300/65",
-    body: "bg-amber-50/45 ring-1 ring-inset ring-amber-500/15 dark:bg-amber-950/15",
-    bodyOver: "bg-amber-100/70 ring-1 ring-inset ring-amber-500/25 dark:bg-amber-950/30",
+    body: "bg-muted/45 ring-1 ring-inset ring-amber-500/15 dark:bg-muted/15",
+    bodyOver: "bg-muted/70 ring-1 ring-inset ring-amber-500/25 dark:bg-muted/30",
     card: "",
   },
   in_progress: {
-    rail: "border-blue-500/25 bg-blue-50/60 dark:bg-blue-950/20",
-    railOver: "bg-blue-100/70 ring-1 ring-blue-500/25 dark:bg-blue-950/35",
-    header: "text-blue-700 dark:text-blue-300",
-    count: "text-blue-700/65 dark:text-blue-300/65",
-    body: "bg-blue-50/45 ring-1 ring-inset ring-blue-500/15 dark:bg-blue-950/15",
-    bodyOver: "bg-blue-100/70 ring-1 ring-inset ring-blue-500/25 dark:bg-blue-950/30",
+    rail: "border-primary/25 bg-primary/60 dark:bg-primary/20",
+    railOver: "bg-primary/70 ring-1 ring-ring dark:bg-primary/35",
+    header: "text-primary",
+    count: "text-primary/65",
+    body: "bg-primary/45 ring-1 ring-inset ring-ring dark:bg-primary/15",
+    bodyOver: "bg-primary/70 ring-1 ring-inset ring-ring dark:bg-primary/30",
     card: "",
   },
   blocked: {
-    rail: "border-red-500/25 bg-red-50/60 dark:bg-red-950/20",
-    railOver: "bg-red-100/70 ring-1 ring-red-500/25 dark:bg-red-950/35",
-    header: "text-red-700 dark:text-red-300",
-    count: "text-red-700/65 dark:text-red-300/65",
-    body: "bg-red-50/45 ring-1 ring-inset ring-red-500/15 dark:bg-red-950/15",
-    bodyOver: "bg-red-100/70 ring-1 ring-inset ring-red-500/25 dark:bg-red-950/30",
+    rail: "border-destructive/25 bg-destructive/60 dark:bg-destructive/20",
+    railOver: "bg-destructive/70 ring-1 ring-destructive/25 dark:bg-destructive/35",
+    header: "text-destructive",
+    count: "text-destructive/65",
+    body: "bg-destructive/45 ring-1 ring-inset ring-destructive/15 dark:bg-destructive/15",
+    bodyOver: "bg-destructive/70 ring-1 ring-inset ring-destructive/25 dark:bg-destructive/30",
     card: "",
   },
   in_review: {
-    rail: "border-violet-500/25 bg-violet-50/60 dark:bg-violet-950/20",
-    railOver: "bg-violet-100/70 ring-1 ring-violet-500/25 dark:bg-violet-950/35",
+    rail: "border-violet-500/25 bg-secondary/60 dark:bg-secondary/20",
+    railOver: "bg-secondary/70 ring-1 ring-violet-500/25 dark:bg-secondary/35",
     header: "text-violet-700 dark:text-violet-300",
     count: "text-violet-700/65 dark:text-violet-300/65",
-    body: "bg-violet-50/45 ring-1 ring-inset ring-violet-500/15 dark:bg-violet-950/15",
-    bodyOver: "bg-violet-100/70 ring-1 ring-inset ring-violet-500/25 dark:bg-violet-950/30",
+    body: "bg-secondary/45 ring-1 ring-inset ring-violet-500/15 dark:bg-secondary/15",
+    bodyOver: "bg-secondary/70 ring-1 ring-inset ring-violet-500/25 dark:bg-secondary/30",
     card: "",
   },
   done: {
-    rail: "border-green-500/25 bg-green-50/60 dark:bg-green-950/20",
-    railOver: "bg-green-100/70 ring-1 ring-green-500/25 dark:bg-green-950/35",
+    rail: "border-green-500/25 bg-accent/60 dark:bg-accent/20",
+    railOver: "bg-accent/70 ring-1 ring-green-500/25 dark:bg-accent/35",
     header: "text-green-700 dark:text-green-300",
     count: "text-green-700/65 dark:text-green-300/65",
-    body: "bg-green-50/45 ring-1 ring-inset ring-green-500/15 dark:bg-green-950/15",
-    bodyOver: "bg-green-100/70 ring-1 ring-inset ring-green-500/25 dark:bg-green-950/30",
+    body: "bg-accent/45 ring-1 ring-inset ring-green-500/15 dark:bg-accent/15",
+    bodyOver: "bg-accent/70 ring-1 ring-inset ring-green-500/25 dark:bg-accent/30",
     card: "",
   },
   cancelled: {
-    rail: "border-neutral-300/70 bg-muted/25 opacity-80 dark:border-neutral-700/70 dark:bg-neutral-900/20",
-    railOver: "bg-muted/45 opacity-90 ring-1 ring-neutral-400/25 dark:bg-neutral-900/35",
+    rail: "border-border/70 bg-muted/25 opacity-80 dark:bg-card/20",
+    railOver: "bg-muted/45 opacity-90 ring-1 ring-ring/25 dark:bg-card/35",
     header: "text-muted-foreground/80",
     count: "text-muted-foreground/50",
     body: "bg-muted/25 ring-1 ring-inset ring-border/50",
-    bodyOver: "bg-muted/45 ring-1 ring-inset ring-neutral-400/25",
+    bodyOver: "bg-muted/45 ring-1 ring-inset ring-ring/25",
     card: "bg-muted/35 text-muted-foreground opacity-80 hover:shadow-none",
   },
 };
@@ -334,7 +334,7 @@ function KanbanCard({
           </span>
           {isSuccessfulRunHandoffRequired(issue) ? (
             <Badge variant="outline"
-              className="border-amber-400/45 bg-amber-50/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
+              className="border-amber-400/45 bg-muted/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-muted/10 dark:text-amber-300"
               title="This task needs a next step"
               aria-label="Needs next step"
             >
@@ -343,10 +343,10 @@ function KanbanCard({
             </Badge>
           ) : null}
           {isLive && (
-            <span className="inline-flex shrink-0 items-center gap-1 text-(length:--text-nano) font-medium text-blue-600 dark:text-blue-400">
+            <span className="inline-flex shrink-0 items-center gap-1 text-(length:--text-nano) font-medium text-primary">
               <span className="relative flex h-2 w-2">
-                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
               </span>
               {compact ? "Live" : null}
             </span>

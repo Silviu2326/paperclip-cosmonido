@@ -179,7 +179,7 @@ export function ForkSkillDialog({
         <div
           className={cn(
             "rounded-md border p-3",
-            agentCount > 0 ? "border-amber-500/40 bg-amber-500/5" : "border-border bg-muted/30",
+            agentCount > 0 ? "border-amber-500/40 bg-muted/5" : "border-border bg-muted/30",
           )}
         >
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">

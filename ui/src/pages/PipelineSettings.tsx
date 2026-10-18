@@ -2733,7 +2733,7 @@ export function PipelineSettings() {
                           className={cn(
                             "h-8 w-8",
                             newEntriesDisabled &&
-                              "border-amber-500/50 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300",
+                              "border-amber-500/50 bg-muted/10 text-amber-700 hover:bg-muted/20 dark:text-amber-300",
                           )}
                           title={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}
                           aria-label={newEntriesDisabled ? "Resume new entries" : "Pause new entries"}

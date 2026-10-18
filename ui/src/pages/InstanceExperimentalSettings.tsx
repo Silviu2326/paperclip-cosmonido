@@ -264,7 +264,7 @@ export function InstanceExperimentalSettings() {
 
       <div
         role="alert"
-        className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3"
+        className="rounded-lg border border-amber-500/30 bg-muted/5 px-4 py-3"
       >
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
@@ -684,7 +684,7 @@ export function InstanceExperimentalSettings() {
                 </div>
 
                 {worktreeRunExecutionState.kind === "armed" ? (
-                  <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-foreground">
+                  <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-accent/5 px-3 py-2 text-sm text-foreground">
                     <Play className="h-4 w-4 shrink-0 text-emerald-600" />
                     <span>
                       Running tasks created after{" "}
@@ -697,7 +697,7 @@ export function InstanceExperimentalSettings() {
                 ) : null}
 
                 {worktreeRunExecutionState.kind === "fail_closed" ? (
-                  <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm">
+                  <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-muted/5 px-3 py-2 text-sm">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                     <div className="space-y-0.5">
                       <p className="font-medium text-foreground">Execution is suppressed — effectively off.</p>

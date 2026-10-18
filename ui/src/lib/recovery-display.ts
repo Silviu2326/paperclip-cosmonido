@@ -21,13 +21,13 @@ export const RECOVERY_CHIP_DEFAULT_TONE: Record<
 > = {
   needed: {
     className:
-      "border-amber-500/60 bg-amber-500/15 text-amber-700 dark:text-amber-300",
+      "border-amber-500/60 bg-muted/15 text-amber-700 dark:text-amber-300",
     icon: TriangleAlert,
     label: "Recovery needed",
   },
   in_progress: {
     className:
-      "border-sky-500/60 bg-sky-500/15 text-sky-700 dark:text-sky-300",
+      "border-sky-500/60 bg-secondary/15 text-sky-700 dark:text-sky-300",
     icon: RefreshCw,
     label: "Recovery in progress",
   },
@@ -37,7 +37,7 @@ export const RECOVERY_CHIP_DEFAULT_TONE: Record<
     label: "Observing active run",
   },
   escalated: {
-    className: "border-red-500/60 bg-red-500/15 text-red-700 dark:text-red-300",
+    className: "border-destructive/60 bg-destructive/15 text-destructive",
     icon: OctagonAlert,
     label: "Recovery escalated",
   },

@@ -1180,7 +1180,7 @@ function ResultStep({ result }: ResultStepProps) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="border-b border-border/60 px-5 py-4" data-testid="result-summary">
-        <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
+        <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-accent/5 p-3">
           <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div className="text-xs leading-relaxed text-muted-foreground">
             <span className="font-medium text-foreground">No files were copied.</span> These skills

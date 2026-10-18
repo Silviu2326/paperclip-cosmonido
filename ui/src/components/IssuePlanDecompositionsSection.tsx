@@ -16,14 +16,14 @@ interface IssuePlanDecompositionsSectionProps {
 function StatusBadge({ status }: { status: AcceptedPlanDecompositionSummary["status"] }) {
   if (status === "completed") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-emerald-900 dark:text-emerald-100">
+      <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-500/50 bg-accent/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-emerald-900 dark:text-emerald-100">
         <CheckCircle2 className="h-3 w-3" />
         Completed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-sm border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-amber-900 dark:text-amber-100">
+    <span className="inline-flex items-center gap-1 rounded-sm border border-amber-500/50 bg-muted/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-amber-900 dark:text-amber-100">
       <Loader2 className="h-3 w-3 animate-spin" />
       In flight
     </span>
@@ -100,7 +100,7 @@ export function IssuePlanDecompositionsSection({
                 </span>
                 {record.status === "completed" && requested > 0 ? (
                   <span
-                    className="inline-flex items-center gap-1 rounded-sm border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium text-sky-900 dark:text-sky-100"
+                    className="inline-flex items-center gap-1 rounded-sm border border-sky-500/40 bg-secondary/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium text-sky-900 dark:text-sky-100"
                     title="Repeat attempts with this fingerprint reuse this record instead of creating new children"
                   >
                     <Repeat className="h-3 w-3" />

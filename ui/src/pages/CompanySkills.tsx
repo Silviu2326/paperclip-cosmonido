@@ -392,12 +392,12 @@ function SourceFilterMenu({
         <Button
           variant="ghost"
           size="icon-sm"
-          className={cn("relative shrink-0", activeFilterCount > 0 && "text-blue-600 dark:text-blue-400")}
+          className={cn("relative shrink-0", activeFilterCount > 0 && "text-primary")}
           title={activeFilterCount > 0 ? `Filters: ${activeFilterCount}` : "Filter"}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeFilterCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-(length:--text-nano) font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-(length:--text-nano) font-bold text-primary-foreground">
               {activeFilterCount}
             </span>
           ) : null}
@@ -438,12 +438,12 @@ function CatalogFilterMenu({
         <Button
           variant="ghost"
           size="icon-sm"
-          className={cn("relative shrink-0", activeFilterCount > 0 && "text-blue-600 dark:text-blue-400")}
+          className={cn("relative shrink-0", activeFilterCount > 0 && "text-primary")}
           title={activeFilterCount > 0 ? `Filters: ${activeFilterCount}` : "Filter"}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeFilterCount > 0 ? (
-            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-(length:--text-nano) font-bold text-white">
+            <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-(length:--text-nano) font-bold text-primary-foreground">
               {activeFilterCount}
             </span>
           ) : null}
@@ -483,13 +483,13 @@ function TrustChip({ level }: { level: CompanySkillTrustLevel }) {
       icon: Folder,
       label: "Includes assets",
       tooltip: "Ships images, fonts, or other non-script files.",
-      className: "border-cyan-500/30 bg-cyan-500/10 text-cyan-800 dark:text-cyan-200",
+      className: "border-cyan-500/30 bg-secondary/10 text-cyan-800 dark:text-cyan-200",
     },
     scripts_executables: {
       icon: AlertTriangle,
       label: "Includes scripts",
       tooltip: "Ships executable scripts. Review before installing.",
-      className: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200",
+      className: "border-amber-500/40 bg-muted/10 text-amber-800 dark:text-amber-200",
     },
   } as const;
   const config = map[level] ?? map.markdown_only;
@@ -514,7 +514,7 @@ function CompatChip({ compatibility }: { compatibility: CompanySkillCompatibilit
       icon: HelpCircle,
       label: "Unknown format",
       tooltip: "Paperclip could not validate this skill as Agent Skills markdown. Install at your own risk.",
-      className: "border-yellow-500/40 bg-yellow-500/10 text-yellow-800 dark:text-yellow-200",
+      className: "border-yellow-500/40 bg-muted/10 text-yellow-800 dark:text-yellow-200",
     },
     invalid: {
       icon: XOctagon,
@@ -1933,7 +1933,7 @@ function CatalogDetailPane({
     );
   } else if (hashOutOfSync) {
     cta = (
-      <Button onClick={onUpdate} disabled={loadingPrimaryAction} className="border-amber-500/40 bg-amber-500/20 text-amber-900 dark:text-amber-100 hover:bg-amber-500/30">
+      <Button onClick={onUpdate} disabled={loadingPrimaryAction} className="border-amber-500/40 bg-muted/20 text-amber-900 dark:text-amber-100 hover:bg-muted/30">
         <ArrowUpCircle className="mr-1.5 h-3.5 w-3.5" />
         Update from catalog
       </Button>
@@ -1976,7 +1976,7 @@ function CatalogDetailPane({
           {hashOutOfSync ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-(length:--text-micro) text-amber-800 dark:text-amber-200">
+                <Badge variant="outline" className="border-amber-500/40 bg-muted/10 text-(length:--text-micro) text-amber-800 dark:text-amber-200">
                   <ArrowUpCircle className="h-3 w-3" aria-hidden="true" />
                   Update available
                 </Badge>
@@ -2189,7 +2189,7 @@ export function InstallPreviewDialog({
           </div>
 
           {conflict ? (
-            <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+            <div className="rounded-md border border-amber-500/40 bg-muted/10 p-3 text-xs text-amber-800 dark:text-amber-200">
               An existing skill with key <span className="font-mono">{conflict.key}</span> is installed (
               {conflict.sourceLabel ?? conflict.sourceType}). Installing will {defaultAction === "update" ? "overwrite the catalog content" : "replace the existing skill"}.
             </div>
@@ -2349,7 +2349,7 @@ function AttachAgentsPopover({
         return `${option.adapterType}${option.required ? " · required" : ""}${!option.supportsSkills ? " · skills not supported" : ""}`;
       }}
       renderNameSuffix={(agent) => (agent as AttachAgentOption).paused ? (
-        <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
+        <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-muted/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
           <Pause className="h-2.5 w-2.5" aria-hidden="true" />
           Paused
         </Badge>
@@ -2647,8 +2647,8 @@ function SkillVersionDiffDialog({
   );
   const lineClassesByKind: Record<DiffRow["kind"], string> = {
     context: "bg-transparent",
-    removed: "bg-red-500/10 text-red-900 dark:text-red-100",
-    added: "bg-green-500/10 text-green-900 dark:text-green-100",
+    removed: "bg-destructive/10 text-destructive",
+    added: "bg-accent/10 text-green-900 dark:text-green-100",
   };
   const markerByKind: Record<DiffRow["kind"], string> = {
     context: " ",
@@ -2671,7 +2671,7 @@ function SkillVersionDiffDialog({
           </DialogHeader>
           <div className="flex flex-wrap items-center gap-3 text-xs">
             <label className="flex items-center gap-2">
-              <Badge variant="outline" className="border-red-500/30 bg-red-500/10 uppercase tracking-wider text-red-400">Old</Badge>
+              <Badge variant="outline" className="border-destructive/30 bg-destructive/10 uppercase tracking-wider text-destructive">Old</Badge>
               <select
                 value={leftVersionId ?? ""}
                 onChange={(event) => onLeftVersionChange(event.target.value || null)}
@@ -2684,7 +2684,7 @@ function SkillVersionDiffDialog({
               </select>
             </label>
             <label className="flex items-center gap-2">
-              <Badge variant="outline" className="border-green-500/30 bg-green-500/10 uppercase tracking-wider text-green-400">New</Badge>
+              <Badge variant="outline" className="border-green-500/30 bg-accent/10 uppercase tracking-wider text-green-400">New</Badge>
               <select
                 value={right?.id ?? ""}
                 onChange={(event) => onRightVersionChange(event.target.value || null)}
@@ -3278,7 +3278,7 @@ export function SkillDetailPage({
                     <div className="flex items-center gap-1.5">
                       <span className="truncate font-medium">{agent.name}</span>
                       {meta?.paused ? (
-                        <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
+                        <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-muted/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
                           <Pause className="h-2.5 w-2.5" aria-hidden="true" />
                           Paused
                         </Badge>
@@ -3907,7 +3907,7 @@ function SkillPane({
             {readonlyMetadataValue(detail.metadata, "userModifiedAt") ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-(length:--text-micro) text-violet-200">
+                  <Badge variant="outline" className="border-violet-500/40 bg-secondary/10 text-(length:--text-micro) text-violet-200">
                     <Pencil className="h-3 w-3" aria-hidden="true" />
                     Locally modified
                   </Badge>

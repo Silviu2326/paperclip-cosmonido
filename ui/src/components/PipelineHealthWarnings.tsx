@@ -53,7 +53,7 @@ export function PipelineHealthBar({
       role="region"
       aria-labelledby="pipeline-health-bar-heading"
       className={cn(
-        "rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-amber-900 dark:border-amber-300/30 dark:bg-amber-400/10 dark:text-amber-200",
+        "rounded-md border border-amber-200 bg-muted px-3 py-2.5 text-amber-900 dark:border-amber-300/30 dark:bg-muted/10 dark:text-amber-200",
         className,
       )}
     >
@@ -114,7 +114,7 @@ export function StageHealthWarnings({
       role="region"
       aria-labelledby="stage-health-warnings-heading"
       className={cn(
-        "rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900 dark:border-amber-300/30 dark:bg-amber-400/10 dark:text-amber-200",
+        "rounded-md border border-amber-200 bg-muted px-3 py-2.5 text-sm text-amber-900 dark:border-amber-300/30 dark:bg-muted/10 dark:text-amber-200",
         className,
       )}
     >

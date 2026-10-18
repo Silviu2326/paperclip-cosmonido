@@ -38,11 +38,11 @@ export function runStatusClassName(status: string): string {
       return "text-green-700 dark:text-green-300";
     case "failed":
     case "error":
-      return "text-red-700 dark:text-red-300";
+      return "text-destructive";
     case "timed_out":
       return "text-orange-700 dark:text-orange-300";
     case "running":
-      return "text-blue-700 dark:text-blue-300";
+      return "text-primary";
     case "queued":
     case "pending":
       return "text-amber-700 dark:text-amber-300";

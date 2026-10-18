@@ -17,8 +17,8 @@ export function SourceResolvedFoldBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-(length:--text-micro) font-medium",
-        "border-emerald-300/60 bg-emerald-50/80 text-emerald-900",
-        "dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200",
+        "border-emerald-300/60 bg-accent/80 text-emerald-900",
+        "dark:border-emerald-500/30 dark:bg-accent/10 dark:text-emerald-200",
         className,
       )}
       title={title}

@@ -98,7 +98,7 @@ export function SkillSourceTree({ candidates, selected, excludedFolders, onChang
   return <div className="flex min-h-0 flex-col overflow-hidden rounded-md border border-border">
     <div className="flex items-center gap-2 px-3">
       <Search className="size-4 shrink-0 text-muted-foreground" />
-      <Input className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 dark:bg-transparent" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search skills or files…" aria-label="Search discovered skills" />
+      <Input className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search skills or files…" aria-label="Search discovered skills" />
     </div>
     <div className="flex items-center justify-between gap-2 border-y border-border bg-muted/30 px-3 py-1.5">
       <label className="flex items-center gap-2 text-xs text-muted-foreground">

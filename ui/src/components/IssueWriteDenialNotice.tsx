@@ -30,21 +30,21 @@ const TONE_CLASSES: Record<IssueWriteDenialTone, { surface: string; icon: string
   // A real authorization wall — the strongest signal.
   boundary: {
     surface:
-      "border-red-300/70 bg-red-50/90 text-red-950 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100",
-    icon: "text-red-600 dark:text-red-300",
-    action: "text-red-800 dark:text-red-200",
+      "border-destructive/70 bg-destructive/90 text-destructive dark:border-destructive/40 dark:bg-destructive/10",
+    icon: "text-destructive",
+    action: "text-destructive",
   },
   // Run-lifecycle machinery that clears on its own; not a permission problem.
   lock: {
     surface:
-      "border-amber-300/70 bg-amber-50/90 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100",
+      "border-amber-300/70 bg-muted/90 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100",
     icon: "text-amber-600 dark:text-amber-300",
     action: "text-amber-800 dark:text-amber-200",
   },
   // A rate backstop — the write was allowed, the budget was not.
   cap: {
     surface:
-      "border-amber-300/70 bg-amber-50/90 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100",
+      "border-amber-300/70 bg-muted/90 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100",
     icon: "text-amber-600 dark:text-amber-300",
     action: "text-amber-800 dark:text-amber-200",
   },
@@ -53,7 +53,7 @@ const TONE_CLASSES: Record<IssueWriteDenialTone, { surface: string; icon: string
   // background `text-muted-foreground` drops below comfortable contrast.
   attribution: {
     surface:
-      "border-border bg-muted/60 text-foreground dark:border-border dark:bg-muted/30",
+      "border-border bg-muted/60 text-foreground dark:bg-muted/30",
     icon: "text-muted-foreground",
     action: "text-foreground/80",
   },

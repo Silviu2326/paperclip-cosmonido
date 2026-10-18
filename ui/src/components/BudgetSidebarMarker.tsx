@@ -3,9 +3,9 @@ import { DollarSign } from "lucide-react";
 export type BudgetSidebarMarkerLevel = "healthy" | "warning" | "critical";
 
 const levelClasses: Record<BudgetSidebarMarkerLevel, string> = {
-  healthy: "bg-emerald-500/90 text-white",
-  warning: "bg-amber-500/95 text-amber-950",
-  critical: "bg-red-500/90 text-white",
+  healthy: "bg-accent/90 text-accent-foreground",
+  warning: "bg-muted/95 text-amber-950",
+  critical: "bg-destructive/90 text-destructive-foreground",
 };
 
 const defaultTitles: Record<BudgetSidebarMarkerLevel, string> = {

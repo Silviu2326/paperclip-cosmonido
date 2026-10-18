@@ -93,37 +93,37 @@ type LivenessCopy = {
 const LIVENESS_COPY: Record<RunLivenessState, LivenessCopy> = {
   completed: {
     label: "Completed",
-    tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    tone: "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300",
     description: "Task reached a terminal state.",
   },
   advanced: {
     label: "Advanced",
-    tone: "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
+    tone: "border-cyan-500/30 bg-secondary/10 text-cyan-700 dark:text-cyan-300",
     description: "Run produced concrete evidence of progress.",
   },
   plan_only: {
     label: "Plan only",
-    tone: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    tone: "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300",
     description: "Run described future work without concrete action evidence.",
   },
   empty_response: {
     label: "Empty response",
-    tone: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+    tone: "border-orange-500/30 bg-muted/10 text-orange-700 dark:text-orange-300",
     description: "Run finished without useful output.",
   },
   blocked: {
     label: "Blocked",
-    tone: "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+    tone: "border-yellow-500/30 bg-muted/10 text-yellow-700 dark:text-yellow-300",
     description: "Run or task declared a blocker.",
   },
   failed: {
     label: "Failed",
-    tone: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+    tone: "border-destructive/30 bg-destructive/10 text-destructive",
     description: "Run ended unsuccessfully.",
   },
   needs_followup: {
     label: "Needs follow-up",
-    tone: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+    tone: "border-sky-500/30 bg-secondary/10 text-sky-700 dark:text-sky-300",
     description:
       "Run produced useful output but did not prove concrete progress.",
   },
@@ -137,7 +137,7 @@ const PENDING_LIVENESS_COPY: LivenessCopy = {
 
 const RETRY_PENDING_LIVENESS_COPY: LivenessCopy = {
   label: "Retry pending",
-  tone: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  tone: "border-primary/30 bg-primary/10 text-primary",
   description: "Paperclip queued an automatic retry that has not started yet.",
 };
 
@@ -164,15 +164,15 @@ const RUN_OUTPUT_SILENCE_COPY: Partial<
 > = {
   suspicious: {
     label: "Output silence",
-    tone: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    tone: "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300",
   },
   critical: {
     label: "Critical silence",
-    tone: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+    tone: "border-destructive/30 bg-destructive/10 text-destructive",
   },
   snoozed: {
     label: "Silence snoozed",
-    tone: "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
+    tone: "border-cyan-500/30 bg-secondary/10 text-cyan-700 dark:text-cyan-300",
   },
 };
 
@@ -730,8 +730,8 @@ export function IssueRunLedgerContent({
           className={cn(
             "rounded-md border px-3 py-2 text-xs",
             latestSilentRun.outputSilence.level === "critical"
-              ? "border-red-500/30 bg-red-500/10 text-red-900 dark:text-red-200"
-              : "border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200",
+              ? "border-destructive/30 bg-destructive/10 text-destructive"
+              : "border-amber-500/30 bg-muted/10 text-amber-900 dark:text-amber-200",
           )}
         >
           <p className="font-medium">
@@ -818,7 +818,7 @@ export function IssueRunLedgerContent({
             </div>
           ) : null}
           {watchdogDecisionError ? (
-            <p className="mt-2 rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-(length:--text-micro) text-red-900 dark:text-red-200">
+            <p className="mt-2 rounded-md border border-destructive/30 bg-destructive/10 px-2 py-1 text-(length:--text-micro) text-destructive">
               {watchdogDecisionError}
             </p>
           ) : null}
@@ -886,8 +886,8 @@ export function IssueRunLedgerContent({
                     {statusLabel(run.status)}
                   </span>
                   {run.isLive ? (
-                    <span className="inline-flex items-center gap-1 rounded-md border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-(length:--text-micro) text-blue-700 dark:text-blue-300">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <span className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-(length:--text-micro) text-primary">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                       live
                     </span>
                   ) : null}
@@ -906,7 +906,7 @@ export function IssueRunLedgerContent({
                     {liveness.label}
                   </span>
                   {exhausted ? (
-                    <span className="rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-(length:--text-micro) font-medium text-red-700 dark:text-red-300">
+                    <span className="rounded-md border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-(length:--text-micro) font-medium text-destructive">
                       Exhausted
                     </span>
                   ) : null}

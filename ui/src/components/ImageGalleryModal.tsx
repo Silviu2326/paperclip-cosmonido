@@ -129,7 +129,7 @@ export function ImageGalleryModal({
                 <button
                   type="button"
                   onClick={goPrev}
-                  className="rounded-full bg-white/10 p-3 text-white/60 hover:text-white hover:bg-white/20 transition-colors"
+                  className="rounded-full bg-white/10 p-3 text-white/60 hover:text-foreground hover:bg-white/20 transition-colors"
                   title="Previous"
                 >
                   <ChevronLeft className="h-7 w-7" />
@@ -164,7 +164,7 @@ export function ImageGalleryModal({
                 <button
                   type="button"
                   onClick={goNext}
-                  className="rounded-full bg-white/10 p-3 text-white/60 hover:text-white hover:bg-white/20 transition-colors"
+                  className="rounded-full bg-white/10 p-3 text-white/60 hover:text-foreground hover:bg-white/20 transition-colors"
                   title="Next"
                 >
                   <ChevronRight className="h-7 w-7" />

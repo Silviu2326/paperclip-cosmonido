@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
  */
 export const USER_SECRET_ACCENT_TEXT = "text-violet-700 dark:text-violet-300";
 export const USER_SECRET_ACCENT_BORDER = "border-violet-500/30";
-export const USER_SECRET_ACCENT_BG = "bg-violet-500/10";
+export const USER_SECRET_ACCENT_BG = "bg-secondary/10";
 
 /** Small pill used to mark user-scoped rows and headers. */
 export function UserSecretChip({ className, label = "User secret" }: { className?: string; label?: string }) {
@@ -34,7 +34,7 @@ export function UserSecretChip({ className, label = "User secret" }: { className
 export function secretStatusTone(status: SecretStatus): string {
   switch (status) {
     case "active":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+      return "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300";
     case "disabled":
       return "border-muted bg-muted text-muted-foreground";
     case "archived":
@@ -50,9 +50,9 @@ export type MyValueState = "set" | "not_set" | "inactive";
 export function myValueTone(state: MyValueState): string {
   switch (state) {
     case "set":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+      return "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300";
     case "not_set":
-      return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+      return "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300";
     case "inactive":
       return "border-muted bg-muted text-muted-foreground";
   }

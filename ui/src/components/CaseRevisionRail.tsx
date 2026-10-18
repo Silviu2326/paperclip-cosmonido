@@ -68,8 +68,8 @@ function CaseDocumentDiffModal({
   const diffRows = buildLineDiff(leftRevision?.body ?? "", rightRevision?.body ?? "");
   const lineClassesByKind: Record<DiffRow["kind"], string> = {
     context: "bg-transparent",
-    removed: "bg-red-500/10 text-red-900 dark:text-red-100",
-    added: "bg-green-500/10 text-green-900 dark:text-green-100",
+    removed: "bg-destructive/10 text-destructive",
+    added: "bg-accent/10 text-green-900 dark:text-green-100",
   };
   const markerByKind: Record<DiffRow["kind"], string> = {
     context: " ",
@@ -88,7 +88,7 @@ function CaseDocumentDiffModal({
           </DialogHeader>
           <div className="flex shrink-0 items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-(--tracking-caps) text-red-400">Old</span>
+              <span className="rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-(--tracking-caps) text-destructive">Old</span>
               <Select value={effectiveLeftId ?? ""} onValueChange={setLeftRevisionId}>
                 <SelectTrigger className="h-7 w-60 border-border/60 text-xs">
                   <SelectValue placeholder="Select revision" />
@@ -103,7 +103,7 @@ function CaseDocumentDiffModal({
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-(--tracking-caps) text-green-400">New</span>
+              <span className="rounded-full border border-green-500/30 bg-accent/10 px-2 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-(--tracking-caps) text-green-400">New</span>
               <Select value={effectiveRightId ?? ""} onValueChange={setRightRevisionId}>
                 <SelectTrigger className="h-7 w-60 border-border/60 text-xs">
                   <SelectValue placeholder="Select revision" />

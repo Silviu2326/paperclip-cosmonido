@@ -1026,7 +1026,7 @@ describe("IssueThreadInteractionCard", () => {
         result: { version: 1, outcome: "rejected", reason: "Tighten the spacing" },
       },
     });
-    expect((rejected.firstElementChild as HTMLElement).className).toContain("border-red-500/80");
+    expect((rejected.firstElementChild as HTMLElement).className).toContain("border-destructive/80");
     expect(rejected.textContent).toContain("Changes requested");
   });
 

@@ -68,7 +68,7 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
     return {
       kind: "scheduled",
       badgeLabel: run.scheduledRetryReason === "ai_connection_pool_wait" ? "Pool exhausted" : isMaxTurnContinuation ? "Continuation scheduled" : "Retry scheduled",
-      tone: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+      tone: "border-primary/30 bg-primary/10 text-primary",
       detail: joinFragments([attemptLabel, reasonLabel]),
       secondary: dueAt
         ? `${isMaxTurnContinuation ? "Next continuation" : "Next retry"} ${dueAt}`
@@ -81,7 +81,7 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
     return {
       kind: "exhausted",
       badgeLabel: isMaxTurnContinuation ? "Continuation exhausted" : "Retry exhausted",
-      tone: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+      tone: "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-300",
       detail: joinFragments([attemptLabel, reasonLabel, "Automatic retries exhausted"]),
       secondary: exhaustedReason.includes("Manual intervention required")
         ? exhaustedReason
@@ -93,7 +93,7 @@ export function describeRunRetryState(run: RetryAwareRun): RunRetryStateSummary 
   return {
     kind: "attempted",
     badgeLabel: isMaxTurnContinuation ? "Continued run" : "Retried run",
-    tone: "border-slate-500/20 bg-slate-500/10 text-slate-700 dark:text-slate-300",
+    tone: "border-border/20 bg-muted/10 text-foreground",
     detail: joinFragments([attemptLabel, reasonLabel]),
     secondary: null,
     retryOfRunId,

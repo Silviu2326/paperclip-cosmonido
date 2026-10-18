@@ -401,13 +401,13 @@ export function FailedRunInboxRow({
                 onClick={onMarkRead}
                 className={cn(
                   "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
-                  "hover:bg-blue-500/20",
+                  "hover:bg-primary/20",
                 )}
                 aria-label="Mark as read"
               >
                 <span className={cn(
                   "block h-2 w-2 rounded-full transition-opacity duration-300",
-                  "bg-blue-600 dark:bg-blue-400",
+                  "bg-primary",
                   unreadState === "fading" ? "opacity-0" : "opacity-100",
                 )} />
               </button>
@@ -425,8 +425,8 @@ export function FailedRunInboxRow({
         >
           {!showUnreadSlot && <span className="hidden h-2 w-2 shrink-0 sm:inline-flex" aria-hidden="true" />}
           <span className="hidden h-3.5 w-3.5 shrink-0 sm:inline-flex" aria-hidden="true" />
-          <span className="mt-0.5 shrink-0 rounded-md bg-red-500/20 p-1.5 sm:mt-0">
-            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <span className="mt-0.5 shrink-0 rounded-md bg-destructive/20 p-1.5 sm:mt-0">
+            <XCircle className="h-4 w-4 text-destructive" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="line-clamp-2 text-sm font-medium sm:truncate sm:line-clamp-none">
@@ -550,13 +550,13 @@ function ApprovalInboxRow({
                 onClick={onMarkRead}
                 className={cn(
                   "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
-                  "hover:bg-blue-500/20",
+                  "hover:bg-primary/20",
                 )}
                 aria-label="Mark as read"
               >
                 <span className={cn(
                   "block h-2 w-2 rounded-full transition-opacity duration-300",
-                  "bg-blue-600 dark:bg-blue-400",
+                  "bg-primary",
                   unreadState === "fading" ? "opacity-0" : "opacity-100",
                 )} />
               </button>
@@ -683,13 +683,13 @@ function JoinRequestInboxRow({
                 onClick={onMarkRead}
                 className={cn(
                   "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
-                  "hover:bg-blue-500/20",
+                  "hover:bg-primary/20",
                 )}
                 aria-label="Mark as read"
               >
                 <span className={cn(
                   "block h-2 w-2 rounded-full transition-opacity duration-300",
-                  "bg-blue-600 dark:bg-blue-400",
+                  "bg-primary",
                   unreadState === "fading" ? "opacity-0" : "opacity-100",
                 )} />
               </button>
@@ -3305,7 +3305,7 @@ function StreamlinedInbox({
                     to="/agents"
                     className="flex flex-1 cursor-pointer items-center gap-3 no-underline text-inherit"
                   >
-                    <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
                     <span className="text-sm">
                       <span className="font-medium">{dashboard!.agents.error}</span>{" "}
                       {dashboard!.agents.error === 1 ? "agent has" : "agents have"} errors

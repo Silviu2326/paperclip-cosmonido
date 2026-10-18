@@ -23,42 +23,42 @@ interface TonePalette {
 const TONE_PALETTES: Record<LivenessBannerTone, TonePalette> = {
   blocked: {
     section:
-      "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100",
+      "border-amber-300 bg-muted text-amber-950 dark:border-amber-900/70 dark:bg-muted/30 dark:text-amber-100",
     icon: "text-amber-700 dark:text-amber-300",
     pulse: "bg-amber-500",
     link: "text-amber-900 dark:text-amber-100",
     button:
-      "border-amber-300 bg-transparent hover:bg-amber-100 dark:border-amber-900/70 dark:hover:bg-amber-950/40",
+      "border-amber-300 bg-transparent hover:bg-muted dark:border-amber-900/70 dark:hover:bg-muted/40",
     Icon: AlertTriangle,
   },
   permission: {
     section:
-      "border-purple-300 bg-purple-50 text-purple-950 dark:border-purple-900/70 dark:bg-purple-950/30 dark:text-purple-100",
+      "border-purple-300 bg-secondary text-purple-950 dark:border-purple-900/70 dark:bg-secondary/30 dark:text-purple-100",
     icon: "text-purple-700 dark:text-purple-300",
     pulse: "bg-purple-500",
     link: "text-purple-900 dark:text-purple-100",
     button:
-      "border-purple-300 bg-transparent hover:bg-purple-100 dark:border-purple-900/70 dark:hover:bg-purple-950/40",
+      "border-purple-300 bg-transparent hover:bg-secondary dark:border-purple-900/70 dark:hover:bg-secondary/40",
     Icon: Lock,
   },
   retry: {
     section:
-      "border-indigo-300 bg-indigo-50 text-indigo-950 dark:border-indigo-900/70 dark:bg-indigo-950/30 dark:text-indigo-100",
+      "border-indigo-300 bg-secondary text-indigo-950 dark:border-indigo-900/70 dark:bg-secondary/30 dark:text-indigo-100",
     icon: "text-indigo-700 dark:text-indigo-300",
     pulse: "bg-indigo-500",
     link: "text-indigo-900 dark:text-indigo-100",
     button:
-      "border-indigo-300 bg-transparent hover:bg-indigo-100 dark:border-indigo-900/70 dark:hover:bg-indigo-950/40",
+      "border-indigo-300 bg-transparent hover:bg-secondary dark:border-indigo-900/70 dark:hover:bg-secondary/40",
     Icon: RefreshCw,
   },
   attention: {
     section:
-      "border-orange-300 bg-orange-50 text-orange-950 dark:border-orange-900/70 dark:bg-orange-950/30 dark:text-orange-100",
+      "border-orange-300 bg-muted text-orange-950 dark:border-orange-900/70 dark:bg-muted/30 dark:text-orange-100",
     icon: "text-orange-700 dark:text-orange-300",
     pulse: "bg-orange-500",
     link: "text-orange-900 dark:text-orange-100",
     button:
-      "border-orange-300 bg-transparent hover:bg-orange-100 dark:border-orange-900/70 dark:hover:bg-orange-950/40",
+      "border-orange-300 bg-transparent hover:bg-muted dark:border-orange-900/70 dark:hover:bg-muted/40",
     Icon: AlertTriangle,
   },
 };

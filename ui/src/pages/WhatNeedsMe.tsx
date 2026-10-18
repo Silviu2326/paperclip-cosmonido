@@ -778,7 +778,7 @@ export function DecisionBundleHeader({
 }) {
   const noun = count === 1 ? "decision" : "decisions";
   return (
-    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-sm border-l-2 border-violet-500/60 bg-violet-500/5 px-3 py-1.5 text-xs">
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-sm border-l-2 border-violet-500/60 bg-secondary/5 px-3 py-1.5 text-xs">
       <span className="font-semibold text-violet-800 dark:text-violet-200">
         {agentName ?? "An agent"} proposed {count} {noun}
       </span>
@@ -816,7 +816,7 @@ function CaughtUpNote({ filtered }: { filtered: boolean }) {
 function ZeroState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
-      <div className="mb-4 rounded-full bg-green-500/10 p-4">
+      <div className="mb-4 rounded-full bg-accent/10 p-4">
         <CheckCircle2 className="h-10 w-10 text-green-500" />
       </div>
       <p className="text-lg font-semibold text-foreground">You're all caught up</p>

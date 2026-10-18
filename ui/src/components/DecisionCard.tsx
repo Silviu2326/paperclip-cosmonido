@@ -188,19 +188,19 @@ type CardTone = "pending" | "destructive" | "success" | "partial" | "failed" | "
 
 const SHELL: Record<CardTone, string> = {
   pending: "border-sky-500/70",
-  destructive: "border-2 border-rose-500/80",
+  destructive: "border-2 border-destructive/80",
   success: "border-emerald-400/70",
   partial: "border-amber-400/70",
-  failed: "border-rose-400/70",
+  failed: "border-destructive/70",
   neutral: "border-border/60",
 };
 
 const BADGE: Record<CardTone, string> = {
-  pending: "border-sky-500/60 bg-sky-500/10 text-sky-900 dark:bg-sky-500/15 dark:text-sky-100",
-  destructive: "border-rose-500/60 bg-rose-500/10 text-rose-800 dark:bg-rose-500/15 dark:text-rose-100",
-  success: "border-emerald-500/60 bg-emerald-500/10 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100",
-  partial: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
-  failed: "border-rose-500/60 bg-rose-500/10 text-rose-800 dark:bg-rose-500/15 dark:text-rose-100",
+  pending: "border-sky-500/60 bg-secondary/10 text-sky-900 dark:bg-secondary/15 dark:text-sky-100",
+  destructive: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
+  success: "border-emerald-500/60 bg-accent/10 text-emerald-900 dark:bg-accent/15 dark:text-emerald-100",
+  partial: "border-amber-500/60 bg-muted/10 text-amber-900 dark:bg-muted/15 dark:text-amber-100",
+  failed: "border-destructive/60 bg-destructive/10 text-destructive dark:bg-destructive/15",
   neutral: "border-border/70 bg-muted/50 text-muted-foreground",
 };
 
@@ -219,7 +219,7 @@ function IssueLink({ ref: link }: { ref: DecisionIssueRef | null }) {
 
 const RESULT_ICON: Record<ResultRow["status"], ReactNode> = {
   executed: <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />,
-  failed: <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden />,
+  failed: <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />,
   skipped: <MinusCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />,
   claimed: <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-muted-foreground" aria-hidden />,
 };
@@ -387,7 +387,7 @@ export function DecisionCard({
 
       {/* Stale-target warning (open only) */}
       {open && isStale && (
-        <div className="mt-3 rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2">
+        <div className="mt-3 rounded-lg border border-amber-500/50 bg-muted/10 px-3 py-2">
           <div className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
             {pluralize(staleTargetIds.length, "target")} changed since this was proposed
@@ -419,7 +419,7 @@ export function DecisionCard({
             <label key={field.id} className="block">
               <span className="text-xs font-medium text-muted-foreground">
                 {field.label}
-                {field.required && <span className="text-rose-500"> *</span>}
+                {field.required && <span className="text-destructive"> *</span>}
               </span>
               <Textarea
                 value={inputValues[field.id] ?? ""}
@@ -457,16 +457,16 @@ export function DecisionCard({
                     "w-full rounded-sm border px-4 py-3 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50",
                     disabled && "cursor-not-allowed opacity-60",
                     destructive
-                      ? "border-rose-500/70 bg-rose-500/5 text-foreground hover:border-rose-500 hover:bg-rose-500/10"
-                      : "border-border/70 bg-transparent text-foreground hover:border-sky-500/70 hover:bg-sky-500/10",
+                      ? "border-destructive/70 bg-destructive/5 text-foreground hover:border-destructive hover:bg-destructive/10"
+                      : "border-border/70 bg-transparent text-foreground hover:border-sky-500/70 hover:bg-secondary/10",
                   )}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className={cn("text-sm font-medium", destructive && "text-rose-700 dark:text-rose-300")}>
+                    <span className={cn("text-sm font-medium", destructive && "text-destructive")}>
                       {option.label}
                     </span>
                     {blockedStale && (
-                      <span className="shrink-0 rounded-full border border-amber-500/60 bg-amber-500/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-amber-800 dark:text-amber-200">
+                      <span className="shrink-0 rounded-full border border-amber-500/60 bg-muted/10 px-2 py-0.5 text-(length:--text-micro) font-medium text-amber-800 dark:text-amber-200">
                         Blocked · stale
                       </span>
                     )}
@@ -481,7 +481,7 @@ export function DecisionCard({
                           key={index}
                           className={cn(
                             "flex items-start gap-1.5 text-xs",
-                            effect.type === "cancel_issue_tree" ? "text-rose-700 dark:text-rose-300" : "text-muted-foreground",
+                            effect.type === "cancel_issue_tree" ? "text-destructive" : "text-muted-foreground",
                           )}
                         >
                           <ArrowRight className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
@@ -494,8 +494,8 @@ export function DecisionCard({
 
                 {/* Destructive cancel-tree confirm gate */}
                 {confirming && cancelTree && (
-                  <div className="rounded-lg border border-rose-500/50 bg-rose-500/5 p-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
+                  <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-destructive">
                       <Ban className="h-4 w-4" aria-hidden /> This cancels an entire issue tree
                     </div>
                     {previewRows && previewRows.length > 0 ? (
@@ -506,7 +506,7 @@ export function DecisionCard({
                         <ul className="mt-1 max-h-40 space-y-0.5 overflow-auto text-xs">
                           {previewRows.map((row) => (
                             <li key={row.id} className="flex items-center gap-1.5">
-                              <Ban className="h-3 w-3 shrink-0 text-rose-500" aria-hidden />
+                              <Ban className="h-3 w-3 shrink-0 text-destructive" aria-hidden />
                               <span className="font-medium">{issueLabel(row, row.id)}</span>
                               {row.title && row.identifier && (
                                 <span className="truncate text-muted-foreground">{row.title}</span>
@@ -567,7 +567,7 @@ export function DecisionCard({
               </Button>
             </div>
           )}
-          {errorMessage && <p className="text-xs text-rose-600 dark:text-rose-400">{errorMessage}</p>}
+          {errorMessage && <p className="text-xs text-destructive">{errorMessage}</p>}
         </div>
       )}
 

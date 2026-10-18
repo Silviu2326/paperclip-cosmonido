@@ -19,7 +19,7 @@ function statusDotColor(status?: string): string {
     case "paused":
       return "bg-yellow-400";
     case "archived":
-      return "bg-neutral-400";
+      return "bg-muted";
     default:
       return "bg-green-400";
   }

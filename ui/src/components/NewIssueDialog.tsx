@@ -1330,7 +1330,7 @@ export function NewIssueDialog() {
                     {assigneeValue && status === "backlog" ? (
                       <div
                         data-testid="new-issue-assigned-backlog-note"
-                        className="mx-4 mb-2 flex items-start gap-2 rounded-md border border-amber-300/70 bg-amber-50/90 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+                        className="mx-4 mb-2 flex items-start gap-2 rounded-md border border-amber-300/70 bg-muted/90 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100"
                       >
                         <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
                         <span className="leading-snug">
@@ -1358,7 +1358,7 @@ export function NewIssueDialog() {
                     {currentAssigneeLowTrust ? (
                       <div
                         data-testid="new-issue-low-trust-assignee-note"
-                        className="mx-4 mb-2 flex items-start gap-2 rounded-md border border-amber-300/70 bg-amber-50/90 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+                        className="mx-4 mb-2 flex items-start gap-2 rounded-md border border-amber-300/70 bg-muted/90 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100"
                       >
                         <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
                         <span className="leading-snug">

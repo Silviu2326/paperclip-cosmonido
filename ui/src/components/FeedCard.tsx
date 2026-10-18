@@ -180,7 +180,7 @@ function getIconSpec(
   // Heartbeat — animated when active, static otherwise
   if (action.startsWith("heartbeat.")) {
     if (isActive && action === "heartbeat.invoked") {
-      return { kind: "lucide", Icon: Loader2, color: "text-blue-600 dark:text-blue-400", spin: true };
+      return { kind: "lucide", Icon: Loader2, color: "text-primary", spin: true };
     }
     return { kind: "lucide", Icon: Loader2, color: "text-muted-foreground" };
   }
@@ -193,7 +193,7 @@ function getIconSpec(
     case "approval.approved":
       return { kind: "lucide", Icon: CircleCheck, color: "text-green-600 dark:text-green-400" };
     case "approval.rejected":
-      return { kind: "lucide", Icon: CircleSlash, color: "text-red-600 dark:text-red-400" };
+      return { kind: "lucide", Icon: CircleSlash, color: "text-destructive" };
     case "approval.revision_requested":
       return { kind: "lucide", Icon: PencilLine, color: "text-amber-600 dark:text-amber-400", filled: true };
   }
@@ -213,7 +213,7 @@ function getIconSpec(
 
   // Document on issue
   if (action === "issue.document_created" || action === "issue.document_updated") {
-    return { kind: "lucide", Icon: FileText, color: "text-blue-600 dark:text-blue-400" };
+    return { kind: "lucide", Icon: FileText, color: "text-primary" };
   }
 
   // Work product / artifact on issue
@@ -431,7 +431,7 @@ export function FeedCard({
   const iconSpec = getIconSpec(event, details, isActive);
 
   const mutedTextBase = isMuted ? "text-muted-foreground/70" : "text-(--hex-959596)";
-  const mutedTextHover = isMuted ? "" : "group-hover:text-white";
+  const mutedTextHover = isMuted ? "" : "group-hover:text-foreground";
 
   const card = (
     <Card

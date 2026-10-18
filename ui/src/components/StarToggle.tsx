@@ -76,7 +76,7 @@ export function StarToggle({
         title={error ? "Couldn't save — retry" : undefined}
         className={cn(
           error
-            ? "text-red-500 hover:text-red-500"
+            ? "text-destructive hover:text-destructive"
             : starred
               ? "text-amber-600 dark:text-amber-500"
               : undefined,
@@ -88,7 +88,7 @@ export function StarToggle({
             "h-4 w-4",
             pending && "motion-safe:animate-spin",
             !pending && starred && !error && "fill-amber-500 text-amber-500",
-            !pending && error && "text-red-500",
+            !pending && error && "text-destructive",
           )}
         />
       </Button>
@@ -120,7 +120,7 @@ export function StarToggle({
         className={cn(
           "h-3.5 w-3.5",
           pending && "motion-safe:animate-spin",
-          !pending && error && "text-red-500",
+          !pending && error && "text-destructive",
           !pending && !error && starred && "fill-amber-500 text-amber-500",
           !pending && !error && !starred && "text-muted-foreground",
         )}

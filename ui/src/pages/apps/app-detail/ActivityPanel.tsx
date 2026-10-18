@@ -264,7 +264,7 @@ function lower(who: string): string {
 
 function dotColor(event: ToolCallEvent): string {
   if (event.eventType === "call_failed" || event.outcome === "failure" || event.outcome === "timeout") {
-    return "bg-red-400";
+    return "bg-destructive/20";
   }
   if (event.eventType === "call_denied" || event.outcome === "denied") return "bg-amber-400";
   if (event.eventType === "approval_requested") return "bg-amber-400";
@@ -272,7 +272,7 @@ function dotColor(event: ToolCallEvent): string {
 }
 
 function lifecycleDotColor(event: ToolConnectionLifecycleEvent): string {
-  if (event.type === "disconnected") return "bg-red-400";
+  if (event.type === "disconnected") return "bg-destructive/20";
   if (event.type === "app_paused" || event.type === "actions_quarantined") return "bg-amber-400";
   return "bg-emerald-400";
 }

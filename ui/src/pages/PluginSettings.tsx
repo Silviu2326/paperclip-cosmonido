@@ -794,7 +794,7 @@ function PluginLocalFolderRow({ pluginId, companyId, declaration, status }: Plug
         <div
           className={`rounded-md border px-3 py-2 text-sm ${
             message.type === "success"
-              ? "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400"
+              ? "border-green-200 bg-accent text-green-700 dark:border-green-900 dark:bg-accent/30 dark:text-green-400"
               : "border-destructive/20 bg-destructive/10 text-destructive"
           }`}
         >
@@ -894,7 +894,7 @@ function RequirementList({
                 key={item}
                 className={`rounded border px-1.5 py-0.5 font-mono text-(length:--text-micro) ${
                   inspectionUnavailable
-                    ? "border-amber-300/60 bg-amber-50 text-amber-700 dark:border-amber-800/70 dark:bg-amber-950/30 dark:text-amber-300"
+                    ? "border-amber-300/60 bg-muted text-amber-700 dark:border-amber-800/70 dark:bg-muted/30 dark:text-amber-300"
                     : missing
                     ? "border-destructive/30 bg-destructive/10 text-destructive"
                     : "border-border bg-muted/50 text-foreground/80"
@@ -1078,7 +1078,7 @@ function PluginConfigForm({ pluginId, companyId, schema, initialValues, isLoadin
         <div
           className={`text-sm p-2 rounded border ${
             saveMessage.type === "success"
-              ? "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-900"
+              ? "text-green-700 bg-accent border-green-200 dark:text-green-400 dark:bg-accent/30 dark:border-green-900"
               : "text-destructive bg-destructive/10 border-destructive/20"
           }`}
         >
@@ -1090,7 +1090,7 @@ function PluginConfigForm({ pluginId, companyId, schema, initialValues, isLoadin
         <div
           className={`text-sm p-2 rounded border ${
             testResult.type === "success"
-              ? "text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-950/30 dark:border-green-900"
+              ? "text-green-700 bg-accent border-green-200 dark:text-green-400 dark:bg-accent/30 dark:border-green-900"
               : "text-destructive bg-destructive/10 border-destructive/20"
           }`}
         >
@@ -1198,11 +1198,11 @@ function JobStatusDot({ status }: { status: string }) {
     status === "success" || status === "succeeded"
       ? "bg-green-500"
       : status === "failed"
-        ? "bg-red-500"
+        ? "bg-destructive"
         : status === "running"
-          ? "bg-blue-500 animate-pulse"
+          ? "bg-primary animate-pulse"
           : status === "cancelled"
-            ? "bg-gray-400"
+            ? "bg-muted"
             : "bg-amber-500"; // queued, pending
   return (
     <span
@@ -1220,9 +1220,9 @@ function DeliveryStatusDot({ status }: { status: string }) {
     status === "processed" || status === "success"
       ? "bg-green-500"
       : status === "failed"
-        ? "bg-red-500"
+        ? "bg-destructive"
         : status === "received"
-          ? "bg-blue-500"
+          ? "bg-primary"
           : "bg-amber-500"; // pending
   return (
     <span

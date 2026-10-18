@@ -323,7 +323,7 @@ export function PipelineItemBodyDocument({
   } else if (isHistoricalPreview && selectedHistoricalRevision) {
     bodyContent = (
       <div className="space-y-3">
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-3">
+        <div className="rounded-md border border-amber-500/30 bg-muted/5 px-3 py-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">

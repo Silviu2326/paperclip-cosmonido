@@ -1802,8 +1802,8 @@ function ItemVerdictsCard({
                 "min-w-24 justify-center capitalize",
                 verdict === "approve" &&
                   (draft?.verdict === verdict
-                    ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300"
-                    : "border-emerald-500/35 text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"),
+                    ? "border-emerald-500/60 bg-accent/15 text-emerald-700 hover:bg-accent/20 dark:text-emerald-300"
+                    : "border-emerald-500/35 text-emerald-700 hover:bg-accent/10 dark:text-emerald-300"),
                 verdict === "reject" &&
                   (draft?.verdict === verdict
                     ? "border-destructive/60 bg-destructive/15 text-destructive hover:bg-destructive/20"

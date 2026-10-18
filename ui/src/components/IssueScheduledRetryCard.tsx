@@ -79,12 +79,12 @@ export function IssueScheduledRetryCard({
   return (
     <div
       data-testid="issue-scheduled-retry-card"
-      className="mb-3 rounded-lg border border-blue-500/30 bg-blue-500/5 px-3 py-3"
+      className="mb-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-3"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300">
+            <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary">
               <Clock className="h-3 w-3" aria-hidden="true" />
               {badgeLabel}
             </Badge>
@@ -183,7 +183,7 @@ export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProp
   return (
     <div
       className={cn(
-        "mt-2 flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/5 px-2 py-1.5 text-xs text-rose-700 dark:text-rose-300",
+        "mt-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive",
         className,
       )}
       role="alert"
@@ -197,7 +197,7 @@ export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProp
       <button
         type="button"
         onClick={onRetry}
-        className="shrink-0 font-medium text-rose-700 hover:underline dark:text-rose-300"
+        className="shrink-0 font-medium text-destructive hover:underline"
       >
         Try again
       </button>

@@ -1117,7 +1117,7 @@ export function CompanyExport() {
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+        <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
           {warnings.map((w) => (
             <div key={w} className="text-xs text-amber-500">{w}</div>
           ))}
@@ -1126,7 +1126,7 @@ export function CompanyExport() {
 
       {/* Export fidelity: data the bundle will not carry */}
       {fidelityReport && fidelityReport.warnings.length > 0 && (
-        <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+        <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
           <h3 className="mb-1.5 text-xs font-medium">Not included in this export</h3>
           {fidelityReport.warnings.map((warning) => (
             <div

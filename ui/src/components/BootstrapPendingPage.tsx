@@ -94,7 +94,7 @@ export function BootstrapPendingPage({
     return (
       <StateChrome>
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <div className="mt-0.5 flex size-9 flex-shrink-0 items-center justify-center rounded-full bg-accent/15 text-emerald-600 dark:text-emerald-400">
             <ShieldCheck className="size-5" aria-hidden />
           </div>
           <div>

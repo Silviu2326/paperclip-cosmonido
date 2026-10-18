@@ -231,11 +231,11 @@ function runStatusClass(status: string) {
       return "text-green-700 dark:text-green-300";
     case "failed":
     case "error":
-      return "text-red-700 dark:text-red-300";
+      return "text-destructive";
     case "timed_out":
       return "text-orange-700 dark:text-orange-300";
     case "running":
-      return "text-blue-700 dark:text-blue-300";
+      return "text-primary";
     case "queued":
     case "pending":
       return "text-amber-700 dark:text-amber-300";
@@ -264,7 +264,7 @@ function CopyMarkdownButton({ text }: { text: string }) {
       className={cn(
         "inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors",
         status === "copied"
-          ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
+          ? "bg-accent text-green-700 dark:bg-accent/15 dark:text-green-300"
           : status === "failed"
             ? "bg-destructive/10 text-destructive"
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
@@ -336,7 +336,7 @@ function CommentCard({
       id={`comment-${comment.id}`}
       className={`border p-3 overflow-hidden min-w-0 rounded-sm transition-colors duration-1000 ${
         isQueued
-          ? "border-amber-300/70 bg-amber-50/70 dark:border-amber-500/40 dark:bg-amber-500/10"
+          ? "border-amber-300/70 bg-muted/70 dark:border-amber-500/40 dark:bg-muted/10"
           : isHighlighted && !isDeleted
             ? "border-primary/50 bg-primary/5"
             : "border-border"
@@ -355,7 +355,7 @@ function CommentCard({
         )}
         <span className="flex items-center gap-1.5">
           {isQueued ? (
-            <Badge variant="outline" className="border-amber-400/60 bg-amber-100/70 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:border-amber-400/40 dark:bg-amber-500/20 dark:text-amber-200">
+            <Badge variant="outline" className="border-amber-400/60 bg-muted/70 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:border-amber-400/40 dark:bg-muted/20 dark:text-amber-200">
               Queued
             </Badge>
           ) : null}
@@ -992,7 +992,7 @@ export function CommentThread({
               <Button
                 size="sm"
                 variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+                className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive/40 dark:hover:bg-destructive/10"
                 disabled={interruptingQueuedRunId === queuedComments[0].queueTargetRunId}
                 onClick={() => void onInterruptQueued(queuedComments[0]!.queueTargetRunId!)}
               >
@@ -1018,7 +1018,7 @@ export function CommentThread({
       )}
 
       {composerDisabledReason ? (
-        <div className="rounded-md border border-amber-300/70 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+        <div className="rounded-md border border-amber-300/70 bg-muted/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100">
           {composerDisabledReason}
         </div>
       ) : (

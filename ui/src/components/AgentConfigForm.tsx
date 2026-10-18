@@ -1534,7 +1534,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                     }}
                   />
                 </Field>
-                <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
+                <div className="rounded-md border border-amber-500/25 bg-muted/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
                   Prompt template is replayed on every heartbeat. Keep it compact and dynamic to avoid recurring token cost and cache churn.
                 </div>
               </>
@@ -1563,7 +1563,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                   {kubernetesEnvironment.name} · Kubernetes sandbox
                 </div>
               ) : (
-                <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                <div className="rounded-md border border-amber-500/25 bg-muted/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
                   This instance requires the Kubernetes sandbox, but no managed Kubernetes
                   environment is available for this organization yet. Configure one before creating
                   agents; execution will not fall back to local.
@@ -1890,7 +1890,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                       }}
                     />
                   </Field>
-                  <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                  <div className="rounded-md border border-amber-500/25 bg-muted/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
                     Bootstrap prompt is legacy and will be removed in a future release. Consider moving this content into the agent&apos;s prompt template or instructions file instead.
                   </div>
                 </>
@@ -3565,7 +3565,7 @@ function SubmittedBrowserCodeLoginPanel({
           <div className="space-y-2">
             {transportInsecure && (
               <div
-                className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-(length:--text-micro) text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+                className="flex items-start gap-2 rounded-md border border-amber-300 bg-muted px-2 py-1.5 text-(length:--text-micro) text-amber-800 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-200"
               >
                 <TriangleAlert className="size-3 shrink-0 mt-0.5" />
                 <span>
@@ -3673,10 +3673,10 @@ export function AdapterEnvironmentResult({ result }: { result: AdapterEnvironmen
     result.status === "pass" ? "Passed" : result.status === "warn" ? "Warnings" : "Failed";
   const statusClass =
     result.status === "pass"
-      ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10"
+      ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-accent dark:bg-accent/10"
       : result.status === "warn"
-        ? "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10"
-        : "text-red-700 dark:text-red-300 border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10";
+        ? "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40 bg-muted dark:bg-muted/10"
+        : "text-destructive border-destructive dark:border-destructive/40 bg-destructive/10";
 
   return (
     <div className={`rounded-md border px-3 py-2 text-xs ${statusClass}`}>
@@ -3740,7 +3740,7 @@ export function AdapterTypeDropdown({
 
 function ExperimentalBadge() {
   return (
-    <span className="shrink-0 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium leading-none text-amber-700 dark:text-amber-200">
+    <span className="shrink-0 rounded border border-amber-500/30 bg-muted/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium leading-none text-amber-700 dark:text-amber-200">
       Experimental
     </span>
   );
@@ -3983,7 +3983,7 @@ export function ModelDropdown({
               <span className="block w-full text-left truncate font-mono text-xs" title={value}>
                 {models.find((m) => m.id === value)?.label ?? value}
               </span>
-              <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-green-500/15 text-green-400 border-green-500/20">
+              <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-accent/15 text-green-400 border-green-500/20">
                 current
               </Badge>
             </button>
@@ -4003,7 +4003,7 @@ export function ModelDropdown({
               <span className="block w-full text-left truncate font-mono text-xs" title={detectedModel}>
                 {models.find((m) => m.id === detectedModel)?.label ?? detectedModel}
               </span>
-              <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-blue-500/15 text-blue-400 border-blue-500/20">
+              <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-primary/15 text-primary border-primary/20">
                 detected
               </Badge>
             </button>
@@ -4028,7 +4028,7 @@ export function ModelDropdown({
                   <span className="block w-full text-left truncate font-mono text-xs" title={candidate}>
                     {entry?.label ?? candidate}
                   </span>
-                  <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-sky-500/15 text-sky-400 border-sky-500/20">
+                  <Badge variant="outline" className="ml-auto text-(length:--text-nano) px-1.5 bg-secondary/15 text-sky-400 border-sky-500/20">
                     config
                   </Badge>
                 </button>

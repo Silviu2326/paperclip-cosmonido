@@ -191,9 +191,9 @@ export function Companies() {
                       <Badge variant="ghost"
                         className={`text-(length:--text-micro) ${
                           company.status === "active"
-                            ? "bg-green-500/10 text-green-600 dark:text-green-400"
+                            ? "bg-accent/10 text-green-600 dark:text-green-400"
                             : company.status === "paused"
-                              ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                              ? "bg-muted/10 text-yellow-600 dark:text-yellow-400"
                               : "bg-muted text-muted-foreground"
                         }`}
                       >

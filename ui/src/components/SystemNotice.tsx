@@ -62,8 +62,8 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
   },
   info: {
     container:
-      "border-sky-300/70 bg-sky-50/70 dark:border-sky-500/30 dark:bg-sky-500/10",
-    iconWrap: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-200",
+      "border-sky-300/70 bg-secondary/70 dark:border-sky-500/30 dark:bg-secondary/10",
+    iconWrap: "bg-secondary text-sky-700 dark:bg-secondary/20 dark:text-sky-200",
     icon: Info,
     iconClass: "text-sky-700 dark:text-sky-300",
     label: "text-sky-800 dark:text-sky-200",
@@ -71,8 +71,8 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
   },
   success: {
     container:
-      "border-emerald-300/70 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-500/10",
-    iconWrap: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
+      "border-emerald-300/70 bg-accent/70 dark:border-emerald-500/30 dark:bg-accent/10",
+    iconWrap: "bg-accent text-emerald-700 dark:bg-accent/20 dark:text-emerald-200",
     icon: CircleCheck,
     iconClass: "text-emerald-700 dark:text-emerald-300",
     label: "text-emerald-800 dark:text-emerald-200",
@@ -80,8 +80,8 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
   },
   warning: {
     container:
-      "border-amber-300/70 bg-amber-50/80 dark:border-amber-500/30 dark:bg-amber-500/10",
-    iconWrap: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200",
+      "border-amber-300/70 bg-muted/80 dark:border-amber-500/30 dark:bg-muted/10",
+    iconWrap: "bg-muted text-amber-800 dark:bg-muted/20 dark:text-amber-200",
     icon: TriangleAlert,
     iconClass: "text-amber-700 dark:text-amber-300",
     label: "text-amber-900 dark:text-amber-200",
@@ -89,12 +89,12 @@ const TONE_TOKENS: Record<SystemNoticeTone, ToneTokens> = {
   },
   danger: {
     container:
-      "border-red-400/60 bg-red-50/80 dark:border-red-500/35 dark:bg-red-500/10",
-    iconWrap: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200",
+      "border-destructive/60 bg-destructive/80 dark:border-destructive/35 dark:bg-destructive/10",
+    iconWrap: "bg-destructive/10 text-destructive dark:bg-destructive/20",
     icon: OctagonAlert,
-    iconClass: "text-red-700 dark:text-red-300",
-    label: "text-red-900 dark:text-red-200",
-    divider: "border-red-400/50 dark:border-red-500/30",
+    iconClass: "text-destructive",
+    label: "text-destructive",
+    divider: "border-destructive/50 dark:border-destructive/30",
   },
 };
 

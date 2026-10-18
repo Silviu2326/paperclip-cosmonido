@@ -128,7 +128,7 @@ export function TrustPresetSection({
             className={cn(
               "rounded-md border px-3 py-2.5 text-sm flex gap-2",
               hasScope
-                ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-100"
+                ? "border-amber-500/30 bg-muted/10 text-amber-700 dark:text-amber-100"
                 : "border-destructive/30 bg-destructive/10 text-destructive",
             )}
           >

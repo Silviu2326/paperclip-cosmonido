@@ -463,8 +463,8 @@ describe("IssueRunLedger", () => {
     const watchdogBanner = Array.from(container.querySelectorAll("p"))
       .find((node) => node.textContent?.includes("Critical output silence"))
       ?.closest("div");
-    expect(watchdogBanner?.className).toContain("border-red-500/30");
-    expect(watchdogBanner?.className).toContain("bg-red-500/10");
+    expect(watchdogBanner?.className).toContain("border-destructive/30");
+    expect(watchdogBanner?.className).toContain("bg-destructive/10");
 
     const continueButton = Array.from(container.querySelectorAll("button")).find(
       (button) => button.textContent?.includes("Continue monitoring"),

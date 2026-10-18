@@ -210,7 +210,7 @@ export function ReconnectCard({
   const methodUnavailable = connectionMethodUnavailable(connection, galleryEntry);
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3">
+    <div className="flex flex-col gap-4 rounded-lg border border-amber-500/50 bg-muted/10 px-4 py-3">
       <div className="min-w-0">
         <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
           {methodUnavailable ? "Connection no longer supported" : oauth ? "Reconnect required" : "This app needs reconnecting"}

@@ -130,8 +130,8 @@ function ensureMarkdownPath(p: string): string {
 const ACTION_COLORS: Record<string, string> = {
   create: "text-emerald-500 border-emerald-500/30",
   update: "text-amber-500 border-amber-500/30",
-  overwrite: "text-red-500 border-red-500/30",
-  replace: "text-red-500 border-red-500/30",
+  overwrite: "text-destructive border-destructive/30",
+  replace: "text-destructive border-destructive/30",
   skip: "text-muted-foreground border-border",
   none: "text-muted-foreground border-border",
 };
@@ -475,7 +475,7 @@ function ConflictResolutionList({
                 className={cn(
                   "flex items-center gap-3 px-4 py-2.5 text-sm",
                   isSkipped && "opacity-40",
-                  isConfirmed && !isSkipped && "bg-emerald-500/5",
+                  isConfirmed && !isSkipped && "bg-accent/5",
                 )}
               >
                 {/* Skip button on the left */}
@@ -534,7 +534,7 @@ function ConflictResolutionList({
                     className={cn(
                       "ml-auto shrink-0 rounded-md border px-2.5 py-1 text-xs transition-colors inline-flex items-center gap-1.5",
                       isConfirmed
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                        ? "border-emerald-500/30 bg-accent/10 text-emerald-500"
                         : "border-border text-muted-foreground hover:bg-accent/50",
                     )}
                     onClick={() => onToggleConfirm(item.slug)}
@@ -683,7 +683,7 @@ function AdapterPickerList({
                 <div className="flex items-center gap-3 px-4 py-2.5 text-sm">
                   <Badge variant="outline" className={cn(
                     "text-(length:--text-nano) uppercase tracking-wide",
-                    "text-blue-500 border-blue-500/30",
+                    "text-primary border-primary/30",
                   )}>
                     agent
                   </Badge>
@@ -720,7 +720,7 @@ function AdapterPickerList({
                   </button>
                 </div>
                 {agent.fallbackAdapterType && (
-                  <div className="mx-4 mb-2.5 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2">
+                  <div className="mx-4 mb-2.5 rounded-md border border-amber-500/30 bg-muted/5 px-3 py-2">
                     <p className="text-xs text-amber-500">
                       source adapter {agent.adapterChoice === "openai_dot" ? "OpenAI Dot" : agent.adapterType} is not installed here — this agent
                       will use {adapterLabels[selectedType] ?? getAdapterLabel(selectedType)}
@@ -1861,7 +1861,7 @@ export function CompanyImport() {
         )}
 
         {result.warnings.length > 0 && (
-          <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+          <div className="rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
             {result.warnings.map((w) => (
               <div key={w} className="text-xs text-amber-500">{w}</div>
             ))}
@@ -1890,7 +1890,7 @@ export function CompanyImport() {
                     <Badge variant="outline" className={cn(
                       "text-(length:--text-nano) uppercase tracking-wide",
                       item.kind === "agent"
-                        ? "text-blue-500 border-blue-500/30"
+                        ? "text-primary border-primary/30"
                         : "text-purple-500 border-purple-500/30",
                     )}>
                       {item.kind}
@@ -2260,7 +2260,7 @@ export function CompanyImport() {
 
           {/* Warnings */}
           {importPreview.warnings.length > 0 && (
-            <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+            <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-muted/5 px-4 py-3">
               {importPreview.warnings.map((w) => (
                 <div key={w} className="text-xs text-amber-500">{w}</div>
               ))}

@@ -83,13 +83,13 @@ export function isSuccessfulRunHandoffEscalationComment(text: string) {
 export function successfulRunHandoffActivityTone(action: string) {
   if (action === SUCCESSFUL_RUN_HANDOFF_ESCALATED_ACTION) {
     return {
-      className: "border-red-500/35 bg-red-500/10 text-red-950 dark:text-red-100",
-      iconClassName: "text-red-600 dark:text-red-300",
+      className: "border-destructive/35 bg-destructive/10 text-destructive",
+      iconClassName: "text-destructive",
     };
   }
   if (action === SUCCESSFUL_RUN_HANDOFF_REQUIRED_ACTION) {
     return {
-      className: "border-amber-300/70 bg-amber-50/90 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100",
+      className: "border-amber-300/70 bg-muted/90 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100",
       iconClassName: "text-amber-600 dark:text-amber-300",
     };
   }

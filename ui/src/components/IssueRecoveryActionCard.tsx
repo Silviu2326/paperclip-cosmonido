@@ -173,8 +173,8 @@ const STATE_TONE: Record<RecoveryCardCardState, {
   needed: {
     label: "RECOVERY NEEDED",
     containerClass:
-      "border-amber-300/70 bg-amber-50/85 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100",
-    iconWrapClass: "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200",
+      "border-amber-300/70 bg-muted/85 text-amber-950 dark:border-amber-500/40 dark:bg-muted/10 dark:text-amber-100",
+    iconWrapClass: "bg-muted text-amber-800 dark:bg-muted/20 dark:text-amber-200",
     iconClass: "text-amber-700 dark:text-amber-300",
     labelClass: "text-amber-900 dark:text-amber-200",
     Icon: TriangleAlert,
@@ -183,8 +183,8 @@ const STATE_TONE: Record<RecoveryCardCardState, {
   in_progress: {
     label: "RECOVERY IN PROGRESS",
     containerClass:
-      "border-sky-300/70 bg-sky-50/80 text-sky-950 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-100",
-    iconWrapClass: "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-200",
+      "border-sky-300/70 bg-secondary/80 text-sky-950 dark:border-sky-500/40 dark:bg-secondary/10 dark:text-sky-100",
+    iconWrapClass: "bg-secondary text-sky-800 dark:bg-secondary/20 dark:text-sky-200",
     iconClass: "text-sky-700 dark:text-sky-300",
     labelClass: "text-sky-900 dark:text-sky-200",
     Icon: RefreshCw,
@@ -203,18 +203,18 @@ const STATE_TONE: Record<RecoveryCardCardState, {
   escalated: {
     label: "RECOVERY ESCALATED",
     containerClass:
-      "border-red-400/60 bg-red-50/85 text-red-950 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100",
-    iconWrapClass: "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200",
-    iconClass: "text-red-700 dark:text-red-300",
-    labelClass: "text-red-900 dark:text-red-200",
+      "border-destructive/60 bg-destructive/85 text-destructive dark:border-destructive/40 dark:bg-destructive/10",
+    iconWrapClass: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+    iconClass: "text-destructive",
+    labelClass: "text-destructive",
     Icon: OctagonAlert,
-    divider: "border-red-400/50 dark:border-red-500/30",
+    divider: "border-destructive/50 dark:border-destructive/30",
   },
   resolved: {
     label: "RECOVERY RESOLVED",
     containerClass:
-      "border-emerald-300/70 bg-emerald-50/80 text-emerald-950 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-100",
-    iconWrapClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200",
+      "border-emerald-300/70 bg-accent/80 text-emerald-950 dark:border-emerald-500/40 dark:bg-accent/10 dark:text-emerald-100",
+    iconWrapClass: "bg-accent text-emerald-800 dark:bg-accent/20 dark:text-emerald-200",
     iconClass: "text-emerald-700 dark:text-emerald-300",
     labelClass: "text-emerald-900 dark:text-emerald-200",
     Icon: Sparkles,
@@ -398,11 +398,11 @@ const ANCESTRY_BADGE: Record<
 > = {
   ancestor: {
     label: "Forward-only",
-    className: "border-emerald-400/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    className: "border-emerald-400/50 bg-accent/10 text-emerald-700 dark:text-emerald-300",
   },
   diverged: {
     label: "Diverged",
-    className: "border-red-400/50 bg-red-500/10 text-red-700 dark:text-red-300",
+    className: "border-destructive/50 bg-destructive/10 text-destructive",
   },
   unknown: {
     label: "Ancestry unknown",
@@ -488,7 +488,7 @@ function DivergenceDiagnosis({
       {divergence.contention ? (
         <p
           data-testid="recovery-contention-notice"
-          className="flex items-start gap-1.5 rounded-md border border-amber-400/40 bg-amber-500/5 px-2.5 py-1.5 text-xs leading-5 text-amber-900 dark:text-amber-200"
+          className="flex items-start gap-1.5 rounded-md border border-amber-400/40 bg-muted/5 px-2.5 py-1.5 text-xs leading-5 text-amber-900 dark:text-amber-200"
         >
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
           <span>
@@ -541,7 +541,7 @@ function BreakGlassOverride({
           variant="outline"
           disabled={pending}
           data-testid="recovery-action-breakglass-trigger"
-          className="border-red-400/60 text-red-700 hover:bg-red-500/10 dark:border-red-500/40 dark:text-red-300"
+          className="border-destructive/60 text-destructive hover:bg-destructive/10 dark:border-destructive/40"
         >
           <OctagonAlert className="h-3.5 w-3.5" aria-hidden />
           I&apos;ve verified this — reconcile anyway
@@ -556,7 +556,7 @@ function BreakGlassOverride({
         <div className="space-y-1">
           <div
             id="recovery-breakglass-title"
-            className="flex items-center gap-1.5 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-red-700 dark:text-red-300"
+            className="flex items-center gap-1.5 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-destructive"
           >
             <OctagonAlert className="h-3.5 w-3.5" aria-hidden />
             Break-glass reconciliation
@@ -570,7 +570,7 @@ function BreakGlassOverride({
         </div>
         <dl
           data-testid="recovery-breakglass-restated-divergence"
-          className="space-y-1.5 rounded-md border border-red-400/40 bg-red-500/5 px-2.5 py-2 text-(length:--text-micro)"
+          className="space-y-1.5 rounded-md border border-destructive/40 bg-destructive/5 px-2.5 py-2 text-(length:--text-micro)"
         >
           <div className="flex items-center justify-between gap-2">
             <dt className="shrink-0 text-muted-foreground">Recorded · expected</dt>
@@ -593,7 +593,7 @@ function BreakGlassOverride({
         </dl>
         <div className="space-y-1">
           <Label htmlFor="recovery-breakglass-reason" className="text-(length:--text-micro) text-muted-foreground">
-            Reason <span className="text-red-600 dark:text-red-400">(required — recorded in the audit log)</span>
+            Reason <span className="text-destructive">(required — recorded in the audit log)</span>
           </Label>
           <Textarea
             id="recovery-breakglass-reason"
@@ -657,7 +657,7 @@ function RepairWorkspace({
       variant="outline"
       disabled={pending || disabled}
       data-testid="recovery-action-repair-trigger"
-      className="border-sky-400/50 text-sky-700 hover:bg-sky-500/10 dark:border-sky-500/40 dark:text-sky-300"
+      className="border-sky-400/50 text-sky-700 hover:bg-secondary/10 dark:border-sky-500/40 dark:text-sky-300"
     >
       {pending ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -706,7 +706,7 @@ function RepairWorkspace({
         </div>
         <dl
           data-testid="recovery-repair-restated"
-          className="space-y-1.5 rounded-md border border-sky-400/30 bg-sky-500/5 px-2.5 py-2 text-(length:--text-micro)"
+          className="space-y-1.5 rounded-md border border-sky-400/30 bg-secondary/5 px-2.5 py-2 text-(length:--text-micro)"
         >
           <div className="flex items-center justify-between gap-2">
             <dt className="shrink-0 text-muted-foreground">Dirty changes</dt>

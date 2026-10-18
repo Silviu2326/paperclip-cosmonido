@@ -146,7 +146,7 @@ export function ResponsibleUserDenialUxLab() {
         >
           <BeforeAfter label="Before — generic failure text">
             <div className="text-xs">
-              <span className="text-red-600 dark:text-red-400">
+              <span className="text-destructive">
                 Forbidden: action not permitted
               </span>
               <span className="ml-1 text-muted-foreground">(RESPONSIBLE_USER_UNAUTHORIZED)</span>
@@ -166,7 +166,7 @@ export function ResponsibleUserDenialUxLab() {
         >
           <BeforeAfter label="Agent-lacks-permission failure">
             <div className="text-xs">
-              <span className="text-red-600 dark:text-red-400">
+              <span className="text-destructive">
                 Forbidden: agent is not permitted to perform this action
               </span>
               <span className="ml-1 text-muted-foreground">(deny_missing_membership)</span>
@@ -185,7 +185,7 @@ export function ResponsibleUserDenialUxLab() {
         >
           <BeforeAfter label="Before — generic failure text">
             <div className="text-xs">
-              <span className="text-red-600 dark:text-red-400">
+              <span className="text-destructive">
                 Forbidden: responsible user unavailable
               </span>
               <span className="ml-1 text-muted-foreground">(RESPONSIBLE_USER_UNAVAILABLE)</span>

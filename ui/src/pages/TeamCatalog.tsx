@@ -294,7 +294,7 @@ const COMPAT_META: Record<
 > = {
   compatible: { label: "Compatible", tone: "text-emerald-600 dark:text-emerald-300 border-emerald-500/30" },
   unknown: { label: "Unknown compat", tone: "text-muted-foreground border-border" },
-  invalid: { label: "Invalid", tone: "text-rose-600 dark:text-rose-300 border-rose-500/30" },
+  invalid: { label: "Invalid", tone: "text-destructive border-destructive/30" },
 };
 
 function CompatChip({ compatibility }: { compatibility: CatalogTeamCompatibility }) {
@@ -335,7 +335,7 @@ function RiskBanner({ team }: { team: CatalogTeam }) {
   return (
     <div
       role="alert"
-      className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-amber-700 dark:text-amber-300"
+      className="rounded-md border border-amber-500/30 bg-muted/10 px-3 py-2.5 text-amber-700 dark:text-amber-300"
     >
       <div className="flex items-center gap-2 text-sm font-medium">
         <AlertTriangle className="h-4 w-4" />
@@ -603,7 +603,7 @@ export function EnvInputsList({ inputs }: { inputs: CatalogTeamEnvInputSummary[]
               className={cn(
                 "ml-auto text-(length:--text-nano)",
                 input.kind === "secret"
-                  ? "text-rose-600 dark:text-rose-300 border-rose-500/30"
+                  ? "text-destructive border-destructive/30"
                   : "text-muted-foreground",
               )}
             >
@@ -656,7 +656,7 @@ export function ExternalSourcesList({ sources }: { sources: CatalogTeamSourceRef
                     <span className="text-amber-600 dark:text-amber-300">Unpinned</span>
                   )}
                   {code === "unsupported_in_ui" && (
-                    <span className="text-rose-600 dark:text-rose-300">Unsupported in browser install</span>
+                    <span className="text-destructive">Unsupported in browser install</span>
                   )}
                 </span>
               </li>
@@ -742,7 +742,7 @@ export function TeamDetailPane({
               {outOfDate && (
                 <Badge
                   variant="outline"
-                  className="gap-1 border-amber-500/40 bg-amber-500/10 text-(length:--text-nano) text-amber-600 dark:text-amber-300"
+                  className="gap-1 border-amber-500/40 bg-muted/10 text-(length:--text-nano) text-amber-600 dark:text-amber-300"
                 >
                   <ChevronUp className="h-3 w-3" /> Update available
                 </Badge>
@@ -1366,7 +1366,7 @@ export function TeamInstallerDialog({
         {phase === "done" && <ApplySuccess team={team} result={installResult} onClose={onClose} />}
         {phase === "error" && (
           <div className="space-y-3">
-            <div role="alert" className="flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-700 dark:text-rose-300">
+            <div role="alert" className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
               <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
                 <p className="font-medium">Install failed</p>
@@ -1393,17 +1393,17 @@ export function TeamInstallerDialog({
         </div>
         <div className="flex items-center gap-3">
           {currentStep === "preview" && hasErrors && (
-            <span className="text-xs text-rose-600 dark:text-rose-300">
+            <span className="text-xs text-destructive">
               Install blocked: {blockedCount} error{blockedCount === 1 ? "" : "s"}
             </span>
           )}
           {currentStep === "preview" && !hasErrors && missingRequiredSecretCount > 0 && (
-            <span className="text-xs text-rose-600 dark:text-rose-300">
+            <span className="text-xs text-destructive">
               Required secrets missing: {missingRequiredSecretCount}
             </span>
           )}
           {currentStep === "preview" && !hasErrors && missingRequiredSecretCount === 0 && missingEnabledAdapter && (
-            <span className="text-xs text-rose-600 dark:text-rose-300">
+            <span className="text-xs text-destructive">
               Enable a legacy adapter to install this team
             </span>
           )}
@@ -1482,7 +1482,7 @@ export function StepTargetManager({
   return (
     <div className="space-y-4">
       <div
-        className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2.5 text-sm text-blue-700 dark:text-blue-300"
+        className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2.5 text-sm text-primary"
         id="target-manager-help"
       >
         This team&apos;s root agents need a manager in your organization. Pick the agent who will become
@@ -1563,7 +1563,7 @@ export function StepSourcePolicy({
   const hasUnsupported = external.some((s) => sourceWarningCode(s) === "unsupported_in_ui");
   return (
     <div className="space-y-4">
-      <div role="alert" className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-300">
+      <div role="alert" className="rounded-md border border-amber-500/30 bg-muted/10 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-300">
         This team references {external.length} external source{external.length === 1 ? "" : "s"}.
         Review each one and decide what to allow before continuing.
       </div>
@@ -1588,7 +1588,7 @@ export function StepSourcePolicy({
                 className={cn(
                   "ml-auto text-(length:--text-nano)",
                   code === "unsupported_in_ui"
-                    ? "text-rose-600 dark:text-rose-300 border-rose-500/30"
+                    ? "text-destructive border-destructive/30"
                     : code === "unpinned"
                       ? "text-amber-600 dark:text-amber-300 border-amber-500/30"
                       : "text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
@@ -1623,7 +1623,7 @@ export function StepSourcePolicy({
       </div>
 
       {hasUnsupported && !allowLocalPathSources && (
-        <p className="text-xs text-rose-600 dark:text-rose-300">
+        <p className="text-xs text-destructive">
           This team has local-path sources. Enable &ldquo;Allow local-path sources&rdquo; to continue,
           or install it from the CLI.
         </p>
@@ -1659,9 +1659,9 @@ const SKILL_ACTION_META: Record<
   { label: string; tone: string }
 > = {
   already_in_package: { label: "Bundled in package", tone: "text-emerald-600 dark:text-emerald-300 border-emerald-500/30" },
-  catalog_install_required: { label: "Will install from catalog", tone: "text-blue-600 dark:text-blue-300 border-blue-500/30" },
+  catalog_install_required: { label: "Will install from catalog", tone: "text-primary border-primary/30" },
   external_import_required: { label: "Will import from source", tone: "text-amber-600 dark:text-amber-300 border-amber-500/30" },
-  blocked: { label: "Blocked", tone: "text-rose-600 dark:text-rose-300 border-rose-500/30" },
+  blocked: { label: "Blocked", tone: "text-destructive border-destructive/30" },
 };
 
 export function StepSkillPlan({
@@ -1676,7 +1676,7 @@ export function StepSkillPlan({
   // per-skill plan override, design §7 graceful degradation).
   return (
     <div className="space-y-4">
-      <div role="alert" className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2.5 text-sm text-blue-700 dark:text-blue-300">
+      <div role="alert" className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2.5 text-sm text-primary">
         Before agents are imported, the catalog resolves the skills they depend on. This is the
         resolution plan.
       </div>
@@ -1809,7 +1809,7 @@ export function StepPreview({
   if (error) {
     return (
       <div className="space-y-3">
-        <div role="alert" className="flex items-start gap-2 rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-700 dark:text-rose-300">
+        <div role="alert" className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
           <XOctagon className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
@@ -1855,7 +1855,7 @@ export function StepPreview({
 
       {/* Errors / warnings */}
       {result.errors.length > 0 && (
-        <div role="alert" className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-700 dark:text-rose-300">
+        <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
           <p className="font-medium">Install blocked</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs">
             {result.errors.map((e, i) => <li key={i}>{e}</li>)}
@@ -1863,7 +1863,7 @@ export function StepPreview({
         </div>
       )}
       {result.warnings.length > 0 && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-700 dark:text-amber-300">
+        <div className="rounded-md border border-amber-500/30 bg-muted/10 px-3 py-2.5 text-xs text-amber-700 dark:text-amber-300">
           <ul className="list-disc space-y-0.5 pl-4">
             {result.warnings.map((w, i) => <li key={i}>{w}</li>)}
           </ul>
@@ -1940,7 +1940,7 @@ export function StepPreview({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <span className="ml-auto text-xs text-rose-600 dark:text-rose-300">
+                  <span className="ml-auto text-xs text-destructive">
                     No enabled legacy adapter
                   </span>
                 )}
@@ -1972,7 +1972,7 @@ export function StepPreview({
                   )}
                   <Badge
                     variant="outline"
-                    className={cn("ml-auto text-(length:--text-nano)", input.kind === "secret" ? "text-rose-600 dark:text-rose-300 border-rose-500/30" : "text-muted-foreground")}
+                    className={cn("ml-auto text-(length:--text-nano)", input.kind === "secret" ? "text-destructive border-destructive/30" : "text-muted-foreground")}
                   >
                     {input.kind}
                   </Badge>
@@ -1985,7 +1985,7 @@ export function StepPreview({
                     placeholder={input.requirement === "required" ? "Required" : "Optional"}
                     aria-label={`${input.key} value`}
                     aria-invalid={missingRequired || undefined}
-                    className={cn("h-8 min-w-0", missingRequired && "border-rose-500/60 focus-visible:ring-rose-500/30")}
+                    className={cn("h-8 min-w-0", missingRequired && "border-destructive/60 focus-visible:ring-destructive/30")}
                   />
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -2097,7 +2097,7 @@ export function ApplySuccess({
         </ul>
       )}
       {warnings.length > 0 && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+        <div className="rounded-md border border-amber-500/30 bg-muted/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           <ul className="list-disc space-y-0.5 pl-4">
             {warnings.map((w, i) => <li key={i}>{w}</li>)}
           </ul>
@@ -2152,7 +2152,7 @@ export function TeamRow({
             <TooltipTrigger asChild>
               <span
                 aria-label="Update available"
-                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300"
+                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-muted/10 text-amber-600 dark:text-amber-300"
               >
                 <ChevronUp className="h-3 w-3" />
               </span>
@@ -2163,7 +2163,7 @@ export function TeamRow({
         {risk !== "safe" && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <AlertTriangle className={cn("ml-auto h-3.5 w-3.5", risk === "blocked" ? "text-rose-500" : "text-amber-500")} />
+              <AlertTriangle className={cn("ml-auto h-3.5 w-3.5", risk === "blocked" ? "text-destructive" : "text-amber-500")} />
             </TooltipTrigger>
             <TooltipContent>Has external sources</TooltipContent>
           </Tooltip>
@@ -2499,7 +2499,7 @@ export function TeamCatalog() {
             </div>
           ) : catalogQuery.isError ? (
             <div className="p-4">
-              <div role="alert" className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-700 dark:text-rose-300">
+              <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
                 Failed to load team catalog.
               </div>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => catalogQuery.refetch()}>

@@ -487,7 +487,7 @@ function CommandSection({
                     <Badge variant="outline" className={cn(
                       "px-2.5 py-1 text-(length:--text-micro)",
                       item.healthStatus === "healthy"
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        ? "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300"
                         : item.healthStatus === "unhealthy"
                           ? "border-destructive/30 bg-destructive/10 text-destructive"
                           : "border-border text-muted-foreground",
@@ -531,7 +531,7 @@ export function WorkspaceRuntimeControls({
               className={cn(
                 "gap-1.5 px-2.5 py-1",
                 runningCount > 0
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  ? "border-emerald-500/30 bg-accent/10 text-emerald-700 dark:text-emerald-300"
                   : "border-border bg-background text-muted-foreground",
               )}
             >

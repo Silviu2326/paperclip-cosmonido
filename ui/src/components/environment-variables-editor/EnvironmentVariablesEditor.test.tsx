@@ -323,7 +323,7 @@ describe("EnvironmentVariablesEditor", () => {
     const save = saveButton();
     const revert = [...container.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.trim() === "Revert")!;
 
-    expect(unsavedBar?.className).toContain("bg-amber-500/10");
+    expect(unsavedBar?.className).toContain("bg-muted/10");
     expect(valueCell?.className).toContain("border-amber-500/70");
     expect(save.className).toContain("h-9");
     expect(save.className).toContain("px-4");
