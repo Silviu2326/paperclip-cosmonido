@@ -2,11 +2,11 @@
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { PaperclipLoading } from "./AnimatedPaperclipIcon";
+import { RobotLoading } from "./RobotLoading";
 
-describe("PaperclipLoading", () => {
+describe("RobotLoading", () => {
   it("renders an accessible full-page loading state", () => {
-    const html = renderToStaticMarkup(<PaperclipLoading />);
+    const html = renderToStaticMarkup(<RobotLoading />);
 
     expect(html).toContain('role="status"');
     expect(html).toContain("min-h-dvh");
@@ -15,7 +15,7 @@ describe("PaperclipLoading", () => {
   });
 
   it("allows containing layouts to override the full-page height", () => {
-    const html = renderToStaticMarkup(<PaperclipLoading className="min-h-0" />);
+    const html = renderToStaticMarkup(<RobotLoading className="min-h-0" />);
 
     expect(html).toContain("min-h-0");
     expect(html).not.toContain("min-h-dvh");

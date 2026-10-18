@@ -10,7 +10,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { getRememberedInvitePath } from "../lib/invite-memory";
 import { Button } from "@/components/ui/button";
 import { AsciiArtAnimation } from "@/components/AsciiArtAnimation";
-import { PaperclipLoading } from "@/components/AnimatedPaperclipIcon";
+import { RobotLoading } from "@/components/RobotLoading";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PaperclipLockup } from "../components/PaperclipLockup";
 import { useTranslation } from "@/i18n";
@@ -87,7 +87,7 @@ export function AuthPage() {
   if (healthQuery.isLoading || isSessionLoading || session) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <PaperclipLoading className="min-h-0" />
+        <RobotLoading className="min-h-0" />
       </div>
     );
   }
