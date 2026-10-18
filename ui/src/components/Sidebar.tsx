@@ -170,7 +170,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
           <>
             {/* Compact brand header: the real Cosmonido mark and the heading face. */}
             <div className="flex h-12 shrink-0 items-center gap-2 px-4">
-              <img src="/brand/cosmonido-logo-v1.png" alt="" height={28} className="h-7 w-auto shrink-0" />
+              <img src="/brand/logo.webp" alt="" width={45} height={28} className="h-7 w-auto shrink-0" />
               {rail ? null : (
                 <span
                   className="min-w-0 truncate text-base font-semibold text-foreground"
