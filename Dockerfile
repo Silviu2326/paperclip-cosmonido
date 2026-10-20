@@ -152,10 +152,15 @@ RUN rm -rf packages/paperclip-runner/runner/target
 # Grok's native executable stays an external sandbox prerequisite; this pack
 # contains only its launcher.
 FROM build AS runner-provider-pack
+# Self-hosted installs that never run remote OpenCode/ACPX can skip the pack
+# (~5 min per build) and still stamp the commit into the server and UI.
+ARG PAPERCLIP_SKIP_PROVIDER_PACK=""
 # Unstamped local builds remain usable, but cannot qualify a remote pack.
 # Never invent a source revision to make an unqualified pack look verified.
 RUN mkdir -p /provider-pack \
-  && if [ -n "${PAPERCLIP_BUILD_COMMIT}" ]; then \
+  && if [ -n "${PAPERCLIP_SKIP_PROVIDER_PACK}" ]; then \
+    echo "Skipping remote provider pack: PAPERCLIP_SKIP_PROVIDER_PACK is set"; \
+  elif [ -n "${PAPERCLIP_BUILD_COMMIT}" ]; then \
     PAPERCLIP_RUNNER_SOURCE_REVISION="${PAPERCLIP_BUILD_COMMIT}" node packages/paperclip-runner/scripts/build-provider-pack.mjs /provider-pack; \
   else \
     echo "Skipping remote provider pack: supply a full PAPERCLIP_BUILD_COMMIT to enable remote OpenCode/ACPX execution"; \
