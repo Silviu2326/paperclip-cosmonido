@@ -10640,6 +10640,12 @@
       "boots": "Boots",
       "boots_fold": "Folded boots",
       "sandals": "Sandals"
-    }
+    },
+    "tabs": {
+      "body": "Body",
+      "hair": "Hair",
+      "clothes": "Clothes"
+    },
+    "hint": "Pick an animation to see how the character moves. Nothing changes until you save."
   }
 }

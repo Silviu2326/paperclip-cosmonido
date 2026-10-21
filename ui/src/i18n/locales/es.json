@@ -10640,6 +10640,12 @@
       "boots": "Botas",
       "boots_fold": "Botas con vuelta",
       "sandals": "Sandalias"
-    }
+    },
+    "tabs": {
+      "body": "Cuerpo",
+      "hair": "Pelo",
+      "clothes": "Ropa"
+    },
+    "hint": "Elige una animación para ver cómo se mueve el personaje. No se aplica nada hasta que guardes."
   }
 }
