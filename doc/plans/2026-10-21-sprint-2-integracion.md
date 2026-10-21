@@ -3,6 +3,12 @@
 Fecha: 2026-10-21
 Uso: cada pista anota aquí, bajo su encabezado, lo que necesita en archivos de un solo propietario (schema/index, migraciones, shared/index, app.ts, services/index, routes/index, App.tsx, Sidebar, queryKeys) y cualquier desviación del contrato. El responsable de integración aplica y tacha.
 
+## Estado de integración fase B (2026-10-22)
+
+Hecho por el integrador: exports de `lead_forms`, `calendar` y `customer_memory` en `schema/index.ts`; migración única regenerada `0358_dapper_natasha_romanoff.sql` (16 tablas; al fusionar con S1 renumerar a 0361 y quitar los `ALTER TABLE company_files`); `crmMemoryRoutes` montada y exportada; `conversationRoutes(db, emailChannels)`; adaptadores de B/C/H sustituidos por `identityService`, `contactService`, `customerService`, `opportunityService` e `intake` (`leads/adapters.ts` eliminado). Verificado: db typecheck, servidor sin errores propios (solo `instrumentation.ts` preexistente), UI sin errores propios (solo Artefactos del commit base), locales 7/7, token gates sin violaciones en archivos S2, Vitest 14 archivos / 109 tests.
+
+Pendiente para la integración S1→S2→S3: registrar las herramientas `crm_*`, `lead_*`, `conversation_*`, `message_*`, `calendar_*`, `customer_memory_*` en el catálogo del runner (`packages/paperclip-runner/src/protocol-actions/`, mismo mecanismo que el S3) y en `paperclip-runner-tool-authority.ts`; `approveExternalAction` desde la ruta de aprobaciones; invocador real de Google Calendar en `calendarRoutes(db, { calendar })`; `projects.customerId`; etiqueta `nav.conversations` en el sidebar; mapas `maps/` y `check-maps`; crear oportunidad desde la UI; índice único para idempotencia por `external_ref` si se confirma que no colisiona entre fuentes.
+
 ## A1 Clientes, contactos e identidad
 
 ## A2 Oportunidades, actividades, compromisos, tools

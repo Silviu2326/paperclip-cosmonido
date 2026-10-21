@@ -12,15 +12,10 @@ import {
 } from "@paperclipai/shared";
 import { conflict, notFound } from "../../errors.js";
 import { decodeCursor, toPage, type CrmActor } from "../crm/common.js";
-import { normalizeEmail, normalizePhoneE164 } from "../crm/identity.js";
-import {
-  createContactWithIdentities,
-  createCustomer,
-  createOpportunity,
-  findContactByIdentity,
-  identityKeys,
-  linkCustomerContact,
-} from "./adapters.js";
+import { contactService } from "../crm/contacts.js";
+import { customerService } from "../crm/customers.js";
+import { identityService, normalizeEmail, normalizePhoneE164 } from "../crm/identity.js";
+import { opportunityService } from "../crm/opportunities.js";
 
 // Local validators for the leads queue. They sit next to the service because the
 // shared CRM validators are owned by the contract; integration may move them.
@@ -256,46 +251,74 @@ export function leadService(db: Db) {
         if (input.contactId) await assertContactInCompany(tx, lead.companyId, input.contactId);
 
         const payload = (lead.payload ?? {}) as Record<string, unknown>;
+        const txDb = tx as unknown as Db;
         const companyName = text(payload.company);
         const personName = text(payload.name);
         const email = normalizeEmail(text(payload.email));
         const phone = normalizePhoneE164(text(payload.phone));
-        const keys = identityKeys({ email, phone, channel: null });
         const displayName = personName ?? companyName ?? email ?? phone ?? "Lead";
+        const convertActor: CrmActor = actor;
 
         let contactId: string | null = input.contactId ?? lead.contactId ?? null;
-        if (!contactId && keys.length > 0) {
-          contactId = await findContactByIdentity(tx, lead.companyId, keys);
+        if (!contactId && (email || phone)) {
+          const existingContact = await identityService(txDb).resolve(lead.companyId, { email, phone });
+          contactId = existingContact?.id ?? null;
         }
         if (!contactId && (personName || email || phone)) {
-          contactId = await createContactWithIdentities(tx, lead.companyId, {
-            displayName,
-            language: lead.language,
-            keys,
-            source: lead.source,
-          });
+          // The identity lookup above found no owner, so the convert creates the contact (force skips the duplicate check).
+          const created = await contactService(txDb).create(
+            lead.companyId,
+            {
+              displayName,
+              primaryEmail: email,
+              primaryPhone: phone,
+              language: lead.language ?? null,
+              consents: {},
+            },
+            { actor: convertActor, force: true },
+          );
+          contactId = created.contact.id;
         }
 
         const wantsOpportunity = input.createOpportunity === true;
         let customerId: string | null = input.customerId ?? lead.customerId ?? null;
         if (!customerId && (companyName || contactId || wantsOpportunity)) {
-          customerId = await createCustomer(tx, lead.companyId, {
-            name: companyName ?? displayName,
-            kind: companyName ? "organization" : "person",
-          });
+          // The convert always creates the customer (no duplicate check before, so force keeps that behaviour).
+          const created = await customerService(txDb).create(
+            lead.companyId,
+            {
+              kind: companyName ? "organization" : "person",
+              name: companyName ?? displayName,
+              tags: [],
+            },
+            { actor: convertActor, force: true },
+          );
+          customerId = created.customer.id;
         }
         if (customerId && contactId) {
-          await linkCustomerContact(tx, lead.companyId, { customerId, contactId, isPrimary: true });
+          await contactService(txDb).link(
+            lead.companyId,
+            customerId,
+            contactId,
+            { isPrimary: true },
+            { actor: convertActor },
+          );
         }
 
         let opportunityId: string | null = lead.opportunityId ?? null;
         if (wantsOpportunity && customerId && !opportunityId) {
-          opportunityId = await createOpportunity(tx, lead.companyId, {
-            customerId,
-            primaryContactId: contactId,
-            title: input.opportunityTitle ?? `${companyName ?? displayName} (${lead.source})`,
-            source: lead.source,
-          });
+          const opportunity = await opportunityService(txDb).create(
+            lead.companyId,
+            {
+              customerId,
+              primaryContactId: contactId,
+              title: input.opportunityTitle ?? `${companyName ?? displayName} (${lead.source})`,
+              stageKey: "new",
+              source: lead.source,
+            },
+            convertActor,
+          );
+          opportunityId = opportunity.id;
         }
 
         const now = new Date();

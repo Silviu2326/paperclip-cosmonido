@@ -321,7 +321,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       const startMs = input.startsAt.getTime();
       await assertSlotBookable(type, startMs);
       const endsAt = new Date(startMs + type.durationMinutes * MINUTE_MS);
-      const contactId = await resolveBookingContact(db, input.companyId, { ...input.attendee, email, phone });
+      const contactId = await resolveBookingContact(db, input.companyId, { ...input.attendee, email, phone }, activityActor(actor));
 
       let event: CalendarEventRow;
       try {

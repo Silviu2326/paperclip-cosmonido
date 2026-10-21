@@ -1,11 +1,12 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { type Db, contactIdentities, customerContacts, leads } from "@paperclipai/db";
+import { desc, eq, and } from "drizzle-orm";
+import { type Db, customerContacts, leads } from "@paperclipai/db";
 import { LEAD_SOURCES, type ConversationChannel, type LeadSource } from "@paperclipai/shared";
-import { normalizeEmail, normalizeIdentifier, normalizePhoneE164 } from "../crm/identity.js";
+import { identityService } from "../crm/identity.js";
+import { leadIntakeService } from "../leads/intake.js";
 
-// Local stand-ins for identityService.resolve (pista A1) and intakeService.ingest (pista B).
-// They keep the inbound path working until those services exist; integration replaces both
-// call sites in inbound.ts and removes this file. TODO(A1/B): delete when the real services land.
+// Bridges from the inbound path to the CRM services: identity resolution (crm/identity.ts)
+// and lead intake (leads/intake.ts). Kept here only for the customer link lookup and the
+// channel-to-lead-source mapping.
 
 export interface InboundFrom {
   email?: string | null;
@@ -13,77 +14,61 @@ export interface InboundFrom {
   handle?: string | null;
 }
 
-/** TODO(A1): replace with identityService.resolve(companyId, { email, phone, handle, channel }). */
+/** Existing contact for the inbound identity (read-only) and its primary customer, if any. */
 export async function resolveContactForInbound(
   db: Db,
   companyId: string,
   channel: ConversationChannel,
   from: InboundFrom,
 ): Promise<{ contactId: string; customerId: string | null } | null> {
-  const candidates: { channel: string; identifier: string }[] = [];
-  const email = normalizeEmail(from.email);
-  if (email) candidates.push({ channel: "email", identifier: email });
-  const phone = normalizePhoneE164(from.phone);
-  if (phone) {
-    candidates.push({ channel: "phone", identifier: phone });
-    if (channel === "whatsapp" || channel === "sms") candidates.push({ channel, identifier: phone });
-  }
-  const handle = normalizeIdentifier(channel, from.handle);
-  if (handle && channel !== "email" && channel !== "sms") candidates.push({ channel, identifier: handle });
-  if (candidates.length === 0) return null;
-
-  const rows = await db
-    .select({ contactId: contactIdentities.contactId, channel: contactIdentities.channel, identifier: contactIdentities.identifier })
-    .from(contactIdentities)
-    .where(and(
-      eq(contactIdentities.companyId, companyId),
-      inArray(contactIdentities.identifier, candidates.map((c) => c.identifier)),
-    ));
-  const match = rows.find((row) => candidates.some((c) => c.channel === row.channel && c.identifier === row.identifier));
-  if (!match) return null;
+  const contact = await identityService(db).resolve(companyId, {
+    email: from.email ?? null,
+    phone: from.phone ?? null,
+    handle: from.handle ?? null,
+    channel,
+  });
+  if (!contact) return null;
 
   const [primary] = await db
     .select({ customerId: customerContacts.customerId })
     .from(customerContacts)
-    .where(and(eq(customerContacts.companyId, companyId), eq(customerContacts.contactId, match.contactId)))
+    .where(and(eq(customerContacts.companyId, companyId), eq(customerContacts.contactId, contact.id)))
     .orderBy(desc(customerContacts.isPrimary))
     .limit(1);
-  return { contactId: match.contactId, customerId: primary?.customerId ?? null };
+  return { contactId: contact.id, customerId: primary?.customerId ?? null };
 }
 
-/** TODO(B): replace with intakeService.ingest(companyId, { source, sourceRef, payload, identity, language }). */
+/**
+ * Lead for an inbound thread. Idempotent per (company, source, externalThreadId): the
+ * intake service returns the existing lead for a repeated thread.
+ */
 export async function ensureLeadForInbound(
   db: Db,
   companyId: string,
-  input: { channel: ConversationChannel; sourceRef: string; payload: Record<string, unknown>; contactId: string | null; language: string | null },
+  input: {
+    channel: ConversationChannel;
+    sourceRef: string;
+    payload: Record<string, unknown>;
+    from: InboundFrom;
+    contactId: string | null;
+    language: string | null;
+  },
 ): Promise<string> {
   const source: LeadSource = (LEAD_SOURCES as readonly string[]).includes(input.channel) ? (input.channel as LeadSource) : "api";
-  const [created] = await db
-    .insert(leads)
-    .values({
-      companyId,
-      source,
-      sourceRef: input.sourceRef,
-      payload: input.payload,
-      status: "new",
-      contactId: input.contactId,
-      language: input.language,
-    })
-    .onConflictDoNothing({
-      target: [leads.companyId, leads.source, leads.sourceRef],
-      where: sqlNotNull(leads.sourceRef),
-    })
-    .returning({ id: leads.id });
-  if (created) return created.id;
-  const [existing] = await db
-    .select({ id: leads.id })
-    .from(leads)
-    .where(and(eq(leads.companyId, companyId), eq(leads.source, source), eq(leads.sourceRef, input.sourceRef)))
-    .limit(1);
-  if (!existing) throw new Error("Lead for inbound message could not be created");
-  return existing.id;
-}
-
-function sqlNotNull(column: unknown) {
-  return sql`${column} is not null`;
+  const { lead } = await leadIntakeService(db).ingest(companyId, {
+    source,
+    sourceRef: input.sourceRef,
+    payload: input.payload,
+    identity: { ...input.from, channel: input.channel },
+    language: input.language,
+  });
+  // The conversation may already know its contact while this message carries no identity
+  // that resolves to it. Keep the link on a lead that has none yet.
+  if (!lead.contactId && input.contactId) {
+    await db
+      .update(leads)
+      .set({ contactId: input.contactId, updatedAt: new Date() })
+      .where(and(eq(leads.id, lead.id), eq(leads.companyId, companyId)));
+  }
+  return lead.id;
 }

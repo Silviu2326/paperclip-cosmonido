@@ -108,6 +108,7 @@ import { environmentRoutes } from "./routes/environments.js";
 import { executionWorkspaceRoutes } from "./routes/execution-workspaces.js";
 import { goalRoutes } from "./routes/goals.js";
 import { crmRoutes } from "./routes/crm.js";
+import { crmMemoryRoutes } from "./routes/crm-memory.js";
 import { leadRoutes } from "./routes/leads.js";
 import { conversationRoutes } from "./routes/conversations.js";
 import { channelInboundRoutes } from "./routes/channels-inbound.js";
@@ -872,8 +873,9 @@ export async function createApp(
   api.use(emailRoutes(db, emailChannels));
   api.use(goalRoutes(db));
   api.use(crmRoutes(db));
+  api.use(crmMemoryRoutes(db));
   api.use(leadRoutes(db));
-  api.use(conversationRoutes(db));
+  api.use(conversationRoutes(db, emailChannels));
   api.use(channelInboundRoutes(db));
   api.use(calendarRoutes(db));
   api.use("/p", publicSurfaceRoutes(db));

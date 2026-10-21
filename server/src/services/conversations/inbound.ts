@@ -163,13 +163,14 @@ export async function recordInboundMessage(
       .where(eq(conversations.id, conv.id))
       .returning();
 
-    // No lead and no customer: the thread enters the lead queue. TODO(B): use intakeService.ingest.
+    // No lead and no customer: the thread enters the lead queue.
     let final = updated;
     if (!final.leadId && !final.customerId) {
       const leadId = await ensureLeadForInbound(t, companyId, {
         channel: input.channel,
         sourceRef: input.externalThreadId,
         payload: { subject: input.subject ?? null, firstMessage: input.body.slice(0, 500), from: input.from },
+        from: input.from,
         contactId: final.contactId,
         language: input.language ?? null,
       });

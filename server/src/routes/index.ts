@@ -49,3 +49,4 @@ export { conversationRoutes } from "./conversations.js";
 export { channelInboundRoutes } from "./channels-inbound.js";
 export { calendarRoutes } from "./calendar.js";
 export { publicSurfaceRoutes } from "./public-surface.js";
+export { crmMemoryRoutes } from "./crm-memory.js";
