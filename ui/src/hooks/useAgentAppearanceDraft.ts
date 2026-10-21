@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { agentAppearanceSchema, isLpcAppearance, randomAgentAppearance } from "@paperclipai/shared";
+import { agentAppearanceSchema, isLpcAppearance, randomAgentAppearance, type LpcAgentAppearance } from "@paperclipai/shared";
 
 /** Non-secret visual identity, retained across navigation and company changes. */
 export function useAgentAppearanceDraft(draftKey: string) {
@@ -16,5 +16,16 @@ export function useAgentAppearanceDraft(draftKey: string) {
   }
   const [draft, setDraft] = useState(() => ({ key, appearance: readDraft() }));
   if (draft.key !== key) setDraft({ key, appearance: readDraft() });
-  return { appearance: draft.appearance, clear() { try { sessionStorage.removeItem(key); } catch { /* Best effort. */ } } };
+  function set(appearance: LpcAgentAppearance) {
+    setDraft({ key, appearance });
+    try { sessionStorage.setItem(key, JSON.stringify(appearance)); } catch { /* In-memory draft still works. */ }
+  }
+  return {
+    appearance: draft.appearance,
+    /** Replace the draft with an explicit choice (editor) and persist it for the session. */
+    set,
+    /** A fresh random pixel-art character. */
+    reroll() { set(randomAgentAppearance()); },
+    clear() { try { sessionStorage.removeItem(key); } catch { /* Best effort. */ } },
+  };
 }

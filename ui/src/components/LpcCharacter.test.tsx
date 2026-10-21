@@ -64,6 +64,15 @@ describe("lpc-v1 agent presentation", () => {
     expect(images).toHaveLength(0);
     expect(host.querySelector("img")?.getAttribute("src")).toContain("muted=1");
   });
+  it("draws the saved scene as a CSS backdrop and lets callers hide it", async () => {
+    const withScene = appearanceForLpc(character, "deep-tide", "sunset");
+    await act(async () => root.render(<><AgentCharacter appearance={withScene} size={96} /><AgentCharacter appearance={withScene} scene="none" size={96} /><AgentAvatar appearance={withScene} size={24} /></>));
+    const roots = host.querySelectorAll("[data-scene]");
+    expect(roots[0]?.classList.contains("lpc-scene-sunset")).toBe(true);
+    expect(roots[1]?.classList.contains("lpc-scene")).toBe(false);
+    // Portrait URLs never carry the scene: it is presentation only.
+    for (const image of host.querySelectorAll("img")) expect(image.getAttribute("src")).not.toContain("sunset");
+  });
   it("derives sprite geometry from the shared sheet contract", () => {
     const rows = CHARACTER_STATES.length;
     const style = lpcSpriteStyle("sleepy");

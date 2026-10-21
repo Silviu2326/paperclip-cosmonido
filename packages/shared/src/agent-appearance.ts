@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { CHARACTER_STATES, type CharacterState } from "./character-states.js";
-import { LPC_CHARACTER_VERSION, encodeLpcSpec, lpcCharacterSchema, randomLpcCharacter, type LpcCharacter } from "./lpc-character.js";
+import { LPC_CHARACTER_VERSION, LPC_SCENES, encodeLpcSpec, lpcCharacterSchema, randomLpcCharacter, type LpcCharacter, type LpcScene } from "./lpc-character.js";
 
 export { CHARACTER_STATES, type CharacterState };
 
@@ -29,6 +29,8 @@ export const lpcAppearanceSchema = z.object({
   characterVersion: z.literal(LPC_CHARACTER_VERSION),
   paletteId: z.enum(AGENT_PALETTE_IDS),
   lpc: lpcCharacterSchema,
+  /** Backdrop behind the live character in hero surfaces; portraits stay transparent. */
+  scene: z.enum(LPC_SCENES).optional(),
   customAvatarAssetId: z.uuid().optional(),
 }).strict();
 export const agentAppearanceSchema = z.discriminatedUnion("characterVersion", [capAppearanceSchema, lpcAppearanceSchema]);
@@ -39,8 +41,8 @@ export type AgentAppearance = z.infer<typeof agentAppearanceSchema>;
 export function appearanceForPalette(paletteId: AgentPaletteId): CapAgentAppearance {
   return { schemaVersion: 1, characterVersion: "cap-v1", paletteId };
 }
-export function appearanceForLpc(lpc: LpcCharacter, paletteId: AgentPaletteId = AGENT_PALETTE_IDS[0]): LpcAgentAppearance {
-  return { schemaVersion: 1, characterVersion: LPC_CHARACTER_VERSION, paletteId, lpc };
+export function appearanceForLpc(lpc: LpcCharacter, paletteId: AgentPaletteId = AGENT_PALETTE_IDS[0], scene?: LpcScene): LpcAgentAppearance {
+  return { schemaVersion: 1, characterVersion: LPC_CHARACTER_VERSION, paletteId, lpc, ...(scene && scene !== "none" ? { scene } : {}) };
 }
 function randomPaletteId(): AgentPaletteId {
   const bytes = new Uint32Array(1);

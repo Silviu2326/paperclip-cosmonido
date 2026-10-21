@@ -10644,8 +10644,24 @@
     "tabs": {
       "body": "Body",
       "hair": "Hair",
-      "clothes": "Clothes"
+      "clothes": "Clothes",
+      "scene": "Scene"
     },
-    "hint": "Pick an animation to see how the character moves. Nothing changes until you save."
+    "hint": "Pick an animation to see how the character moves. Nothing changes until you save.",
+    "scenes": {
+      "none": "No scene",
+      "meadow": "Meadow",
+      "sunset": "Sunset",
+      "night": "Night",
+      "ocean": "Beach",
+      "desert": "Desert",
+      "space": "Space"
+    },
+    "sceneHint": "The scene appears behind the character on the agent page and in the editor. Small portraits stay transparent.",
+    "draftDescription": "Compose the character before creating the agent. You can change it later from the agent page.",
+    "apply": "Use this character",
+    "saving": "Saving…",
+    "reroll": "Another one",
+    "customize": "Customize"
   }
 }

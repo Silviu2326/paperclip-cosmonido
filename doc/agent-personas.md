@@ -262,20 +262,31 @@ emotes and sleepy sits.
   `lpcSpriteStyle`). The still portrait stays until the sheet has loaded and is
   the only rendering offscreen, under reduced motion, with `motion="still"` or in
   the `rest` state. No canvas, WebGL, renderer slot or per-frame JavaScript.
-- `LpcCharacterEditorButton` / `LpcCharacterEditorDialog`
-  (`ui/src/components/LpcCharacterEditor.tsx`) sit under the avatar on the agent
-  page: live preview with a state selector, selects for body/hair/clothes, colour
-  swatches from `LPC_SWATCHES`, randomize, and the credits link. Saving sends the
-  full appearance through `PATCH /companies/:companyId/agents/:agentId`
-  (`updateAgentSchema.appearance`), which records a config revision; agents on
-  cap-v1 or with an uploaded image start from a random pixel-art draft and
-  switch on save.
+- `LpcCharacterComposer` (`ui/src/components/LpcCharacterEditor.tsx`) is the
+  editing surface: a 256px live preview with animation chips, and Body / Hair /
+  Clothes / Scene tabs. Body, hair and garments are picked from thumbnails that
+  the avatar endpoint renders for each option (`thumbnailCharacter` keeps a
+  neutral base and follows only the draft fields that affect the option, so one
+  colour change does not re-render every thumbnail). Colours are `LPC_SWATCHES`
+  swatches. `LpcCharacterEditorButton` / `LpcCharacterEditorDialog` sit under
+  the avatar on the agent page and save the full appearance through
+  `PATCH /agents/:id` (`updateAgentSchema.appearance`), which records a config
+  revision, then invalidate every `["agents", ...]` query (agent pages key by URL
+  reference as well as id). `LpcDraftEditorDialog` reuses the composer in the
+  new-agent wizard: `AgentBasicsDialog` shows the draft character in colour with
+  "another one" (re-roll) and "customize"; `useAgentAppearanceDraft` persists the
+  chosen draft for the session and discards stale cap-v1 drafts.
+- Scenes: `appearance.scene` (`LPC_SCENES`: meadow, sunset, night, ocean, desert,
+  space) is presentation only. `LpcCharacter` adds `.lpc-scene .lpc-scene-<name>`
+  (CSS gradients and a pixel floor in `ui/src/index.css`) behind the live
+  character on hero surfaces; portrait URLs and small avatars ignore it.
 
 Focused checks:
 
 ```sh
 pnpm exec vitest run packages/shared/src/lpc-character.test.ts
 pnpm exec vitest run server/src/__tests__/lpc-character-renderer.test.ts
-pnpm exec vitest run ui/src/components/LpcCharacter.test.tsx
+pnpm exec vitest run ui/src/components/LpcCharacter.test.tsx ui/src/components/LpcCharacterEditor.test.tsx
+pnpm exec vitest run server/src/__tests__/agent-appearance-routes.test.ts
 node scripts/sync-lpc-assets.mjs --check
 ```

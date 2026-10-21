@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LPC_HAIR_STYLES, appearanceForLpc, appearanceForPalette, encodeLpcSpec, type LpcCharacter } from "@paperclipai/shared";
-import { LpcCharacterEditorDialog, initialLpcCharacter, thumbnailCharacter } from "./LpcCharacterEditor";
+import { LpcCharacterEditorDialog, LpcDraftEditorDialog, draftAppearance, initialLpcCharacter, initialLpcDraft, thumbnailCharacter } from "./LpcCharacterEditor";
 
 vi.mock("@paperclipai/shared/cliplab/runtime", () => ({ createCharacter: vi.fn() }));
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
@@ -54,5 +54,26 @@ describe("pixel-art character editor", () => {
     expect(checked.getAttribute("src")).toContain("/api/agent-avatars/lpc-v1/");
     expect(checked.getAttribute("src")).toContain(".bob.pink.");
     expect(checked.getAttribute("src")).toContain("size=48&scale=2");
+    expect(dialog.querySelectorAll("[role=tab]")).toHaveLength(4);
+  });
+  it("keeps the scene with the draft and hands the composed appearance back from the draft editor", async () => {
+    const withScene = appearanceForLpc(character, "deep-tide", "night");
+    expect(initialLpcDraft(withScene)).toEqual({ lpc: character, scene: "night" });
+    expect(initialLpcDraft(appearanceForLpc(character, "deep-tide")).scene).toBe("none");
+    expect(draftAppearance({ lpc: character, scene: "none" }, "deep-tide")).not.toHaveProperty("scene");
+    expect(draftAppearance({ lpc: character, scene: "meadow" }, "deep-tide").scene).toBe("meadow");
+    const applied: unknown[] = [];
+    await act(async () => root.render(<LpcDraftEditorDialog open onOpenChange={() => {}} value={withScene} onApply={next => applied.push(next)} />));
+    const sceneTab = document.body.querySelectorAll("[role=tab]")[3] as HTMLElement;
+    await act(async () => { sceneTab.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, button: 0 })); sceneTab.focus(); });
+    const scenes = document.body.querySelectorAll('[role=radiogroup][aria-label="Escena"] [role=radio]');
+    expect(scenes).toHaveLength(7);
+    expect(document.body.querySelector('[role=radiogroup][aria-label="Escena"] [role=radio][aria-checked="true"]')?.textContent).toContain("Noche");
+    expect(document.body.querySelector("[data-scene=night].lpc-scene-night")).not.toBeNull();
+    await act(async () => { (scenes[1] as HTMLElement).click(); });
+    const buttons = Array.from(document.body.querySelectorAll("button")).filter(button => button.textContent?.includes("Usar este personaje"));
+    await act(async () => { buttons[0]!.click(); });
+    expect(applied).toHaveLength(1);
+    expect(applied[0]).toMatchObject({ characterVersion: "lpc-v1", scene: "meadow", lpc: character });
   });
 });

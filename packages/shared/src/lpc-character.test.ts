@@ -67,6 +67,11 @@ describe("lpc-v1 character catalog", () => {
     expect(agentAvatarUrl(appearance, 96, 1, "working", true, "paperclip-dark")).toBe(`/api/agent-avatars/lpc-v1/${spec}/working.png?size=96&scale=1&muted=1&background=paperclip-dark`);
     expect(agentSpriteSheetUrl(appearance)).toBe(`/api/agent-avatars/lpc-v1/${spec}/sheet.png`);
     expect(agentSpriteSheetUrl(appearance, true)).toBe(`/api/agent-avatars/lpc-v1/${spec}/sheet.png?muted=1`);
+    expect(agentAppearanceSchema.safeParse({ ...appearance, scene: "night" }).success).toBe(true);
+    expect(agentAppearanceSchema.safeParse({ ...appearance, scene: "mars" }).success).toBe(false);
+    expect(appearanceForLpc(character, "deep-tide", "none")).not.toHaveProperty("scene");
+    expect(appearanceForLpc(character, "deep-tide", "ocean").scene).toBe("ocean");
+    expect(agentAvatarUrl(appearanceForLpc(character, "deep-tide", "ocean"), 24)).toBe(agentAvatarUrl(appearance, 24));
     const custom = { ...appearance, customAvatarAssetId: "22222222-2222-4222-8222-222222222222" };
     expect(agentAvatarUrl(custom)).toBe("/api/assets/22222222-2222-4222-8222-222222222222/content");
   });

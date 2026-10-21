@@ -10644,8 +10644,24 @@
     "tabs": {
       "body": "Cuerpo",
       "hair": "Pelo",
-      "clothes": "Ropa"
+      "clothes": "Ropa",
+      "scene": "Escena"
     },
-    "hint": "Elige una animación para ver cómo se mueve el personaje. No se aplica nada hasta que guardes."
+    "hint": "Elige una animación para ver cómo se mueve el personaje. No se aplica nada hasta que guardes.",
+    "scenes": {
+      "none": "Sin escena",
+      "meadow": "Pradera",
+      "sunset": "Atardecer",
+      "night": "Noche",
+      "ocean": "Playa",
+      "desert": "Desierto",
+      "space": "Espacio"
+    },
+    "sceneHint": "La escena se muestra detrás del personaje en la página del agente y en el editor. Los retratos pequeños siguen siendo transparentes.",
+    "draftDescription": "Compón el personaje antes de crear el agente. Podrás cambiarlo después desde su página.",
+    "apply": "Usar este personaje",
+    "saving": "Guardando…",
+    "reroll": "Otro personaje",
+    "customize": "Personalizar"
   }
 }

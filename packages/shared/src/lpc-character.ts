@@ -14,6 +14,10 @@ export const LPC_FRAME_SIZE = 64;
 /** Per-animation LPC sheets: one row per direction, one column per frame. */
 export const LPC_DOWN_ROW = 2;
 
+/** Presentation-only backdrops drawn by the UI behind the live character (CSS, no server rendering). */
+export const LPC_SCENES = ["none", "meadow", "sunset", "night", "ocean", "desert", "space"] as const;
+export type LpcScene = typeof LPC_SCENES[number];
+
 export const LPC_BODY_TYPES = ["male", "female"] as const;
 export type LpcBodyType = typeof LPC_BODY_TYPES[number];
 /** "body" material variants (ULPC palette). */

@@ -1562,6 +1562,53 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   }
 }
 
+/* lpc-v1 scenes: CSS-only pixel backdrops behind the live character. Colours
+   live here as tokens; LpcCharacter.tsx adds .lpc-scene + .lpc-scene-<name>. */
+:root {
+  --lpc-floor: #6b8f3f;
+  --lpc-meadow-a: #8fd3ff; --lpc-meadow-b: #d6f1ff; --lpc-meadow-floor: #6fae4a; --lpc-meadow-floor-2: #5c9a3c;
+  --lpc-sunset-a: #ff9a5c; --lpc-sunset-b: #ffd1a6; --lpc-sunset-floor: #5a3e5c; --lpc-sunset-floor-2: #4a3250;
+  --lpc-night-a: #0f1b3d; --lpc-night-b: #2a3f7a; --lpc-night-floor: #1f2a3e; --lpc-night-floor-2: #182131; --lpc-star: #ffffff;
+  --lpc-ocean-a: #5fc8e8; --lpc-ocean-b: #c9f0ff; --lpc-ocean-floor: #f1d9a6; --lpc-ocean-floor-2: #2f9bd6;
+  --lpc-desert-a: #ffd79a; --lpc-desert-b: #fff1d0; --lpc-desert-floor: #d9a55a; --lpc-desert-floor-2: #c48f48;
+  --lpc-space-a: #090a1f; --lpc-space-b: #1b1446; --lpc-space-floor: #3a2f6e; --lpc-space-floor-2: #2b2255;
+}
+.lpc-scene {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl, 0.75rem);
+  background: linear-gradient(to bottom, var(--lpc-scene-a) 0%, var(--lpc-scene-b) 72%, var(--lpc-scene-floor) 72%, var(--lpc-scene-floor) 100%);
+  image-rendering: pixelated;
+}
+.lpc-scene::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 28%;
+  background:
+    repeating-linear-gradient(90deg, var(--lpc-scene-floor-2) 0 6%, transparent 6% 14%) 0 0 / 100% 3px no-repeat,
+    linear-gradient(to bottom, var(--lpc-scene-floor), var(--lpc-scene-floor-2));
+  pointer-events: none;
+}
+.lpc-scene > * { position: relative; z-index: 1; }
+.lpc-scene-meadow { --lpc-scene-a: var(--lpc-meadow-a); --lpc-scene-b: var(--lpc-meadow-b); --lpc-scene-floor: var(--lpc-meadow-floor); --lpc-scene-floor-2: var(--lpc-meadow-floor-2); }
+.lpc-scene-sunset { --lpc-scene-a: var(--lpc-sunset-a); --lpc-scene-b: var(--lpc-sunset-b); --lpc-scene-floor: var(--lpc-sunset-floor); --lpc-scene-floor-2: var(--lpc-sunset-floor-2); }
+.lpc-scene-night { --lpc-scene-a: var(--lpc-night-a); --lpc-scene-b: var(--lpc-night-b); --lpc-scene-floor: var(--lpc-night-floor); --lpc-scene-floor-2: var(--lpc-night-floor-2); }
+.lpc-scene-ocean { --lpc-scene-a: var(--lpc-ocean-a); --lpc-scene-b: var(--lpc-ocean-b); --lpc-scene-floor: var(--lpc-ocean-floor); --lpc-scene-floor-2: var(--lpc-ocean-floor-2); }
+.lpc-scene-desert { --lpc-scene-a: var(--lpc-desert-a); --lpc-scene-b: var(--lpc-desert-b); --lpc-scene-floor: var(--lpc-desert-floor); --lpc-scene-floor-2: var(--lpc-desert-floor-2); }
+.lpc-scene-space { --lpc-scene-a: var(--lpc-space-a); --lpc-scene-b: var(--lpc-space-b); --lpc-scene-floor: var(--lpc-space-floor); --lpc-scene-floor-2: var(--lpc-space-floor-2); }
+.lpc-scene-night::before, .lpc-scene-space::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 28% 0;
+  background:
+    radial-gradient(circle, var(--lpc-star) 1px, transparent 1.5px) 12% 18% / 37px 29px,
+    radial-gradient(circle, var(--lpc-star) 1px, transparent 1.5px) 60% 40% / 53px 41px,
+    radial-gradient(circle, var(--lpc-star) 0.5px, transparent 1px) 30% 70% / 23px 19px;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 @keyframes robot-loading-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.5px); }

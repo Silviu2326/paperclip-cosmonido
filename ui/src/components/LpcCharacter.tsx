@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { CHARACTER_STATES, LPC_POSES, LPC_SHEET_COLUMNS, agentSpriteSheetUrl, type CharacterState, type LpcAgentAppearance } from "@paperclipai/shared";
+import { CHARACTER_STATES, LPC_POSES, LPC_SHEET_COLUMNS, agentSpriteSheetUrl, type CharacterState, type LpcAgentAppearance, type LpcScene } from "@paperclipai/shared";
 import { cn } from "@/lib/utils";
 import { AgentAvatar, avatarSizeClasses, type AgentAvatarProps } from "./AgentAvatar";
 
@@ -7,6 +7,8 @@ export interface LpcCharacterProps extends Omit<AgentAvatarProps, "pose" | "appe
   appearance: LpcAgentAppearance;
   state?: CharacterState;
   motion?: "auto" | "still";
+  /** Backdrop override; defaults to the appearance's saved scene. "none" draws nothing. */
+  scene?: LpcScene;
 }
 
 /** Frame geometry for one sheet row, in percentages so the element size alone scales the art. */
@@ -27,14 +29,18 @@ export function lpcSpriteStyle(state: CharacterState): CSSProperties & Record<"-
     animationPlayState: frames > 1 ? "running" : "paused",
   };
 }
+export function lpcSceneClass(scene: LpcScene | undefined): string | undefined {
+  return scene && scene !== "none" ? `lpc-scene lpc-scene-${scene}` : undefined;
+}
 
 /**
  * Live pixel-art character: a CSS sprite animation over the agent's lpc-v1
  * sheet. The still portrait stays underneath until the sheet has loaded, and
  * remains the only rendering offscreen, under reduced motion, or with
- * motion="still". No canvas, WebGL, or per-frame JavaScript.
+ * motion="still". No canvas, WebGL, or per-frame JavaScript. An optional
+ * scene is a pure CSS backdrop; portraits elsewhere stay transparent.
  */
-export function LpcCharacter({ appearance, agent, size = 256, state = "idle", muted = false, motion = "auto", className, label, name }: LpcCharacterProps) {
+export function LpcCharacter({ appearance, agent, size = 256, state = "idle", muted = false, motion = "auto", scene, className, label, name }: LpcCharacterProps) {
   const root = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
   const [reduced, setReduced] = useState(true);
@@ -59,8 +65,10 @@ export function LpcCharacter({ appearance, agent, size = 256, state = "idle", mu
     return () => { disposed = true; };
   }, [animate, sheetUrl, loadedUrl]);
   const live = animate && loadedUrl === sheetUrl;
+  const backdrop = lpcSceneClass(scene ?? appearance.scene);
   return <span ref={root} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}
-    className={cn("relative inline-block shrink-0", avatarSizeClasses[size], className)}>
+    data-scene={scene ?? appearance.scene ?? "none"}
+    className={cn("relative inline-block shrink-0", avatarSizeClasses[size], backdrop, className)}>
     <AgentAvatar agent={agent} appearance={appearance} size={size < 64 ? 64 : size} name={name} pose={state} muted={muted} className={cn("size-full", live && "invisible")} />
     {live && <span data-slot="lpc-sprite" className="lpc-sprite absolute inset-0" style={{ ...lpcSpriteStyle(state), backgroundImage: `url("${sheetUrl}")` }} />}
   </span>;
