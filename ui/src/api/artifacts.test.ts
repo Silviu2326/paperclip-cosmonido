@@ -13,6 +13,7 @@ import { artifactsApi, type CompanyArtifact } from "./artifacts";
 function sampleArtifact(overrides: Partial<CompanyArtifact> = {}): CompanyArtifact {
   return {
     id: "wp-1",
+    thumbnailPath: null,
     source: "work_product",
     mediaKind: "video",
     title: "Primary cut",
@@ -25,6 +26,8 @@ function sampleArtifact(overrides: Partial<CompanyArtifact> = {}): CompanyArtifa
     project: { id: "proj-1", name: "Paperclip App" },
     createdByAgent: { id: "agent-1", name: "ClaudeCoder" },
     updatedAt: "2026-06-01T00:00:00.000Z",
+    byteSize: null,
+    createdAt: "2026-06-01T00:00:00.000Z",
     href: "/issues/PAP-10205#work-product-wp-1",
     ...overrides,
   };
@@ -57,6 +60,11 @@ describe("artifactsApi.list", () => {
     expect(mockApi.get).toHaveBeenCalledWith(
       "/companies/company-1/artifacts?kind=video&projectId=proj-1&q=demo+reel&limit=24&cursor=abc",
     );
+  });
+
+  it("serializes the starred filter only when requested", async () => {
+    await artifactsApi.list("company-1", { starred: true });
+    expect(mockApi.get).toHaveBeenLastCalledWith("/companies/company-1/artifacts?starred=true");
   });
 
   it("omits groupBy when grouping is none", async () => {

@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "ਫੋਲਡਰ ਡਾਊਨਲੋਡ ਕਰੋ (ZIP)",
+        "tooLarge": "ਫੋਲਡਰ 500 MB ਤੋਂ ਵੱਡਾ ਹੈ ਅਤੇ ਇਸਨੂੰ ZIP ਵਜੋਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।",
+        "empty": "ਇੱਥੇ ਡਾਊਨਲੋਡ ਕਰਨ ਲਈ ਕੋਈ ਫਾਈਲ ਨਹੀਂ ਹੈ।",
+        "failed": "ZIP ਤਿਆਰ ਨਹੀਂ ਹੋ ਸਕਿਆ।"
+      },
+      "visibility": {
+        "toggle": "ਏਜੰਟਾਂ ਲਈ ਦਿਖਾਈ ਦੇਵੇ",
+        "hidden": "ਏਜੰਟਾਂ ਤੋਂ ਲੁਕਿਆ",
+        "visible": "ਏਜੰਟਾਂ ਲਈ ਦਿਖਾਈ ਦਿੰਦਾ ਹੈ",
+        "metaLabel": "ਏਜੰਟ",
+        "error": "ਦਿੱਖ ਬਦਲੀ ਨਹੀਂ ਜਾ ਸਕੀ।"
+      },
+      "pdf": {
+        "prev": "ਪਿਛਲਾ ਪੰਨਾ",
+        "next": "ਅਗਲਾ ਪੰਨਾ",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF ਵਿੱਚ ਖੋਜੋ",
+        "searchPlaceholder": "ਦਸਤਾਵੇਜ਼ ਵਿੱਚ ਖੋਜੋ…",
+        "searching": "ਖੋਜ ਹੋ ਰਹੀ ਹੈ…",
+        "noMatches": "ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ",
+        "matchOf": "{{total}} ਵਿੱਚੋਂ {{index}}",
+        "prevMatch": "ਪਿਛਲਾ ਨਤੀਜਾ",
+        "nextMatch": "ਅਗਲਾ ਨਤੀਜਾ"
+      },
+      "preview": {
+        "title": "ਪੂਰਵਦਰਸ਼ਨ",
+        "fullscreen": "ਪੂਰੀ ਸਕਰੀਨ",
+        "fullscreenTitle": "ਪੂਰੀ ਸਕਰੀਨ ਪੂਰਵਦਰਸ਼ਨ",
+        "close": "ਬੰਦ ਕਰੋ",
+        "empty": "ਇੱਥੇ ਦੇਖਣ ਲਈ ਇੱਕ ਫਾਈਲ ਚੁਣੋ।",
+        "emptyDetail": "ਡਬਲ-ਕਲਿੱਕ ਕਰਨ ਨਾਲ ਇਹ ਪੂਰੀ ਸਕਰੀਨ ਵਿੱਚ ਖੁੱਲ੍ਹਦੀ ਹੈ।",
+        "box": {
+          "in": "ਇਨਪੁੱਟ",
+          "out": "ਆਉਟਪੁੱਟ"
+        },
+        "versions": "ਵਰਜਨ",
+        "currentVersion": "ਮੌਜੂਦਾ",
+        "download": "ਡਾਊਨਲੋਡ",
+        "openNewTab": "ਨਵੀਂ ਟੈਬ ਵਿੱਚ ਖੋਲ੍ਹੋ",
+        "unsupported": "ਕੋਈ ਪੂਰਵਦਰਸ਼ਨ ਉਪਲਬਧ ਨਹੀਂ",
+        "unsupportedHint": "ਇਹ ਫਾਈਲ ਕਿਸਮ ਇੱਥੇ ਨਹੀਂ ਦਿਖਾਈ ਜਾ ਸਕਦੀ। ਦੇਖਣ ਲਈ ਇਸਨੂੰ ਡਾਊਨਲੋਡ ਕਰੋ।",
+        "kind": {
+          "image": "ਤਸਵੀਰ",
+          "video": "ਵੀਡੀਓ",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "ਸਪ੍ਰੈੱਡਸ਼ੀਟ",
+          "json": "JSON",
+          "text": "ਟੈਕਸਟ",
+          "pr": "ਪੁਲ ਰਿਕਵੈਸਟ",
+          "unsupported": "ਫਾਈਲ"
+        },
+        "folderHint": "ਫੋਲਡਰ ਡਬਲ-ਕਲਿੱਕ ਨਾਲ ਖੁੱਲ੍ਹਦੇ ਹਨ।"
+      },
+      "viewer": {
+        "loading": "ਪੂਰਵਦਰਸ਼ਨ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ…",
+        "loadError": "ਪੂਰਵਦਰਸ਼ਨ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ।",
+        "tooLarge": "ਇਹ ਫਾਈਲ ਪੂਰਵਦਰਸ਼ਨ ਲਈ ਬਹੁਤ ਵੱਡੀ ਹੈ। ਦੇਖਣ ਲਈ ਇਸਨੂੰ ਡਾਊਨਲੋਡ ਕਰੋ।",
+        "unavailable": "ਪੂਰਵਦਰਸ਼ਨ ਲਈ ਕੋਈ ਸਮੱਗਰੀ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।",
+        "zoomFit": "ਫਿੱਟ",
+        "zoomActual": "1:1",
+        "mode": "ਪੂਰਵਦਰਸ਼ਨ ਮੋਡ",
+        "pdfBlocked": "ਤੁਹਾਡਾ ਬ੍ਰਾਊਜ਼ਰ ਇੱਥੇ PDF ਨਹੀਂ ਦਿਖਾ ਸਕਦਾ।",
+        "sheet": "ਸ਼ੀਟ",
+        "sheetCapped": "ਪਹਿਲੀਆਂ {{rows}} ਕਤਾਰਾਂ ਅਤੇ {{columns}} ਕਾਲਮ ਦਿਖਾਏ ਜਾ ਰਹੇ ਹਨ।",
+        "sheetEmpty": "ਇਹ ਸ਼ੀਟ ਖਾਲੀ ਹੈ।",
+        "jsonInvalid": "ਵੈਧ JSON ਨਹੀਂ; ਟੈਕਸਟ ਵਜੋਂ ਦਿਖਾਇਆ ਜਾ ਰਿਹਾ ਹੈ।"
+      },
+      "inbox": {
+        "cancel": "ਰੱਦ ਕਰੋ",
+        "nameLabel": "ਨਾਮ",
+        "nameRequired": "ਇੱਕ ਨਾਮ ਦਾਖਲ ਕਰੋ।",
+        "genericError": "ਕਾਰਵਾਈ ਪੂਰੀ ਨਹੀਂ ਹੋ ਸਕੀ।",
+        "loading": "ਫੋਲਡਰ ਲੋਡ ਹੋ ਰਹੇ ਹਨ…",
+        "picker": {
+          "location": "ਇਨਬਾਕਸ ਵਿੱਚ ਥਾਂ",
+          "root": "ਇਨਬਾਕਸ ਰੂਟ",
+          "empty": "ਅਜੇ ਕੋਈ ਫੋਲਡਰ ਨਹੀਂ। ਫਾਈਲਾਂ ਰੂਟ ਵਿੱਚ ਜਾਣਗੀਆਂ।",
+          "expand": "{{name}} ਖੋਲ੍ਹੋ",
+          "collapse": "{{name}} ਬੰਦ ਕਰੋ"
+        },
+        "folder": {
+          "newTitle": "ਨਵਾਂ ਫੋਲਡਰ",
+          "newDescription": "ਫੋਲਡਰ ਇਨਬਾਕਸ ਦੀਆਂ ਫਾਈਲਾਂ ਨੂੰ ਵਿਵਸਥਿਤ ਕਰਦੇ ਹਨ।",
+          "newConfirm": "ਫੋਲਡਰ ਬਣਾਓ",
+          "created": "ਫੋਲਡਰ “{{name}}” ਬਣਾਇਆ ਗਿਆ"
+        },
+        "rename": {
+          "fileTitle": "ਫਾਈਲ ਦਾ ਨਾਮ ਬਦਲੋ",
+          "folderTitle": "ਫੋਲਡਰ ਦਾ ਨਾਮ ਬਦਲੋ",
+          "confirm": "ਨਾਮ ਬਦਲੋ",
+          "fileRenamed": "ਫਾਈਲ ਦਾ ਨਾਮ ਬਦਲ ਕੇ “{{name}}” ਕੀਤਾ ਗਿਆ",
+          "folderRenamed": "ਫੋਲਡਰ ਦਾ ਨਾਮ ਬਦਲ ਕੇ “{{name}}” ਕੀਤਾ ਗਿਆ"
+        },
+        "move": {
+          "title": "ਫਾਈਲ ਲਿਜਾਓ",
+          "confirm": "ਇੱਥੇ ਲਿਜਾਓ",
+          "moved": "“{{name}}” ਲਿਜਾਇਆ ਗਿਆ"
+        },
+        "delete": {
+          "fileTitle": "ਫਾਈਲ ਮਿਟਾਓ",
+          "folderTitle": "ਫੋਲਡਰ ਮਿਟਾਓ",
+          "fileDescription": "“{{name}}” ਇਨਬਾਕਸ ਵਿੱਚੋਂ ਮਿਟਾ ਦਿੱਤੀ ਜਾਵੇਗੀ। ਏਜੰਟ ਇਸਨੂੰ ਫਿਰ ਨਹੀਂ ਪੜ੍ਹ ਸਕਣਗੇ। ਇਹ ਵਾਪਸ ਨਹੀਂ ਹੋ ਸਕਦਾ।",
+          "folderDescription": "“{{name}}” ਮਿਟਾਇਆ ਜਾਵੇਗਾ। ਸਿਰਫ਼ ਖਾਲੀ ਫੋਲਡਰ ਮਿਟਾਏ ਜਾ ਸਕਦੇ ਹਨ: ਪਹਿਲਾਂ ਉਨ੍ਹਾਂ ਦੀ ਸਮੱਗਰੀ ਲਿਜਾਓ ਜਾਂ ਮਿਟਾਓ।",
+          "confirm": "ਮਿਟਾਓ",
+          "fileDeleted": "“{{name}}” ਮਿਟਾਇਆ ਗਿਆ",
+          "folderDeleted": "ਫੋਲਡਰ “{{name}}” ਮਿਟਾਇਆ ਗਿਆ"
+        },
+        "version": {
+          "title": "ਵਰਜਨ ਬਦਲੋ",
+          "description": "ਇੱਕ ਨਵੀਂ ਫਾਈਲ ਅੱਪਲੋਡ ਕਰੋ। ਪਿਛਲਾ ਵਰਜਨ ਇਤਿਹਾਸ ਵਿੱਚ ਰਹੇਗਾ।",
+          "fileLabel": "ਫਾਈਲ",
+          "noteLabel": "ਨੋਟ (ਵਿਕਲਪਿਕ)",
+          "confirm": "ਵਰਜਨ ਅੱਪਲੋਡ ਕਰੋ",
+          "noFile": "ਅੱਪਲੋਡ ਲਈ ਇੱਕ ਫਾਈਲ ਚੁਣੋ।",
+          "added": "“{{name}}” ਹੁਣ ਵਰਜਨ {{version}} ਹੈ"
+        },
+        "toInbox": {
+          "title": "ਇਨਬਾਕਸ ਵਿੱਚ ਲਿਜਾਓ",
+          "description": "“{{name}}” ਨੂੰ ਇਨਬਾਕਸ ਵਿੱਚ ਕਾਪੀ ਕੀਤਾ ਜਾਵੇਗਾ ਤਾਂ ਜੋ ਕੰਪਨੀ ਅਤੇ ਇਸਦੇ ਏਜੰਟ ਇਸਨੂੰ ਵਰਤ ਸਕਣ।",
+          "nameLabel": "ਇਨਬਾਕਸ ਵਿੱਚ ਨਾਮ (ਵਿਕਲਪਿਕ)",
+          "confirm": "ਇਨਬਾਕਸ ਵਿੱਚ ਲਿਜਾਓ",
+          "added": "“{{name}}” ਇਨਬਾਕਸ ਵਿੱਚ ਜੋੜਿਆ ਗਿਆ"
+        }
+      },
+      "box": {
+        "in": "ਇਨਬਾਕਸ",
+        "out": "ਆਉਟਬਾਕਸ"
+      },
+      "toolbar": {
+        "segBox": "ਬਾਕਸ",
+        "segView": "ਦ੍ਰਿਸ਼",
+        "back": "ਵਾਪਸ",
+        "forward": "ਅੱਗੇ",
+        "crumbs": "ਮਾਰਗ",
+        "search": "ਖੋਜ",
+        "searchScope": "{{name}} ਵਿੱਚ ਖੋਜੋ…",
+        "viewList": "ਸੂਚੀ",
+        "viewIcons": "ਆਈਕਨ",
+        "previewToggle": "ਪੂਰਵਦਰਸ਼ਨ ਦਿਖਾਓ ਜਾਂ ਲੁਕਾਓ",
+        "preview": "ਪੂਰਵਦਰਸ਼ਨ",
+        "upload": "ਅੱਪਲੋਡ",
+        "newFolder": "ਫੋਲਡਰ",
+        "download": "ਡਾਊਨਲੋਡ",
+        "chooseFiles": "ਫਾਈਲਾਂ ਚੁਣੋ"
+      },
+      "tree": {
+        "label": "ਆਰਟੀਫੈਕਟ ਐਕਸਪਲੋਰਰ",
+        "entry": "ਇਨਬਾਕਸ",
+        "out": "ਆਉਟਪੁੱਟ",
+        "outBy": "ਆਉਟਪੁੱਟ ਇਸ ਅਨੁਸਾਰ ਵੇਖੋ",
+        "byAgent": "ਏਜੰਟ",
+        "byType": "ਫਾਈਲ ਕਿਸਮ",
+        "byDate": "ਮਿਤੀ",
+        "quick": "ਤੇਜ਼ ਪਹੁੰਚ",
+        "favorites": "ਮਨਪਸੰਦ",
+        "recent": "ਹਾਲੀਆ",
+        "mine": "ਮੇਰੇ ਵੱਲੋਂ ਅੱਪਲੋਡ",
+        "soon": "ਜਲਦ ਆ ਰਿਹਾ ਹੈ"
+      },
+      "list": {
+        "label": "ਫਾਈਲਾਂ",
+        "name": "ਨਾਮ",
+        "type": "ਕਿਸਮ",
+        "size": "ਆਕਾਰ",
+        "date": "ਮਿਤੀ",
+        "uploadedBy": "ਅੱਪਲੋਡ ਕਰਨ ਵਾਲਾ",
+        "usedBy": "ਵਰਤਣ ਵਾਲਾ",
+        "agent": "ਏਜੰਟ",
+        "task": "ਟਾਸਕ",
+        "elements": "{{count}} ਆਈਟਮਾਂ",
+        "elementsOne": "1 ਆਈਟਮ",
+        "usedTasks": "{{count}} ਟਾਸਕ",
+        "usedOne": "1 ਟਾਸਕ",
+        "starred": "ਮਨਪਸੰਦ"
+      },
+      "status": {
+        "items": "{{count}} ਆਈਟਮਾਂ",
+        "itemsOne": "1 ਆਈਟਮ",
+        "selected": "1 ਚੁਣੀ ਗਈ",
+        "ruleIn": "ਸਿਰਫ਼ ਲੋਕ ਲਿਖਦੇ ਹਨ · ਏਜੰਟ ਪੜ੍ਹਦੇ ਹਨ",
+        "ruleOut": "ਸਿਰਫ਼ ਏਜੰਟ ਲਿਖਦੇ ਹਨ · ਤੁਸੀਂ ਪੜ੍ਹਦੇ ਹੋ",
+        "copied": "ਲਿੰਕ ਕਾਪੀ ਹੋ ਗਿਆ",
+        "copyFailed": "ਲਿੰਕ ਕਾਪੀ ਨਹੀਂ ਹੋ ਸਕਿਆ"
+      },
+      "empty": {
+        "folder": "ਖਾਲੀ ਫੋਲਡਰ",
+        "folderHint": "ਫਾਈਲਾਂ ਇੱਥੇ ਖਿੱਚੋ ਜਾਂ ਅੱਪਲੋਡ ਦਬਾਓ",
+        "noMatch": "«{{q}}» ਨਾਲ ਕੁਝ ਵੀ ਮੇਲ ਨਹੀਂ ਖਾਂਦਾ",
+        "outHint": "ਇਸ ਦ੍ਰਿਸ਼ ਵਿੱਚ ਅਜੇ ਕੋਈ ਆਰਟੀਫੈਕਟ ਨਹੀਂ"
+      },
+      "ctx": {
+        "menu": "ਕਾਰਵਾਈਆਂ",
+        "open": "ਖੋਲ੍ਹੋ",
+        "preview": "ਤੁਰੰਤ ਦੇਖੋ",
+        "download": "ਡਾਊਨਲੋਡ",
+        "copyLink": "ਲਿੰਕ ਕਾਪੀ ਕਰੋ",
+        "goTask": "ਟਾਸਕ ਤੇ ਜਾਓ",
+        "moveToInbox": "ਇਨਬਾਕਸ ਵਿੱਚ ਲਿਜਾਓ…",
+        "replace": "ਨਵੇਂ ਵਰਜਨ ਨਾਲ ਬਦਲੋ",
+        "move": "ਲਿਜਾਓ…",
+        "rename": "ਨਾਮ ਬਦਲੋ",
+        "remove": "ਮਿਟਾਓ",
+        "favorite": "ਮਨਪਸੰਦ ਵਿੱਚ ਜੋੜੋ",
+        "unfavorite": "ਮਨਪਸੰਦ ਹਟਾਓ",
+        "properties": "ਵਿਸ਼ੇਸ਼ਤਾਵਾਂ",
+        "soon": "ਜਲਦ ਆ ਰਿਹਾ ਹੈ"
+      },
+      "type": {
+        "folder": "ਫੋਲਡਰ",
+        "task": "ਟਾਸਕ",
+        "image": "ਤਸਵੀਰ",
+        "video": "ਵੀਡੀਓ",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "ਟੈਕਸਟ",
+        "file": "ਫਾਈਲ"
+      },
+      "meta": {
+        "person": "ਕੰਪਨੀ ਯੂਜ਼ਰ",
+        "uploadedBy": "ਅੱਪਲੋਡ ਕਰਨ ਵਾਲਾ",
+        "folder": "ਫੋਲਡਰ",
+        "visibleTo": "ਇਹਨਾਂ ਨੂੰ ਦਿਖਦਾ ਹੈ",
+        "allCompany": "ਪੂਰੀ ਕੰਪਨੀ",
+        "usedIn": "ਇਸ ਵਿੱਚ ਵਰਤਿਆ ਗਿਆ",
+        "usedTasks": "{{count}} ਟਾਸਕ",
+        "usedNone": "ਅਜੇ ਕੋਈ ਟਾਸਕ ਨਹੀਂ",
+        "agent": "ਏਜੰਟ",
+        "task": "ਟਾਸਕ",
+        "origin": "ਸਰੋਤ",
+        "originRun": "ਏਜੰਟ ਰਨ"
+      },
+      "crumbs": {
+        "projects": "ਪ੍ਰੋਜੈਕਟ",
+        "noProject": "ਕੋਈ ਪ੍ਰੋਜੈਕਟ ਨਹੀਂ",
+        "project": "ਪ੍ਰੋਜੈਕਟ",
+        "task": "ਟਾਸਕ",
+        "byAgent": "ਏਜੰਟ",
+        "byType": "ਫਾਈਲ ਕਿਸਮ",
+        "byDate": "ਮਿਤੀ"
+      },
+      "errors": {
+        "load": "ਫਾਈਲਾਂ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀਆਂ।",
+        "tree": "ਟ੍ਰੀ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕਿਆ।",
+        "moveToInbox": "ਇਹ ਆਰਟੀਫੈਕਟ ਇਨਬਾਕਸ ਵਿੱਚ ਨਹੀਂ ਲਿਜਾਇਆ ਜਾ ਸਕਦਾ।",
+        "usage": "ਵਰਤੋਂ ਦੀ ਜਾਣਕਾਰੀ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀ।"
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

@@ -54,6 +54,7 @@ const apiPrefixes: Record<string, string> = {
   "task-workspaces.ts": "/api",
   "file-resources.ts": "/api",
   "folders.ts": "/api",
+  "company-files.ts": "/api",
   "goals.ts": "/api",
   "health.ts": "/api/health",
   "liveness.ts": "/api/liveness",

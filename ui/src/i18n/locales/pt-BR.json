@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Baixar pasta (ZIP)",
+        "tooLarge": "A pasta tem mais de 500 MB e não pode ser baixada como ZIP.",
+        "empty": "Não há arquivos para baixar aqui.",
+        "failed": "Não foi possível preparar o ZIP."
+      },
+      "visibility": {
+        "toggle": "Visível para os agentes",
+        "hidden": "Oculto para os agentes",
+        "visible": "Visível para os agentes",
+        "metaLabel": "Agentes",
+        "error": "Não foi possível alterar a visibilidade."
+      },
+      "pdf": {
+        "prev": "Página anterior",
+        "next": "Próxima página",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Pesquisar no PDF",
+        "searchPlaceholder": "Pesquisar no documento…",
+        "searching": "Pesquisando…",
+        "noMatches": "Sem resultados",
+        "matchOf": "{{index}} de {{total}}",
+        "prevMatch": "Resultado anterior",
+        "nextMatch": "Próximo resultado"
+      },
+      "preview": {
+        "title": "Pré-visualização",
+        "fullscreen": "Tela cheia",
+        "fullscreenTitle": "Pré-visualização em tela cheia",
+        "close": "Fechar",
+        "empty": "Selecione um arquivo para vê-lo aqui.",
+        "emptyDetail": "Clique duas vezes para abri-lo em tela cheia.",
+        "box": {
+          "in": "Entrada",
+          "out": "Saída"
+        },
+        "versions": "Versões",
+        "currentVersion": "atual",
+        "download": "Baixar",
+        "openNewTab": "Abrir em nova aba",
+        "unsupported": "Nenhuma pré-visualização disponível",
+        "unsupportedHint": "Este tipo de arquivo não pode ser exibido aqui. Baixe-o para visualizá-lo.",
+        "kind": {
+          "image": "Imagem",
+          "video": "Vídeo",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Planilha",
+          "json": "JSON",
+          "text": "Texto",
+          "pr": "Pull request",
+          "unsupported": "Arquivo"
+        },
+        "folderHint": "Pastas abrem com um clique duplo."
+      },
+      "viewer": {
+        "loading": "Carregando pré-visualização…",
+        "loadError": "Não foi possível carregar a pré-visualização.",
+        "tooLarge": "Este arquivo é grande demais para pré-visualização. Baixe-o para visualizá-lo.",
+        "unavailable": "Nenhum conteúdo disponível para pré-visualização.",
+        "zoomFit": "Ajustar",
+        "zoomActual": "1:1",
+        "mode": "Modo de pré-visualização",
+        "pdfBlocked": "Seu navegador não consegue exibir PDFs aqui.",
+        "sheet": "Planilha",
+        "sheetCapped": "Mostrando as primeiras {{rows}} linhas e {{columns}} colunas.",
+        "sheetEmpty": "Esta planilha está vazia.",
+        "jsonInvalid": "JSON inválido; exibindo como texto."
+      },
+      "inbox": {
+        "cancel": "Cancelar",
+        "nameLabel": "Nome",
+        "nameRequired": "Informe um nome.",
+        "genericError": "Não foi possível concluir a ação.",
+        "loading": "Carregando pastas…",
+        "picker": {
+          "location": "Local na Entrada",
+          "root": "Raiz da Entrada",
+          "empty": "Ainda não há pastas. Os arquivos serão salvos na raiz.",
+          "expand": "Expandir {{name}}",
+          "collapse": "Recolher {{name}}"
+        },
+        "folder": {
+          "newTitle": "Nova pasta",
+          "newDescription": "As pastas organizam os arquivos da Entrada.",
+          "newConfirm": "Criar pasta",
+          "created": "Pasta “{{name}}” criada"
+        },
+        "rename": {
+          "fileTitle": "Renomear arquivo",
+          "folderTitle": "Renomear pasta",
+          "confirm": "Renomear",
+          "fileRenamed": "Arquivo renomeado para “{{name}}”",
+          "folderRenamed": "Pasta renomeada para “{{name}}”"
+        },
+        "move": {
+          "title": "Mover arquivo",
+          "confirm": "Mover para cá",
+          "moved": "“{{name}}” movido"
+        },
+        "delete": {
+          "fileTitle": "Excluir arquivo",
+          "folderTitle": "Excluir pasta",
+          "fileDescription": "“{{name}}” será excluído da Entrada. Os agentes não poderão mais lê-lo. Esta ação não pode ser desfeita.",
+          "folderDescription": "“{{name}}” será excluída. Somente pastas vazias podem ser excluídas: mova ou exclua o conteúdo primeiro.",
+          "confirm": "Excluir",
+          "fileDeleted": "“{{name}}” excluído",
+          "folderDeleted": "Pasta “{{name}}” excluída"
+        },
+        "version": {
+          "title": "Substituir versão",
+          "description": "Envie um novo arquivo. A versão anterior permanece no histórico.",
+          "fileLabel": "Arquivo",
+          "noteLabel": "Observação (opcional)",
+          "confirm": "Enviar versão",
+          "noFile": "Escolha um arquivo para enviar.",
+          "added": "“{{name}}” agora está na versão {{version}}"
+        },
+        "toInbox": {
+          "title": "Mover para a Entrada",
+          "description": "Copia “{{name}}” para a Entrada para que a empresa e seus agentes possam usá-lo.",
+          "nameLabel": "Nome na Entrada (opcional)",
+          "confirm": "Mover para a Entrada",
+          "added": "“{{name}}” adicionado à Entrada"
+        }
+      },
+      "box": {
+        "in": "Entrada",
+        "out": "Saída"
+      },
+      "toolbar": {
+        "segBox": "Caixa",
+        "segView": "Exibição",
+        "back": "Voltar",
+        "forward": "Avançar",
+        "crumbs": "Caminho",
+        "search": "Pesquisar",
+        "searchScope": "Pesquisar em {{name}}…",
+        "viewList": "Lista",
+        "viewIcons": "Ícones",
+        "previewToggle": "Mostrar ou ocultar pré-visualização",
+        "preview": "Pré-visualizar",
+        "upload": "Enviar",
+        "newFolder": "Pasta",
+        "download": "Baixar",
+        "chooseFiles": "Escolher arquivos"
+      },
+      "tree": {
+        "label": "Explorador de artefatos",
+        "entry": "Entrada",
+        "out": "Saída",
+        "outBy": "Ver saída por",
+        "byAgent": "Agente",
+        "byType": "Tipo de arquivo",
+        "byDate": "Data",
+        "quick": "Acesso rápido",
+        "favorites": "Favoritos",
+        "recent": "Recentes",
+        "mine": "Enviados por mim",
+        "soon": "Em breve"
+      },
+      "list": {
+        "label": "Arquivos",
+        "name": "Nome",
+        "type": "Tipo",
+        "size": "Tamanho",
+        "date": "Data",
+        "uploadedBy": "Enviado por",
+        "usedBy": "Usado por",
+        "agent": "Agente",
+        "task": "Tarefa",
+        "elements": "{{count}} itens",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} tarefas",
+        "usedOne": "1 tarefa",
+        "starred": "Favorito"
+      },
+      "status": {
+        "items": "{{count}} itens",
+        "itemsOne": "1 item",
+        "selected": "1 selecionado",
+        "ruleIn": "Só pessoas escrevem · agentes leem",
+        "ruleOut": "Só agentes escrevem · você lê",
+        "copied": "Link copiado",
+        "copyFailed": "Não foi possível copiar o link"
+      },
+      "empty": {
+        "folder": "Pasta vazia",
+        "folderHint": "Arraste arquivos para cá ou clique em Enviar",
+        "noMatch": "Nada corresponde a “{{q}}”",
+        "outHint": "Nenhum artefato nesta exibição ainda"
+      },
+      "ctx": {
+        "menu": "Ações",
+        "open": "Abrir",
+        "preview": "Visualização rápida",
+        "download": "Baixar",
+        "copyLink": "Copiar link",
+        "goTask": "Ir para a tarefa",
+        "moveToInbox": "Mover para a Entrada…",
+        "replace": "Substituir por nova versão",
+        "move": "Mover…",
+        "rename": "Renomear",
+        "remove": "Excluir",
+        "favorite": "Favoritar",
+        "unfavorite": "Remover dos favoritos",
+        "properties": "Propriedades",
+        "soon": "Em breve"
+      },
+      "type": {
+        "folder": "Pasta",
+        "task": "Tarefa",
+        "image": "Imagem",
+        "video": "Vídeo",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Texto",
+        "file": "Arquivo"
+      },
+      "meta": {
+        "person": "Usuário da empresa",
+        "uploadedBy": "Enviado por",
+        "folder": "Pasta",
+        "visibleTo": "Visível para",
+        "allCompany": "toda a empresa",
+        "usedIn": "Usado em",
+        "usedTasks": "{{count}} tarefas",
+        "usedNone": "nenhuma tarefa ainda",
+        "agent": "Agente",
+        "task": "Tarefa",
+        "origin": "Origem",
+        "originRun": "execução do agente"
+      },
+      "crumbs": {
+        "projects": "Projetos",
+        "noProject": "Nenhum projeto",
+        "project": "Projeto",
+        "task": "Tarefa",
+        "byAgent": "Agente",
+        "byType": "Tipo de arquivo",
+        "byDate": "Data"
+      },
+      "errors": {
+        "load": "Não foi possível carregar os arquivos.",
+        "tree": "Não foi possível carregar a árvore.",
+        "moveToInbox": "Este artefato não pode ser movido para a Entrada.",
+        "usage": "Não foi possível carregar o uso."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

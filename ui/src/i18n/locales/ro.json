@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Descarcă dosarul (ZIP)",
+        "tooLarge": "Dosarul depășește 500 MB și nu poate fi descărcat ca ZIP.",
+        "empty": "Nu există fișiere de descărcat aici.",
+        "failed": "Arhiva ZIP nu a putut fi pregătită."
+      },
+      "visibility": {
+        "toggle": "Vizibil pentru agenți",
+        "hidden": "Ascuns pentru agenți",
+        "visible": "Vizibil pentru agenți",
+        "metaLabel": "Agenți",
+        "error": "Vizibilitatea nu a putut fi schimbată."
+      },
+      "pdf": {
+        "prev": "Pagina anterioară",
+        "next": "Pagina următoare",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Caută în PDF",
+        "searchPlaceholder": "Caută în document…",
+        "searching": "Se caută…",
+        "noMatches": "Niciun rezultat",
+        "matchOf": "{{index}} din {{total}}",
+        "prevMatch": "Rezultatul anterior",
+        "nextMatch": "Rezultatul următor"
+      },
+      "preview": {
+        "title": "Previzualizare",
+        "fullscreen": "Ecran complet",
+        "fullscreenTitle": "Previzualizare pe ecran complet",
+        "close": "Închide",
+        "empty": "Selectează un fișier pentru a-l vedea aici.",
+        "emptyDetail": "Fă dublu clic pentru a-l deschide pe ecran complet.",
+        "box": {
+          "in": "Intrare",
+          "out": "Ieșire"
+        },
+        "versions": "Versiuni",
+        "currentVersion": "curentă",
+        "download": "Descarcă",
+        "openNewTab": "Deschide într-un tab nou",
+        "unsupported": "Nu este disponibilă nicio previzualizare",
+        "unsupportedHint": "Acest tip de fișier nu poate fi afișat aici. Descarcă-l pentru a-l vedea.",
+        "kind": {
+          "image": "Imagine",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Foaie de calcul",
+          "json": "JSON",
+          "text": "Text",
+          "pr": "Pull request",
+          "unsupported": "Fișier"
+        },
+        "folderHint": "Dosarele se deschid cu dublu clic."
+      },
+      "viewer": {
+        "loading": "Se încarcă previzualizarea…",
+        "loadError": "Previzualizarea nu a putut fi încărcată.",
+        "tooLarge": "Acest fișier este prea mare pentru previzualizare. Descarcă-l pentru a-l vedea.",
+        "unavailable": "Nu există conținut disponibil pentru previzualizare.",
+        "zoomFit": "Potrivește",
+        "zoomActual": "1:1",
+        "mode": "Mod de previzualizare",
+        "pdfBlocked": "Browserul tău nu poate afișa PDF-uri aici.",
+        "sheet": "Foaie",
+        "sheetCapped": "Se afișează primele {{rows}} rânduri și {{columns}} coloane.",
+        "sheetEmpty": "Această foaie este goală.",
+        "jsonInvalid": "JSON nevalid; se afișează ca text."
+      },
+      "inbox": {
+        "cancel": "Anulează",
+        "nameLabel": "Nume",
+        "nameRequired": "Introdu un nume.",
+        "genericError": "Acțiunea nu a putut fi finalizată.",
+        "loading": "Se încarcă dosarele…",
+        "picker": {
+          "location": "Locație în Intrare",
+          "root": "Rădăcina Intrării",
+          "empty": "Nu există dosare încă. Fișierele vor merge în rădăcină.",
+          "expand": "Extinde {{name}}",
+          "collapse": "Restrânge {{name}}"
+        },
+        "folder": {
+          "newTitle": "Dosar nou",
+          "newDescription": "Dosarele organizează fișierele din Intrare.",
+          "newConfirm": "Creează dosar",
+          "created": "Dosarul „{{name}}” a fost creat"
+        },
+        "rename": {
+          "fileTitle": "Redenumește fișierul",
+          "folderTitle": "Redenumește dosarul",
+          "confirm": "Redenumește",
+          "fileRenamed": "Fișier redenumit în „{{name}}”",
+          "folderRenamed": "Dosar redenumit în „{{name}}”"
+        },
+        "move": {
+          "title": "Mută fișierul",
+          "confirm": "Mută aici",
+          "moved": "„{{name}}” a fost mutat"
+        },
+        "delete": {
+          "fileTitle": "Șterge fișierul",
+          "folderTitle": "Șterge dosarul",
+          "fileDescription": "„{{name}}” va fi șters din Intrare. Agenții nu vor mai putea să-l citească. Acțiunea nu poate fi anulată.",
+          "folderDescription": "„{{name}}” va fi șters. Pot fi șterse doar dosarele goale: mută sau șterge mai întâi conținutul.",
+          "confirm": "Șterge",
+          "fileDeleted": "„{{name}}” a fost șters",
+          "folderDeleted": "Dosarul „{{name}}” a fost șters"
+        },
+        "version": {
+          "title": "Înlocuiește versiunea",
+          "description": "Încarcă un fișier nou. Versiunea anterioară rămâne în istoric.",
+          "fileLabel": "Fișier",
+          "noteLabel": "Notă (opțional)",
+          "confirm": "Încarcă versiunea",
+          "noFile": "Alege un fișier de încărcat.",
+          "added": "„{{name}}” este acum versiunea {{version}}"
+        },
+        "toInbox": {
+          "title": "Mută în Intrare",
+          "description": "Copiază „{{name}}” în Intrare, ca firma și agenții ei să îl poată folosi.",
+          "nameLabel": "Nume în Intrare (opțional)",
+          "confirm": "Mută în Intrare",
+          "added": "„{{name}}” a fost adăugat în Intrare"
+        }
+      },
+      "box": {
+        "in": "Intrare",
+        "out": "Ieșire"
+      },
+      "toolbar": {
+        "segBox": "Casetă",
+        "segView": "Vizualizare",
+        "back": "Înapoi",
+        "forward": "Înainte",
+        "crumbs": "Cale",
+        "search": "Caută",
+        "searchScope": "Caută în {{name}}…",
+        "viewList": "Listă",
+        "viewIcons": "Pictograme",
+        "previewToggle": "Arată sau ascunde previzualizarea",
+        "preview": "Previzualizare",
+        "upload": "Încarcă",
+        "newFolder": "Dosar",
+        "download": "Descarcă",
+        "chooseFiles": "Alege fișiere"
+      },
+      "tree": {
+        "label": "Explorator de artefacte",
+        "entry": "Intrare",
+        "out": "Ieșire",
+        "outBy": "Afișează ieșirea după",
+        "byAgent": "Agent",
+        "byType": "Tip de fișier",
+        "byDate": "Dată",
+        "quick": "Acces rapid",
+        "favorites": "Favorite",
+        "recent": "Recente",
+        "mine": "Încărcate de mine",
+        "soon": "În curând"
+      },
+      "list": {
+        "label": "Fișiere",
+        "name": "Nume",
+        "type": "Tip",
+        "size": "Dimensiune",
+        "date": "Dată",
+        "uploadedBy": "Încărcat de",
+        "usedBy": "Folosit de",
+        "agent": "Agent",
+        "task": "Sarcină",
+        "elements": "{{count}} elemente",
+        "elementsOne": "1 element",
+        "usedTasks": "{{count}} sarcini",
+        "usedOne": "1 sarcină",
+        "starred": "Favorită"
+      },
+      "status": {
+        "items": "{{count}} elemente",
+        "itemsOne": "1 element",
+        "selected": "1 selectat",
+        "ruleIn": "Scriu doar oamenii · citesc agenții",
+        "ruleOut": "Scriu doar agenții · citești tu",
+        "copied": "Link copiat",
+        "copyFailed": "Linkul nu a putut fi copiat"
+      },
+      "empty": {
+        "folder": "Dosar gol",
+        "folderHint": "Trage fișierele aici sau apasă Încarcă",
+        "noMatch": "Nimic nu corespunde pentru „{{q}}”",
+        "outHint": "Încă nu există artefacte în această vizualizare"
+      },
+      "ctx": {
+        "menu": "Acțiuni",
+        "open": "Deschide",
+        "preview": "Vizualizare rapidă",
+        "download": "Descarcă",
+        "copyLink": "Copiază linkul",
+        "goTask": "Mergi la sarcină",
+        "moveToInbox": "Mută în Intrare…",
+        "replace": "Înlocuiește cu o versiune nouă",
+        "move": "Mută…",
+        "rename": "Redenumește",
+        "remove": "Șterge",
+        "favorite": "Adaugă la favorite",
+        "unfavorite": "Elimină din favorite",
+        "properties": "Proprietăți",
+        "soon": "În curând"
+      },
+      "type": {
+        "folder": "Dosar",
+        "task": "Sarcină",
+        "image": "Imagine",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Text",
+        "file": "Fișier"
+      },
+      "meta": {
+        "person": "Utilizator al firmei",
+        "uploadedBy": "Încărcat de",
+        "folder": "Dosar",
+        "visibleTo": "Vizibil pentru",
+        "allCompany": "întreaga firmă",
+        "usedIn": "Folosit în",
+        "usedTasks": "{{count}} sarcini",
+        "usedNone": "nicio sarcină încă",
+        "agent": "Agent",
+        "task": "Sarcină",
+        "origin": "Origine",
+        "originRun": "rulare a agentului"
+      },
+      "crumbs": {
+        "projects": "Proiecte",
+        "noProject": "Niciun proiect",
+        "project": "Proiect",
+        "task": "Sarcină",
+        "byAgent": "Agent",
+        "byType": "Tip de fișier",
+        "byDate": "Dată"
+      },
+      "errors": {
+        "load": "Fișierele nu au putut fi încărcate.",
+        "tree": "Arborele nu a putut fi încărcat.",
+        "moveToInbox": "Acest artefact nu poate fi mutat în Intrare.",
+        "usage": "Utilizarea nu a putut fi încărcată."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

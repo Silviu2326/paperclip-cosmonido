@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Unduh folder (ZIP)",
+        "tooLarge": "Folder berukuran lebih dari 500 MB dan tidak dapat diunduh sebagai ZIP.",
+        "empty": "Tidak ada file untuk diunduh di sini.",
+        "failed": "ZIP tidak dapat disiapkan."
+      },
+      "visibility": {
+        "toggle": "Terlihat oleh agen",
+        "hidden": "Disembunyikan dari agen",
+        "visible": "Terlihat oleh agen",
+        "metaLabel": "Agen",
+        "error": "Tidak dapat mengubah visibilitas."
+      },
+      "pdf": {
+        "prev": "Halaman sebelumnya",
+        "next": "Halaman berikutnya",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Cari di PDF",
+        "searchPlaceholder": "Cari di dokumen…",
+        "searching": "Mencari…",
+        "noMatches": "Tidak ada hasil",
+        "matchOf": "{{index}} dari {{total}}",
+        "prevMatch": "Hasil sebelumnya",
+        "nextMatch": "Hasil berikutnya"
+      },
+      "preview": {
+        "title": "Pratinjau",
+        "fullscreen": "Layar penuh",
+        "fullscreenTitle": "Pratinjau layar penuh",
+        "close": "Tutup",
+        "empty": "Pilih file untuk melihatnya di sini.",
+        "emptyDetail": "Klik dua kali untuk membukanya di layar penuh.",
+        "box": {
+          "in": "Masuk",
+          "out": "Keluar"
+        },
+        "versions": "Versi",
+        "currentVersion": "saat ini",
+        "download": "Unduh",
+        "openNewTab": "Buka di tab baru",
+        "unsupported": "Pratinjau tidak tersedia",
+        "unsupportedHint": "Jenis file ini tidak dapat ditampilkan di sini. Unduh untuk melihatnya.",
+        "kind": {
+          "image": "Gambar",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Spreadsheet",
+          "json": "JSON",
+          "text": "Teks",
+          "pr": "Pull request",
+          "unsupported": "File"
+        },
+        "folderHint": "Folder dibuka dengan klik dua kali."
+      },
+      "viewer": {
+        "loading": "Memuat pratinjau…",
+        "loadError": "Tidak dapat memuat pratinjau.",
+        "tooLarge": "File ini terlalu besar untuk dipratinjau. Unduh untuk melihatnya.",
+        "unavailable": "Tidak ada konten yang dapat dipratinjau.",
+        "zoomFit": "Sesuaikan",
+        "zoomActual": "1:1",
+        "mode": "Mode pratinjau",
+        "pdfBlocked": "Browser Anda tidak dapat menampilkan PDF di sini.",
+        "sheet": "Lembar",
+        "sheetCapped": "Menampilkan {{rows}} baris pertama dan {{columns}} kolom pertama.",
+        "sheetEmpty": "Lembar ini kosong.",
+        "jsonInvalid": "Bukan JSON yang valid; ditampilkan sebagai teks."
+      },
+      "inbox": {
+        "cancel": "Batal",
+        "nameLabel": "Nama",
+        "nameRequired": "Masukkan nama.",
+        "genericError": "Tindakan tidak dapat diselesaikan.",
+        "loading": "Memuat folder…",
+        "picker": {
+          "location": "Lokasi di Kotak masuk",
+          "root": "Root Kotak masuk",
+          "empty": "Belum ada folder. File akan disimpan di root.",
+          "expand": "Perluas {{name}}",
+          "collapse": "Ciutkan {{name}}"
+        },
+        "folder": {
+          "newTitle": "Folder baru",
+          "newDescription": "Folder mengatur file di Kotak masuk.",
+          "newConfirm": "Buat folder",
+          "created": "Folder “{{name}}” dibuat"
+        },
+        "rename": {
+          "fileTitle": "Ganti nama file",
+          "folderTitle": "Ganti nama folder",
+          "confirm": "Ganti nama",
+          "fileRenamed": "File diganti namanya menjadi “{{name}}”",
+          "folderRenamed": "Folder diganti namanya menjadi “{{name}}”"
+        },
+        "move": {
+          "title": "Pindahkan file",
+          "confirm": "Pindahkan ke sini",
+          "moved": "“{{name}}” dipindahkan"
+        },
+        "delete": {
+          "fileTitle": "Hapus file",
+          "folderTitle": "Hapus folder",
+          "fileDescription": "“{{name}}” akan dihapus dari Kotak masuk. Agen tidak dapat lagi membacanya. Tindakan ini tidak dapat dibatalkan.",
+          "folderDescription": "“{{name}}” akan dihapus. Hanya folder kosong yang dapat dihapus: pindahkan atau hapus isinya terlebih dahulu.",
+          "confirm": "Hapus",
+          "fileDeleted": "“{{name}}” dihapus",
+          "folderDeleted": "Folder “{{name}}” dihapus"
+        },
+        "version": {
+          "title": "Ganti versi",
+          "description": "Unggah file baru. Versi sebelumnya tetap ada di riwayat.",
+          "fileLabel": "File",
+          "noteLabel": "Catatan (opsional)",
+          "confirm": "Unggah versi",
+          "noFile": "Pilih file untuk diunggah.",
+          "added": "“{{name}}” kini versi {{version}}"
+        },
+        "toInbox": {
+          "title": "Pindahkan ke Kotak masuk",
+          "description": "Menyalin “{{name}}” ke Kotak masuk agar perusahaan dan agennya dapat menggunakannya.",
+          "nameLabel": "Nama di Kotak masuk (opsional)",
+          "confirm": "Pindahkan ke Kotak masuk",
+          "added": "“{{name}}” ditambahkan ke Kotak masuk"
+        }
+      },
+      "box": {
+        "in": "Masuk",
+        "out": "Keluar"
+      },
+      "toolbar": {
+        "segBox": "Kotak",
+        "segView": "Tampilan",
+        "back": "Kembali",
+        "forward": "Maju",
+        "crumbs": "Jalur",
+        "search": "Cari",
+        "searchScope": "Cari di {{name}}",
+        "viewList": "Daftar",
+        "viewIcons": "Ikon",
+        "previewToggle": "Tampilkan atau sembunyikan pratinjau",
+        "preview": "Pratinjau",
+        "upload": "Unggah",
+        "newFolder": "Folder",
+        "download": "Unduh",
+        "chooseFiles": "Pilih file"
+      },
+      "tree": {
+        "label": "Penjelajah artefak",
+        "entry": "Kotak masuk",
+        "out": "Keluaran",
+        "outBy": "Lihat keluaran menurut",
+        "byAgent": "Agen",
+        "byType": "Jenis file",
+        "byDate": "Tanggal",
+        "quick": "Akses cepat",
+        "favorites": "Favorit",
+        "recent": "Terbaru",
+        "mine": "Diunggah oleh saya",
+        "soon": "Segera hadir"
+      },
+      "list": {
+        "label": "File",
+        "name": "Nama",
+        "type": "Jenis",
+        "size": "Ukuran",
+        "date": "Tanggal",
+        "uploadedBy": "Diunggah oleh",
+        "usedBy": "Digunakan oleh",
+        "agent": "Agen",
+        "task": "Tugas",
+        "elements": "{{count}} item",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} tugas",
+        "usedOne": "1 tugas",
+        "starred": "Favorit"
+      },
+      "status": {
+        "items": "{{count}} item",
+        "itemsOne": "1 item",
+        "selected": "1 dipilih",
+        "ruleIn": "Hanya orang yang menulis · agen yang membaca",
+        "ruleOut": "Hanya agen yang menulis · Anda yang membaca",
+        "copied": "Tautan disalin",
+        "copyFailed": "Tautan tidak dapat disalin"
+      },
+      "empty": {
+        "folder": "Folder kosong",
+        "folderHint": "Seret file ke sini atau tekan Unggah",
+        "noMatch": "Tidak ada yang cocok dengan “{{q}}”",
+        "outHint": "Belum ada artefak di tampilan ini"
+      },
+      "ctx": {
+        "menu": "Tindakan",
+        "open": "Buka",
+        "preview": "Tampilan cepat",
+        "download": "Unduh",
+        "copyLink": "Salin tautan",
+        "goTask": "Buka tugas",
+        "moveToInbox": "Pindahkan ke Kotak masuk",
+        "replace": "Ganti dengan versi baru",
+        "move": "Pindahkan",
+        "rename": "Ganti nama",
+        "remove": "Hapus",
+        "favorite": "Tambahkan ke favorit",
+        "unfavorite": "Hapus dari favorit",
+        "properties": "Properti",
+        "soon": "Segera hadir"
+      },
+      "type": {
+        "folder": "Folder",
+        "task": "Tugas",
+        "image": "Gambar",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Teks",
+        "file": "File"
+      },
+      "meta": {
+        "person": "Pengguna perusahaan",
+        "uploadedBy": "Diunggah oleh",
+        "folder": "Folder",
+        "visibleTo": "Terlihat oleh",
+        "allCompany": "seluruh perusahaan",
+        "usedIn": "Digunakan di",
+        "usedTasks": "{{count}} tugas",
+        "usedNone": "Belum ada tugas",
+        "agent": "Agen",
+        "task": "Tugas",
+        "origin": "Asal",
+        "originRun": "eksekusi agen"
+      },
+      "crumbs": {
+        "projects": "Proyek",
+        "noProject": "Tanpa proyek",
+        "project": "Proyek",
+        "task": "Tugas",
+        "byAgent": "Agen",
+        "byType": "Jenis file",
+        "byDate": "Tanggal"
+      },
+      "errors": {
+        "load": "File tidak dapat dimuat.",
+        "tree": "Pohon tidak dapat dimuat.",
+        "moveToInbox": "Artefak ini tidak dapat dipindahkan ke Kotak masuk.",
+        "usage": "Tidak dapat memuat penggunaan."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

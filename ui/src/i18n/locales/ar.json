@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "تنزيل المجلد (ZIP)",
+        "tooLarge": "المجلد أكبر من 500 ميغابايت ولا يمكن تنزيله كملف ZIP.",
+        "empty": "لا توجد ملفات لتنزيلها هنا.",
+        "failed": "تعذّر إعداد ملف ZIP."
+      },
+      "visibility": {
+        "toggle": "مرئي للوكلاء",
+        "hidden": "مخفي عن الوكلاء",
+        "visible": "مرئي للوكلاء",
+        "metaLabel": "الوكلاء",
+        "error": "تعذّر تغيير الرؤية."
+      },
+      "pdf": {
+        "prev": "الصفحة السابقة",
+        "next": "الصفحة التالية",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "البحث في PDF",
+        "searchPlaceholder": "ابحث في المستند…",
+        "searching": "جارٍ البحث…",
+        "noMatches": "لا توجد نتائج",
+        "matchOf": "{{index}} من {{total}}",
+        "prevMatch": "النتيجة السابقة",
+        "nextMatch": "النتيجة التالية"
+      },
+      "preview": {
+        "title": "معاينة",
+        "fullscreen": "ملء الشاشة",
+        "fullscreenTitle": "معاينة بملء الشاشة",
+        "close": "إغلاق",
+        "empty": "اختر ملفًا لعرضه هنا.",
+        "emptyDetail": "النقر المزدوج يفتح الملف بملء الشاشة.",
+        "box": {
+          "in": "الوارد",
+          "out": "الصادر"
+        },
+        "versions": "الإصدارات",
+        "currentVersion": "الحالي",
+        "download": "تنزيل",
+        "openNewTab": "فتح في علامة تبويب جديدة",
+        "unsupported": "لا تتوفر معاينة",
+        "unsupportedHint": "لا يمكن عرض نوع الملف هذا هنا. نزّله لعرضه.",
+        "kind": {
+          "image": "صورة",
+          "video": "فيديو",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "جدول بيانات",
+          "json": "JSON",
+          "text": "نص",
+          "pr": "طلب سحب",
+          "unsupported": "ملف"
+        },
+        "folderHint": "تُفتح المجلدات بالنقر المزدوج."
+      },
+      "viewer": {
+        "loading": "جارٍ تحميل المعاينة…",
+        "loadError": "تعذّر تحميل المعاينة.",
+        "tooLarge": "هذا الملف كبير جدًا للمعاينة. نزّله لعرضه.",
+        "unavailable": "لا يوجد محتوى متاح للمعاينة.",
+        "zoomFit": "ملاءمة",
+        "zoomActual": "1:1",
+        "mode": "وضع المعاينة",
+        "pdfBlocked": "متصفحك لا يستطيع عرض ملفات PDF هنا.",
+        "sheet": "جدول",
+        "sheetCapped": "عرض أول {{rows}} صفًا و{{columns}} عمودًا.",
+        "sheetEmpty": "هذا الجدول فارغ.",
+        "jsonInvalid": "ليس JSON صالحًا؛ يُعرض كنص."
+      },
+      "inbox": {
+        "cancel": "إلغاء",
+        "nameLabel": "الاسم",
+        "nameRequired": "أدخل اسمًا.",
+        "genericError": "تعذّر إكمال الإجراء.",
+        "loading": "جارٍ تحميل المجلدات…",
+        "picker": {
+          "location": "الموقع في الوارد",
+          "root": "جذر الوارد",
+          "empty": "لا توجد مجلدات بعد. ستُحفظ الملفات في الجذر.",
+          "expand": "توسيع {{name}}",
+          "collapse": "طي {{name}}"
+        },
+        "folder": {
+          "newTitle": "مجلد جديد",
+          "newDescription": "المجلدات تنظم الملفات في الوارد.",
+          "newConfirm": "إنشاء مجلد",
+          "created": "تم إنشاء المجلد “{{name}}”"
+        },
+        "rename": {
+          "fileTitle": "إعادة تسمية الملف",
+          "folderTitle": "إعادة تسمية المجلد",
+          "confirm": "إعادة تسمية",
+          "fileRenamed": "تمت إعادة تسمية الملف إلى “{{name}}”",
+          "folderRenamed": "تمت إعادة تسمية المجلد إلى “{{name}}”"
+        },
+        "move": {
+          "title": "نقل الملف",
+          "confirm": "نقل هنا",
+          "moved": "تم نقل “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "حذف الملف",
+          "folderTitle": "حذف المجلد",
+          "fileDescription": "سيتم حذف “{{name}}” من الوارد. لن يتمكن الوكلاء من قراءته بعد الآن. لا يمكن التراجع عن هذا الإجراء.",
+          "folderDescription": "سيتم حذف “{{name}}”. يمكن حذف المجلدات الفارغة فقط: انقل محتوياتها أو احذفها أولًا.",
+          "confirm": "حذف",
+          "fileDeleted": "تم حذف “{{name}}”",
+          "folderDeleted": "تم حذف المجلد “{{name}}”"
+        },
+        "version": {
+          "title": "استبدال الإصدار",
+          "description": "ارفع ملفًا جديدًا. يبقى الإصدار السابق في السجل.",
+          "fileLabel": "الملف",
+          "noteLabel": "ملاحظة (اختياري)",
+          "confirm": "رفع الإصدار",
+          "noFile": "اختر ملفًا لرفعه.",
+          "added": "أصبح “{{name}}” الآن الإصدار {{version}}"
+        },
+        "toInbox": {
+          "title": "نقل إلى الوارد",
+          "description": "سيتم نسخ “{{name}}” إلى الوارد ليتمكن فريق الشركة ووكلاؤها من استخدامه.",
+          "nameLabel": "الاسم في الوارد (اختياري)",
+          "confirm": "نقل إلى الوارد",
+          "added": "تمت إضافة “{{name}}” إلى الوارد"
+        }
+      },
+      "box": {
+        "in": "الوارد",
+        "out": "الصادر"
+      },
+      "toolbar": {
+        "segBox": "الصندوق",
+        "segView": "العرض",
+        "back": "رجوع",
+        "forward": "تقدّم",
+        "crumbs": "المسار",
+        "search": "بحث",
+        "searchScope": "بحث في {{name}}",
+        "viewList": "قائمة",
+        "viewIcons": "أيقونات",
+        "previewToggle": "إظهار المعاينة أو إخفاؤها",
+        "preview": "معاينة",
+        "upload": "رفع",
+        "newFolder": "مجلد",
+        "download": "تنزيل",
+        "chooseFiles": "اختيار ملفات"
+      },
+      "tree": {
+        "label": "مستكشف الملفات المنتجة",
+        "entry": "الوارد",
+        "out": "الصادر",
+        "outBy": "عرض الصادر حسب",
+        "byAgent": "الوكيل",
+        "byType": "نوع الملف",
+        "byDate": "التاريخ",
+        "quick": "الوصول السريع",
+        "favorites": "المفضلة",
+        "recent": "الأخيرة",
+        "mine": "الملفات التي رفعتها",
+        "soon": "قريبًا"
+      },
+      "list": {
+        "label": "الملفات",
+        "name": "الاسم",
+        "type": "النوع",
+        "size": "الحجم",
+        "date": "التاريخ",
+        "uploadedBy": "رفعه",
+        "usedBy": "مستخدم بواسطة",
+        "agent": "الوكيل",
+        "task": "المهمة",
+        "elements": "{{count}} عنصر",
+        "elementsOne": "عنصر واحد",
+        "usedTasks": "{{count}} مهام",
+        "usedOne": "مهمة واحدة",
+        "starred": "مفضلة"
+      },
+      "status": {
+        "items": "{{count}} عنصر",
+        "itemsOne": "عنصر واحد",
+        "selected": "1 محدد",
+        "ruleIn": "الكتابة للأشخاص فقط، والقراءة للوكلاء",
+        "ruleOut": "الكتابة للوكلاء فقط، والقراءة لك",
+        "copied": "تم نسخ الرابط",
+        "copyFailed": "تعذّر نسخ الرابط"
+      },
+      "empty": {
+        "folder": "مجلد فارغ",
+        "folderHint": "اسحب الملفات إلى هنا أو اضغط رفع",
+        "noMatch": "لا يطابق شيء “{{q}}”",
+        "outHint": "لا توجد ملفات في هذا العرض بعد"
+      },
+      "ctx": {
+        "menu": "الإجراءات",
+        "open": "فتح",
+        "preview": "عرض سريع",
+        "download": "تنزيل",
+        "copyLink": "نسخ الرابط",
+        "goTask": "الانتقال إلى المهمة",
+        "moveToInbox": "نقل إلى الوارد",
+        "replace": "استبدال بإصدار جديد",
+        "move": "نقل",
+        "rename": "إعادة تسمية",
+        "remove": "حذف",
+        "favorite": "مفضلة",
+        "unfavorite": "إزالة من المفضلة",
+        "properties": "الخصائص",
+        "soon": "قريبًا"
+      },
+      "type": {
+        "folder": "مجلد",
+        "task": "مهمة",
+        "image": "صورة",
+        "video": "فيديو",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "نص",
+        "file": "ملف"
+      },
+      "meta": {
+        "person": "مستخدم الشركة",
+        "uploadedBy": "رفعه",
+        "folder": "مجلد",
+        "visibleTo": "مرئي لـ",
+        "allCompany": "الشركة بأكملها",
+        "usedIn": "مستخدم في",
+        "usedTasks": "{{count}} مهام",
+        "usedNone": "لا توجد مهمة بعد",
+        "agent": "الوكيل",
+        "task": "المهمة",
+        "origin": "المصدر",
+        "originRun": "تشغيل الوكيل"
+      },
+      "crumbs": {
+        "projects": "المشاريع",
+        "noProject": "بلا مشروع",
+        "project": "مشروع",
+        "task": "مهمة",
+        "byAgent": "الوكيل",
+        "byType": "نوع الملف",
+        "byDate": "التاريخ"
+      },
+      "errors": {
+        "load": "تعذّر تحميل الملفات.",
+        "tree": "تعذّر تحميل الشجرة.",
+        "moveToInbox": "لا يمكن نقل هذا الملف إلى الوارد.",
+        "usage": "تعذّر تحميل بيانات الاستخدام."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

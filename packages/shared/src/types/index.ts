@@ -241,6 +241,14 @@ export type {
   EnsureMySkillFolderRequest,
 } from "./folder.js";
 export type {
+  CompanyFile,
+  CompanyFileVersion,
+  CompanyFileFolderNode,
+  CompanyFilesListResponse,
+  CompanyFileUsage,
+  CompanyFileSortKey,
+} from "./company-file.js";
+export type {
   CatalogTeamKind,
   CatalogTeamTrustLevel,
   CatalogTeamCompatibility,
@@ -649,6 +657,11 @@ export type {
   CompanyArtifactMediaKind,
   CompanyArtifactProjectSummary,
   CompanyArtifactSource,
+  CompanyArtifactSortDir,
+  CompanyArtifactSortKey,
+  CompanyArtifactTreeNode,
+  CompanyArtifactTreeNodeKind,
+  CompanyArtifactTreeResponse,
   CompanyArtifactsResponse,
 } from "./artifact.js";
 
@@ -960,7 +973,7 @@ export type {
   ResourceMembershipUpdateResult,
   UpdateResourceMembership,
 } from "./resource-memberships.js";
-export { RESOURCE_MEMBERSHIP_STATES } from "./resource-memberships.js";
+export { ARTIFACT_MEMBERSHIP_SOURCES, RESOURCE_MEMBERSHIP_STATES } from "./resource-memberships.js";
 export type { InboxDismissal, InboxDismissalKind } from "./inbox-dismissal.js";
 export type {
   DecisionEffectStaleness,

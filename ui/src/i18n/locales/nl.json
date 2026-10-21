@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Map downloaden (ZIP)",
+        "tooLarge": "De map is groter dan 500 MB en kan niet als ZIP worden gedownload.",
+        "empty": "Er zijn hier geen bestanden om te downloaden.",
+        "failed": "De ZIP kon niet worden voorbereid."
+      },
+      "visibility": {
+        "toggle": "Zichtbaar voor agents",
+        "hidden": "Verborgen voor agents",
+        "visible": "Zichtbaar voor agents",
+        "metaLabel": "Agents",
+        "error": "De zichtbaarheid kon niet worden gewijzigd."
+      },
+      "pdf": {
+        "prev": "Vorige pagina",
+        "next": "Volgende pagina",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Zoeken in pdf",
+        "searchPlaceholder": "Zoeken in document…",
+        "searching": "Zoeken…",
+        "noMatches": "Geen resultaten",
+        "matchOf": "{{index}} van {{total}}",
+        "prevMatch": "Vorig resultaat",
+        "nextMatch": "Volgend resultaat"
+      },
+      "preview": {
+        "title": "Voorbeeld",
+        "fullscreen": "Volledig scherm",
+        "fullscreenTitle": "Voorbeeld op volledig scherm",
+        "close": "Sluiten",
+        "empty": "Selecteer een bestand om het hier te zien.",
+        "emptyDetail": "Dubbelklik om het op volledig scherm te openen.",
+        "box": {
+          "in": "Invoer",
+          "out": "Uitvoer"
+        },
+        "versions": "Versies",
+        "currentVersion": "huidige",
+        "download": "Downloaden",
+        "openNewTab": "Openen in nieuw tabblad",
+        "unsupported": "Geen voorbeeld beschikbaar",
+        "unsupportedHint": "Dit buurtype kan hier niet worden getoond. Download het om het te bekijken.",
+        "kind": {
+          "image": "Afbeelding",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Spreadsheet",
+          "json": "JSON",
+          "text": "Tekst",
+          "pr": "Pull request",
+          "unsupported": "Bestand"
+        },
+        "folderHint": "Mappen openen met een dubbelklik."
+      },
+      "viewer": {
+        "loading": "Voorbeeld laden…",
+        "loadError": "Het voorbeeld kon niet worden geladen.",
+        "tooLarge": "Dit bestand is te groot om een voorbeeld van te tonen. Download het om het te bekijken.",
+        "unavailable": "Er is geen inhoud beschikbaar om te bekijken.",
+        "zoomFit": "Passend",
+        "zoomActual": "1:1",
+        "mode": "Voorbeeldmodus",
+        "pdfBlocked": "Je browser kan hier geen PDF's tonen.",
+        "sheet": "Blad",
+        "sheetCapped": "De eerste {{rows}} rijen en {{columns}} kolommen worden getoond.",
+        "sheetEmpty": "Dit blad is leeg.",
+        "jsonInvalid": "Geen geldige JSON; wordt als tekst getoond."
+      },
+      "inbox": {
+        "cancel": "Annuleren",
+        "nameLabel": "Naam",
+        "nameRequired": "Voer een naam in.",
+        "genericError": "De actie kon niet worden voltooid.",
+        "loading": "Mappen laden…",
+        "picker": {
+          "location": "Locatie in Inbox",
+          "root": "Hoofdmap van Inbox",
+          "empty": "Nog geen mappen. Bestanden komen in de hoofdmap terecht.",
+          "expand": "{{name}} uitvouwen",
+          "collapse": "{{name}} inklappen"
+        },
+        "folder": {
+          "newTitle": "Nieuwe map",
+          "newDescription": "Mappen ordenen de bestanden in de Inbox.",
+          "newConfirm": "Map maken",
+          "created": "Map “{{name}}” gemaakt"
+        },
+        "rename": {
+          "fileTitle": "Bestand hernoemen",
+          "folderTitle": "Map hernoemen",
+          "confirm": "Hernoemen",
+          "fileRenamed": "Bestand hernoemd naar “{{name}}”",
+          "folderRenamed": "Map hernoemd naar “{{name}}”"
+        },
+        "move": {
+          "title": "Bestand verplaatsen",
+          "confirm": "Hier verplaatsen",
+          "moved": "“{{name}}” verplaatst"
+        },
+        "delete": {
+          "fileTitle": "Bestand verwijderen",
+          "folderTitle": "Map verwijderen",
+          "fileDescription": "“{{name}}” wordt uit de Inbox verwijderd. Agents kunnen het daarna niet meer lezen. Dit kan niet ongedaan worden gemaakt.",
+          "folderDescription": "“{{name}}” wordt verwijderd. Alleen lege mappen kunnen worden verwijderd: verplaats of verwijder eerst de inhoud.",
+          "confirm": "Verwijderen",
+          "fileDeleted": "“{{name}}” verwijderd",
+          "folderDeleted": "Map “{{name}}” verwijderd"
+        },
+        "version": {
+          "title": "Versie vervangen",
+          "description": "Upload een nieuw bestand. De vorige versie blijft in de geschiedenis.",
+          "fileLabel": "Bestand",
+          "noteLabel": "Notitie (optioneel)",
+          "confirm": "Versie uploaden",
+          "noFile": "Kies een bestand om te uploaden.",
+          "added": "“{{name}}” is nu versie {{version}}"
+        },
+        "toInbox": {
+          "title": "Naar Inbox verplaatsen",
+          "description": "Kopieert “{{name}}” naar de Inbox, zodat het bedrijf en zijn agents het kunnen gebruiken.",
+          "nameLabel": "Naam in de Inbox (optioneel)",
+          "confirm": "Naar Inbox verplaatsen",
+          "added": "“{{name}}” toegevoegd aan de Inbox"
+        }
+      },
+      "box": {
+        "in": "Inbox",
+        "out": "Uitvoer"
+      },
+      "toolbar": {
+        "segBox": "Box",
+        "segView": "Weergave",
+        "back": "Terug",
+        "forward": "Vooruit",
+        "crumbs": "Pad",
+        "search": "Zoeken",
+        "searchScope": "Zoeken in {{name}}…",
+        "viewList": "Lijst",
+        "viewIcons": "Pictogrammen",
+        "previewToggle": "Voorbeeld tonen of verbergen",
+        "preview": "Voorbeeld",
+        "upload": "Uploaden",
+        "newFolder": "Map",
+        "download": "Downloaden",
+        "chooseFiles": "Bestanden kiezen"
+      },
+      "tree": {
+        "label": "Artifactverkenner",
+        "entry": "Inbox",
+        "out": "Uitvoer",
+        "outBy": "Uitvoer weergeven op",
+        "byAgent": "Agent",
+        "byType": "Bestandstype",
+        "byDate": "Datum",
+        "quick": "Snelle toegang",
+        "favorites": "Favorieten",
+        "recent": "Recent",
+        "mine": "Door mij geüpload",
+        "soon": "Binnenkort beschikbaar"
+      },
+      "list": {
+        "label": "Bestanden",
+        "name": "Naam",
+        "type": "Type",
+        "size": "Grootte",
+        "date": "Datum",
+        "uploadedBy": "Geüpload door",
+        "usedBy": "Gebruikt door",
+        "agent": "Agent",
+        "task": "Taak",
+        "elements": "{{count}} items",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} taken",
+        "usedOne": "1 taak",
+        "starred": "Favoriet"
+      },
+      "status": {
+        "items": "{{count}} items",
+        "itemsOne": "1 item",
+        "selected": "1 geselecteerd",
+        "ruleIn": "Alleen mensen schrijven · agents lezen",
+        "ruleOut": "Alleen agents schrijven · jij leest",
+        "copied": "Link gekopieerd",
+        "copyFailed": "De link kon niet worden gekopieerd"
+      },
+      "empty": {
+        "folder": "Lege map",
+        "folderHint": "Sleep bestanden hierheen of klik op Uploaden",
+        "noMatch": "Niets komt overeen met «{{q}}»",
+        "outHint": "Nog geen artifacts in deze weergave"
+      },
+      "ctx": {
+        "menu": "Acties",
+        "open": "Openen",
+        "preview": "Snelle weergave",
+        "download": "Downloaden",
+        "copyLink": "Link kopiëren",
+        "goTask": "Naar taak",
+        "moveToInbox": "Naar Inbox verplaatsen…",
+        "replace": "Vervangen door nieuwe versie",
+        "move": "Verplaatsen…",
+        "rename": "Hernoemen",
+        "remove": "Verwijderen",
+        "favorite": "Aan favorieten toevoegen",
+        "unfavorite": "Uit favorieten verwijderen",
+        "properties": "Eigenschappen",
+        "soon": "Binnenkort beschikbaar"
+      },
+      "type": {
+        "folder": "Map",
+        "task": "Taak",
+        "image": "Afbeelding",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Tekst",
+        "file": "Bestand"
+      },
+      "meta": {
+        "person": "Bedrijfsgebruiker",
+        "uploadedBy": "Geüpload door",
+        "folder": "Map",
+        "visibleTo": "Zichtbaar voor",
+        "allCompany": "het hele bedrijf",
+        "usedIn": "Gebruikt in",
+        "usedTasks": "{{count}} taken",
+        "usedNone": "nog geen taak",
+        "agent": "Agent",
+        "task": "Taak",
+        "origin": "Herkomst",
+        "originRun": "agentrun"
+      },
+      "crumbs": {
+        "projects": "Projecten",
+        "noProject": "Geen project",
+        "project": "Project",
+        "task": "Taak",
+        "byAgent": "Agent",
+        "byType": "Bestandstype",
+        "byDate": "Datum"
+      },
+      "errors": {
+        "load": "De bestanden konden niet worden geladen.",
+        "tree": "De boomstructuur kon niet worden geladen.",
+        "moveToInbox": "Dit artifact kan niet naar de Inbox worden verplaatst.",
+        "usage": "Het gebruik kon niet worden geladen."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

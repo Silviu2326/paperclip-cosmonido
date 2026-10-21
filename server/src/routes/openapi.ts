@@ -91,6 +91,8 @@ import {
   updateCompanyBrandingSchema,
   companyArtifactsQuerySchema,
   companyArtifactsResponseSchema,
+  companyArtifactsTreeQuerySchema,
+  companyArtifactTreeResponseSchema,
   // Decisions
   addDecisionQueueItemSchema,
   createDecisionQueueSchema,
@@ -234,6 +236,8 @@ import {
   patchInstanceSettingsSchema,
   startTaskDrainRequestSchema,
   // Resource memberships
+  updateArtifactResourceMembershipSchema,
+  updateCompanyFileResourceMembershipSchema,
   updateDocumentResourceMembershipSchema,
   updateResourceMembershipSchema,
   // Document annotations
@@ -330,6 +334,13 @@ import {
   updateChatEndpointSchema,
 } from "@paperclipai/shared";
 import { aggregatorAppsSyncSchema, aggregatorAppsRefreshSchema, arcadeDiscoverySetupSchema } from "@paperclipai/shared/aggregator-apps";
+import {
+  createCompanyFileFolderSchema,
+  createCompanyFileFromArtifactSchema,
+  listCompanyFilesQuerySchema,
+  updateCompanyFileFolderSchema,
+  updateCompanyFileSchema,
+} from "@paperclipai/shared/validators/company-file";
 import { composioAppsSyncSchema, composioAppsRefreshSchema, composioAppSetupSchema, composioAppAccountSchema } from "@paperclipai/shared/composio-app-setup";
 import {
   COMPANY_IMPORT_TRANSFERS_API_PATH,
@@ -2151,6 +2162,42 @@ registry.registerPath({
         },
       },
     },
+    401: r.unauthorized,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/artifacts/archive",
+  tags: ["companies"],
+  summary: "Download every artifact of one task (node=issue:<id>) or project (node=project:<id>) as a ZIP (board only). Attachments and attachment-backed work products are stored bytes at <identifier>/<filename>; documents are <identifier>/<key>.md. 422 when empty; 413 above 500 MB.",
+  request: {
+    params: z.object({ companyId: z.string() }),
+    query: z.object({ node: z.string().regex(/^(issue|project):[0-9a-fA-F-]{36}$/) }),
+  },
+  responses: {
+    200: { description: "application/zip attachment" },
+    400: r.badRequest,
+    401: r.unauthorized,
+    403: r.forbidden,
+    404: r.notFound,
+    413: { description: "Archive exceeds the 500 MB limit" },
+    422: r.unprocessable,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/artifacts/tree",
+  tags: ["companies"],
+  summary: "Get the company artifacts folder tree (Salida explorer)",
+  request: {
+    params: z.object({ companyId: z.string() }),
+    query: companyArtifactsTreeQuerySchema,
+  },
+  responses: {
+    200: r.ok(companyArtifactTreeResponseSchema),
+    400: r.badRequest,
     401: r.unauthorized,
   },
 });
@@ -5273,6 +5320,163 @@ registry.registerPath({
   responses: { 200: r.ok(), 401: r.unauthorized },
 });
 
+// ─── Company files (Entrada) ─────────────────────────────────────────────────
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/files",
+  tags: ["company-files"],
+  summary: "List company files in a folder, or search them with q. scope=all lists every folder (folderPath on each file). createdByMe and starred filter by the current board user.",
+  request: { params: z.object({ companyId: z.string() }), query: listCompanyFilesQuerySchema },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/files/tree",
+  tags: ["company-files"],
+  summary: "Company files folder tree with recursive counts",
+  request: { params: z.object({ companyId: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files",
+  tags: ["company-files"],
+  summary: "Upload a company file (multipart field file, optional folderId)",
+  request: { params: z.object({ companyId: z.string() }) },
+  responses: { 201: r.ok(), 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/company-files/{id}/versions",
+  tags: ["company-files"],
+  summary: "Add a new version to a company file (multipart field file)",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 201: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/versions",
+  tags: ["company-files"],
+  summary: "List versions of a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/usage",
+  tags: ["company-files"],
+  summary: "List issues that read a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/company-files/{id}",
+  tags: ["company-files"],
+  summary: "Rename or move a company file",
+  request: { params: z.object({ id: z.string() }), body: jsonBody(updateCompanyFileSchema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/company-files/{id}",
+  tags: ["company-files"],
+  summary: "Soft-delete a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/company-files/{id}/restore",
+  tags: ["company-files"],
+  summary: "Restore a soft-deleted company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 409: r.conflict },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/content",
+  tags: ["company-files"],
+  summary: "Read company file content (?version=, ?download=1). Agent reads are recorded. Agents get 404 for files under an agent-hidden folder.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 206: r.ok(), 401: r.unauthorized, 404: r.notFound, 416: r.ok() },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/thumbnail",
+  tags: ["company-files"],
+  summary: "320px WebP thumbnail of the current version of an image file (cached per asset). 404 for non-image files and undecodable images. Same access rules as the content route.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: { description: "image/webp thumbnail (Cache-Control: private, max-age=3600)" },
+    401: r.unauthorized,
+    404: r.notFound,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/folders/{id}/archive",
+  tags: ["company-files"],
+  summary: "Download a company files folder as a ZIP (board only). Recursive, current version of each live file, paths relative to the folder. 422 when the folder has no files; 413 above 500 MB.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: { description: "application/zip attachment named <folder-name>.zip" },
+    401: r.unauthorized,
+    403: r.forbidden,
+    404: r.notFound,
+    413: { description: "Archive exceeds the 500 MB limit" },
+    422: r.unprocessable,
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files/folders",
+  tags: ["company-files"],
+  summary: "Create a company files folder",
+  request: { params: z.object({ companyId: z.string() }), body: jsonBody(createCompanyFileFolderSchema) },
+  responses: { 201: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/company-files/folders/{id}",
+  tags: ["company-files"],
+  summary: "Rename, move, reorder or set agentVisible on a company files folder. agentVisible=false hides the folder and its descendants from agents (folder.updated is logged with the change).",
+  request: { params: z.object({ id: z.string() }), body: jsonBody(updateCompanyFileFolderSchema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/company-files/folders/{id}",
+  tags: ["company-files"],
+  summary: "Delete an empty company files folder",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files/from-artifact",
+  tags: ["company-files"],
+  summary: "Copy an attachment, work product or markdown document into company files",
+  request: { params: z.object({ companyId: z.string() }), body: jsonBody(createCompanyFileFromArtifactSchema) },
+  responses: { 201: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
+});
+
 // ─── Secrets ─────────────────────────────────────────────────────────────────
 
 registry.registerPath({
@@ -8179,6 +8383,19 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "get",
+  path: "/api/attachments/{attachmentId}/thumbnail",
+  tags: ["assets"],
+  summary: "320px WebP thumbnail of an image attachment (cached per asset). 404 for non-image and undecodable attachments.",
+  request: { params: z.object({ attachmentId: z.string() }) },
+  responses: {
+    200: { description: "image/webp thumbnail (Cache-Control: private, max-age=3600)" },
+    401: r.unauthorized,
+    404: r.notFound,
+  },
+});
+
+registry.registerPath({
   method: "delete",
   path: "/api/attachments/{attachmentId}",
   tags: ["assets"],
@@ -10250,6 +10467,22 @@ registerCurrentRoute({
   tags: ["resource-memberships"],
   summary: "Star or unstar a document resource",
   body: updateDocumentResourceMembershipSchema,
+});
+
+registerCurrentRoute({
+  method: "put",
+  path: "/api/companies/{companyId}/resource-memberships/me/company-files/{companyFileId}",
+  tags: ["resource-memberships"],
+  summary: "Star or unstar a company file (Entrada) for the current board user",
+  body: updateCompanyFileResourceMembershipSchema,
+});
+
+registerCurrentRoute({
+  method: "put",
+  path: "/api/companies/{companyId}/resource-memberships/me/artifacts/{source}/{artifactId}",
+  tags: ["resource-memberships"],
+  summary: "Star or unstar a Salida attachment or work product (source is attachment or work_product) for the current board user",
+  body: updateArtifactResourceMembershipSchema,
 });
 
 for (const route of [

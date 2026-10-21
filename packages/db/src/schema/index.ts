@@ -43,6 +43,9 @@ export { workspaceRuntimeServices } from "./workspace_runtime_services.js";
 export { projectGoals } from "./project_goals.js";
 export { goals } from "./goals.js";
 export { folders } from "./folders.js";
+export { companyFiles, companyFileVersions, companyFileReads } from "./company_files.js";
+export { companyFileMemberships } from "./company_file_memberships.js";
+export { artifactMemberships } from "./artifact_memberships.js";
 export { issues } from "./issues.js";
 export { issueAccessGrants } from "./issue_access_grants.js";
 export { issueWatchdogs } from "./issue_watchdogs.js";
@@ -253,3 +256,7 @@ export { executionWorkspaceRepositories } from "./execution_workspace_repositori
 export { executionWorkspaceRepositoryRoots } from "./execution_workspace_repository_roots.js";
 export { executionWorkspaceRepositoryAccess } from "./execution_workspace_repository_access.js";
 export * from "./fast_responses.js";
+
+export * from "./deliverable_reviews.js";
+
+export * from "./media_studio.js";

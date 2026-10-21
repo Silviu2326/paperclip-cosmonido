@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "폴더 다운로드 (ZIP)",
+        "tooLarge": "폴더가 500MB를 넘어 ZIP으로 다운로드할 수 없습니다.",
+        "empty": "여기에는 다운로드할 파일이 없습니다.",
+        "failed": "ZIP을 준비할 수 없었습니다."
+      },
+      "visibility": {
+        "toggle": "에이전트에게 공개",
+        "hidden": "에이전트에게 숨김",
+        "visible": "에이전트에게 공개",
+        "metaLabel": "에이전트",
+        "error": "공개 설정을 변경할 수 없습니다."
+      },
+      "pdf": {
+        "prev": "이전 페이지",
+        "next": "다음 페이지",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF에서 검색",
+        "searchPlaceholder": "문서에서 검색…",
+        "searching": "검색 중…",
+        "noMatches": "결과 없음",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "이전 결과",
+        "nextMatch": "다음 결과"
+      },
+      "preview": {
+        "title": "미리 보기",
+        "fullscreen": "전체 화면",
+        "fullscreenTitle": "전체 화면 미리 보기",
+        "close": "닫기",
+        "empty": "파일을 선택하면 여기에 표시됩니다.",
+        "emptyDetail": "두 번 클릭하면 전체 화면으로 열립니다.",
+        "box": {
+          "in": "입력",
+          "out": "출력"
+        },
+        "versions": "버전",
+        "currentVersion": "현재",
+        "download": "다운로드",
+        "openNewTab": "새 탭에서 열기",
+        "unsupported": "미리 볼 수 없음",
+        "unsupportedHint": "이 파일 형식은 여기에서 표시할 수 없습니다. 보려면 다운로드하세요.",
+        "kind": {
+          "image": "이미지",
+          "video": "동영상",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "스프레드시트",
+          "json": "JSON",
+          "text": "텍스트",
+          "pr": "Pull request",
+          "unsupported": "파일"
+        },
+        "folderHint": "폴더는 두 번 클릭하면 열립니다."
+      },
+      "viewer": {
+        "loading": "미리 보기 불러오는 중…",
+        "loadError": "미리 보기를 불러올 수 없습니다.",
+        "tooLarge": "파일이 너무 커서 미리 볼 수 없습니다. 보려면 다운로드하세요.",
+        "unavailable": "미리 볼 콘텐츠가 없습니다.",
+        "zoomFit": "맞춤",
+        "zoomActual": "1:1",
+        "mode": "미리 보기 모드",
+        "pdfBlocked": "이 브라우저에서는 PDF를 표시할 수 없습니다.",
+        "sheet": "시트",
+        "sheetCapped": "처음 {{rows}}개 행과 {{columns}}개 열을 표시하고 있습니다.",
+        "sheetEmpty": "이 시트는 비어 있습니다.",
+        "jsonInvalid": "올바른 JSON이 아니므로 텍스트로 표시합니다."
+      },
+      "inbox": {
+        "cancel": "취소",
+        "nameLabel": "이름",
+        "nameRequired": "이름을 입력하세요.",
+        "genericError": "작업을 완료할 수 없습니다.",
+        "loading": "폴더 불러오는 중…",
+        "picker": {
+          "location": "입력함 내 위치",
+          "root": "입력함 루트",
+          "empty": "아직 폴더가 없습니다. 파일은 루트에 저장됩니다.",
+          "expand": "{{name}} 펼치기",
+          "collapse": "{{name}} 접기"
+        },
+        "folder": {
+          "newTitle": "새 폴더",
+          "newDescription": "폴더로 입력함의 파일을 정리할 수 있습니다.",
+          "newConfirm": "폴더 만들기",
+          "created": "“{{name}}” 폴더를 만들었습니다"
+        },
+        "rename": {
+          "fileTitle": "파일 이름 바꾸기",
+          "folderTitle": "폴더 이름 바꾸기",
+          "confirm": "이름 바꾸기",
+          "fileRenamed": "파일 이름을 “{{name}}”(으)로 바꿨습니다",
+          "folderRenamed": "폴더 이름을 “{{name}}”(으)로 바꿨습니다"
+        },
+        "move": {
+          "title": "파일 이동",
+          "confirm": "여기로 이동",
+          "moved": "“{{name}}”을(를) 이동했습니다"
+        },
+        "delete": {
+          "fileTitle": "파일 삭제",
+          "folderTitle": "폴더 삭제",
+          "fileDescription": "“{{name}}”이(가) 입력함에서 삭제됩니다. 에이전트는 더 이상 읽을 수 없습니다. 이 작업은 되돌릴 수 없습니다.",
+          "folderDescription": "“{{name}}”이(가) 삭제됩니다. 빈 폴더만 삭제할 수 있습니다. 먼저 내용을 이동하거나 삭제하세요.",
+          "confirm": "삭제",
+          "fileDeleted": "“{{name}}”을(를) 삭제했습니다",
+          "folderDeleted": "폴더 “{{name}}”을(를) 삭제했습니다"
+        },
+        "version": {
+          "title": "버전 교체",
+          "description": "새 파일을 업로드하세요. 이전 버전은 기록에 남습니다.",
+          "fileLabel": "파일",
+          "noteLabel": "메모(선택 사항)",
+          "confirm": "버전 업로드",
+          "noFile": "업로드할 파일을 선택하세요.",
+          "added": "“{{name}}”이(가) 이제 버전 {{version}}입니다"
+        },
+        "toInbox": {
+          "title": "입력함으로 이동",
+          "description": "회사와 에이전트가 사용할 수 있도록 “{{name}}”을(를) 입력함에 복사합니다.",
+          "nameLabel": "입력함에서의 이름(선택 사항)",
+          "confirm": "입력함으로 이동",
+          "added": "“{{name}}”을(를) 입력함에 추가했습니다"
+        }
+      },
+      "box": {
+        "in": "입력",
+        "out": "출력"
+      },
+      "toolbar": {
+        "segBox": "박스",
+        "segView": "보기",
+        "back": "뒤로",
+        "forward": "앞으로",
+        "crumbs": "경로",
+        "search": "검색",
+        "searchScope": "{{name}}에서 검색",
+        "viewList": "목록",
+        "viewIcons": "아이콘",
+        "previewToggle": "미리 보기 표시 또는 숨기기",
+        "preview": "미리 보기",
+        "upload": "업로드",
+        "newFolder": "폴더",
+        "download": "다운로드",
+        "chooseFiles": "파일 선택"
+      },
+      "tree": {
+        "label": "아티팩트 탐색기",
+        "entry": "입력함",
+        "out": "출력",
+        "outBy": "출력 보기 기준",
+        "byAgent": "에이전트",
+        "byType": "파일 형식",
+        "byDate": "날짜",
+        "quick": "빠른 액세스",
+        "favorites": "즐겨찾기",
+        "recent": "최근",
+        "mine": "내가 업로드한 파일",
+        "soon": "곧 제공"
+      },
+      "list": {
+        "label": "파일",
+        "name": "이름",
+        "type": "유형",
+        "size": "크기",
+        "date": "날짜",
+        "uploadedBy": "업로드한 사람",
+        "usedBy": "사용한 곳",
+        "agent": "에이전트",
+        "task": "작업",
+        "elements": "{{count}}개 항목",
+        "elementsOne": "1개 항목",
+        "usedTasks": "작업 {{count}}개",
+        "usedOne": "작업 1개",
+        "starred": "즐겨찾기"
+      },
+      "status": {
+        "items": "{{count}}개 항목",
+        "itemsOne": "1개 항목",
+        "selected": "1개 선택됨",
+        "ruleIn": "사람이 작성 · 에이전트가 읽기",
+        "ruleOut": "에이전트가 작성 · 사용자가 읽기",
+        "copied": "링크를 복사했습니다",
+        "copyFailed": "링크를 복사할 수 없습니다"
+      },
+      "empty": {
+        "folder": "빈 폴더",
+        "folderHint": "여기에 파일을 끌어 놓거나 업로드를 누르세요",
+        "noMatch": "“{{q}}”과(와) 일치하는 항목이 없습니다",
+        "outHint": "이 보기에는 아직 아티팩트가 없습니다"
+      },
+      "ctx": {
+        "menu": "작업",
+        "open": "열기",
+        "preview": "빠른 보기",
+        "download": "다운로드",
+        "copyLink": "링크 복사",
+        "goTask": "작업으로 이동",
+        "moveToInbox": "입력함으로 이동",
+        "replace": "새 버전으로 교체",
+        "move": "이동",
+        "rename": "이름 바꾸기",
+        "remove": "삭제",
+        "favorite": "즐겨찾기에 추가",
+        "unfavorite": "즐겨찾기에서 제거",
+        "properties": "속성",
+        "soon": "곧 제공"
+      },
+      "type": {
+        "folder": "폴더",
+        "task": "작업",
+        "image": "이미지",
+        "video": "동영상",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "텍스트",
+        "file": "파일"
+      },
+      "meta": {
+        "person": "회사 사용자",
+        "uploadedBy": "업로드한 사람",
+        "folder": "폴더",
+        "visibleTo": "공개 대상",
+        "allCompany": "회사 전체",
+        "usedIn": "사용처",
+        "usedTasks": "작업 {{count}}개",
+        "usedNone": "아직 작업 없음",
+        "agent": "에이전트",
+        "task": "작업",
+        "origin": "출처",
+        "originRun": "에이전트 실행"
+      },
+      "crumbs": {
+        "projects": "프로젝트",
+        "noProject": "프로젝트 없음",
+        "project": "프로젝트",
+        "task": "작업",
+        "byAgent": "에이전트",
+        "byType": "파일 형식",
+        "byDate": "날짜"
+      },
+      "errors": {
+        "load": "파일을 불러올 수 없습니다.",
+        "tree": "트리를 불러올 수 없습니다.",
+        "moveToInbox": "이 아티팩트는 입력함으로 이동할 수 없습니다.",
+        "usage": "사용량을 불러올 수 없습니다."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

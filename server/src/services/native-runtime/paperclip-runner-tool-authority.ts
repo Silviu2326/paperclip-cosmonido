@@ -2,6 +2,7 @@ import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notificati
 import { skillAccessService } from "../skill-access.js";
 import { callTaskWorkspaceTool } from "../task-workspace-tools.js";
 import { TaskAttachmentReadCache, TASK_ATTACHMENT_DEFINITIONS, TASK_ATTACHMENT_SCHEMAS, listTaskAttachments, readTaskAttachment } from "./runner-task-attachments.js";
+import { COMPANY_FILE_DEFINITIONS, COMPANY_FILE_SCHEMAS, listCompanyFiles, readCompanyFile } from "./runner-company-files.js";
 import { RUNNER_BRIDGE_SCHEMAS, runnerBridgeDefinitions, readAssignedSkill, executeWorkspaceTool, readWorkspaceUploadFile, settleRunnerBridgeRead, assertRunnerWorkspacePathAllowed } from "./runner-bridge-tools.js";
 import type { NativeRuntimeContextSnapshot } from "../../vendor/paperclip-runner/index.js";
 import { assertCanManageIssueMonitor, prepareIssueMonitorUpdate, setTaskMonitorSchema, summarizeIssueMonitor } from "../issue-monitors.js";
@@ -152,6 +153,8 @@ type Binding = {
   firstPartyOnly?: boolean;
   /** Operator-approved Dot attachment access, pinned when the turn opens. */
   taskAttachmentRead?: boolean;
+  /** Company files (Entrada) reads. Native runs set this by default; it is not an operator opt-in like task attachments. */
+  companyFilesRead?: boolean;
   runtimeContext?: NativeRuntimeContextSnapshot;
   assertBridgeAuthority?: () => Promise<void>;
   executionTargetKind?: "local" | "remote";
@@ -215,7 +218,8 @@ function canonicalJson(value: unknown): string {
 
 export class PaperclipRunnerToolAuthority {
   #taskAttachmentCache = new TaskAttachmentReadCache();
-  close() { this.#taskAttachmentCache.close(); }
+  #companyFileCache = new TaskAttachmentReadCache();
+  close() { this.#taskAttachmentCache.close(); this.#companyFileCache.close(); }
   constructor(readonly db: Db, readonly binding: Binding) {}
 
   definitions(): Array<Record<string, unknown>> {
@@ -294,6 +298,7 @@ export class PaperclipRunnerToolAuthority {
     definitions.push(REUSE_CHAT_ATTACHMENT_TOOL_DEFINITION);
     if (this.binding.chatAttachmentReadScope) definitions.push(READ_CHAT_ATTACHMENT_TOOL_DEFINITION);
     if (this.binding.taskAttachmentRead) definitions.push(...TASK_ATTACHMENT_DEFINITIONS);
+    if (this.binding.companyFilesRead) definitions.push(...COMPANY_FILE_DEFINITIONS);
     definitions.push(...runnerBridgeDefinitions({ workspace: !this.binding.firstPartyOnly && !!this.binding.workspaceRoot && this.binding.workspaceBridge === true, skills: !!this.binding.runtimeContext, api: runnerApiToolsEnabled(this.binding.companyId, this.binding.apiToolsEnabled), mode: workMode }));
     const connectionTools = this.binding.firstPartyOnly ? [] : [...RUNTIME_CONNECTION_TOOL_DEFINITIONS,
       ...(this.binding.connectorAssignments ?? []).flatMap((assignment) => assignment.tools)];
@@ -329,6 +334,24 @@ export class PaperclipRunnerToolAuthority {
       return settleRunnerBridgeRead(async () => {
         if (call.tool === "read_task_attachment") return readTaskAttachment({ db: this.db, binding: this.binding, arguments: parsed.data, storage: this.binding.storage, cache: this.#taskAttachmentCache, authorize });
         const result = await listTaskAttachments(this.db, this.binding, (parsed.data as { after?: string }).after);
+        await authorize();
+        return result;
+      });
+    }
+    if (Object.hasOwn(COMPANY_FILE_SCHEMAS, call.tool)) {
+      const authorize = async () => {
+        const current = await this.#boundContext();
+        if (!this.binding.companyFilesRead || current.actor.adapterType !== "paperclip_runner")
+          throw forbidden("Company files reading was not enabled or was disabled");
+        await this.binding.assertBridgeAuthority?.();
+      };
+      await authorize();
+      const schema = COMPANY_FILE_SCHEMAS[call.tool as keyof typeof COMPANY_FILE_SCHEMAS];
+      const parsed = schema.safeParse(call.arguments);
+      if (!parsed.success) return { outcome: "failed", code: "runner_company_file_invalid_arguments", message: "Arguments do not match this tool's advertised schema." };
+      return settleRunnerBridgeRead(async () => {
+        if (call.tool === "read_company_file") return readCompanyFile({ db: this.db, binding: this.binding, arguments: parsed.data, storage: this.binding.storage, cache: this.#companyFileCache, authorize });
+        const result = await listCompanyFiles(this.db, this.binding, parsed.data as { folder?: string; after?: string });
         await authorize();
         return result;
       });

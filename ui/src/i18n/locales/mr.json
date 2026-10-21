@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "फोल्डर डाउनलोड करा (ZIP)",
+        "tooLarge": "फोल्डर 500 MB पेक्षा मोठे आहे आणि ZIP म्हणून डाउनलोड करता येत नाही.",
+        "empty": "येथे डाउनलोड करण्यासारख्या फाइल्स नाहीत.",
+        "failed": "ZIP तयार करता आला नाही."
+      },
+      "visibility": {
+        "toggle": "एजंटना दिसते",
+        "hidden": "एजंटपासून लपवलेले",
+        "visible": "एजंटना दिसते",
+        "metaLabel": "एजंट",
+        "error": "दृश्यता बदलता आली नाही."
+      },
+      "pdf": {
+        "prev": "मागील पृष्ठ",
+        "next": "पुढील पृष्ठ",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF मध्ये शोधा",
+        "searchPlaceholder": "दस्तऐवजात शोधा…",
+        "searching": "शोधत आहे…",
+        "noMatches": "निकाल नाहीत",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "मागील निकाल",
+        "nextMatch": "पुढील निकाल"
+      },
+      "preview": {
+        "title": "पूर्वावलोकन",
+        "fullscreen": "पूर्ण स्क्रीन",
+        "fullscreenTitle": "पूर्ण स्क्रीन पूर्वावलोकन",
+        "close": "बंद करा",
+        "empty": "येथे पाहण्यासाठी फाइल निवडा.",
+        "emptyDetail": "डबल-क्लिक केल्यास ती पूर्ण स्क्रीनमध्ये उघडते.",
+        "box": {
+          "in": "इनबॉक्स",
+          "out": "आउटपुट"
+        },
+        "versions": "आवृत्त्या",
+        "currentVersion": "सध्याची",
+        "download": "डाउनलोड",
+        "openNewTab": "नवीन टॅबमध्ये उघडा",
+        "unsupported": "पूर्वावलोकन उपलब्ध नाही",
+        "unsupportedHint": "हा फाइल प्रकार येथे दाखवता येत नाही. पाहण्यासाठी तो डाउनलोड करा.",
+        "kind": {
+          "image": "प्रतिमा",
+          "video": "व्हिडिओ",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "स्प्रेडशीट",
+          "json": "JSON",
+          "text": "मजकूर",
+          "pr": "पुल रिक्वेस्ट",
+          "unsupported": "फाइल"
+        },
+        "folderHint": "फोल्डर डबल-क्लिकने उघडतात."
+      },
+      "viewer": {
+        "loading": "पूर्वावलोकन लोड होत आहे…",
+        "loadError": "पूर्वावलोकन लोड करता आले नाही.",
+        "tooLarge": "ही फाइल पूर्वावलोकनासाठी खूप मोठी आहे. पाहण्यासाठी ती डाउनलोड करा.",
+        "unavailable": "पूर्वावलोकनासाठी कोणताही मजकूर उपलब्ध नाही.",
+        "zoomFit": "बसवा",
+        "zoomActual": "1:1",
+        "mode": "पूर्वावलोकन मोड",
+        "pdfBlocked": "तुमचा ब्राउझर येथे PDF दाखवू शकत नाही.",
+        "sheet": "शीट",
+        "sheetCapped": "पहिल्या {{rows}} ओळी आणि {{columns}} स्तंभ दाखवत आहे.",
+        "sheetEmpty": "ही शीट रिकामी आहे.",
+        "jsonInvalid": "वैध JSON नाही; मजकूर म्हणून दाखवत आहे."
+      },
+      "inbox": {
+        "cancel": "रद्द करा",
+        "nameLabel": "नाव",
+        "nameRequired": "नाव टाका.",
+        "genericError": "कृती पूर्ण करता आली नाही.",
+        "loading": "फोल्डर लोड होत आहेत…",
+        "picker": {
+          "location": "इनबॉक्समधील स्थान",
+          "root": "इनबॉक्सचे मूळ",
+          "empty": "अजून फोल्डर नाहीत. फाइल्स मूळ स्तरावर जातील.",
+          "expand": "{{name}} विस्तृत करा",
+          "collapse": "{{name}} संक्षिप्त करा"
+        },
+        "folder": {
+          "newTitle": "नवीन फोल्डर",
+          "newDescription": "फोल्डर इनबॉक्समधील फाइल्स व्यवस्थित ठेवतात.",
+          "newConfirm": "फोल्डर तयार करा",
+          "created": "“{{name}}” फोल्डर तयार झाला"
+        },
+        "rename": {
+          "fileTitle": "फाइलचे नाव बदला",
+          "folderTitle": "फोल्डरचे नाव बदला",
+          "confirm": "नाव बदला",
+          "fileRenamed": "फाइलचे नाव “{{name}}” केले",
+          "folderRenamed": "फोल्डरचे नाव “{{name}}” केले"
+        },
+        "move": {
+          "title": "फाइल हलवा",
+          "confirm": "येथे हलवा",
+          "moved": "“{{name}}” हलवली"
+        },
+        "delete": {
+          "fileTitle": "फाइल हटवा",
+          "folderTitle": "फोल्डर हटवा",
+          "fileDescription": "“{{name}}” इनबॉक्समधून हटवली जाईल. एजंट ती पुन्हा वाचू शकणार नाहीत. ही कृती परत करता येणार नाही.",
+          "folderDescription": "“{{name}}” हटवले जाईल. फक्त रिकामे फोल्डर हटवता येतात: आधी त्यातील मजकूर हलवा किंवा हटवा.",
+          "confirm": "हटवा",
+          "fileDeleted": "“{{name}}” हटवली",
+          "folderDeleted": "फोल्डर “{{name}}” हटवले"
+        },
+        "version": {
+          "title": "आवृत्ती बदला",
+          "description": "नवीन फाइल अपलोड करा. मागील आवृत्ती इतिहासात राहील.",
+          "fileLabel": "फाइल",
+          "noteLabel": "टीप (पर्यायी)",
+          "confirm": "आवृत्ती अपलोड करा",
+          "noFile": "अपलोड करण्यासाठी फाइल निवडा.",
+          "added": "“{{name}}” आता आवृत्ती {{version}} आहे"
+        },
+        "toInbox": {
+          "title": "इनबॉक्समध्ये हलवा",
+          "description": "कंपनी आणि तिचे एजंट वापरू शकतील म्हणून “{{name}}” इनबॉक्समध्ये कॉपी केली जाईल.",
+          "nameLabel": "इनबॉक्समधील नाव (पर्यायी)",
+          "confirm": "इनबॉक्समध्ये हलवा",
+          "added": "“{{name}}” इनबॉक्समध्ये जोडली"
+        }
+      },
+      "box": {
+        "in": "इनबॉक्स",
+        "out": "आउटपुट"
+      },
+      "toolbar": {
+        "segBox": "बॉक्स",
+        "segView": "दृश्य",
+        "back": "मागे",
+        "forward": "पुढे",
+        "crumbs": "मार्ग",
+        "search": "शोधा",
+        "searchScope": "{{name}} मध्ये शोधा",
+        "viewList": "यादी",
+        "viewIcons": "चिन्हे",
+        "previewToggle": "पूर्वावलोकन दाखवा किंवा लपवा",
+        "preview": "पूर्वावलोकन",
+        "upload": "अपलोड",
+        "newFolder": "फोल्डर",
+        "download": "डाउनलोड",
+        "chooseFiles": "फाइल्स निवडा"
+      },
+      "tree": {
+        "label": "आर्टिफॅक्ट एक्सप्लोरर",
+        "entry": "इनबॉक्स",
+        "out": "आउटपुट",
+        "outBy": "आउटपुट पाहा यानुसार",
+        "byAgent": "एजंट",
+        "byType": "फाइल प्रकार",
+        "byDate": "तारीख",
+        "quick": "जलद प्रवेश",
+        "favorites": "आवडते",
+        "recent": "अलीकडील",
+        "mine": "मी अपलोड केलेले",
+        "soon": "लवकरच"
+      },
+      "list": {
+        "label": "फाइल्स",
+        "name": "नाव",
+        "type": "प्रकार",
+        "size": "आकार",
+        "date": "तारीख",
+        "uploadedBy": "अपलोड केले",
+        "usedBy": "वापरले",
+        "agent": "एजंट",
+        "task": "कार्य",
+        "elements": "{{count}} आयटम",
+        "elementsOne": "1 आयटम",
+        "usedTasks": "{{count}} कार्ये",
+        "usedOne": "1 कार्य",
+        "starred": "आवडते"
+      },
+      "status": {
+        "items": "{{count}} आयटम",
+        "itemsOne": "1 आयटम",
+        "selected": "1 निवडला",
+        "ruleIn": "फक्त लोक लिहितात · एजंट वाचतात",
+        "ruleOut": "फक्त एजंट लिहितात · तुम्ही वाचता",
+        "copied": "लिंक कॉपी झाली",
+        "copyFailed": "लिंक कॉपी करता आली नाही"
+      },
+      "empty": {
+        "folder": "रिकामे फोल्डर",
+        "folderHint": "येथे फाइल्स ओढा किंवा अपलोड दाबा",
+        "noMatch": "“{{q}}” शी काहीही जुळत नाही",
+        "outHint": "या दृश्यात अजून आर्टिफॅक्ट नाहीत"
+      },
+      "ctx": {
+        "menu": "कृती",
+        "open": "उघडा",
+        "preview": "जलद दृश्य",
+        "download": "डाउनलोड",
+        "copyLink": "लिंक कॉपी करा",
+        "goTask": "कार्यावर जा",
+        "moveToInbox": "इनबॉक्समध्ये हलवा",
+        "replace": "नवीन आवृत्तीने बदला",
+        "move": "हलवा",
+        "rename": "नाव बदला",
+        "remove": "हटवा",
+        "favorite": "आवडत्यांमध्ये जोडा",
+        "unfavorite": "आवडत्यांमधून काढा",
+        "properties": "गुणधर्म",
+        "soon": "लवकरच"
+      },
+      "type": {
+        "folder": "फोल्डर",
+        "task": "कार्य",
+        "image": "प्रतिमा",
+        "video": "व्हिडिओ",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "मजकूर",
+        "file": "फाइल"
+      },
+      "meta": {
+        "person": "कंपनी वापरकर्ता",
+        "uploadedBy": "अपलोड केले",
+        "folder": "फोल्डर",
+        "visibleTo": "यांना दिसते",
+        "allCompany": "संपूर्ण कंपनी",
+        "usedIn": "येथे वापरले",
+        "usedTasks": "{{count}} कार्ये",
+        "usedNone": "अजून कार्य नाही",
+        "agent": "एजंट",
+        "task": "कार्य",
+        "origin": "स्रोत",
+        "originRun": "एजंट रन"
+      },
+      "crumbs": {
+        "projects": "प्रकल्प",
+        "noProject": "प्रकल्प नाही",
+        "project": "प्रकल्प",
+        "task": "कार्य",
+        "byAgent": "एजंट",
+        "byType": "फाइल प्रकार",
+        "byDate": "तारीख"
+      },
+      "errors": {
+        "load": "फाइल्स लोड करता आल्या नाहीत.",
+        "tree": "ट्री लोड करता आला नाही.",
+        "moveToInbox": "हा आर्टिफॅक्ट इनबॉक्समध्ये हलवता येत नाही.",
+        "usage": "वापराची माहिती लोड करता आली नाही."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

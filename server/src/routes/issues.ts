@@ -1,6 +1,7 @@
 import { parseObject } from "../adapters/utils.js";
 import { assertLegacyRunTaskOwnership } from "../legacy-run-task-ownership.js";
 import { enqueueFastResponse } from "../services/fast-responses.js";
+import { getAssetThumbnail } from "../services/thumbnails.js";
 import { hasRequiredWorkspaceRecovery, LEGACY_WORKSPACE_RECOVERY_SCHEMA } from "../services/workspace-restore-recovery-state.js";
 import { hasUnverifiedNativeWorkspaceFinalizationOwner } from "../services/native-runtime/native-workspace-finalization-recovery-state.js";
 import { monitorPoliciesEqual, applyActorMonitorScheduledBy, assertCanManageIssueMonitor, summarizeIssueMonitor } from "../services/issue-monitors.js";
@@ -19574,6 +19575,40 @@ export function issueRoutes(
       String(contentLength || object.contentLength || 0),
     );
     object.stream.pipe(res);
+  });
+
+  // 320px WebP thumbnail of an image attachment. Same access rules as the content route.
+  router.get("/attachments/:attachmentId/thumbnail", async (req, res, next) => {
+    const attachmentId = req.params.attachmentId as string;
+    const attachment = await getAccessibleResource(
+      req,
+      res,
+      svc.getAttachmentById(attachmentId),
+      "Attachment not found",
+    );
+    if (!attachment) return;
+    const issue = await svc.getById(attachment.issueId);
+    if (!issue) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    if (!(await assertIssueReadAllowed(req, res, issue))) return;
+    const thumbnail = await getAssetThumbnail(storage, {
+      companyId: attachment.companyId,
+      assetId: attachment.assetId,
+      objectKey: attachment.objectKey,
+      contentType: attachment.contentType,
+    });
+    if (!thumbnail) {
+      res.status(404).json({ error: "Thumbnail not available for this attachment" });
+      return;
+    }
+    res.setHeader("Content-Type", thumbnail.contentType);
+    res.setHeader("Content-Length", String(thumbnail.contentLength));
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    thumbnail.stream.on("error", (err) => next(err));
+    thumbnail.stream.pipe(res);
   });
 
   router.delete("/attachments/:attachmentId", async (req, res) => {

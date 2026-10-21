@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "ফোল্ডার ডাউনলোড (ZIP)",
+        "tooLarge": "ফোল্ডারটি 500 MB-এর বেশি এবং ZIP হিসেবে ডাউনলোড করা যাবে না।",
+        "empty": "এখানে ডাউনলোড করার মতো কোনো ফাইল নেই।",
+        "failed": "ZIP প্রস্তুত করা যায়নি।"
+      },
+      "visibility": {
+        "toggle": "এজেন্টদের কাছে দৃশ্যমান",
+        "hidden": "এজেন্টদের কাছে লুকানো",
+        "visible": "এজেন্টদের কাছে দৃশ্যমান",
+        "metaLabel": "এজেন্ট",
+        "error": "দৃশ্যমানতা পরিবর্তন করা যায়নি।"
+      },
+      "pdf": {
+        "prev": "আগের পৃষ্ঠা",
+        "next": "পরের পৃষ্ঠা",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF-এ খুঁজুন",
+        "searchPlaceholder": "ডকুমেন্টে খুঁজুন…",
+        "searching": "খোঁজা হচ্ছে…",
+        "noMatches": "কোনো ফলাফল নেই",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "আগের ফলাফল",
+        "nextMatch": "পরের ফলাফল"
+      },
+      "preview": {
+        "title": "প্রিভিউ",
+        "fullscreen": "ফুলস্ক্রিন",
+        "fullscreenTitle": "ফুলস্ক্রিন প্রিভিউ",
+        "close": "বন্ধ করুন",
+        "empty": "এখানে দেখতে একটি ফাইল বেছে নিন।",
+        "emptyDetail": "ডাবল-ক্লিক করলে এটি ফুলস্ক্রিনে খুলবে।",
+        "box": {
+          "in": "ইনবক্স",
+          "out": "আউটবক্স"
+        },
+        "versions": "সংস্করণসমূহ",
+        "currentVersion": "বর্তমান",
+        "download": "ডাউনলোড",
+        "openNewTab": "নতুন ট্যাবে খুলুন",
+        "unsupported": "কোনো প্রিভিউ নেই",
+        "unsupportedHint": "এই ফাইলের ধরন এখানে দেখানো যাবে না। দেখতে এটি ডাউনলোড করুন।",
+        "kind": {
+          "image": "ছবি",
+          "video": "ভিডিও",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "স্প্রেডশিট",
+          "json": "JSON",
+          "text": "টেক্সট",
+          "pr": "পুল রিকোয়েস্ট",
+          "unsupported": "ফাইল"
+        },
+        "folderHint": "ফোল্ডার ডাবল-ক্লিক করলে খোলে।"
+      },
+      "viewer": {
+        "loading": "প্রিভিউ লোড হচ্ছে…",
+        "loadError": "প্রিভিউ লোড করা যায়নি।",
+        "tooLarge": "এই ফাইলটি প্রিভিউ করার জন্য অনেক বড়। দেখতে এটি ডাউনলোড করুন।",
+        "unavailable": "প্রিভিউ করার মতো কোনো কন্টেন্ট নেই।",
+        "zoomFit": "ফিট",
+        "zoomActual": "1:1",
+        "mode": "প্রিভিউ মোড",
+        "pdfBlocked": "আপনার ব্রাউজারে এখানে PDF দেখানো যাচ্ছে না।",
+        "sheet": "শিট",
+        "sheetCapped": "প্রথম {{rows}} সারি এবং {{columns}} কলাম দেখানো হচ্ছে।",
+        "sheetEmpty": "এই শিটটি খালি।",
+        "jsonInvalid": "বৈধ JSON নয়; টেক্সট হিসেবে দেখানো হচ্ছে।"
+      },
+      "inbox": {
+        "cancel": "বাতিল",
+        "nameLabel": "নাম",
+        "nameRequired": "একটি নাম লিখুন।",
+        "genericError": "কাজটি সম্পন্ন করা যায়নি।",
+        "loading": "ফোল্ডার লোড হচ্ছে…",
+        "picker": {
+          "location": "ইনবক্সে অবস্থান",
+          "root": "ইনবক্সের রুট",
+          "empty": "এখনও কোনো ফোল্ডার নেই। ফাইলগুলো রুটে যাবে।",
+          "expand": "{{name}} বড় করুন",
+          "collapse": "{{name}} ছোট করুন"
+        },
+        "folder": {
+          "newTitle": "নতুন ফোল্ডার",
+          "newDescription": "ফোল্ডার ইনবক্সের ফাইলগুলো সাজিয়ে রাখে।",
+          "newConfirm": "ফোল্ডার তৈরি করুন",
+          "created": "“{{name}}” ফোল্ডার তৈরি হয়েছে"
+        },
+        "rename": {
+          "fileTitle": "ফাইলের নাম বদলান",
+          "folderTitle": "ফোল্ডারের নাম বদলান",
+          "confirm": "নাম বদলান",
+          "fileRenamed": "ফাইলের নাম বদলে “{{name}}” করা হয়েছে",
+          "folderRenamed": "ফোল্ডারের নাম বদলে “{{name}}” করা হয়েছে"
+        },
+        "move": {
+          "title": "ফাইল সরান",
+          "confirm": "এখানে সরান",
+          "moved": "“{{name}}” সরানো হয়েছে"
+        },
+        "delete": {
+          "fileTitle": "ফাইল মুছুন",
+          "folderTitle": "ফোল্ডার মুছুন",
+          "fileDescription": "“{{name}}” ইনবক্স থেকে মুছে যাবে। এজেন্টরা আর এটি পড়তে পারবে না। এটি ফেরানো যাবে না।",
+          "folderDescription": "“{{name}}” মুছে যাবে। শুধু খালি ফোল্ডার মোছা যায়: আগে ভেতরের কন্টেন্ট সরান বা মুছুন।",
+          "confirm": "মুছুন",
+          "fileDeleted": "“{{name}}” মুছে ফেলা হয়েছে",
+          "folderDeleted": "ফোল্ডার “{{name}}” মুছে ফেলা হয়েছে"
+        },
+        "version": {
+          "title": "সংস্করণ প্রতিস্থাপন",
+          "description": "একটি নতুন ফাইল আপলোড করুন। আগের সংস্করণ ইতিহাসে থাকবে।",
+          "fileLabel": "ফাইল",
+          "noteLabel": "নোট (ঐচ্ছিক)",
+          "confirm": "সংস্করণ আপলোড করুন",
+          "noFile": "আপলোড করার জন্য একটি ফাইল বেছে নিন।",
+          "added": "“{{name}}” এখন সংস্করণ {{version}}"
+        },
+        "toInbox": {
+          "title": "ইনবক্সে সরান",
+          "description": "“{{name}}” ইনবক্সে কপি করা হবে, যাতে কোম্পানি ও এজেন্টরা এটি ব্যবহার করতে পারে।",
+          "nameLabel": "ইনবক্সে নাম (ঐচ্ছিক)",
+          "confirm": "ইনবক্সে সরান",
+          "added": "“{{name}}” ইনবক্সে যোগ করা হয়েছে"
+        }
+      },
+      "box": {
+        "in": "ইনবক্স",
+        "out": "আউটবক্স"
+      },
+      "toolbar": {
+        "segBox": "বক্স",
+        "segView": "ভিউ",
+        "back": "পিছনে",
+        "forward": "সামনে",
+        "crumbs": "পথ",
+        "search": "খুঁজুন",
+        "searchScope": "{{name}}-এ খুঁজুন",
+        "viewList": "তালিকা",
+        "viewIcons": "আইকন",
+        "previewToggle": "প্রিভিউ দেখান বা লুকান",
+        "preview": "প্রিভিউ",
+        "upload": "আপলোড",
+        "newFolder": "ফোল্ডার",
+        "download": "ডাউনলোড",
+        "chooseFiles": "ফাইল বেছে নিন"
+      },
+      "tree": {
+        "label": "আর্টিফ্যাক্ট এক্সপ্লোরার",
+        "entry": "ইনবক্স",
+        "out": "আউটবক্স",
+        "outBy": "আউটবক্স দেখুন যেভাবে",
+        "byAgent": "এজেন্ট",
+        "byType": "ফাইলের ধরন",
+        "byDate": "তারিখ",
+        "quick": "দ্রুত প্রবেশ",
+        "favorites": "ফেভারিট",
+        "recent": "সাম্প্রতিক",
+        "mine": "আমার আপলোড করা",
+        "soon": "শীঘ্রই আসছে"
+      },
+      "list": {
+        "label": "ফাইলসমূহ",
+        "name": "নাম",
+        "type": "ধরন",
+        "size": "আকার",
+        "date": "তারিখ",
+        "uploadedBy": "আপলোডকারী",
+        "usedBy": "ব্যবহারকারী",
+        "agent": "এজেন্ট",
+        "task": "কাজ",
+        "elements": "{{count}}টি আইটেম",
+        "elementsOne": "১টি আইটেম",
+        "usedTasks": "{{count}}টি কাজ",
+        "usedOne": "১টি কাজ",
+        "starred": "ফেভারিট"
+      },
+      "status": {
+        "items": "{{count}}টি আইটেম",
+        "itemsOne": "১টি আইটেম",
+        "selected": "১টি নির্বাচিত",
+        "ruleIn": "শুধু মানুষ লেখে — এজেন্ট পড়ে",
+        "ruleOut": "শুধু এজেন্ট লেখে — আপনি পড়েন",
+        "copied": "লিংক কপি হয়েছে",
+        "copyFailed": "লিংক কপি করা যায়নি"
+      },
+      "empty": {
+        "folder": "খালি ফোল্ডার",
+        "folderHint": "ফাইল এখানে টেনে আনুন অথবা আপলোড চাপুন",
+        "noMatch": "“{{q}}”-এর সাথে কিছু মেলেনি",
+        "outHint": "এই ভিউয়ে এখনও কোনো আর্টিফ্যাক্ট নেই"
+      },
+      "ctx": {
+        "menu": "অ্যাকশন",
+        "open": "খুলুন",
+        "preview": "দ্রুত ভিউ",
+        "download": "ডাউনলোড",
+        "copyLink": "লিংক কপি করুন",
+        "goTask": "কাজে যান",
+        "moveToInbox": "ইনবক্সে সরান",
+        "replace": "নতুন সংস্করণ দিয়ে প্রতিস্থাপন",
+        "move": "সরান",
+        "rename": "নাম বদলান",
+        "remove": "মুছুন",
+        "favorite": "ফেভারিট",
+        "unfavorite": "ফেভারিট থেকে সরান",
+        "properties": "বৈশিষ্ট্য",
+        "soon": "শীঘ্রই আসছে"
+      },
+      "type": {
+        "folder": "ফোল্ডার",
+        "task": "কাজ",
+        "image": "ছবি",
+        "video": "ভিডিও",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "টেক্সট",
+        "file": "ফাইল"
+      },
+      "meta": {
+        "person": "কোম্পানির ব্যবহারকারী",
+        "uploadedBy": "আপলোডকারী",
+        "folder": "ফোল্ডার",
+        "visibleTo": "যাদের দেখা যায়",
+        "allCompany": "পুরো কোম্পানি",
+        "usedIn": "যেখানে ব্যবহৃত",
+        "usedTasks": "{{count}}টি কাজ",
+        "usedNone": "এখনও কোনো কাজ নেই",
+        "agent": "এজেন্ট",
+        "task": "কাজ",
+        "origin": "উৎস",
+        "originRun": "এজেন্ট রান"
+      },
+      "crumbs": {
+        "projects": "প্রজেক্ট",
+        "noProject": "কোনো প্রজেক্ট নেই",
+        "project": "প্রজেক্ট",
+        "task": "কাজ",
+        "byAgent": "এজেন্ট",
+        "byType": "ফাইলের ধরন",
+        "byDate": "তারিখ"
+      },
+      "errors": {
+        "load": "ফাইলগুলো লোড করা যায়নি।",
+        "tree": "ট্রি লোড করা যায়নি।",
+        "moveToInbox": "এই আর্টিফ্যাক্ট ইনবক্সে সরানো যাবে না।",
+        "usage": "ব্যবহারের তথ্য লোড করা যায়নি।"
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

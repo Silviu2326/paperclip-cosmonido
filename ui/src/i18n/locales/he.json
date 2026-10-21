@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "הורדת תיקייה (ZIP)",
+        "tooLarge": "התיקייה גדולה מ-500 MB ואי אפשר להוריד אותה כ-ZIP.",
+        "empty": "אין כאן קבצים להורדה.",
+        "failed": "לא ניתן היה להכין את ה-ZIP."
+      },
+      "visibility": {
+        "toggle": "גלוי לסוכנים",
+        "hidden": "מוסתר מסוכנים",
+        "visible": "גלוי לסוכנים",
+        "metaLabel": "סוכנים",
+        "error": "לא ניתן היה לשנות את הנראות."
+      },
+      "pdf": {
+        "prev": "עמוד קודם",
+        "next": "עמוד הבא",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "חיפוש ב-PDF",
+        "searchPlaceholder": "חיפוש במסמך…",
+        "searching": "מחפש…",
+        "noMatches": "אין תוצאות",
+        "matchOf": "{{index}} מתוך {{total}}",
+        "prevMatch": "תוצאה קודמת",
+        "nextMatch": "תוצאה הבאה"
+      },
+      "preview": {
+        "title": "תצוגה מקדימה",
+        "fullscreen": "מסך מלא",
+        "fullscreenTitle": "תצוגה מקדימה במסך מלא",
+        "close": "סגירה",
+        "empty": "בחר קובץ כדי לראות אותו כאן.",
+        "emptyDetail": "לחיצה כפולה פותחת אותו במסך מלא.",
+        "box": {
+          "in": "קלט",
+          "out": "פלט"
+        },
+        "versions": "גרסאות",
+        "currentVersion": "נוכחית",
+        "download": "הורדה",
+        "openNewTab": "פתיחה בכרטיסייה חדשה",
+        "unsupported": "אין תצוגה מקדימה זמינה",
+        "unsupportedHint": "לא ניתן להציג סוג קובץ זה כאן. הורד אותו כדי לצפות בו.",
+        "kind": {
+          "image": "תמונה",
+          "video": "וידאו",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "גיליון חישוב",
+          "json": "JSON",
+          "text": "טקסט",
+          "pr": "Pull request",
+          "unsupported": "קובץ"
+        },
+        "folderHint": "תיקיות נפתחות בלחיצה כפולה."
+      },
+      "viewer": {
+        "loading": "טוען תצוגה מקדימה…",
+        "loadError": "לא ניתן לטעון את התצוגה המקדימה.",
+        "tooLarge": "הקובץ גדול מדי לתצוגה מקדימה. הורד אותו כדי לצפות בו.",
+        "unavailable": "אין תוכן זמין להצגה מקדימה.",
+        "zoomFit": "התאמה",
+        "zoomActual": "1:1",
+        "mode": "מצב תצוגה מקדימה",
+        "pdfBlocked": "הדפדפן שלך לא יכול להציג PDF כאן.",
+        "sheet": "גיליון",
+        "sheetCapped": "מוצגות ה-{{rows}} השורות הראשונות ו-{{columns}} העמודות הראשונות.",
+        "sheetEmpty": "הגיליון ריק.",
+        "jsonInvalid": "לא JSON תקין; מוצג כטקסט."
+      },
+      "inbox": {
+        "cancel": "ביטול",
+        "nameLabel": "שם",
+        "nameRequired": "יש להזין שם.",
+        "genericError": "לא ניתן להשלים את הפעולה.",
+        "loading": "טוען תיקיות…",
+        "picker": {
+          "location": "מיקום בתיבת הקלט",
+          "root": "שורש תיבת הקלט",
+          "empty": "אין עדיין תיקיות. הקבצים יישמרו בשורש.",
+          "expand": "הרחבת {{name}}",
+          "collapse": "כיווץ {{name}}"
+        },
+        "folder": {
+          "newTitle": "תיקייה חדשה",
+          "newDescription": "תיקיות מארגנות את הקבצים בתיבת הקלט.",
+          "newConfirm": "יצירת תיקייה",
+          "created": "התיקייה “{{name}}” נוצרה"
+        },
+        "rename": {
+          "fileTitle": "שינוי שם לקובץ",
+          "folderTitle": "שינוי שם לתיקייה",
+          "confirm": "שינוי שם",
+          "fileRenamed": "הקובץ שונה ל-“{{name}}”",
+          "folderRenamed": "התיקייה שונתה ל-“{{name}}”"
+        },
+        "move": {
+          "title": "העברת קובץ",
+          "confirm": "העבר לכאן",
+          "moved": "הועבר “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "מחיקת קובץ",
+          "folderTitle": "מחיקת תיקייה",
+          "fileDescription": "“{{name}}” יימחק מתיבת הקלט. סוכנים לא יוכלו עוד לקרוא אותו. לא ניתן לבטל פעולה זו.",
+          "folderDescription": "“{{name}}” יימחק. ניתן למחוק רק תיקיות ריקות: העבר או מחק קודם את התוכן שלהן.",
+          "confirm": "מחיקה",
+          "fileDeleted": "“{{name}}” נמחק",
+          "folderDeleted": "התיקייה “{{name}}” נמחקה"
+        },
+        "version": {
+          "title": "החלפת גרסה",
+          "description": "העלה קובץ חדש. הגרסה הקודמת נשמרת בהיסטוריה.",
+          "fileLabel": "קובץ",
+          "noteLabel": "הערה (אופציונלי)",
+          "confirm": "העלאת גרסה",
+          "noFile": "בחר קובץ להעלאה.",
+          "added": "“{{name}}” היא כעת גרסה {{version}}"
+        },
+        "toInbox": {
+          "title": "העברה לתיבת הקלט",
+          "description": "מעתיק את “{{name}}” לתיבת הקלט, כדי שהחברה והסוכנים שלה יוכלו להשתמש בו.",
+          "nameLabel": "שם בתיבת הקלט (אופציונלי)",
+          "confirm": "העבר לתיבת הקלט",
+          "added": "“{{name}}” נוסף לתיבת הקלט"
+        }
+      },
+      "box": {
+        "in": "קלט",
+        "out": "פלט"
+      },
+      "toolbar": {
+        "segBox": "תיבה",
+        "segView": "תצוגה",
+        "back": "אחורה",
+        "forward": "קדימה",
+        "crumbs": "נתיב",
+        "search": "חיפוש",
+        "searchScope": "חיפוש ב-{{name}}",
+        "viewList": "רשימה",
+        "viewIcons": "סמלים",
+        "previewToggle": "הצגה או הסתרה של התצוגה המקדימה",
+        "preview": "תצוגה מקדימה",
+        "upload": "העלאה",
+        "newFolder": "תיקייה",
+        "download": "הורדה",
+        "chooseFiles": "בחירת קבצים"
+      },
+      "tree": {
+        "label": "סייר ארטיפקטים",
+        "entry": "תיבת קלט",
+        "out": "פלט",
+        "outBy": "הצג פלט לפי",
+        "byAgent": "סוכן",
+        "byType": "סוג קובץ",
+        "byDate": "תאריך",
+        "quick": "גישה מהירה",
+        "favorites": "מועדפים",
+        "recent": "אחרונים",
+        "mine": "שהעליתי",
+        "soon": "בקרוב"
+      },
+      "list": {
+        "label": "קבצים",
+        "name": "שם",
+        "type": "סוג",
+        "size": "גודל",
+        "date": "תאריך",
+        "uploadedBy": "הועלה על ידי",
+        "usedBy": "בשימוש על ידי",
+        "agent": "סוכן",
+        "task": "משימה",
+        "elements": "{{count}} פריטים",
+        "elementsOne": "פריט אחד",
+        "usedTasks": "{{count}} משימות",
+        "usedOne": "משימה אחת",
+        "starred": "מועדף"
+      },
+      "status": {
+        "items": "{{count}} פריטים",
+        "itemsOne": "פריט אחד",
+        "selected": "נבחר פריט אחד",
+        "ruleIn": "רק אנשים כותבים · סוכנים קוראים",
+        "ruleOut": "רק סוכנים כותבים · אתה קורא",
+        "copied": "הקישור הועתק",
+        "copyFailed": "לא ניתן להעתיק את הקישור"
+      },
+      "empty": {
+        "folder": "תיקייה ריקה",
+        "folderHint": "גררו קבצים לכאן או לחצו על העלאה",
+        "noMatch": "שום דבר לא תואם ל-“{{q}}”",
+        "outHint": "אין עדיין ארטיפקטים בתצוגה זו"
+      },
+      "ctx": {
+        "menu": "פעולות",
+        "open": "פתיחה",
+        "preview": "תצוגה מהירה",
+        "download": "הורדה",
+        "copyLink": "העתקת קישור",
+        "goTask": "מעבר למשימה",
+        "moveToInbox": "העברה לתיבת הקלט",
+        "replace": "החלפה בגרסה חדשה",
+        "move": "העברה",
+        "rename": "שינוי שם",
+        "remove": "מחיקה",
+        "favorite": "הוספה למועדפים",
+        "unfavorite": "הסרה מהמועדפים",
+        "properties": "מאפיינים",
+        "soon": "בקרוב"
+      },
+      "type": {
+        "folder": "תיקייה",
+        "task": "משימה",
+        "image": "תמונה",
+        "video": "וידאו",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "טקסט",
+        "file": "קובץ"
+      },
+      "meta": {
+        "person": "משתמש בחברה",
+        "uploadedBy": "הועלה על ידי",
+        "folder": "תיקייה",
+        "visibleTo": "גלוי ל",
+        "allCompany": "כל החברה",
+        "usedIn": "בשימוש ב",
+        "usedTasks": "{{count}} משימות",
+        "usedNone": "אין עדיין משימה",
+        "agent": "סוכן",
+        "task": "משימה",
+        "origin": "מקור",
+        "originRun": "הרצת סוכן"
+      },
+      "crumbs": {
+        "projects": "פרויקטים",
+        "noProject": "ללא פרויקט",
+        "project": "פרויקט",
+        "task": "משימה",
+        "byAgent": "סוכן",
+        "byType": "סוג קובץ",
+        "byDate": "תאריך"
+      },
+      "errors": {
+        "load": "לא ניתן לטעון את הקבצים.",
+        "tree": "לא ניתן לטעון את העץ.",
+        "moveToInbox": "לא ניתן להעביר ארטיפקט זה לתיבת הקלט.",
+        "usage": "לא ניתן לטעון את נתוני השימוש."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

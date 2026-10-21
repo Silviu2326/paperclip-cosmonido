@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Download folder (ZIP)",
+        "tooLarge": "The folder is over 500 MB and can't be downloaded as a ZIP.",
+        "empty": "There are no files to download here.",
+        "failed": "The ZIP could not be prepared."
+      },
+      "visibility": {
+        "toggle": "Visible to agents",
+        "hidden": "Hidden from agents",
+        "visible": "Visible to agents",
+        "metaLabel": "Agents",
+        "error": "Could not change visibility."
+      },
+      "pdf": {
+        "prev": "Previous page",
+        "next": "Next page",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Search in PDF",
+        "searchPlaceholder": "Search in document…",
+        "searching": "Searching…",
+        "noMatches": "No results",
+        "matchOf": "{{index}} of {{total}}",
+        "prevMatch": "Previous result",
+        "nextMatch": "Next result"
+      },
+      "preview": {
+        "title": "Preview",
+        "fullscreen": "Full screen",
+        "fullscreenTitle": "Full-screen preview",
+        "close": "Close",
+        "empty": "Select a file to see it here.",
+        "emptyDetail": "Double-click opens it full screen.",
+        "box": {
+          "in": "Input",
+          "out": "Output"
+        },
+        "versions": "Versions",
+        "currentVersion": "current",
+        "download": "Download",
+        "openNewTab": "Open in new tab",
+        "unsupported": "No preview available",
+        "unsupportedHint": "This file type can't be shown here. Download it to view it.",
+        "kind": {
+          "image": "Image",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Spreadsheet",
+          "json": "JSON",
+          "text": "Text",
+          "pr": "Pull request",
+          "unsupported": "File"
+        },
+        "folderHint": "Folders open with a double click."
+      },
+      "viewer": {
+        "loading": "Loading preview…",
+        "loadError": "Could not load the preview.",
+        "tooLarge": "This file is too large to preview. Download it to view it.",
+        "unavailable": "No content is available to preview.",
+        "zoomFit": "Fit",
+        "zoomActual": "1:1",
+        "mode": "Preview mode",
+        "pdfBlocked": "Your browser can't show PDFs here.",
+        "sheet": "Sheet",
+        "sheetCapped": "Showing the first {{rows}} rows and {{columns}} columns.",
+        "sheetEmpty": "This sheet is empty.",
+        "jsonInvalid": "Not valid JSON; showing as text."
+      },
+      "inbox": {
+        "cancel": "Cancel",
+        "nameLabel": "Name",
+        "nameRequired": "Enter a name.",
+        "genericError": "The action could not be completed.",
+        "loading": "Loading folders…",
+        "picker": {
+          "location": "Location in Inbox",
+          "root": "Inbox root",
+          "empty": "No folders yet. Files will go to the root.",
+          "expand": "Expand {{name}}",
+          "collapse": "Collapse {{name}}"
+        },
+        "folder": {
+          "newTitle": "New folder",
+          "newDescription": "Folders organize the files in the Inbox.",
+          "newConfirm": "Create folder",
+          "created": "Folder “{{name}}” created"
+        },
+        "rename": {
+          "fileTitle": "Rename file",
+          "folderTitle": "Rename folder",
+          "confirm": "Rename",
+          "fileRenamed": "File renamed to “{{name}}”",
+          "folderRenamed": "Folder renamed to “{{name}}”"
+        },
+        "move": {
+          "title": "Move file",
+          "confirm": "Move here",
+          "moved": "Moved “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Delete file",
+          "folderTitle": "Delete folder",
+          "fileDescription": "“{{name}}” will be deleted from the Inbox. Agents will no longer be able to read it. This cannot be undone.",
+          "folderDescription": "“{{name}}” will be deleted. Only empty folders can be deleted: move or delete their contents first.",
+          "confirm": "Delete",
+          "fileDeleted": "Deleted “{{name}}”",
+          "folderDeleted": "Deleted folder “{{name}}”"
+        },
+        "version": {
+          "title": "Replace version",
+          "description": "Upload a new file. The previous version stays in the history.",
+          "fileLabel": "File",
+          "noteLabel": "Note (optional)",
+          "confirm": "Upload version",
+          "noFile": "Choose a file to upload.",
+          "added": "“{{name}}” is now version {{version}}"
+        },
+        "toInbox": {
+          "title": "Move to Inbox",
+          "description": "Copies “{{name}}” to the Inbox so the company and its agents can use it.",
+          "nameLabel": "Name in the Inbox (optional)",
+          "confirm": "Move to Inbox",
+          "added": "Added “{{name}}” to the Inbox"
+        }
+      },
+      "box": {
+        "in": "Inbox",
+        "out": "Output"
+      },
+      "toolbar": {
+        "segBox": "Box",
+        "segView": "View",
+        "back": "Back",
+        "forward": "Forward",
+        "crumbs": "Path",
+        "search": "Search",
+        "searchScope": "Search in {{name}}…",
+        "viewList": "List",
+        "viewIcons": "Icons",
+        "previewToggle": "Show or hide preview",
+        "preview": "Preview",
+        "upload": "Upload",
+        "newFolder": "Folder",
+        "download": "Download",
+        "chooseFiles": "Choose files"
+      },
+      "tree": {
+        "label": "Artifacts explorer",
+        "entry": "Inbox",
+        "out": "Output",
+        "outBy": "View output by",
+        "byAgent": "Agent",
+        "byType": "File type",
+        "byDate": "Date",
+        "quick": "Quick access",
+        "favorites": "Favorites",
+        "recent": "Recent",
+        "mine": "Uploaded by me",
+        "soon": "Coming soon"
+      },
+      "list": {
+        "label": "Files",
+        "name": "Name",
+        "type": "Type",
+        "size": "Size",
+        "date": "Date",
+        "uploadedBy": "Uploaded by",
+        "usedBy": "Used by",
+        "agent": "Agent",
+        "task": "Task",
+        "elements": "{{count}} items",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} tasks",
+        "usedOne": "1 task",
+        "starred": "Favorite"
+      },
+      "status": {
+        "items": "{{count}} items",
+        "itemsOne": "1 item",
+        "selected": "1 selected",
+        "ruleIn": "Only people write · agents read",
+        "ruleOut": "Only agents write · you read",
+        "copied": "Link copied",
+        "copyFailed": "Could not copy the link"
+      },
+      "empty": {
+        "folder": "Empty folder",
+        "folderHint": "Drag files here or press Upload",
+        "noMatch": "Nothing matches «{{q}}»",
+        "outHint": "No artifacts in this view yet"
+      },
+      "ctx": {
+        "menu": "Actions",
+        "open": "Open",
+        "preview": "Quick view",
+        "download": "Download",
+        "copyLink": "Copy link",
+        "goTask": "Go to task",
+        "moveToInbox": "Move to Inbox…",
+        "replace": "Replace with new version",
+        "move": "Move…",
+        "rename": "Rename",
+        "remove": "Delete",
+        "favorite": "Favorite",
+        "unfavorite": "Remove favorite",
+        "properties": "Properties",
+        "soon": "Coming soon"
+      },
+      "type": {
+        "folder": "Folder",
+        "task": "Task",
+        "image": "Image",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Text",
+        "file": "File"
+      },
+      "meta": {
+        "person": "Company user",
+        "uploadedBy": "Uploaded by",
+        "folder": "Folder",
+        "visibleTo": "Visible to",
+        "allCompany": "the whole company",
+        "usedIn": "Used in",
+        "usedTasks": "{{count}} tasks",
+        "usedNone": "no task yet",
+        "agent": "Agent",
+        "task": "Task",
+        "origin": "Origin",
+        "originRun": "agent run"
+      },
+      "crumbs": {
+        "projects": "Projects",
+        "noProject": "No project",
+        "project": "Project",
+        "task": "Task",
+        "byAgent": "Agent",
+        "byType": "File type",
+        "byDate": "Date"
+      },
+      "errors": {
+        "load": "The files could not be loaded.",
+        "tree": "The tree could not be loaded.",
+        "moveToInbox": "This artifact cannot be moved to Inbox.",
+        "usage": "Couldn't load usage."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

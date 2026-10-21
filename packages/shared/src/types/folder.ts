@@ -1,4 +1,4 @@
-export type FolderKind = "routine" | "skill";
+export type FolderKind = "routine" | "skill" | "company_files";
 
 export interface Folder {
   id: string;

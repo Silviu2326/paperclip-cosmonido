@@ -41,3 +41,7 @@ These checks use Chromium and simulated report data. They verify working report
 controls, raw mode, cookie/storage/parent access denials, blocked resource and API
 requests, and denied top navigation/popups. They do not replace testing the actual
 attachment journey in a running Paperclip instance.
+
+## Artifacts explorer
+
+The Artifacts explorer preview pane (Entrada and Salida) reuses `HtmlArtifactPreview` with the same `sandbox="allow-scripts"` and the same CSP, so explorer HTML previews follow every rule above. PDF previews are different: the pane embeds the content route in an `iframe` and lets the browser's inline PDF viewer render it. The content route serves `application/pdf` inline, and that iframe is intentionally not sandboxed, because the built-in PDF plugin requires it. No PDF library is bundled.

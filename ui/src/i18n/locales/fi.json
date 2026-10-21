@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Lataa kansio (ZIP)",
+        "tooLarge": "Kansio on yli 500 Mt, eikä sitä voi ladata ZIP-tiedostona.",
+        "empty": "Täältä ei ole ladattavia tiedostoja.",
+        "failed": "ZIP-tiedostoa ei voitu valmistella."
+      },
+      "visibility": {
+        "toggle": "Näkyy agenteille",
+        "hidden": "Piilotettu agenteilta",
+        "visible": "Näkyy agenteille",
+        "metaLabel": "Agentit",
+        "error": "Näkyvyyttä ei voitu muuttaa."
+      },
+      "pdf": {
+        "prev": "Edellinen sivu",
+        "next": "Seuraava sivu",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Hae PDF-tiedostosta",
+        "searchPlaceholder": "Hae asiakirjasta…",
+        "searching": "Haetaan…",
+        "noMatches": "Ei tuloksia",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "Edellinen tulos",
+        "nextMatch": "Seuraava tulos"
+      },
+      "preview": {
+        "title": "Esikatselu",
+        "fullscreen": "Koko näyttö",
+        "fullscreenTitle": "Esikatselu koko näytöllä",
+        "close": "Sulje",
+        "empty": "Valitse tiedosto nähdäksesi sen täällä.",
+        "emptyDetail": "Kaksoisnapsautus avaa sen koko näytöllä.",
+        "box": {
+          "in": "Saapuneet",
+          "out": "Lähtevät"
+        },
+        "versions": "Versiot",
+        "currentVersion": "nykyinen",
+        "download": "Lataa",
+        "openNewTab": "Avaa uudessa välilehdessä",
+        "unsupported": "Esikatselu ei ole saatavilla",
+        "unsupportedHint": "Tämän tiedostotyypin esikatselu ei onnistu täällä. Lataa tiedosto nähdäksesi sen.",
+        "kind": {
+          "image": "Kuva",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Taulukko",
+          "json": "JSON",
+          "text": "Teksti",
+          "pr": "Pull-pyyntö",
+          "unsupported": "Tiedosto"
+        },
+        "folderHint": "Kansiot avautuvat kaksoisnapsautuksella."
+      },
+      "viewer": {
+        "loading": "Ladataan esikatselua…",
+        "loadError": "Esikatselua ei voitu ladata.",
+        "tooLarge": "Tiedosto on liian suuri esikatseltavaksi. Lataa se nähdäksesi sen.",
+        "unavailable": "Esikatseltavaa sisältöä ei ole.",
+        "zoomFit": "Sovita",
+        "zoomActual": "1:1",
+        "mode": "Esikatselutila",
+        "pdfBlocked": "Selaimesi ei voi näyttää PDF-tiedostoja täällä.",
+        "sheet": "Taulukko",
+        "sheetCapped": "Näytetään ensimmäiset {{rows}} riviä ja {{columns}} saraketta.",
+        "sheetEmpty": "Tämä taulukko on tyhjä.",
+        "jsonInvalid": "Ei kelvollinen JSON; näytetään tekstinä."
+      },
+      "inbox": {
+        "cancel": "Peruuta",
+        "nameLabel": "Nimi",
+        "nameRequired": "Kirjoita nimi.",
+        "genericError": "Toimintoa ei voitu suorittaa.",
+        "loading": "Ladataan kansioita…",
+        "picker": {
+          "location": "Sijainti saapuneissa",
+          "root": "Saapuneiden juurikansio",
+          "empty": "Kansioita ei ole vielä. Tiedostot menevät juurikansioon.",
+          "expand": "Laajenna {{name}}",
+          "collapse": "Tiivistä {{name}}"
+        },
+        "folder": {
+          "newTitle": "Uusi kansio",
+          "newDescription": "Kansiot järjestävät saapuneiden tiedostoja.",
+          "newConfirm": "Luo kansio",
+          "created": "Kansio „{{name}}“ luotu"
+        },
+        "rename": {
+          "fileTitle": "Nimeä tiedosto uudelleen",
+          "folderTitle": "Nimeä kansio uudelleen",
+          "confirm": "Nimeä uudelleen",
+          "fileRenamed": "Tiedoston nimeksi vaihdettiin „{{name}}“",
+          "folderRenamed": "Kansion nimeksi vaihdettiin „{{name}}“"
+        },
+        "move": {
+          "title": "Siirrä tiedosto",
+          "confirm": "Siirrä tähän",
+          "moved": "„{{name}}“ siirretty"
+        },
+        "delete": {
+          "fileTitle": "Poista tiedosto",
+          "folderTitle": "Poista kansio",
+          "fileDescription": "„{{name}}“ poistetaan saapuneista. Agentit eivät enää voi lukea sitä. Tätä ei voi peruuttaa.",
+          "folderDescription": "„{{name}}“ poistetaan. Vain tyhjiä kansioita voi poistaa: siirrä tai poista ensin sisältö.",
+          "confirm": "Poista",
+          "fileDeleted": "„{{name}}“ poistettu",
+          "folderDeleted": "Kansio „{{name}}“ poistettu"
+        },
+        "version": {
+          "title": "Korvaa versio",
+          "description": "Lataa uusi tiedosto. Edellinen versio säilyy historiassa.",
+          "fileLabel": "Tiedosto",
+          "noteLabel": "Muistiinpano (valinnainen)",
+          "confirm": "Lataa versio",
+          "noFile": "Valitse ladattava tiedosto.",
+          "added": "„{{name}}“ on nyt versio {{version}}"
+        },
+        "toInbox": {
+          "title": "Siirrä saapuneisiin",
+          "description": "Kopioi „{{name}}“ saapuneisiin, jotta yritys ja sen agentit voivat käyttää sitä.",
+          "nameLabel": "Nimi saapuneissa (valinnainen)",
+          "confirm": "Siirrä saapuneisiin",
+          "added": "„{{name}}“ lisätty saapuneisiin"
+        }
+      },
+      "box": {
+        "in": "Saapuneet",
+        "out": "Lähtevät"
+      },
+      "toolbar": {
+        "segBox": "Laatikko",
+        "segView": "Näkymä",
+        "back": "Takaisin",
+        "forward": "Eteenpäin",
+        "crumbs": "Polku",
+        "search": "Haku",
+        "searchScope": "Hae kohteesta {{name}}",
+        "viewList": "Luettelo",
+        "viewIcons": "Kuvakkeet",
+        "previewToggle": "Näytä tai piilota esikatselu",
+        "preview": "Esikatselu",
+        "upload": "Lataa",
+        "newFolder": "Kansio",
+        "download": "Lataa",
+        "chooseFiles": "Valitse tiedostoja"
+      },
+      "tree": {
+        "label": "Artefaktien selain",
+        "entry": "Saapuneet",
+        "out": "Lähtevät",
+        "outBy": "Näytä lähtevät kohteittain",
+        "byAgent": "Agentti",
+        "byType": "Tiedostotyyppi",
+        "byDate": "Päivämäärä",
+        "quick": "Pikavalinnat",
+        "favorites": "Suosikit",
+        "recent": "Viimeisimmät",
+        "mine": "Minun lataamani",
+        "soon": "Tulossa pian"
+      },
+      "list": {
+        "label": "Tiedostot",
+        "name": "Nimi",
+        "type": "Tyyppi",
+        "size": "Koko",
+        "date": "Päivämäärä",
+        "uploadedBy": "Lataaja",
+        "usedBy": "Käyttäjä",
+        "agent": "Agentti",
+        "task": "Tehtävä",
+        "elements": "{{count}} kohdetta",
+        "elementsOne": "1 kohde",
+        "usedTasks": "{{count}} tehtävää",
+        "usedOne": "1 tehtävä",
+        "starred": "Suosikki"
+      },
+      "status": {
+        "items": "{{count}} kohdetta",
+        "itemsOne": "1 kohde",
+        "selected": "1 valittu",
+        "ruleIn": "Vain ihmiset kirjoittavat — agentit lukevat",
+        "ruleOut": "Vain agentit kirjoittavat — sinä luet",
+        "copied": "Linkki kopioitu",
+        "copyFailed": "Linkkiä ei voitu kopioida"
+      },
+      "empty": {
+        "folder": "Tyhjä kansio",
+        "folderHint": "Vedä tiedostot tänne tai paina Lataa",
+        "noMatch": "Mikään ei vastaa hakua „{{q}}“",
+        "outHint": "Tässä näkymässä ei ole vielä artefakteja"
+      },
+      "ctx": {
+        "menu": "Toiminnot",
+        "open": "Avaa",
+        "preview": "Pikakatselu",
+        "download": "Lataa",
+        "copyLink": "Kopioi linkki",
+        "goTask": "Siirry tehtävään",
+        "moveToInbox": "Siirrä saapuneisiin",
+        "replace": "Korvaa uudella versiolla",
+        "move": "Siirrä",
+        "rename": "Nimeä uudelleen",
+        "remove": "Poista",
+        "favorite": "Suosikki",
+        "unfavorite": "Poista suosikeista",
+        "properties": "Ominaisuudet",
+        "soon": "Tulossa pian"
+      },
+      "type": {
+        "folder": "Kansio",
+        "task": "Tehtävä",
+        "image": "Kuva",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Teksti",
+        "file": "Tiedosto"
+      },
+      "meta": {
+        "person": "Yrityksen käyttäjä",
+        "uploadedBy": "Lataaja",
+        "folder": "Kansio",
+        "visibleTo": "Näkyy",
+        "allCompany": "koko yritykselle",
+        "usedIn": "Käytetty kohteessa",
+        "usedTasks": "{{count}} tehtävää",
+        "usedNone": "ei vielä tehtävää",
+        "agent": "Agentti",
+        "task": "Tehtävä",
+        "origin": "Lähde",
+        "originRun": "agentin ajo"
+      },
+      "crumbs": {
+        "projects": "Projektit",
+        "noProject": "Ei projektia",
+        "project": "Projekti",
+        "task": "Tehtävä",
+        "byAgent": "Agentti",
+        "byType": "Tiedostotyyppi",
+        "byDate": "Päivämäärä"
+      },
+      "errors": {
+        "load": "Tiedostoja ei voitu ladata.",
+        "tree": "Puuta ei voitu ladata.",
+        "moveToInbox": "Tätä artefaktia ei voi siirtää saapuneisiin.",
+        "usage": "Käyttötietoja ei voitu ladata."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

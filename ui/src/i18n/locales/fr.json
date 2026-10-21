@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Télécharger le dossier (ZIP)",
+        "tooLarge": "Le dossier dépasse 500 Mo et ne peut pas être téléchargé en ZIP.",
+        "empty": "Aucun fichier à télécharger ici.",
+        "failed": "Le fichier ZIP n’a pas pu être préparé."
+      },
+      "visibility": {
+        "toggle": "Visible par les agents",
+        "hidden": "Masqué pour les agents",
+        "visible": "Visible par les agents",
+        "metaLabel": "Agents",
+        "error": "La visibilité n’a pas pu être modifiée."
+      },
+      "pdf": {
+        "prev": "Page précédente",
+        "next": "Page suivante",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Rechercher dans le PDF",
+        "searchPlaceholder": "Rechercher dans le document…",
+        "searching": "Recherche en cours…",
+        "noMatches": "Aucun résultat",
+        "matchOf": "{{index}} sur {{total}}",
+        "prevMatch": "Résultat précédent",
+        "nextMatch": "Résultat suivant"
+      },
+      "preview": {
+        "title": "Aperçu",
+        "fullscreen": "Plein écran",
+        "fullscreenTitle": "Aperçu en plein écran",
+        "close": "Fermer",
+        "empty": "Sélectionnez un fichier pour l’afficher ici.",
+        "emptyDetail": "Un double-clic l’ouvre en plein écran.",
+        "box": {
+          "in": "Entrée",
+          "out": "Sortie"
+        },
+        "versions": "Versions",
+        "currentVersion": "actuelle",
+        "download": "Télécharger",
+        "openNewTab": "Ouvrir dans un nouvel onglet",
+        "unsupported": "Aucun aperçu disponible",
+        "unsupportedHint": "Ce type de fichier ne peut pas être affiché ici. Téléchargez-le pour le consulter.",
+        "kind": {
+          "image": "Image",
+          "video": "Vidéo",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Tableur",
+          "json": "JSON",
+          "text": "Texte",
+          "pr": "Pull request",
+          "unsupported": "Fichier"
+        },
+        "folderHint": "Les dossiers s’ouvrent par un double-clic."
+      },
+      "viewer": {
+        "loading": "Chargement de l’aperçu…",
+        "loadError": "Impossible de charger l’aperçu.",
+        "tooLarge": "Ce fichier est trop volumineux pour être prévisualisé. Téléchargez-le pour le consulter.",
+        "unavailable": "Aucun contenu à prévisualiser.",
+        "zoomFit": "Ajuster",
+        "zoomActual": "1:1",
+        "mode": "Mode d’aperçu",
+        "pdfBlocked": "Votre navigateur ne peut pas afficher les PDF ici.",
+        "sheet": "Feuille",
+        "sheetCapped": "Affichage des {{rows}} premières lignes et {{columns}} premières colonnes.",
+        "sheetEmpty": "Cette feuille est vide.",
+        "jsonInvalid": "JSON non valide ; affichage en texte."
+      },
+      "inbox": {
+        "cancel": "Annuler",
+        "nameLabel": "Nom",
+        "nameRequired": "Saisissez un nom.",
+        "genericError": "L’action n’a pas pu être effectuée.",
+        "loading": "Chargement des dossiers…",
+        "picker": {
+          "location": "Emplacement dans l’Entrée",
+          "root": "Racine de l’Entrée",
+          "empty": "Aucun dossier pour l’instant. Les fichiers iront à la racine.",
+          "expand": "Développer {{name}}",
+          "collapse": "Réduire {{name}}"
+        },
+        "folder": {
+          "newTitle": "Nouveau dossier",
+          "newDescription": "Les dossiers organisent les fichiers de l’Entrée.",
+          "newConfirm": "Créer le dossier",
+          "created": "Dossier « {{name}} » créé"
+        },
+        "rename": {
+          "fileTitle": "Renommer le fichier",
+          "folderTitle": "Renommer le dossier",
+          "confirm": "Renommer",
+          "fileRenamed": "Fichier renommé en « {{name}} »",
+          "folderRenamed": "Dossier renommé en « {{name}} »"
+        },
+        "move": {
+          "title": "Déplacer le fichier",
+          "confirm": "Déplacer ici",
+          "moved": "« {{name}} » déplacé"
+        },
+        "delete": {
+          "fileTitle": "Supprimer le fichier",
+          "folderTitle": "Supprimer le dossier",
+          "fileDescription": "« {{name}} » sera supprimé de l’Entrée. Les agents ne pourront plus le lire. Cette action est irréversible.",
+          "folderDescription": "« {{name}} » sera supprimé. Seuls les dossiers vides peuvent être supprimés : déplacez ou supprimez d’abord leur contenu.",
+          "confirm": "Supprimer",
+          "fileDeleted": "« {{name}} » supprimé",
+          "folderDeleted": "Dossier « {{name}} » supprimé"
+        },
+        "version": {
+          "title": "Remplacer la version",
+          "description": "Importez un nouveau fichier. La version précédente reste dans l’historique.",
+          "fileLabel": "Fichier",
+          "noteLabel": "Note (facultatif)",
+          "confirm": "Importer la version",
+          "noFile": "Choisissez un fichier à importer.",
+          "added": "« {{name}} » est maintenant la version {{version}}"
+        },
+        "toInbox": {
+          "title": "Déplacer vers l’Entrée",
+          "description": "Copie « {{name}} » dans l’Entrée pour que l’entreprise et ses agents puissent l’utiliser.",
+          "nameLabel": "Nom dans l’Entrée (facultatif)",
+          "confirm": "Déplacer vers l’Entrée",
+          "added": "« {{name}} » ajouté à l’Entrée"
+        }
+      },
+      "box": {
+        "in": "Entrée",
+        "out": "Sortie"
+      },
+      "toolbar": {
+        "segBox": "Boîte",
+        "segView": "Affichage",
+        "back": "Retour",
+        "forward": "Avancer",
+        "crumbs": "Chemin",
+        "search": "Rechercher",
+        "searchScope": "Rechercher dans {{name}}",
+        "viewList": "Liste",
+        "viewIcons": "Icônes",
+        "previewToggle": "Afficher ou masquer l’aperçu",
+        "preview": "Aperçu",
+        "upload": "Importer",
+        "newFolder": "Dossier",
+        "download": "Télécharger",
+        "chooseFiles": "Choisir des fichiers"
+      },
+      "tree": {
+        "label": "Explorateur d’artefacts",
+        "entry": "Entrée",
+        "out": "Sortie",
+        "outBy": "Afficher la sortie par",
+        "byAgent": "Agent",
+        "byType": "Type de fichier",
+        "byDate": "Date",
+        "quick": "Accès rapide",
+        "favorites": "Favoris",
+        "recent": "Récents",
+        "mine": "Importés par moi",
+        "soon": "Bientôt disponible"
+      },
+      "list": {
+        "label": "Fichiers",
+        "name": "Nom",
+        "type": "Type",
+        "size": "Taille",
+        "date": "Date",
+        "uploadedBy": "Importé par",
+        "usedBy": "Utilisé par",
+        "agent": "Agent",
+        "task": "Tâche",
+        "elements": "{{count}} éléments",
+        "elementsOne": "1 élément",
+        "usedTasks": "{{count}} tâches",
+        "usedOne": "1 tâche",
+        "starred": "Favori"
+      },
+      "status": {
+        "items": "{{count}} éléments",
+        "itemsOne": "1 élément",
+        "selected": "1 sélectionné",
+        "ruleIn": "Seules les personnes écrivent — les agents lisent",
+        "ruleOut": "Seuls les agents écrivent — vous lisez",
+        "copied": "Lien copié",
+        "copyFailed": "Impossible de copier le lien"
+      },
+      "empty": {
+        "folder": "Dossier vide",
+        "folderHint": "Glissez des fichiers ici ou cliquez sur Importer",
+        "noMatch": "Aucun résultat pour « {{q}} »",
+        "outHint": "Aucun artefact dans cette vue pour l’instant"
+      },
+      "ctx": {
+        "menu": "Actions",
+        "open": "Ouvrir",
+        "preview": "Aperçu rapide",
+        "download": "Télécharger",
+        "copyLink": "Copier le lien",
+        "goTask": "Aller à la tâche",
+        "moveToInbox": "Déplacer vers l’Entrée",
+        "replace": "Remplacer par une nouvelle version",
+        "move": "Déplacer",
+        "rename": "Renommer",
+        "remove": "Supprimer",
+        "favorite": "Favori",
+        "unfavorite": "Retirer des favoris",
+        "properties": "Propriétés",
+        "soon": "Bientôt disponible"
+      },
+      "type": {
+        "folder": "Dossier",
+        "task": "Tâche",
+        "image": "Image",
+        "video": "Vidéo",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Texte",
+        "file": "Fichier"
+      },
+      "meta": {
+        "person": "Utilisateur de l’entreprise",
+        "uploadedBy": "Importé par",
+        "folder": "Dossier",
+        "visibleTo": "Visible par",
+        "allCompany": "toute l’entreprise",
+        "usedIn": "Utilisé dans",
+        "usedTasks": "{{count}} tâches",
+        "usedNone": "aucune tâche pour l’instant",
+        "agent": "Agent",
+        "task": "Tâche",
+        "origin": "Origine",
+        "originRun": "exécution d’agent"
+      },
+      "crumbs": {
+        "projects": "Projets",
+        "noProject": "Aucun projet",
+        "project": "Projet",
+        "task": "Tâche",
+        "byAgent": "Agent",
+        "byType": "Type de fichier",
+        "byDate": "Date"
+      },
+      "errors": {
+        "load": "Les fichiers n’ont pas pu être chargés.",
+        "tree": "L’arborescence n’a pas pu être chargée.",
+        "moveToInbox": "Cet artefact ne peut pas être déplacé vers l’Entrée.",
+        "usage": "Impossible de charger l’utilisation."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

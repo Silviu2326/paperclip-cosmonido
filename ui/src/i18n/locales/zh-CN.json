@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "下载文件夹 (ZIP)",
+        "tooLarge": "文件夹超过 500 MB，无法下载为 ZIP。",
+        "empty": "此处没有可下载的文件。",
+        "failed": "无法准备 ZIP 文件。"
+      },
+      "visibility": {
+        "toggle": "对代理可见",
+        "hidden": "对代理隐藏",
+        "visible": "对代理可见",
+        "metaLabel": "代理",
+        "error": "无法更改可见性。"
+      },
+      "pdf": {
+        "prev": "上一页",
+        "next": "下一页",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "在 PDF 中搜索",
+        "searchPlaceholder": "在文档中搜索…",
+        "searching": "搜索中…",
+        "noMatches": "没有结果",
+        "matchOf": "第 {{index}} 个，共 {{total}} 个",
+        "prevMatch": "上一个结果",
+        "nextMatch": "下一个结果"
+      },
+      "preview": {
+        "title": "预览",
+        "fullscreen": "全屏",
+        "fullscreenTitle": "全屏预览",
+        "close": "关闭",
+        "empty": "选择一个文件即可在此查看。",
+        "emptyDetail": "双击即可全屏打开。",
+        "box": {
+          "in": "输入",
+          "out": "输出"
+        },
+        "versions": "版本",
+        "currentVersion": "当前",
+        "download": "下载",
+        "openNewTab": "在新标签页中打开",
+        "unsupported": "无可用预览",
+        "unsupportedHint": "无法在此显示该文件类型。请下载后查看。",
+        "kind": {
+          "image": "图片",
+          "video": "视频",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "电子表格",
+          "json": "JSON",
+          "text": "文本",
+          "pr": "拉取请求",
+          "unsupported": "文件"
+        },
+        "folderHint": "双击即可打开文件夹。"
+      },
+      "viewer": {
+        "loading": "正在加载预览…",
+        "loadError": "无法加载预览。",
+        "tooLarge": "此文件过大，无法预览。请下载后查看。",
+        "unavailable": "没有可预览的内容。",
+        "zoomFit": "适应窗口",
+        "zoomActual": "1:1",
+        "mode": "预览模式",
+        "pdfBlocked": "你的浏览器无法在此显示 PDF。",
+        "sheet": "工作表",
+        "sheetCapped": "显示前 {{rows}} 行和 {{columns}} 列。",
+        "sheetEmpty": "此工作表为空。",
+        "jsonInvalid": "不是有效的 JSON；以文本形式显示。"
+      },
+      "inbox": {
+        "cancel": "取消",
+        "nameLabel": "名称",
+        "nameRequired": "请输入名称。",
+        "genericError": "无法完成该操作。",
+        "loading": "正在加载文件夹…",
+        "picker": {
+          "location": "收件箱中的位置",
+          "root": "收件箱根目录",
+          "empty": "还没有文件夹。文件将放在根目录中。",
+          "expand": "展开 {{name}}",
+          "collapse": "收起 {{name}}"
+        },
+        "folder": {
+          "newTitle": "新建文件夹",
+          "newDescription": "文件夹用于整理收件箱中的文件。",
+          "newConfirm": "创建文件夹",
+          "created": "已创建文件夹“{{name}}”"
+        },
+        "rename": {
+          "fileTitle": "重命名文件",
+          "folderTitle": "重命名文件夹",
+          "confirm": "重命名",
+          "fileRenamed": "文件已重命名为“{{name}}”",
+          "folderRenamed": "文件夹已重命名为“{{name}}”"
+        },
+        "move": {
+          "title": "移动文件",
+          "confirm": "移动到此处",
+          "moved": "已移动“{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "删除文件",
+          "folderTitle": "删除文件夹",
+          "fileDescription": "“{{name}}”将从收件箱中删除。代理将无法再读取它。此操作无法撤销。",
+          "folderDescription": "“{{name}}”将被删除。只能删除空文件夹：请先移动或删除其中的内容。",
+          "confirm": "删除",
+          "fileDeleted": "已删除“{{name}}”",
+          "folderDeleted": "已删除文件夹“{{name}}”"
+        },
+        "version": {
+          "title": "替换版本",
+          "description": "上传新文件。之前的版本会保留在历史记录中。",
+          "fileLabel": "文件",
+          "noteLabel": "备注（可选）",
+          "confirm": "上传版本",
+          "noFile": "请选择要上传的文件。",
+          "added": "“{{name}}”现在是版本 {{version}}"
+        },
+        "toInbox": {
+          "title": "移至收件箱",
+          "description": "将“{{name}}”复制到收件箱，以便公司及其代理使用。",
+          "nameLabel": "收件箱中的名称（可选）",
+          "confirm": "移至收件箱",
+          "added": "已将“{{name}}”添加到收件箱"
+        }
+      },
+      "box": {
+        "in": "收件箱",
+        "out": "输出"
+      },
+      "toolbar": {
+        "segBox": "文件盒",
+        "segView": "视图",
+        "back": "后退",
+        "forward": "前进",
+        "crumbs": "路径",
+        "search": "搜索",
+        "searchScope": "在 {{name}} 中搜索…",
+        "viewList": "列表",
+        "viewIcons": "图标",
+        "previewToggle": "显示或隐藏预览",
+        "preview": "预览",
+        "upload": "上传",
+        "newFolder": "文件夹",
+        "download": "下载",
+        "chooseFiles": "选择文件"
+      },
+      "tree": {
+        "label": "产物资源管理器",
+        "entry": "收件箱",
+        "out": "输出",
+        "outBy": "按以下方式查看输出",
+        "byAgent": "代理",
+        "byType": "文件类型",
+        "byDate": "日期",
+        "quick": "快速访问",
+        "favorites": "收藏夹",
+        "recent": "最近",
+        "mine": "我上传的",
+        "soon": "即将推出"
+      },
+      "list": {
+        "label": "文件",
+        "name": "名称",
+        "type": "类型",
+        "size": "大小",
+        "date": "日期",
+        "uploadedBy": "上传者",
+        "usedBy": "使用者",
+        "agent": "代理",
+        "task": "任务",
+        "elements": "{{count}} 个项目",
+        "elementsOne": "1 个项目",
+        "usedTasks": "{{count}} 个任务",
+        "usedOne": "1 个任务",
+        "starred": "收藏"
+      },
+      "status": {
+        "items": "{{count}} 个项目",
+        "itemsOne": "1 个项目",
+        "selected": "已选择 1 项",
+        "ruleIn": "仅人员可写入 · 代理可读取",
+        "ruleOut": "仅代理可写入 · 你可读取",
+        "copied": "链接已复制",
+        "copyFailed": "无法复制链接"
+      },
+      "empty": {
+        "folder": "空文件夹",
+        "folderHint": "将文件拖到此处，或点击“上传”",
+        "noMatch": "没有与“{{q}}”匹配的内容",
+        "outHint": "此视图中还没有产物"
+      },
+      "ctx": {
+        "menu": "操作",
+        "open": "打开",
+        "preview": "快速查看",
+        "download": "下载",
+        "copyLink": "复制链接",
+        "goTask": "前往任务",
+        "moveToInbox": "移至收件箱…",
+        "replace": "替换为新版本",
+        "move": "移动…",
+        "rename": "重命名",
+        "remove": "删除",
+        "favorite": "收藏",
+        "unfavorite": "取消收藏",
+        "properties": "属性",
+        "soon": "即将推出"
+      },
+      "type": {
+        "folder": "文件夹",
+        "task": "任务",
+        "image": "图片",
+        "video": "视频",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "文本",
+        "file": "文件"
+      },
+      "meta": {
+        "person": "公司用户",
+        "uploadedBy": "上传者",
+        "folder": "文件夹",
+        "visibleTo": "可见范围",
+        "allCompany": "全公司",
+        "usedIn": "用于",
+        "usedTasks": "{{count}} 个任务",
+        "usedNone": "暂无任务",
+        "agent": "代理",
+        "task": "任务",
+        "origin": "来源",
+        "originRun": "代理运行"
+      },
+      "crumbs": {
+        "projects": "项目",
+        "noProject": "无项目",
+        "project": "项目",
+        "task": "任务",
+        "byAgent": "代理",
+        "byType": "文件类型",
+        "byDate": "日期"
+      },
+      "errors": {
+        "load": "无法加载文件。",
+        "tree": "无法加载文件树。",
+        "moveToInbox": "此产物无法移至收件箱。",
+        "usage": "无法加载用量。"
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

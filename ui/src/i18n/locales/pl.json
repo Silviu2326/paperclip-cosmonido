@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Pobierz folder (ZIP)",
+        "tooLarge": "Folder ma ponad 500 MB i nie można go pobrać jako ZIP.",
+        "empty": "Brak plików do pobrania.",
+        "failed": "Nie udało się przygotować pliku ZIP."
+      },
+      "visibility": {
+        "toggle": "Widoczne dla agentów",
+        "hidden": "Ukryte przed agentami",
+        "visible": "Widoczne dla agentów",
+        "metaLabel": "Agenci",
+        "error": "Nie udało się zmienić widoczności."
+      },
+      "pdf": {
+        "prev": "Poprzednia strona",
+        "next": "Następna strona",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Szukaj w PDF",
+        "searchPlaceholder": "Szukaj w dokumencie…",
+        "searching": "Wyszukiwanie…",
+        "noMatches": "Brak wyników",
+        "matchOf": "{{index}} z {{total}}",
+        "prevMatch": "Poprzedni wynik",
+        "nextMatch": "Następny wynik"
+      },
+      "preview": {
+        "title": "Podgląd",
+        "fullscreen": "Pełny ekran",
+        "fullscreenTitle": "Podgląd na pełnym ekranie",
+        "close": "Zamknij",
+        "empty": "Wybierz plik, aby zobaczyć go tutaj.",
+        "emptyDetail": "Dwukrotne kliknięcie otwiera plik na pełnym ekranie.",
+        "box": {
+          "in": "Wejście",
+          "out": "Wyjście"
+        },
+        "versions": "Wersje",
+        "currentVersion": "bieżąca",
+        "download": "Pobierz",
+        "openNewTab": "Otwórz w nowej karcie",
+        "unsupported": "Brak podglądu",
+        "unsupportedHint": "Tego typu pliku nie można tutaj wyświetlić. Pobierz go, aby go zobaczyć.",
+        "kind": {
+          "image": "Obraz",
+          "video": "Wideo",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Arkusz kalkulacyjny",
+          "json": "JSON",
+          "text": "Tekst",
+          "pr": "Pull request",
+          "unsupported": "Plik"
+        },
+        "folderHint": "Foldery otwiera się dwukrotnym kliknięciem."
+      },
+      "viewer": {
+        "loading": "Ładowanie podglądu…",
+        "loadError": "Nie udało się wczytać podglądu.",
+        "tooLarge": "Ten plik jest zbyt duży, aby wyświetlić podgląd. Pobierz go, aby go zobaczyć.",
+        "unavailable": "Brak treści do wyświetlenia.",
+        "zoomFit": "Dopasuj",
+        "zoomActual": "1:1",
+        "mode": "Tryb podglądu",
+        "pdfBlocked": "Twoja przeglądarka nie może tutaj wyświetlić plików PDF.",
+        "sheet": "Arkusz",
+        "sheetCapped": "Pokazano pierwsze {{rows}} wierszy i {{columns}} kolumn.",
+        "sheetEmpty": "Ten arkusz jest pusty.",
+        "jsonInvalid": "Nieprawidłowy JSON; wyświetlono jako tekst."
+      },
+      "inbox": {
+        "cancel": "Anuluj",
+        "nameLabel": "Nazwa",
+        "nameRequired": "Wpisz nazwę.",
+        "genericError": "Nie udało się wykonać operacji.",
+        "loading": "Ładowanie folderów…",
+        "picker": {
+          "location": "Lokalizacja w Skrzynce wejściowej",
+          "root": "Główny katalog Skrzynki wejściowej",
+          "empty": "Brak folderów. Pliki trafią do katalogu głównego.",
+          "expand": "Rozwiń {{name}}",
+          "collapse": "Zwiń {{name}}"
+        },
+        "folder": {
+          "newTitle": "Nowy folder",
+          "newDescription": "Foldery porządkują pliki w Skrzynce wejściowej.",
+          "newConfirm": "Utwórz folder",
+          "created": "Utworzono folder „{{name}}”"
+        },
+        "rename": {
+          "fileTitle": "Zmień nazwę pliku",
+          "folderTitle": "Zmień nazwę folderu",
+          "confirm": "Zmień nazwę",
+          "fileRenamed": "Zmieniono nazwę pliku na „{{name}}”",
+          "folderRenamed": "Zmieniono nazwę folderu na „{{name}}”"
+        },
+        "move": {
+          "title": "Przenieś plik",
+          "confirm": "Przenieś tutaj",
+          "moved": "Przeniesiono „{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Usuń plik",
+          "folderTitle": "Usuń folder",
+          "fileDescription": "„{{name}}” zostanie usunięty ze Skrzynki wejściowej. Agenci nie będą mogli go już odczytać. Tej operacji nie można cofnąć.",
+          "folderDescription": "„{{name}}” zostanie usunięty. Można usuwać tylko puste foldery: najpierw przenieś lub usuń ich zawartość.",
+          "confirm": "Usuń",
+          "fileDeleted": "Usunięto „{{name}}”",
+          "folderDeleted": "Usunięto folder „{{name}}”"
+        },
+        "version": {
+          "title": "Zastąp wersję",
+          "description": "Prześlij nowy plik. Poprzednia wersja pozostanie w historii.",
+          "fileLabel": "Plik",
+          "noteLabel": "Notatka (opcjonalnie)",
+          "confirm": "Prześlij wersję",
+          "noFile": "Wybierz plik do przesłania.",
+          "added": "„{{name}}” ma teraz wersję {{version}}"
+        },
+        "toInbox": {
+          "title": "Przenieś do Skrzynki wejściowej",
+          "description": "Kopiuje „{{name}}” do Skrzynki wejściowej, aby firma i jej agenci mogli z niego korzystać.",
+          "nameLabel": "Nazwa w Skrzynce wejściowej (opcjonalnie)",
+          "confirm": "Przenieś do Skrzynki wejściowej",
+          "added": "Dodano „{{name}}” do Skrzynki wejściowej"
+        }
+      },
+      "box": {
+        "in": "Skrzynka wejściowa",
+        "out": "Skrzynka wyjściowa"
+      },
+      "toolbar": {
+        "segBox": "Skrzynka",
+        "segView": "Widok",
+        "back": "Wstecz",
+        "forward": "Dalej",
+        "crumbs": "Ścieżka",
+        "search": "Szukaj",
+        "searchScope": "Szukaj w: {{name}}…",
+        "viewList": "Lista",
+        "viewIcons": "Ikony",
+        "previewToggle": "Pokaż lub ukryj podgląd",
+        "preview": "Podgląd",
+        "upload": "Prześlij",
+        "newFolder": "Folder",
+        "download": "Pobierz",
+        "chooseFiles": "Wybierz pliki"
+      },
+      "tree": {
+        "label": "Eksplorator artefaktów",
+        "entry": "Skrzynka wejściowa",
+        "out": "Wyjście",
+        "outBy": "Pokaż wyjście według",
+        "byAgent": "Agenta",
+        "byType": "Typu pliku",
+        "byDate": "Daty",
+        "quick": "Szybki dostęp",
+        "favorites": "Ulubione",
+        "recent": "Ostatnie",
+        "mine": "Przesłane przeze mnie",
+        "soon": "Wkrótce"
+      },
+      "list": {
+        "label": "Pliki",
+        "name": "Nazwa",
+        "type": "Typ",
+        "size": "Rozmiar",
+        "date": "Data",
+        "uploadedBy": "Przesłane przez",
+        "usedBy": "Używane przez",
+        "agent": "Agent",
+        "task": "Zadanie",
+        "elements": "{{count}} elementów",
+        "elementsOne": "1 element",
+        "usedTasks": "{{count}} zadań",
+        "usedOne": "1 zadanie",
+        "starred": "Ulubione"
+      },
+      "status": {
+        "items": "{{count}} elementów",
+        "itemsOne": "1 element",
+        "selected": "Zaznaczono: 1",
+        "ruleIn": "Zapisują tylko ludzie · odczytują agenci",
+        "ruleOut": "Zapisują tylko agenci · odczytujesz Ty",
+        "copied": "Skopiowano link",
+        "copyFailed": "Nie udało się skopiować linku"
+      },
+      "empty": {
+        "folder": "Pusty folder",
+        "folderHint": "Przeciągnij pliki tutaj lub kliknij Prześlij",
+        "noMatch": "Brak wyników dla „{{q}}”",
+        "outHint": "Brak artefaktów w tym widoku"
+      },
+      "ctx": {
+        "menu": "Działania",
+        "open": "Otwórz",
+        "preview": "Szybki podgląd",
+        "download": "Pobierz",
+        "copyLink": "Kopiuj link",
+        "goTask": "Przejdź do zadania",
+        "moveToInbox": "Przenieś do Skrzynki wejściowej…",
+        "replace": "Zastąp nową wersją",
+        "move": "Przenieś…",
+        "rename": "Zmień nazwę",
+        "remove": "Usuń",
+        "favorite": "Dodaj do ulubionych",
+        "unfavorite": "Usuń z ulubionych",
+        "properties": "Właściwości",
+        "soon": "Wkrótce"
+      },
+      "type": {
+        "folder": "Folder",
+        "task": "Zadanie",
+        "image": "Obraz",
+        "video": "Wideo",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Tekst",
+        "file": "Plik"
+      },
+      "meta": {
+        "person": "Użytkownik firmy",
+        "uploadedBy": "Przesłane przez",
+        "folder": "Folder",
+        "visibleTo": "Widoczne dla",
+        "allCompany": "całej firmy",
+        "usedIn": "Używane w",
+        "usedTasks": "{{count}} zadań",
+        "usedNone": "jeszcze bez zadania",
+        "agent": "Agent",
+        "task": "Zadanie",
+        "origin": "Pochodzenie",
+        "originRun": "uruchomienie agenta"
+      },
+      "crumbs": {
+        "projects": "Projekty",
+        "noProject": "Brak projektu",
+        "project": "Projekt",
+        "task": "Zadanie",
+        "byAgent": "Agenta",
+        "byType": "Typu pliku",
+        "byDate": "Daty"
+      },
+      "errors": {
+        "load": "Nie udało się wczytać plików.",
+        "tree": "Nie udało się wczytać drzewa.",
+        "moveToInbox": "Tego artefaktu nie można przenieść do Skrzynki wejściowej.",
+        "usage": "Nie udało się wczytać danych o użyciu."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

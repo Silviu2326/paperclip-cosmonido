@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Stáhnout složku (ZIP)",
+        "tooLarge": "Složka má více než 500 MB a nelze ji stáhnout jako ZIP.",
+        "empty": "Zde nejsou žádné soubory ke stažení.",
+        "failed": "ZIP se nepodařilo připravit."
+      },
+      "visibility": {
+        "toggle": "Viditelné pro agenty",
+        "hidden": "Skryto před agenty",
+        "visible": "Viditelné pro agenty",
+        "metaLabel": "Agenti",
+        "error": "Viditelnost se nepodařilo změnit."
+      },
+      "pdf": {
+        "prev": "Předchozí stránka",
+        "next": "Další stránka",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Hledat v PDF",
+        "searchPlaceholder": "Hledat v dokumentu…",
+        "searching": "Hledání…",
+        "noMatches": "Žádné výsledky",
+        "matchOf": "{{index}} z {{total}}",
+        "prevMatch": "Předchozí výsledek",
+        "nextMatch": "Další výsledek"
+      },
+      "preview": {
+        "title": "Náhled",
+        "fullscreen": "Celá obrazovka",
+        "fullscreenTitle": "Náhled na celou obrazovku",
+        "close": "Zavřít",
+        "empty": "Vyberte soubor, který se zde zobrazí.",
+        "emptyDetail": "Dvojklikem se otevře na celou obrazovku.",
+        "box": {
+          "in": "Příchozí",
+          "out": "Odchozí"
+        },
+        "versions": "Verze",
+        "currentVersion": "aktuální",
+        "download": "Stáhnout",
+        "openNewTab": "Otevřít v nové záložce",
+        "unsupported": "Náhled není k dispozici",
+        "unsupportedHint": "Tento typ souboru zde nelze zobrazit. Stáhněte si jej.",
+        "kind": {
+          "image": "Obrázek",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Tabulka",
+          "json": "JSON",
+          "text": "Text",
+          "pr": "Pull request",
+          "unsupported": "Soubor"
+        },
+        "folderHint": "Složky se otevírají dvojklikem."
+      },
+      "viewer": {
+        "loading": "Načítání náhledu…",
+        "loadError": "Náhled se nepodařilo načíst.",
+        "tooLarge": "Tento soubor je na náhled příliš velký. Stáhněte si jej.",
+        "unavailable": "Není k dispozici žádný obsah k zobrazení.",
+        "zoomFit": "Přizpůsobit",
+        "zoomActual": "1:1",
+        "mode": "Režim náhledu",
+        "pdfBlocked": "Váš prohlížeč zde nemůže zobrazit PDF.",
+        "sheet": "List",
+        "sheetCapped": "Zobrazuje se prvních {{rows}} řádků a {{columns}} sloupců.",
+        "sheetEmpty": "Tento list je prázdný.",
+        "jsonInvalid": "Není platný JSON; zobrazuje se jako text."
+      },
+      "inbox": {
+        "cancel": "Zrušit",
+        "nameLabel": "Název",
+        "nameRequired": "Zadejte název.",
+        "genericError": "Akci nelze dokončit.",
+        "loading": "Načítání složek…",
+        "picker": {
+          "location": "Umístění v Příchozí",
+          "root": "Kořen Příchozí",
+          "empty": "Zatím nejsou žádné složky. Soubory se uloží do kořenové složky.",
+          "expand": "Rozbalit {{name}}",
+          "collapse": "Sbalit {{name}}"
+        },
+        "folder": {
+          "newTitle": "Nová složka",
+          "newDescription": "Složky organizují soubory v Příchozí.",
+          "newConfirm": "Vytvořit složku",
+          "created": "Složka „{{name}}“ byla vytvořena"
+        },
+        "rename": {
+          "fileTitle": "Přejmenovat soubor",
+          "folderTitle": "Přejmenovat složku",
+          "confirm": "Přejmenovat",
+          "fileRenamed": "Soubor přejmenován na „{{name}}“",
+          "folderRenamed": "Složka přejmenována na „{{name}}“"
+        },
+        "move": {
+          "title": "Přesunout soubor",
+          "confirm": "Přesunout sem",
+          "moved": "„{{name}}“ byl přesunut"
+        },
+        "delete": {
+          "fileTitle": "Smazat soubor",
+          "folderTitle": "Smazat složku",
+          "fileDescription": "„{{name}}“ bude smazán z Příchozí. Agenti jej již nebudou moci číst. Tuto akci nelze vrátit zpět.",
+          "folderDescription": "„{{name}}“ bude smazán. Smazat lze jen prázdné složky: nejprve přesuňte nebo smažte jejich obsah.",
+          "confirm": "Smazat",
+          "fileDeleted": "„{{name}}“ byl smazán",
+          "folderDeleted": "Složka „{{name}}“ byla smazána"
+        },
+        "version": {
+          "title": "Nahradit verzi",
+          "description": "Nahrajte nový soubor. Předchozí verze zůstane v historii.",
+          "fileLabel": "Soubor",
+          "noteLabel": "Poznámka (nepovinné)",
+          "confirm": "Nahrát verzi",
+          "noFile": "Vyberte soubor k nahrání.",
+          "added": "„{{name}}“ je nyní verze {{version}}"
+        },
+        "toInbox": {
+          "title": "Přesunout do Příchozí",
+          "description": "Zkopíruje „{{name}}“ do Příchozí, aby ji mohla firma a její agenti používat.",
+          "nameLabel": "Název v Příchozí (nepovinné)",
+          "confirm": "Přesunout do Příchozí",
+          "added": "„{{name}}“ byl přidán do Příchozí"
+        }
+      },
+      "box": {
+        "in": "Příchozí",
+        "out": "Odchozí"
+      },
+      "toolbar": {
+        "segBox": "Schránka",
+        "segView": "Zobrazení",
+        "back": "Zpět",
+        "forward": "Vpřed",
+        "crumbs": "Cesta",
+        "search": "Hledat",
+        "searchScope": "Hledat v {{name}}",
+        "viewList": "Seznam",
+        "viewIcons": "Ikony",
+        "previewToggle": "Zobrazit nebo skrýt náhled",
+        "preview": "Náhled",
+        "upload": "Nahrát",
+        "newFolder": "Složka",
+        "download": "Stáhnout",
+        "chooseFiles": "Vybrat soubory"
+      },
+      "tree": {
+        "label": "Průzkumník artefaktů",
+        "entry": "Příchozí",
+        "out": "Odchozí",
+        "outBy": "Zobrazit odchozí podle",
+        "byAgent": "Agent",
+        "byType": "Typ souboru",
+        "byDate": "Datum",
+        "quick": "Rychlý přístup",
+        "favorites": "Oblíbené",
+        "recent": "Nedávné",
+        "mine": "Nahrané mnou",
+        "soon": "Již brzy"
+      },
+      "list": {
+        "label": "Soubory",
+        "name": "Název",
+        "type": "Typ",
+        "size": "Velikost",
+        "date": "Datum",
+        "uploadedBy": "Nahrál",
+        "usedBy": "Používá",
+        "agent": "Agent",
+        "task": "Úkol",
+        "elements": "{{count}} položek",
+        "elementsOne": "1 položka",
+        "usedTasks": "{{count}} úkolů",
+        "usedOne": "1 úkol",
+        "starred": "Oblíbené"
+      },
+      "status": {
+        "items": "{{count}} položek",
+        "itemsOne": "1 položka",
+        "selected": "1 vybraná",
+        "ruleIn": "Zapisují jen lidé — čtou agenti",
+        "ruleOut": "Zapisují jen agenti — čtete vy",
+        "copied": "Odkaz zkopírován",
+        "copyFailed": "Odkaz se nepodařilo zkopírovat"
+      },
+      "empty": {
+        "folder": "Prázdná složka",
+        "folderHint": "Sem přetáhněte soubory nebo stiskněte Nahrát",
+        "noMatch": "Nic neodpovídá „{{q}}“",
+        "outHint": "V tomto zobrazení zatím nejsou žádné artefakty"
+      },
+      "ctx": {
+        "menu": "Akce",
+        "open": "Otevřít",
+        "preview": "Rychlý náhled",
+        "download": "Stáhnout",
+        "copyLink": "Kopírovat odkaz",
+        "goTask": "Přejít na úkol",
+        "moveToInbox": "Přesunout do Příchozí",
+        "replace": "Nahradit novou verzí",
+        "move": "Přesunout",
+        "rename": "Přejmenovat",
+        "remove": "Smazat",
+        "favorite": "Oblíbené",
+        "unfavorite": "Odebrat z oblíbených",
+        "properties": "Vlastnosti",
+        "soon": "Již brzy"
+      },
+      "type": {
+        "folder": "Složka",
+        "task": "Úkol",
+        "image": "Obrázek",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Text",
+        "file": "Soubor"
+      },
+      "meta": {
+        "person": "Uživatel firmy",
+        "uploadedBy": "Nahrál",
+        "folder": "Složka",
+        "visibleTo": "Viditelné pro",
+        "allCompany": "celá firma",
+        "usedIn": "Použito v",
+        "usedTasks": "{{count}} úkolů",
+        "usedNone": "zatím žádný úkol",
+        "agent": "Agent",
+        "task": "Úkol",
+        "origin": "Původ",
+        "originRun": "běh agenta"
+      },
+      "crumbs": {
+        "projects": "Projekty",
+        "noProject": "Bez projektu",
+        "project": "Projekt",
+        "task": "Úkol",
+        "byAgent": "Agent",
+        "byType": "Typ souboru",
+        "byDate": "Datum"
+      },
+      "errors": {
+        "load": "Soubory se nepodařilo načíst.",
+        "tree": "Strom se nepodařilo načíst.",
+        "moveToInbox": "Tento artefakt nelze přesunout do Příchozí.",
+        "usage": "Využití se nepodařilo načíst."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

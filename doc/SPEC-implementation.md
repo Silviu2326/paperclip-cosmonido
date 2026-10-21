@@ -496,6 +496,60 @@ Operational policy:
 - Attachment-backed artifact work products use `type: "artifact"`, `provider: "paperclip"`, and metadata with `attachmentId`, `contentType`, `byteSize`, `contentPath`, `openPath`, `downloadPath`, and optional `originalFilename`.
 - Workspace-only file references use work product `metadata.resourceRef` with `kind: "workspace_file"`, `issueId`, `workspaceKind` (`execution_workspace` or `project_workspace`), `workspaceId`, `relativePath`, optional `line`/`column`, and `displayPath`. These references point at files in a workspace; they do not replace attachment-backed artifacts for deliverables that must be inspectable without workspace access.
 
+### Artifacts explorer (Entrada / Salida)
+
+The Artifacts page (`/artifacts`) is a file explorer with two mailboxes, and it is the only Artifacts page. The earlier artifact library and its instance experimental setting have been removed; no setting selects the UI. The Spanish UI labels are Entrada and Salida; the English locale shows Inbox and Output. Routes: `/artifacts` and `/artifacts/in[/:folderId]` open Entrada (the root by default), `/artifacts/out[/:node]` opens Salida.
+
+- **Entrada (inbox)**: company files that people give the company, such as brand, pricing, legal, briefs and references. Board users upload, create folders, rename, move, delete, restore and replace a file with a new version. Agents only read. The default root folders `Marca`, `Precios`, `Legal`, `Clientes`, `Referencias` and `Briefs` are seeded on first use of a company's file tree; each carries a `systemKey` and can be renamed.
+- **Salida (outbox)**: everything agents produce (documents, attachments and work products) as a read-only projection, navigable as `Proyectos › project › task`, with `Sin proyecto` for tasks without a project. Salida adds no artifact table.
+- **Who writes where**: people write Entrada, agents write Salida, and the status bar says so. "Pasar a Entrada" (`from-artifact`; English label "Move to Inbox") copies a Salida artifact into a new company file; it is the only route from Salida to Entrada and is board-only.
+- **Quick access**: reserved route IDs open saved views. Under Entrada, `/artifacts/in/favorites`, `/artifacts/in/recent` and `/artifacts/in/mine` (Uploaded by me). Under Salida, `/artifacts/out/favorites`.
+- **Stars**: a board user stars a Entrada file or a Salida attachment or work product from the explorer. Stars are per user and company; they never change the file or the artifact.
+
+**Company file store.** Tables are defined in `packages/db/src/schema/company_files.ts` (migration `0355`); star memberships are in `company_file_memberships` and `artifact_memberships` (migration `0356`):
+
+- `company_files`: one row per logical file. `folder_id` is null at the root; `name`, `slug`, `content_type`, `byte_size`, `current_version_id`, `deleted_at`. A partial unique index keeps names unique per folder among non-deleted files; a duplicate returns 409.
+- `company_file_versions`: one immutable row per upload, with `version_number` unique per file, `asset_id` (to `assets`, so bytes keep the existing storage and sha256 path), `uploaded_by_user_id` and `note`.
+- `company_file_reads`: one row per agent read, with file, version, issue, agent and run.
+- `company_file_memberships` and `artifact_memberships`: per-user stars (`starredAt`) for Entrada files and Salida artifacts.
+- Folders reuse `folders` with `kind = "company_files"`.
+- Replacing a file adds a version and keeps the file id, so agent references stay valid. The `version` query on content selects an older version.
+- Delete is soft (`deleted_at`). Deleted files leave listings and content; `restore` brings them back. Folders are rejected while they contain files.
+- Uploads use the attachment size limit and `isAllowedContentType`, and are stored as `assets`.
+
+**Uploader names (product note).** Files and versions report who created, updated or uploaded them: `createdByName` and `updatedByName` on a file, and `uploadedByName` on a version. The name is the auth user's name, then the user's email, then `null`. The explorer shows `—` for `null`. No separate display-name setting exists.
+
+**Agent-hidden folders, ZIP downloads and thumbnails (2026-10-21).** `folders.agent_visible` (migration `0357`, default true) lets a board user hide an Entrada folder from agents. A file is agent-visible only when neither it nor any ancestor folder is hidden, and the wake index, agent listing, search, tree, `read_company_file` and agent single-file routes all apply that rule; hidden files look missing. Board ZIP downloads exist for an Entrada folder (recursive) and for a Salida node (`issue:<id>` or `project:<id>`); the artifact archive writes documents as markdown and enforces a 500 MB cap. Image thumbnails (320px WebP) are generated on first request and cached in storage under `thumbnails/{companyId}`. The ZIP library is `archiver`.
+
+**REST surface.** Company-scoped reads and board-only writes:
+
+- `GET /api/companies/:companyId/files` (`folderId`, `q`, `sort`, `dir`, `includeDeleted`, `scope=folder|all`, `createdByMe`, `starred`). `scope` defaults to the folder listing; `scope=all` lists every folder, each file with `folderPath`. `createdByMe` and `starred` filter to the current board user; agents get 400. Folders are not returned for search or `scope=all`.
+- `GET /api/companies/:companyId/files/tree` (folders with counts).
+- `POST /api/companies/:companyId/files` (multipart `file`, optional `folderId`) and `POST /api/company-files/:id/versions`.
+- `GET /api/company-files/:id/versions`, `GET /api/company-files/:id/usage` (the tasks that read the file; the preview pane's "Usado en"), `GET /api/company-files/:id/content` (`version`, `download=1`, single `Range`).
+- `PATCH /api/company-files/:id` (rename or move), `DELETE /api/company-files/:id`, `POST /api/company-files/:id/restore`.
+- `POST /api/companies/:companyId/files/folders`, `PATCH` and `DELETE /api/company-files/folders/:id`.
+- `POST /api/companies/:companyId/files/from-artifact` (`source`: `attachment`, `work_product` or `document`; board-only).
+- Stars: `GET /api/companies/:companyId/resource-memberships/me` returns `starredCompanyFileIds`, `companyFileStarredAt`, `starredArtifactRefs` and `artifactStarredAt`. `PUT /api/companies/:companyId/resource-memberships/me/company-files/:companyFileId` and `PUT /api/companies/:companyId/resource-memberships/me/artifacts/:source/:artifactId` (`source`: `attachment` or `work_product`) set or clear the board user's star. Board only.
+
+**Salida tree projection.** `GET /api/companies/:companyId/artifacts/tree?node=root|projects|no_project|project:<id>|issue:<id>` returns one node and its children, each with `count`, `totalByteSize`, `updatedAt`, `mediaKinds` and `hasChildren`. Aggregates are computed in SQL per source (documents, attachments, work products). The flat list `GET /api/companies/:companyId/artifacts` accepts `sort` (`name`, `type`, `size`, `date`, `agent`, `task`) with `dir`, an `issueId` filter, and `groupBy` values `agent`, `media_kind` and `day` (UTC `updatedAt` date) in addition to `task` and `parent_task`. Each artifact reports `byteSize`. The explorer's "View output by" uses the `agent`, `media_kind` and `day` groupings.
+
+**Preview pane.** `ArtifactPreviewPane` selects a viewer from the content type, falling back to the file extension for generic MIME types (`preview-target.ts`): image, video, PDF, Markdown, HTML, CSV, spreadsheet, JSON, text, or unsupported (download only). The same viewers back the fullscreen dialog. For Entrada files, "Usado en" lists the task identifiers from `GET /company-files/:id/usage`.
+
+- HTML uses the shared `HtmlArtifactPreview` with its opaque-origin sandbox and CSP. See `doc/html-artifact-previews.md`.
+- PDF uses the browser's inline viewer in an `iframe` whose source is the content route, which serves PDF inline. This iframe is not sandboxed, because the PDF plugin requires it. When the browser reports `pdfViewerEnabled === false`, the pane offers open-in-new-tab instead.
+- Spreadsheets are parsed in the browser with SheetJS (`xlsx`), loaded on demand.
+- Text-like previews read at most 512 KB (`TEXT_PREVIEW_MAX_BYTES`); larger files show a too-large state and binary content is rejected.
+
+**Agent read path.** Agents read Entrada; they cannot write it.
+
+- Wake context: `loadCompanyFilesIndex` (`heartbeat/company-files-context.ts`) injects metadata for up to 200 newest files (`COMPANY_FILES_INDEX_MAX_ENTRIES`): `fileId`, path, name, content type, size, version, and a `truncated` flag. File contents are never injected.
+- Native runner tools `list_company_files` and `read_company_file` are on by default for every native `paperclip_runner` run; the binding flag `companyFilesRead` is set for those runs. They are not gated by `dotAttachmentAccess`, which gates task attachments only. Reads are paged, checked against the sha256, and recorded.
+- For other adapters: `GET /api/company-files/:id/content` and `paperclip files list|download`.
+- Full workflow and limits: see `doc/AGENT-ARTIFACTS.md` ("Company files (Entrada)") and `skills/paperclip/references/company-files.md`.
+
+**Activity log.** Mutations write `company_file.created`, `company_file.version_added`, `company_file.updated` (rename, move, restore), `company_file.deleted`, and `folder.created`, `folder.updated`, `folder.deleted` (`kind: company_files`). Agent reads write `company_file.read` with `versionNumber` and `issueId`; board reads are not logged.
+
 ## 7.15 `documents` + `document_revisions` + `issue_documents`
 
 - `documents` stores editable text-first documents:

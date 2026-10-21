@@ -1,14 +1,20 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agentMemberships,
   agents,
+  artifactMemberships,
+  companyFileMemberships,
+  companyFiles,
   documentMemberships,
   documents,
+  issueAttachments,
+  issueWorkProducts,
   projectMemberships,
   projects,
 } from "@paperclipai/db";
 import type {
+  ArtifactMembershipSource,
   ResourceMembershipResourceType,
   ResourceMembershipState,
   ResourceMemberships,
@@ -177,7 +183,7 @@ export function resourceMembershipService(db: Db, options: ResourceMembershipSer
   return {
     async listForUser(companyId: string, userId: string, actor: BoardActor): Promise<ResourceMemberships> {
       assertBoardSelfMembershipAccess(actor, companyId, userId);
-      const [projectRows, agentRows, documentRows] = await Promise.all([
+      const [projectRows, agentRows, documentRows, companyFileRows, artifactRows] = await Promise.all([
         db
           .select({
             projectId: projectMemberships.projectId,
@@ -227,7 +233,42 @@ export function resourceMembershipService(db: Db, options: ResourceMembershipSer
             eq(documentMemberships.companyId, companyId),
             eq(documentMemberships.userId, userId),
           )),
+        db
+          .select({
+            companyFileId: companyFileMemberships.companyFileId,
+            starredAt: companyFileMemberships.starredAt,
+            updatedAt: companyFileMemberships.updatedAt,
+          })
+          .from(companyFileMemberships)
+          .innerJoin(companyFiles, and(
+            eq(companyFiles.id, companyFileMemberships.companyFileId),
+            eq(companyFiles.companyId, companyFileMemberships.companyId),
+          ))
+          .where(and(
+            eq(companyFileMemberships.companyId, companyId),
+            eq(companyFileMemberships.userId, userId),
+            isNotNull(companyFileMemberships.starredAt),
+            isNull(companyFiles.deletedAt),
+          )),
+        db
+          .select({
+            artifactRef: artifactMemberships.artifactRef,
+            starredAt: artifactMemberships.starredAt,
+            updatedAt: artifactMemberships.updatedAt,
+          })
+          .from(artifactMemberships)
+          .where(and(
+            eq(artifactMemberships.companyId, companyId),
+            eq(artifactMemberships.userId, userId),
+            isNotNull(artifactMemberships.starredAt),
+          )),
       ]);
+      const starredCompanyFileRows = companyFileRows
+        .filter((row): row is typeof row & { starredAt: Date } => row.starredAt !== null)
+        .sort((a, b) => b.starredAt.getTime() - a.starredAt.getTime());
+      const starredArtifactRows = artifactRows
+        .filter((row): row is typeof row & { starredAt: Date } => row.starredAt !== null)
+        .sort((a, b) => b.starredAt.getTime() - a.starredAt.getTime());
       const starEligibleProjectRows = projectRows.filter((row) => row.starredAt && !row.projectArchivedAt);
       const starEligibleAgentRows = agentRows.filter((row) => row.starredAt && row.agentStatus !== "terminated");
       const starredDocumentRows = documentRows
@@ -244,10 +285,20 @@ export function resourceMembershipService(db: Db, options: ResourceMembershipSer
         documentStarredAt: Object.fromEntries(
           starredDocumentRows.map((row) => [row.documentId, row.starredAt.toISOString()]),
         ),
+        starredCompanyFileIds: starredCompanyFileRows.map((row) => row.companyFileId),
+        companyFileStarredAt: Object.fromEntries(
+          starredCompanyFileRows.map((row) => [row.companyFileId, row.starredAt.toISOString()]),
+        ),
+        starredArtifactRefs: starredArtifactRows.map((row) => row.artifactRef),
+        artifactStarredAt: Object.fromEntries(
+          starredArtifactRows.map((row) => [row.artifactRef, row.starredAt.toISOString()]),
+        ),
         updatedAt: latestDate(
           ...projectRows.map((row) => row.updatedAt),
           ...agentRows.map((row) => row.updatedAt),
           ...documentRows.map((row) => row.updatedAt),
+          ...companyFileRows.map((row) => row.updatedAt),
+          ...artifactRows.map((row) => row.updatedAt),
         ),
       };
     },
@@ -547,6 +598,223 @@ export function resourceMembershipService(db: Db, options: ResourceMembershipSer
         changed,
         changeKind: changed ? "unstarred" : null,
         policySource: decision.source ?? "oss_default",
+      };
+    },
+
+    async updateCompanyFile(input: {
+      companyId: string;
+      userId: string;
+      companyFileId: string;
+      starred: boolean;
+      actor: BoardActor;
+    }): Promise<MembershipUpdateResult> {
+      const file = await db.query.companyFiles.findFirst({
+        where: eq(companyFiles.id, input.companyFileId),
+      });
+      if (!file || file.companyId !== input.companyId || file.deletedAt) throw notFound("File not found");
+
+      const decision = await assertMutationAllowed({
+        actor: input.actor,
+        companyId: input.companyId,
+        userId: input.userId,
+        resourceType: "company_file",
+        resourceId: input.companyFileId,
+        state: "joined",
+        starred: input.starred,
+      });
+      const policySource = decision.source ?? "oss_default";
+      const existing = await db.query.companyFileMemberships.findFirst({
+        where: and(
+          eq(companyFileMemberships.companyId, input.companyId),
+          eq(companyFileMemberships.userId, input.userId),
+          eq(companyFileMemberships.companyFileId, input.companyFileId),
+        ),
+      });
+
+      if (input.starred) {
+        if (existing?.starredAt) {
+          return {
+            resourceType: "company_file",
+            resourceId: input.companyFileId,
+            state: "joined",
+            starredAt: existing.starredAt,
+            updatedAt: existing.updatedAt,
+            changed: false,
+            changeKind: null,
+            policySource,
+          };
+        }
+        const now = new Date();
+        const [row] = await db
+          .insert(companyFileMemberships)
+          .values({
+            companyId: input.companyId,
+            companyFileId: input.companyFileId,
+            userId: input.userId,
+            starredAt: now,
+            updatedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [companyFileMemberships.companyId, companyFileMemberships.userId, companyFileMemberships.companyFileId],
+            // Keep the stored star time on conflict so repeated or concurrent stars are idempotent.
+            set: {
+              starredAt: sql`${companyFileMemberships.starredAt}`,
+              updatedAt: sql`${companyFileMemberships.updatedAt}`,
+            },
+          })
+          .returning({
+            starredAt: companyFileMemberships.starredAt,
+            updatedAt: companyFileMemberships.updatedAt,
+            inserted: sql<boolean>`xmax = 0`,
+          });
+        return {
+          resourceType: "company_file",
+          resourceId: input.companyFileId,
+          state: "joined",
+          starredAt: row?.starredAt ?? now,
+          updatedAt: row?.updatedAt ?? now,
+          changed: row?.inserted === true,
+          changeKind: row?.inserted === true ? "starred" : null,
+          policySource,
+        };
+      }
+
+      if (!existing?.starredAt) {
+        return {
+          resourceType: "company_file",
+          resourceId: input.companyFileId,
+          state: "joined",
+          starredAt: null,
+          updatedAt: new Date(),
+          changed: false,
+          changeKind: null,
+          policySource,
+        };
+      }
+      await db.delete(companyFileMemberships).where(eq(companyFileMemberships.id, existing.id));
+      return {
+        resourceType: "company_file",
+        resourceId: input.companyFileId,
+        state: "joined",
+        starredAt: null,
+        updatedAt: new Date(),
+        changed: true,
+        changeKind: "unstarred",
+        policySource,
+      };
+    },
+
+    /** Stars an attachment or work product. resourceId in the result is the artifact ref "<source>:<id>". */
+    async updateArtifact(input: {
+      companyId: string;
+      userId: string;
+      source: ArtifactMembershipSource;
+      artifactId: string;
+      starred: boolean;
+      actor: BoardActor;
+    }): Promise<MembershipUpdateResult> {
+      const artifactRef = `${input.source}:${input.artifactId}`;
+      const exists = input.source === "attachment"
+        ? await db
+          .select({ id: issueAttachments.id })
+          .from(issueAttachments)
+          .where(and(eq(issueAttachments.id, input.artifactId), eq(issueAttachments.companyId, input.companyId)))
+          .then((rows) => rows.length > 0)
+        : await db
+          .select({ id: issueWorkProducts.id })
+          .from(issueWorkProducts)
+          .where(and(eq(issueWorkProducts.id, input.artifactId), eq(issueWorkProducts.companyId, input.companyId)))
+          .then((rows) => rows.length > 0);
+      if (!exists) throw notFound(input.source === "attachment" ? "Attachment not found" : "Work product not found");
+
+      const decision = await assertMutationAllowed({
+        actor: input.actor,
+        companyId: input.companyId,
+        userId: input.userId,
+        resourceType: "artifact",
+        resourceId: artifactRef,
+        state: "joined",
+        starred: input.starred,
+      });
+      const policySource = decision.source ?? "oss_default";
+      const existing = await db.query.artifactMemberships.findFirst({
+        where: and(
+          eq(artifactMemberships.companyId, input.companyId),
+          eq(artifactMemberships.userId, input.userId),
+          eq(artifactMemberships.artifactRef, artifactRef),
+        ),
+      });
+
+      if (input.starred) {
+        if (existing?.starredAt) {
+          return {
+            resourceType: "artifact",
+            resourceId: artifactRef,
+            state: "joined",
+            starredAt: existing.starredAt,
+            updatedAt: existing.updatedAt,
+            changed: false,
+            changeKind: null,
+            policySource,
+          };
+        }
+        const now = new Date();
+        const [row] = await db
+          .insert(artifactMemberships)
+          .values({
+            companyId: input.companyId,
+            artifactRef,
+            userId: input.userId,
+            starredAt: now,
+            updatedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [artifactMemberships.companyId, artifactMemberships.userId, artifactMemberships.artifactRef],
+            // Keep the stored star time on conflict so repeated or concurrent stars are idempotent.
+            set: {
+              starredAt: sql`${artifactMemberships.starredAt}`,
+              updatedAt: sql`${artifactMemberships.updatedAt}`,
+            },
+          })
+          .returning({
+            starredAt: artifactMemberships.starredAt,
+            updatedAt: artifactMemberships.updatedAt,
+            inserted: sql<boolean>`xmax = 0`,
+          });
+        return {
+          resourceType: "artifact",
+          resourceId: artifactRef,
+          state: "joined",
+          starredAt: row?.starredAt ?? now,
+          updatedAt: row?.updatedAt ?? now,
+          changed: row?.inserted === true,
+          changeKind: row?.inserted === true ? "starred" : null,
+          policySource,
+        };
+      }
+
+      if (!existing?.starredAt) {
+        return {
+          resourceType: "artifact",
+          resourceId: artifactRef,
+          state: "joined",
+          starredAt: null,
+          updatedAt: new Date(),
+          changed: false,
+          changeKind: null,
+          policySource,
+        };
+      }
+      await db.delete(artifactMemberships).where(eq(artifactMemberships.id, existing.id));
+      return {
+        resourceType: "artifact",
+        resourceId: artifactRef,
+        state: "joined",
+        starredAt: null,
+        updatedAt: new Date(),
+        changed: true,
+        changeKind: "unstarred",
+        policySource,
       };
     },
   };

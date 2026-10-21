@@ -15,6 +15,7 @@ import {
   DEFAULT_FEEDBACK_DATA_SHARING_TERMS_VERSION,
   SETTINGS_OPERATOR_MANAGED_ERROR_CODE,
   companyArtifactsQuerySchema,
+  companyArtifactsTreeQuerySchema,
   companyPortabilityExportSchema,
   companyPortabilityImportSchema,
   companyPortabilityPreviewSchema,
@@ -66,6 +67,7 @@ import {
   workTimelineService,
 } from "../services/index.js";
 import { isCloudManagedInstance } from "../services/cloud-instance.js";
+import { streamZipResponse, safeZipSegment } from "../services/zip-archive.js";
 import { getHiddenSettings } from "../services/settings-visibility.js";
 import type { StorageService } from "../storage/types.js";
 import { assertBoard, assertCompanyAccess, assertInstanceAdmin, getActorInfo, hasCompanyAccess } from "./authz.js";
@@ -427,6 +429,42 @@ export function companyRoutes(db: Db, storage?: StorageService, options?: Compan
     res.json(await artifacts.list(companyId, query, {
       userId: query.starred && req.actor.type === "board" ? req.actor.userId : undefined,
     }));
+  });
+
+  router.get("/:companyId/artifacts/tree", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const query = companyArtifactsTreeQuerySchema.parse(req.query);
+    res.json(await artifacts.tree(companyId, query));
+  });
+
+  // ZIP of every artifact under one task (issue:<id>) or project (project:<id>). Board only.
+  router.get("/:companyId/artifacts/archive", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    if (!hasCompanyAccess(req, companyId)) throw notFound("Company not found");
+    assertBoard(req);
+    const node = typeof req.query.node === "string" ? req.query.node : "";
+    if (!storage) throw unprocessable("Object storage is not configured");
+    const { entries, totalByteSize } = await artifacts.archiveEntries(companyId, node);
+    const [kind, id] = node.split(":") as [string, string];
+    const actor = getActorInfo(req);
+    await logActivity(db, {
+      companyId,
+      actorType: actor.actorType,
+      actorId: actor.actorId,
+      agentId: actor.agentId,
+      runId: actor.runId,
+      agentApiKeyId: actor.agentApiKeyId,
+      action: "artifact.archive_downloaded",
+      entityType: kind === "project" ? "project" : "issue",
+      entityId: id,
+      details: { node, entryCount: entries.length, byteSize: totalByteSize },
+    });
+    res.attachment(safeZipSegment(`${kind}-${id}-artefactos`) + ".zip");
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Cache-Control", "private, no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    streamZipResponse(res, { storage, companyId, entries });
   });
 
   router.get("/:companyId/timeline", async (req, res) => {

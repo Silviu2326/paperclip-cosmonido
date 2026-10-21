@@ -1,0 +1,1 @@
+ALTER TABLE "folders" ADD COLUMN "agent_visible" boolean DEFAULT true NOT NULL;

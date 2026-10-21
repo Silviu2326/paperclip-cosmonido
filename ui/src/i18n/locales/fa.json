@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "دانلود پوشه (ZIP)",
+        "tooLarge": "حجم پوشه بیش از ۵۰۰ مگابایت است و نمی‌توان آن را به‌صورت ZIP دانلود کرد.",
+        "empty": "فایلی برای دانلود اینجا وجود ندارد.",
+        "failed": "فایل ZIP آماده نشد."
+      },
+      "visibility": {
+        "toggle": "برای عامل‌ها قابل مشاهده",
+        "hidden": "از دید عامل‌ها پنهان",
+        "visible": "برای عامل‌ها قابل مشاهده",
+        "metaLabel": "عامل‌ها",
+        "error": "تغییر دید انجام نشد."
+      },
+      "pdf": {
+        "prev": "صفحه قبلی",
+        "next": "صفحه بعدی",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "جستجو در PDF",
+        "searchPlaceholder": "جستجو در سند…",
+        "searching": "در حال جستجو…",
+        "noMatches": "نتیجه‌ای یافت نشد",
+        "matchOf": "{{index}} از {{total}}",
+        "prevMatch": "نتیجه قبلی",
+        "nextMatch": "نتیجه بعدی"
+      },
+      "preview": {
+        "title": "پیش‌نمایش",
+        "fullscreen": "تمام‌صفحه",
+        "fullscreenTitle": "پیش‌نمایش تمام‌صفحه",
+        "close": "بستن",
+        "empty": "یک فایل را انتخاب کنید تا اینجا نمایش داده شود.",
+        "emptyDetail": "دوبار کلیک کنید تا در حالت تمام‌صفحه باز شود.",
+        "box": {
+          "in": "ورودی",
+          "out": "خروجی"
+        },
+        "versions": "نسخه‌ها",
+        "currentVersion": "فعلی",
+        "download": "دانلود",
+        "openNewTab": "باز کردن در برگه جدید",
+        "unsupported": "پیش‌نمایشی در دسترس نیست",
+        "unsupportedHint": "این نوع فایل اینجا نمایش داده نمی‌شود. برای مشاهده، آن را دانلود کنید.",
+        "kind": {
+          "image": "تصویر",
+          "video": "ویدیو",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "صفحه‌گسترده",
+          "json": "JSON",
+          "text": "متن",
+          "pr": "درخواست ادغام",
+          "unsupported": "فایل"
+        },
+        "folderHint": "پوشه‌ها با دوبار کلیک باز می‌شوند."
+      },
+      "viewer": {
+        "loading": "در حال بارگذاری پیش‌نمایش…",
+        "loadError": "پیش‌نمایش بارگذاری نشد.",
+        "tooLarge": "این فایل برای پیش‌نمایش خیلی بزرگ است. برای مشاهده، آن را دانلود کنید.",
+        "unavailable": "محتوایی برای پیش‌نمایش وجود ندارد.",
+        "zoomFit": "اندازه مناسب",
+        "zoomActual": "۱:۱",
+        "mode": "حالت پیش‌نمایش",
+        "pdfBlocked": "مرورگر شما نمی‌تواند PDF را اینجا نمایش دهد.",
+        "sheet": "صفحه‌گسترده",
+        "sheetCapped": "نمایش {{rows}} ردیف و {{columns}} ستون اول.",
+        "sheetEmpty": "این صفحه‌گسترده خالی است.",
+        "jsonInvalid": "JSON معتبر نیست؛ به‌صورت متن نمایش داده می‌شود."
+      },
+      "inbox": {
+        "cancel": "لغو",
+        "nameLabel": "نام",
+        "nameRequired": "یک نام وارد کنید.",
+        "genericError": "عملیات کامل نشد.",
+        "loading": "در حال بارگذاری پوشه‌ها…",
+        "picker": {
+          "location": "مکان در ورودی",
+          "root": "ریشه ورودی",
+          "empty": "هنوز پوشه‌ای وجود ندارد. فایل‌ها در ریشه ذخیره می‌شوند.",
+          "expand": "باز کردن {{name}}",
+          "collapse": "بستن {{name}}"
+        },
+        "folder": {
+          "newTitle": "پوشه جدید",
+          "newDescription": "پوشه‌ها فایل‌های ورودی را سازماندهی می‌کنند.",
+          "newConfirm": "ایجاد پوشه",
+          "created": "پوشه «{{name}}» ایجاد شد"
+        },
+        "rename": {
+          "fileTitle": "تغییر نام فایل",
+          "folderTitle": "تغییر نام پوشه",
+          "confirm": "تغییر نام",
+          "fileRenamed": "فایل به «{{name}}» تغییر نام یافت",
+          "folderRenamed": "پوشه به «{{name}}» تغییر نام یافت"
+        },
+        "move": {
+          "title": "انتقال فایل",
+          "confirm": "انتقال به اینجا",
+          "moved": "«{{name}}» منتقل شد"
+        },
+        "delete": {
+          "fileTitle": "حذف فایل",
+          "folderTitle": "حذف پوشه",
+          "fileDescription": "«{{name}}» از ورودی حذف می‌شود. عامل‌ها دیگر نمی‌توانند آن را بخوانند. این عمل برگشت‌پذیر نیست.",
+          "folderDescription": "«{{name}}» حذف می‌شود. فقط پوشه‌های خالی حذف می‌شوند: ابتدا محتویات آن را منتقل یا حذف کنید.",
+          "confirm": "حذف",
+          "fileDeleted": "«{{name}}» حذف شد",
+          "folderDeleted": "پوشه «{{name}}» حذف شد"
+        },
+        "version": {
+          "title": "جایگزینی نسخه",
+          "description": "یک فایل جدید بارگذاری کنید. نسخه قبلی در تاریخچه باقی می‌ماند.",
+          "fileLabel": "فایل",
+          "noteLabel": "یادداشت (اختیاری)",
+          "confirm": "بارگذاری نسخه",
+          "noFile": "فایلی برای بارگذاری انتخاب کنید.",
+          "added": "«{{name}}» اکنون نسخه {{version}} است"
+        },
+        "toInbox": {
+          "title": "انتقال به ورودی",
+          "description": "«{{name}}» را به ورودی کپی می‌کند تا شرکت و عامل‌هایش بتوانند از آن استفاده کنند.",
+          "nameLabel": "نام در ورودی (اختیاری)",
+          "confirm": "انتقال به ورودی",
+          "added": "«{{name}}» به ورودی اضافه شد"
+        }
+      },
+      "box": {
+        "in": "ورودی",
+        "out": "خروجی"
+      },
+      "toolbar": {
+        "segBox": "جعبه",
+        "segView": "نما",
+        "back": "بازگشت",
+        "forward": "جلو",
+        "crumbs": "مسیر",
+        "search": "جستجو",
+        "searchScope": "جستجو در {{name}}",
+        "viewList": "فهرست",
+        "viewIcons": "نمادها",
+        "previewToggle": "نمایش یا پنهان کردن پیش‌نمایش",
+        "preview": "پیش‌نمایش",
+        "upload": "بارگذاری",
+        "newFolder": "پوشه",
+        "download": "دانلود",
+        "chooseFiles": "انتخاب فایل‌ها"
+      },
+      "tree": {
+        "label": "کاوشگر آرتیفکت‌ها",
+        "entry": "ورودی",
+        "out": "خروجی",
+        "outBy": "نمایش خروجی بر اساس",
+        "byAgent": "عامل",
+        "byType": "نوع فایل",
+        "byDate": "تاریخ",
+        "quick": "دسترسی سریع",
+        "favorites": "علاقه‌مندی‌ها",
+        "recent": "اخیر",
+        "mine": "بارگذاری‌شده توسط من",
+        "soon": "به‌زودی"
+      },
+      "list": {
+        "label": "فایل‌ها",
+        "name": "نام",
+        "type": "نوع",
+        "size": "اندازه",
+        "date": "تاریخ",
+        "uploadedBy": "بارگذاری‌شده توسط",
+        "usedBy": "استفاده‌شده توسط",
+        "agent": "عامل",
+        "task": "وظیفه",
+        "elements": "{{count}} مورد",
+        "elementsOne": "۱ مورد",
+        "usedTasks": "{{count}} وظیفه",
+        "usedOne": "۱ وظیفه",
+        "starred": "علاقه‌مندی"
+      },
+      "status": {
+        "items": "{{count}} مورد",
+        "itemsOne": "۱ مورد",
+        "selected": "۱ انتخاب‌شده",
+        "ruleIn": "فقط افراد می‌نویسند — عامل‌ها می‌خوانند",
+        "ruleOut": "فقط عامل‌ها می‌نویسند — شما می‌خوانید",
+        "copied": "پیوند کپی شد",
+        "copyFailed": "پیوند کپی نشد"
+      },
+      "empty": {
+        "folder": "پوشه خالی",
+        "folderHint": "فایل‌ها را اینجا بکشید یا دکمه بارگذاری را فشار دهید",
+        "noMatch": "چیزی با «{{q}}» مطابقت ندارد",
+        "outHint": "هنوز آرتیفکتی در این نما وجود ندارد"
+      },
+      "ctx": {
+        "menu": "اقدامات",
+        "open": "باز کردن",
+        "preview": "مشاهده سریع",
+        "download": "دانلود",
+        "copyLink": "کپی پیوند",
+        "goTask": "رفتن به وظیفه",
+        "moveToInbox": "انتقال به ورودی",
+        "replace": "جایگزینی با نسخه جدید",
+        "move": "انتقال",
+        "rename": "تغییر نام",
+        "remove": "حذف",
+        "favorite": "علاقه‌مندی",
+        "unfavorite": "حذف از علاقه‌مندی‌ها",
+        "properties": "ویژگی‌ها",
+        "soon": "به‌زودی"
+      },
+      "type": {
+        "folder": "پوشه",
+        "task": "وظیفه",
+        "image": "تصویر",
+        "video": "ویدیو",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "متن",
+        "file": "فایل"
+      },
+      "meta": {
+        "person": "کاربر شرکت",
+        "uploadedBy": "بارگذاری‌شده توسط",
+        "folder": "پوشه",
+        "visibleTo": "قابل مشاهده برای",
+        "allCompany": "کل شرکت",
+        "usedIn": "استفاده‌شده در",
+        "usedTasks": "{{count}} وظیفه",
+        "usedNone": "هنوز وظیفه‌ای نیست",
+        "agent": "عامل",
+        "task": "وظیفه",
+        "origin": "مبدأ",
+        "originRun": "اجرای عامل"
+      },
+      "crumbs": {
+        "projects": "پروژه‌ها",
+        "noProject": "بدون پروژه",
+        "project": "پروژه",
+        "task": "وظیفه",
+        "byAgent": "عامل",
+        "byType": "نوع فایل",
+        "byDate": "تاریخ"
+      },
+      "errors": {
+        "load": "فایل‌ها بارگذاری نشدند.",
+        "tree": "درخت بارگذاری نشد.",
+        "moveToInbox": "این آرتیفکت را نمی‌توان به ورودی منتقل کرد.",
+        "usage": "اطلاعات مصرف بارگذاری نشد."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

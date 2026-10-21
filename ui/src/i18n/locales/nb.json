@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Last ned mappe (ZIP)",
+        "tooLarge": "Mappen er over 500 MB og kan ikke lastes ned som ZIP.",
+        "empty": "Det finnes ingen filer å laste ned her.",
+        "failed": "ZIP-filen kunne ikke forberedes."
+      },
+      "visibility": {
+        "toggle": "Synlig for agenter",
+        "hidden": "Skjult for agenter",
+        "visible": "Synlig for agenter",
+        "metaLabel": "Agenter",
+        "error": "Kunne ikke endre synlighet."
+      },
+      "pdf": {
+        "prev": "Forrige side",
+        "next": "Neste side",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Søk i PDF",
+        "searchPlaceholder": "Søk i dokumentet…",
+        "searching": "Søker…",
+        "noMatches": "Ingen resultater",
+        "matchOf": "{{index}} av {{total}}",
+        "prevMatch": "Forrige resultat",
+        "nextMatch": "Neste resultat"
+      },
+      "preview": {
+        "title": "Forhåndsvisning",
+        "fullscreen": "Fullskjerm",
+        "fullscreenTitle": "Forhåndsvisning i fullskjerm",
+        "close": "Lukk",
+        "empty": "Velg en fil for å se den her.",
+        "emptyDetail": "Dobbeltklikk for å åpne den i fullskjerm.",
+        "box": {
+          "in": "Innboks",
+          "out": "Utdata"
+        },
+        "versions": "Versjoner",
+        "currentVersion": "gjeldende",
+        "download": "Last ned",
+        "openNewTab": "Åpne i ny fane",
+        "unsupported": "Ingen forhåndsvisning tilgjengelig",
+        "unsupportedHint": "Denne filtypen kan ikke vises her. Last den ned for å se den.",
+        "kind": {
+          "image": "Bilde",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Regneark",
+          "json": "JSON",
+          "text": "Tekst",
+          "pr": "Pull request",
+          "unsupported": "Fil"
+        },
+        "folderHint": "Mapper åpnes med dobbeltklikk."
+      },
+      "viewer": {
+        "loading": "Laster forhåndsvisning…",
+        "loadError": "Kunne ikke laste forhåndsvisningen.",
+        "tooLarge": "Filen er for stor til å forhåndsvises. Last den ned for å se den.",
+        "unavailable": "Ingen innhold tilgjengelig for forhåndsvisning.",
+        "zoomFit": "Tilpass",
+        "zoomActual": "1:1",
+        "mode": "Forhåndsvisningsmodus",
+        "pdfBlocked": "Nettleseren din kan ikke vise PDF-filer her.",
+        "sheet": "Ark",
+        "sheetCapped": "Viser de første {{rows}} radene og {{columns}} kolonnene.",
+        "sheetEmpty": "Dette arket er tomt.",
+        "jsonInvalid": "Ikke gyldig JSON; vises som tekst."
+      },
+      "inbox": {
+        "cancel": "Avbryt",
+        "nameLabel": "Navn",
+        "nameRequired": "Skriv inn et navn.",
+        "genericError": "Handlingen kunne ikke fullføres.",
+        "loading": "Laster mapper…",
+        "picker": {
+          "location": "Plassering i innboksen",
+          "root": "Innboksens rot",
+          "empty": "Ingen mapper ennå. Filer havner i roten.",
+          "expand": "Utvid {{name}}",
+          "collapse": "Skjul {{name}}"
+        },
+        "folder": {
+          "newTitle": "Ny mappe",
+          "newDescription": "Mapper organiserer filene i innboksen.",
+          "newConfirm": "Opprett mappe",
+          "created": "Mappen «{{name}}» ble opprettet"
+        },
+        "rename": {
+          "fileTitle": "Gi nytt navn til fil",
+          "folderTitle": "Gi nytt navn til mappe",
+          "confirm": "Gi nytt navn",
+          "fileRenamed": "Filen ble gitt nytt navn til «{{name}}»",
+          "folderRenamed": "Mappen ble gitt nytt navn til «{{name}}»"
+        },
+        "move": {
+          "title": "Flytt fil",
+          "confirm": "Flytt hit",
+          "moved": "Flyttet «{{name}}»"
+        },
+        "delete": {
+          "fileTitle": "Slett fil",
+          "folderTitle": "Slett mappe",
+          "fileDescription": "«{{name}}» slettes fra innboksen. Agenter kan ikke lenger lese den. Dette kan ikke angres.",
+          "folderDescription": "«{{name}}» slettes. Bare tomme mapper kan slettes: flytt eller slett innholdet først.",
+          "confirm": "Slett",
+          "fileDeleted": "Slettet «{{name}}»",
+          "folderDeleted": "Mappen «{{name}}» ble slettet"
+        },
+        "version": {
+          "title": "Erstatt versjon",
+          "description": "Last opp en ny fil. Forrige versjon beholdes i historikken.",
+          "fileLabel": "Fil",
+          "noteLabel": "Merknad (valgfritt)",
+          "confirm": "Last opp versjon",
+          "noFile": "Velg en fil å laste opp.",
+          "added": "«{{name}}» er nå versjon {{version}}"
+        },
+        "toInbox": {
+          "title": "Flytt til innboksen",
+          "description": "Kopierer «{{name}}» til innboksen slik at selskapet og agentene kan bruke den.",
+          "nameLabel": "Navn i innboksen (valgfritt)",
+          "confirm": "Flytt til innboksen",
+          "added": "La «{{name}}» til i innboksen"
+        }
+      },
+      "box": {
+        "in": "Innboks",
+        "out": "Utdata"
+      },
+      "toolbar": {
+        "segBox": "Boks",
+        "segView": "Visning",
+        "back": "Tilbake",
+        "forward": "Frem",
+        "crumbs": "Sti",
+        "search": "Søk",
+        "searchScope": "Søk i {{name}}",
+        "viewList": "Liste",
+        "viewIcons": "Ikoner",
+        "previewToggle": "Vis eller skjul forhåndsvisning",
+        "preview": "Forhåndsvisning",
+        "upload": "Last opp",
+        "newFolder": "Mappe",
+        "download": "Last ned",
+        "chooseFiles": "Velg filer"
+      },
+      "tree": {
+        "label": "Artefaktutforsker",
+        "entry": "Innboks",
+        "out": "Utdata",
+        "outBy": "Vis utdata etter",
+        "byAgent": "Agent",
+        "byType": "Filtype",
+        "byDate": "Dato",
+        "quick": "Hurtigtilgang",
+        "favorites": "Favoritter",
+        "recent": "Nylige",
+        "mine": "Lastet opp av meg",
+        "soon": "Kommer snart"
+      },
+      "list": {
+        "label": "Filer",
+        "name": "Navn",
+        "type": "Type",
+        "size": "Størrelse",
+        "date": "Dato",
+        "uploadedBy": "Lastet opp av",
+        "usedBy": "Brukt av",
+        "agent": "Agent",
+        "task": "Oppgave",
+        "elements": "{{count}} elementer",
+        "elementsOne": "1 element",
+        "usedTasks": "{{count}} oppgaver",
+        "usedOne": "1 oppgave",
+        "starred": "Favoritt"
+      },
+      "status": {
+        "items": "{{count}} elementer",
+        "itemsOne": "1 element",
+        "selected": "1 valgt",
+        "ruleIn": "Bare mennesker skriver · agenter leser",
+        "ruleOut": "Bare agenter skriver · du leser",
+        "copied": "Lenke kopiert",
+        "copyFailed": "Kunne ikke kopiere lenken"
+      },
+      "empty": {
+        "folder": "Tom mappe",
+        "folderHint": "Dra filer hit eller trykk Last opp",
+        "noMatch": "Ingenting samsvarer med «{{q}}»",
+        "outHint": "Ingen artefakter i denne visningen ennå"
+      },
+      "ctx": {
+        "menu": "Handlinger",
+        "open": "Åpne",
+        "preview": "Hurtigvisning",
+        "download": "Last ned",
+        "copyLink": "Kopier lenke",
+        "goTask": "Gå til oppgave",
+        "moveToInbox": "Flytt til innboksen",
+        "replace": "Erstatt med ny versjon",
+        "move": "Flytt",
+        "rename": "Gi nytt navn",
+        "remove": "Slett",
+        "favorite": "Legg til favoritt",
+        "unfavorite": "Fjern favoritt",
+        "properties": "Egenskaper",
+        "soon": "Kommer snart"
+      },
+      "type": {
+        "folder": "Mappe",
+        "task": "Oppgave",
+        "image": "Bilde",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Tekst",
+        "file": "Fil"
+      },
+      "meta": {
+        "person": "Selskapsbruker",
+        "uploadedBy": "Lastet opp av",
+        "folder": "Mappe",
+        "visibleTo": "Synlig for",
+        "allCompany": "hele selskapet",
+        "usedIn": "Brukt i",
+        "usedTasks": "{{count}} oppgaver",
+        "usedNone": "ingen oppgave ennå",
+        "agent": "Agent",
+        "task": "Oppgave",
+        "origin": "Opprinnelse",
+        "originRun": "agentkjøring"
+      },
+      "crumbs": {
+        "projects": "Prosjekter",
+        "noProject": "Ingen prosjekt",
+        "project": "Prosjekt",
+        "task": "Oppgave",
+        "byAgent": "Agent",
+        "byType": "Filtype",
+        "byDate": "Dato"
+      },
+      "errors": {
+        "load": "Filene kunne ikke lastes.",
+        "tree": "Treet kunne ikke lastes.",
+        "moveToInbox": "Denne artefakten kan ikke flyttes til innboksen.",
+        "usage": "Bruken kunne ikke lastes."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

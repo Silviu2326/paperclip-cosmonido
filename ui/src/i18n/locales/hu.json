@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Mappa letöltése (ZIP)",
+        "tooLarge": "A mappa nagyobb 500 MB-nál, ZIP-ként nem tölthető le.",
+        "empty": "Itt nincs letölthető fájl.",
+        "failed": "A ZIP-et nem sikerült előkészíteni."
+      },
+      "visibility": {
+        "toggle": "Látható az ügynökök számára",
+        "hidden": "Elrejtve az ügynökök elől",
+        "visible": "Látható az ügynökök számára",
+        "metaLabel": "Ügynökök",
+        "error": "A láthatóság nem módosítható."
+      },
+      "pdf": {
+        "prev": "Előző oldal",
+        "next": "Következő oldal",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Keresés a PDF-ben",
+        "searchPlaceholder": "Keresés a dokumentumban…",
+        "searching": "Keresés…",
+        "noMatches": "Nincs találat",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "Előző találat",
+        "nextMatch": "Következő találat"
+      },
+      "preview": {
+        "title": "Előnézet",
+        "fullscreen": "Teljes képernyő",
+        "fullscreenTitle": "Előnézet teljes képernyőn",
+        "close": "Bezárás",
+        "empty": "Válassz egy fájlt a megtekintéséhez.",
+        "emptyDetail": "Dupla kattintással teljes képernyőn nyílik meg.",
+        "box": {
+          "in": "Bejövő",
+          "out": "Kimenet"
+        },
+        "versions": "Verziók",
+        "currentVersion": "aktuális",
+        "download": "Letöltés",
+        "openNewTab": "Megnyitás új lapon",
+        "unsupported": "Nincs elérhető előnézet",
+        "unsupportedHint": "Ez a fájltípus itt nem jeleníthető meg. Töltsd le a megtekintéséhez.",
+        "kind": {
+          "image": "Kép",
+          "video": "Videó",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Táblázat",
+          "json": "JSON",
+          "text": "Szöveg",
+          "pr": "Pull request",
+          "unsupported": "Fájl"
+        },
+        "folderHint": "A mappák dupla kattintással nyílnak meg."
+      },
+      "viewer": {
+        "loading": "Előnézet betöltése…",
+        "loadError": "Az előnézet nem tölthető be.",
+        "tooLarge": "A fájl túl nagy az előnézethez. Töltsd le a megtekintéséhez.",
+        "unavailable": "Nincs megjeleníthető tartalom.",
+        "zoomFit": "Illesztés",
+        "zoomActual": "1:1",
+        "mode": "Előnézeti mód",
+        "pdfBlocked": "A böngésződ itt nem tud PDF-et megjeleníteni.",
+        "sheet": "Munkalap",
+        "sheetCapped": "Az első {{rows}} sor és {{columns}} oszlop látható.",
+        "sheetEmpty": "Ez a munkalap üres.",
+        "jsonInvalid": "Nem érvényes JSON; szövegként jelenik meg."
+      },
+      "inbox": {
+        "cancel": "Mégse",
+        "nameLabel": "Név",
+        "nameRequired": "Adj meg egy nevet.",
+        "genericError": "A műveletet nem lehetett befejezni.",
+        "loading": "Mappák betöltése…",
+        "picker": {
+          "location": "Hely a Bejövőben",
+          "root": "Bejövő gyökere",
+          "empty": "Még nincsenek mappák. A fájlok a gyökérbe kerülnek.",
+          "expand": "{{name}} kibontása",
+          "collapse": "{{name}} összecsukása"
+        },
+        "folder": {
+          "newTitle": "Új mappa",
+          "newDescription": "A mappák a Bejövőben lévő fájlokat rendezik.",
+          "newConfirm": "Mappa létrehozása",
+          "created": "A(z) „{{name}}” mappa létrejött"
+        },
+        "rename": {
+          "fileTitle": "Fájl átnevezése",
+          "folderTitle": "Mappa átnevezése",
+          "confirm": "Átnevezés",
+          "fileRenamed": "A fájl neve most „{{name}}”",
+          "folderRenamed": "A mappa neve most „{{name}}”"
+        },
+        "move": {
+          "title": "Fájl áthelyezése",
+          "confirm": "Áthelyezés ide",
+          "moved": "Áthelyezve: „{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Fájl törlése",
+          "folderTitle": "Mappa törlése",
+          "fileDescription": "A(z) „{{name}}” törlődik a Bejövőből. Az ügynökök többé nem tudják olvasni. Ez a művelet nem vonható vissza.",
+          "folderDescription": "A(z) „{{name}}” törlődik. Csak üres mappák törölhetők: előbb helyezd át vagy töröld a tartalmukat.",
+          "confirm": "Törlés",
+          "fileDeleted": "Törölve: „{{name}}”",
+          "folderDeleted": "A(z) „{{name}}” mappa törölve"
+        },
+        "version": {
+          "title": "Verzió cseréje",
+          "description": "Tölts fel egy új fájlt. Az előző verzió megmarad az előzményekben.",
+          "fileLabel": "Fájl",
+          "noteLabel": "Megjegyzés (opcionális)",
+          "confirm": "Verzió feltöltése",
+          "noFile": "Válassz ki egy feltöltendő fájlt.",
+          "added": "A(z) „{{name}}” most a(z) {{version}}. verzió"
+        },
+        "toInbox": {
+          "title": "Áthelyezés a Bejövőbe",
+          "description": "Másold a(z) „{{name}}” fájlt a Bejövőbe, hogy a cég és ügynökei használhassák.",
+          "nameLabel": "Név a Bejövőben (opcionális)",
+          "confirm": "Áthelyezés a Bejövőbe",
+          "added": "A(z) „{{name}}” hozzáadva a Bejövőhöz"
+        }
+      },
+      "box": {
+        "in": "Bejövő",
+        "out": "Kimenet"
+      },
+      "toolbar": {
+        "segBox": "Doboz",
+        "segView": "Nézet",
+        "back": "Vissza",
+        "forward": "Előre",
+        "crumbs": "Útvonal",
+        "search": "Keresés",
+        "searchScope": "Keresés itt: {{name}}",
+        "viewList": "Lista",
+        "viewIcons": "Ikonok",
+        "previewToggle": "Előnézet megjelenítése vagy elrejtése",
+        "preview": "Előnézet",
+        "upload": "Feltöltés",
+        "newFolder": "Mappa",
+        "download": "Letöltés",
+        "chooseFiles": "Fájlok kiválasztása"
+      },
+      "tree": {
+        "label": "Műtárgykezelő",
+        "entry": "Bejövő",
+        "out": "Kimenet",
+        "outBy": "Kimenet megtekintése ez szerint",
+        "byAgent": "Ügynök",
+        "byType": "Fájltípus",
+        "byDate": "Dátum",
+        "quick": "Gyorselérés",
+        "favorites": "Kedvencek",
+        "recent": "Legutóbbiak",
+        "mine": "Általam feltöltött",
+        "soon": "Hamarosan"
+      },
+      "list": {
+        "label": "Fájlok",
+        "name": "Név",
+        "type": "Típus",
+        "size": "Méret",
+        "date": "Dátum",
+        "uploadedBy": "Feltöltő",
+        "usedBy": "Használta",
+        "agent": "Ügynök",
+        "task": "Feladat",
+        "elements": "{{count}} elem",
+        "elementsOne": "1 elem",
+        "usedTasks": "{{count}} feladat",
+        "usedOne": "1 feladat",
+        "starred": "Kedvenc"
+      },
+      "status": {
+        "items": "{{count}} elem",
+        "itemsOne": "1 elem",
+        "selected": "1 kijelölve",
+        "ruleIn": "Csak emberek írnak · az ügynökök olvassák",
+        "ruleOut": "Csak az ügynökök írnak · te olvasod",
+        "copied": "Hivatkozás másolva",
+        "copyFailed": "A hivatkozást nem lehetett másolni"
+      },
+      "empty": {
+        "folder": "Üres mappa",
+        "folderHint": "Húzz ide fájlokat, vagy nyomd meg a Feltöltés gombot",
+        "noMatch": "Nincs találat erre: „{{q}}”",
+        "outHint": "Ebben a nézetben még nincsenek műtárgyak"
+      },
+      "ctx": {
+        "menu": "Műveletek",
+        "open": "Megnyitás",
+        "preview": "Gyors nézet",
+        "download": "Letöltés",
+        "copyLink": "Hivatkozás másolása",
+        "goTask": "Ugrás a feladatra",
+        "moveToInbox": "Áthelyezés a Bejövőbe",
+        "replace": "Csere új verzióra",
+        "move": "Áthelyezés",
+        "rename": "Átnevezés",
+        "remove": "Törlés",
+        "favorite": "Hozzáadás a kedvencekhez",
+        "unfavorite": "Eltávolítás a kedvencekből",
+        "properties": "Tulajdonságok",
+        "soon": "Hamarosan"
+      },
+      "type": {
+        "folder": "Mappa",
+        "task": "Feladat",
+        "image": "Kép",
+        "video": "Videó",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Szöveg",
+        "file": "Fájl"
+      },
+      "meta": {
+        "person": "Céges felhasználó",
+        "uploadedBy": "Feltöltő",
+        "folder": "Mappa",
+        "visibleTo": "Láthatóság",
+        "allCompany": "az egész cég",
+        "usedIn": "Felhasználva ebben",
+        "usedTasks": "{{count}} feladat",
+        "usedNone": "Még nincs feladat",
+        "agent": "Ügynök",
+        "task": "Feladat",
+        "origin": "Eredet",
+        "originRun": "ügynökfuttatás"
+      },
+      "crumbs": {
+        "projects": "Projektek",
+        "noProject": "Nincs projekt",
+        "project": "Projekt",
+        "task": "Feladat",
+        "byAgent": "Ügynök",
+        "byType": "Fájltípus",
+        "byDate": "Dátum"
+      },
+      "errors": {
+        "load": "A fájlokat nem lehetett betölteni.",
+        "tree": "A fa nem tölthető be.",
+        "moveToInbox": "Ez a műtárgy nem helyezhető át a Bejövőbe.",
+        "usage": "A használati adatok nem tölthetők be."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

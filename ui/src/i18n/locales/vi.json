@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Tải thư mục (ZIP)",
+        "tooLarge": "Thư mục vượt quá 500 MB nên không thể tải xuống dưới dạng ZIP.",
+        "empty": "Không có tệp nào để tải xuống ở đây.",
+        "failed": "Không thể chuẩn bị tệp ZIP."
+      },
+      "visibility": {
+        "toggle": "Hiển thị với tác nhân",
+        "hidden": "Ẩn với tác nhân",
+        "visible": "Hiển thị với tác nhân",
+        "metaLabel": "Tác nhân",
+        "error": "Không thể thay đổi khả năng hiển thị."
+      },
+      "pdf": {
+        "prev": "Trang trước",
+        "next": "Trang sau",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Tìm trong PDF",
+        "searchPlaceholder": "Tìm trong tài liệu…",
+        "searching": "Đang tìm…",
+        "noMatches": "Không có kết quả",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "Kết quả trước",
+        "nextMatch": "Kết quả tiếp theo"
+      },
+      "preview": {
+        "title": "Xem trước",
+        "fullscreen": "Toàn màn hình",
+        "fullscreenTitle": "Xem trước toàn màn hình",
+        "close": "Đóng",
+        "empty": "Chọn một tệp để xem tại đây.",
+        "emptyDetail": "Nhấp đúp để mở toàn màn hình.",
+        "box": {
+          "in": "Đầu vào",
+          "out": "Đầu ra"
+        },
+        "versions": "Phiên bản",
+        "currentVersion": "hiện tại",
+        "download": "Tải xuống",
+        "openNewTab": "Mở trong thẻ mới",
+        "unsupported": "Không có bản xem trước",
+        "unsupportedHint": "Không thể hiển thị loại tệp này tại đây. Hãy tải xuống để xem.",
+        "kind": {
+          "image": "Hình ảnh",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Bảng tính",
+          "json": "JSON",
+          "text": "Văn bản",
+          "pr": "Pull request",
+          "unsupported": "Tệp"
+        },
+        "folderHint": "Thư mục mở bằng cách nhấp đúp."
+      },
+      "viewer": {
+        "loading": "Đang tải bản xem trước…",
+        "loadError": "Không thể tải bản xem trước.",
+        "tooLarge": "Tệp này quá lớn để xem trước. Hãy tải xuống để xem.",
+        "unavailable": "Không có nội dung để xem trước.",
+        "zoomFit": "Vừa khung",
+        "zoomActual": "1:1",
+        "mode": "Chế độ xem trước",
+        "pdfBlocked": "Trình duyệt của bạn không thể hiển thị PDF tại đây.",
+        "sheet": "Trang tính",
+        "sheetCapped": "Đang hiển thị {{rows}} hàng và {{columns}} cột đầu tiên.",
+        "sheetEmpty": "Trang tính này trống.",
+        "jsonInvalid": "Không phải JSON hợp lệ; hiển thị dưới dạng văn bản."
+      },
+      "inbox": {
+        "cancel": "Hủy",
+        "nameLabel": "Tên",
+        "nameRequired": "Nhập tên.",
+        "genericError": "Không thể hoàn tất thao tác.",
+        "loading": "Đang tải thư mục…",
+        "picker": {
+          "location": "Vị trí trong Hộp thư đến",
+          "root": "Thư mục gốc của Hộp thư đến",
+          "empty": "Chưa có thư mục nào. Tệp sẽ được đưa vào thư mục gốc.",
+          "expand": "Mở rộng {{name}}",
+          "collapse": "Thu gọn {{name}}"
+        },
+        "folder": {
+          "newTitle": "Thư mục mới",
+          "newDescription": "Thư mục giúp sắp xếp các tệp trong Hộp thư đến.",
+          "newConfirm": "Tạo thư mục",
+          "created": "Đã tạo thư mục “{{name}}”"
+        },
+        "rename": {
+          "fileTitle": "Đổi tên tệp",
+          "folderTitle": "Đổi tên thư mục",
+          "confirm": "Đổi tên",
+          "fileRenamed": "Đã đổi tên tệp thành “{{name}}”",
+          "folderRenamed": "Đã đổi tên thư mục thành “{{name}}”"
+        },
+        "move": {
+          "title": "Di chuyển tệp",
+          "confirm": "Di chuyển đến đây",
+          "moved": "Đã di chuyển “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Xóa tệp",
+          "folderTitle": "Xóa thư mục",
+          "fileDescription": "“{{name}}” sẽ bị xóa khỏi Hộp thư đến. Các tác nhân sẽ không thể đọc tệp này nữa. Hành động này không thể hoàn tác.",
+          "folderDescription": "“{{name}}” sẽ bị xóa. Chỉ có thể xóa thư mục trống: hãy di chuyển hoặc xóa nội dung bên trong trước.",
+          "confirm": "Xóa",
+          "fileDeleted": "Đã xóa “{{name}}”",
+          "folderDeleted": "Đã xóa thư mục “{{name}}”"
+        },
+        "version": {
+          "title": "Thay thế phiên bản",
+          "description": "Tải lên một tệp mới. Phiên bản trước sẽ được giữ trong lịch sử.",
+          "fileLabel": "Tệp",
+          "noteLabel": "Ghi chú (không bắt buộc)",
+          "confirm": "Tải lên phiên bản",
+          "noFile": "Chọn một tệp để tải lên.",
+          "added": "“{{name}}” hiện là phiên bản {{version}}"
+        },
+        "toInbox": {
+          "title": "Chuyển vào Hộp thư đến",
+          "description": "Sao chép “{{name}}” vào Hộp thư đến để công ty và các tác nhân có thể sử dụng.",
+          "nameLabel": "Tên trong Hộp thư đến (không bắt buộc)",
+          "confirm": "Chuyển vào Hộp thư đến",
+          "added": "Đã thêm “{{name}}” vào Hộp thư đến"
+        }
+      },
+      "box": {
+        "in": "Hộp thư đến",
+        "out": "Đầu ra"
+      },
+      "toolbar": {
+        "segBox": "Hộp",
+        "segView": "Chế độ xem",
+        "back": "Quay lại",
+        "forward": "Tiến",
+        "crumbs": "Đường dẫn",
+        "search": "Tìm kiếm",
+        "searchScope": "Tìm trong {{name}}…",
+        "viewList": "Danh sách",
+        "viewIcons": "Biểu tượng",
+        "previewToggle": "Hiện hoặc ẩn bản xem trước",
+        "preview": "Xem trước",
+        "upload": "Tải lên",
+        "newFolder": "Thư mục",
+        "download": "Tải xuống",
+        "chooseFiles": "Chọn tệp"
+      },
+      "tree": {
+        "label": "Trình khám phá artifact",
+        "entry": "Hộp thư đến",
+        "out": "Đầu ra",
+        "outBy": "Xem đầu ra theo",
+        "byAgent": "Tác nhân",
+        "byType": "Loại tệp",
+        "byDate": "Ngày",
+        "quick": "Truy cập nhanh",
+        "favorites": "Yêu thích",
+        "recent": "Gần đây",
+        "mine": "Do tôi tải lên",
+        "soon": "Sắp ra mắt"
+      },
+      "list": {
+        "label": "Tệp",
+        "name": "Tên",
+        "type": "Loại",
+        "size": "Kích thước",
+        "date": "Ngày",
+        "uploadedBy": "Tải lên bởi",
+        "usedBy": "Được dùng bởi",
+        "agent": "Tác nhân",
+        "task": "Tác vụ",
+        "elements": "{{count}} mục",
+        "elementsOne": "1 mục",
+        "usedTasks": "{{count}} tác vụ",
+        "usedOne": "1 tác vụ",
+        "starred": "Yêu thích"
+      },
+      "status": {
+        "items": "{{count}} mục",
+        "itemsOne": "1 mục",
+        "selected": "Đã chọn 1",
+        "ruleIn": "Chỉ con người ghi · tác nhân đọc",
+        "ruleOut": "Chỉ tác nhân ghi · bạn đọc",
+        "copied": "Đã sao chép liên kết",
+        "copyFailed": "Không thể sao chép liên kết"
+      },
+      "empty": {
+        "folder": "Thư mục trống",
+        "folderHint": "Kéo tệp vào đây hoặc nhấn Tải lên",
+        "noMatch": "Không có kết quả khớp với «{{q}}»",
+        "outHint": "Chưa có artifact nào trong chế độ xem này"
+      },
+      "ctx": {
+        "menu": "Thao tác",
+        "open": "Mở",
+        "preview": "Xem nhanh",
+        "download": "Tải xuống",
+        "copyLink": "Sao chép liên kết",
+        "goTask": "Đi tới tác vụ",
+        "moveToInbox": "Chuyển vào Hộp thư đến…",
+        "replace": "Thay bằng phiên bản mới",
+        "move": "Di chuyển…",
+        "rename": "Đổi tên",
+        "remove": "Xóa",
+        "favorite": "Yêu thích",
+        "unfavorite": "Bỏ yêu thích",
+        "properties": "Thuộc tính",
+        "soon": "Sắp ra mắt"
+      },
+      "type": {
+        "folder": "Thư mục",
+        "task": "Tác vụ",
+        "image": "Hình ảnh",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Văn bản",
+        "file": "Tệp"
+      },
+      "meta": {
+        "person": "Người dùng công ty",
+        "uploadedBy": "Tải lên bởi",
+        "folder": "Thư mục",
+        "visibleTo": "Hiển thị cho",
+        "allCompany": "toàn công ty",
+        "usedIn": "Được dùng trong",
+        "usedTasks": "{{count}} tác vụ",
+        "usedNone": "chưa có tác vụ",
+        "agent": "Tác nhân",
+        "task": "Tác vụ",
+        "origin": "Nguồn gốc",
+        "originRun": "lần chạy của tác nhân"
+      },
+      "crumbs": {
+        "projects": "Dự án",
+        "noProject": "Không có dự án",
+        "project": "Dự án",
+        "task": "Tác vụ",
+        "byAgent": "Tác nhân",
+        "byType": "Loại tệp",
+        "byDate": "Ngày"
+      },
+      "errors": {
+        "load": "Không thể tải các tệp.",
+        "tree": "Không thể tải cây thư mục.",
+        "moveToInbox": "Artifact này không thể chuyển vào Hộp thư đến.",
+        "usage": "Không thể tải thông tin sử dụng."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

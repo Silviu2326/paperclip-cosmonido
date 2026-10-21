@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "فولڈر ڈاؤن لوڈ کریں (ZIP)",
+        "tooLarge": "یہ فولڈر 500 MB سے بڑا ہے اور اسے ZIP کے طور پر ڈاؤن لوڈ نہیں کیا جا سکتا۔",
+        "empty": "یہاں ڈاؤن لوڈ کرنے کے لیے کوئی فائل نہیں ہے۔",
+        "failed": "ZIP تیار نہیں ہو سکی۔"
+      },
+      "visibility": {
+        "toggle": "ایجنٹس کو نظر آتا ہے",
+        "hidden": "ایجنٹس سے چھپا ہوا ہے",
+        "visible": "ایجنٹس کو نظر آتا ہے",
+        "metaLabel": "ایجنٹس",
+        "error": "نظر آنے کی ترتیب تبدیل نہیں ہو سکی۔"
+      },
+      "pdf": {
+        "prev": "پچھلا صفحہ",
+        "next": "اگلا صفحہ",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF میں تلاش کریں",
+        "searchPlaceholder": "دستاویز میں تلاش کریں…",
+        "searching": "تلاش ہو رہی ہے…",
+        "noMatches": "کوئی نتیجہ نہیں",
+        "matchOf": "{{index}} از {{total}}",
+        "prevMatch": "پچھلا نتیجہ",
+        "nextMatch": "اگلا نتیجہ"
+      },
+      "preview": {
+        "title": "پیش نظارہ",
+        "fullscreen": "مکمل اسکرین",
+        "fullscreenTitle": "مکمل اسکرین پیش نظارہ",
+        "close": "بند کریں",
+        "empty": "یہاں دیکھنے کے لیے کوئی فائل منتخب کریں۔",
+        "emptyDetail": "ڈبل کلک کرنے سے یہ مکمل اسکرین میں کھل جاتی ہے۔",
+        "box": {
+          "in": "ان پٹ",
+          "out": "آؤٹ پٹ"
+        },
+        "versions": "ورژنز",
+        "currentVersion": "موجودہ",
+        "download": "ڈاؤن لوڈ",
+        "openNewTab": "نئے ٹیب میں کھولیں",
+        "unsupported": "کوئی پیش نظارہ دستیاب نہیں",
+        "unsupportedHint": "اس قسم کی فائل یہاں نہیں دکھائی جا سکتی۔ دیکھنے کے لیے اسے ڈاؤن لوڈ کریں۔",
+        "kind": {
+          "image": "تصویر",
+          "video": "ویڈیو",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "اسپریڈ شیٹ",
+          "json": "JSON",
+          "text": "متن",
+          "pr": "پل ریکویسٹ",
+          "unsupported": "فائل"
+        },
+        "folderHint": "فولڈرز ڈبل کلک سے کھلتے ہیں۔"
+      },
+      "viewer": {
+        "loading": "پیش نظارہ لوڈ ہو رہا ہے…",
+        "loadError": "پیش نظارہ لوڈ نہیں ہو سکا۔",
+        "tooLarge": "یہ فائل پیش نظارے کے لیے بہت بڑی ہے۔ دیکھنے کے لیے اسے ڈاؤن لوڈ کریں۔",
+        "unavailable": "پیش نظارے کے لیے کوئی مواد دستیاب نہیں۔",
+        "zoomFit": "فِٹ",
+        "zoomActual": "1:1",
+        "mode": "پیش نظارہ موڈ",
+        "pdfBlocked": "آپ کا براؤزر یہاں PDF نہیں دکھا سکتا۔",
+        "sheet": "شیٹ",
+        "sheetCapped": "پہلی {{rows}} قطاریں اور {{columns}} کالم دکھائے جا رہے ہیں۔",
+        "sheetEmpty": "یہ شیٹ خالی ہے۔",
+        "jsonInvalid": "درست JSON نہیں؛ متن کے طور پر دکھایا جا رہا ہے۔"
+      },
+      "inbox": {
+        "cancel": "منسوخ کریں",
+        "nameLabel": "نام",
+        "nameRequired": "نام درج کریں۔",
+        "genericError": "کارروائی مکمل نہیں ہو سکی۔",
+        "loading": "فولڈرز لوڈ ہو رہے ہیں…",
+        "picker": {
+          "location": "ان باکس میں مقام",
+          "root": "ان باکس کی جڑ",
+          "empty": "ابھی تک کوئی فولڈر نہیں۔ فائلیں جڑ میں جائیں گی۔",
+          "expand": "{{name}} کو پھیلائیں",
+          "collapse": "{{name}} کو سمیٹیں"
+        },
+        "folder": {
+          "newTitle": "نیا فولڈر",
+          "newDescription": "فولڈرز ان باکس کی فائلوں کو ترتیب دیتے ہیں۔",
+          "newConfirm": "فولڈر بنائیں",
+          "created": "فولڈر “{{name}}” بن گیا"
+        },
+        "rename": {
+          "fileTitle": "فائل کا نام تبدیل کریں",
+          "folderTitle": "فولڈر کا نام تبدیل کریں",
+          "confirm": "نام تبدیل کریں",
+          "fileRenamed": "فائل کا نام تبدیل کر کے “{{name}}” کر دیا گیا",
+          "folderRenamed": "فولڈر کا نام تبدیل کر کے “{{name}}” کر دیا گیا"
+        },
+        "move": {
+          "title": "فائل منتقل کریں",
+          "confirm": "یہاں منتقل کریں",
+          "moved": "“{{name}}” منتقل ہو گئی"
+        },
+        "delete": {
+          "fileTitle": "فائل حذف کریں",
+          "folderTitle": "فولڈر حذف کریں",
+          "fileDescription": "“{{name}}” ان باکس سے حذف ہو جائے گی۔ ایجنٹس اسے مزید نہیں پڑھ سکیں گے۔ یہ عمل واپس نہیں ہو سکتا۔",
+          "folderDescription": "“{{name}}” حذف ہو جائے گا۔ صرف خالی فولڈرز حذف ہو سکتے ہیں: پہلے ان کا مواد منتقل یا حذف کریں۔",
+          "confirm": "حذف کریں",
+          "fileDeleted": "“{{name}}” حذف ہو گئی",
+          "folderDeleted": "فولڈر “{{name}}” حذف ہو گیا"
+        },
+        "version": {
+          "title": "ورژن تبدیل کریں",
+          "description": "نئی فائل اپ لوڈ کریں۔ پچھلا ورژن تاریخ میں محفوظ رہے گا۔",
+          "fileLabel": "فائل",
+          "noteLabel": "نوٹ (اختیاری)",
+          "confirm": "ورژن اپ لوڈ کریں",
+          "noFile": "اپ لوڈ کرنے کے لیے فائل منتخب کریں۔",
+          "added": "“{{name}}” اب ورژن {{version}} ہے"
+        },
+        "toInbox": {
+          "title": "ان باکس میں منتقل کریں",
+          "description": "“{{name}}” کو ان باکس میں کاپی کرتا ہے تاکہ کمپنی اور اس کے ایجنٹس اسے استعمال کر سکیں۔",
+          "nameLabel": "ان باکس میں نام (اختیاری)",
+          "confirm": "ان باکس میں منتقل کریں",
+          "added": "“{{name}}” ان باکس میں شامل ہو گئی"
+        }
+      },
+      "box": {
+        "in": "ان باکس",
+        "out": "آؤٹ پٹ"
+      },
+      "toolbar": {
+        "segBox": "باکس",
+        "segView": "ویو",
+        "back": "واپس",
+        "forward": "آگے",
+        "crumbs": "راستہ",
+        "search": "تلاش",
+        "searchScope": "{{name}} میں تلاش کریں…",
+        "viewList": "فہرست",
+        "viewIcons": "آئیکنز",
+        "previewToggle": "پیش نظارہ دکھائیں یا چھپائیں",
+        "preview": "پیش نظارہ",
+        "upload": "اپ لوڈ",
+        "newFolder": "فولڈر",
+        "download": "ڈاؤن لوڈ",
+        "chooseFiles": "فائلیں منتخب کریں"
+      },
+      "tree": {
+        "label": "آرٹیفیکٹس ایکسپلورر",
+        "entry": "ان باکس",
+        "out": "آؤٹ پٹ",
+        "outBy": "آؤٹ پٹ اس طرح دیکھیں",
+        "byAgent": "ایجنٹ",
+        "byType": "فائل کی قسم",
+        "byDate": "تاریخ",
+        "quick": "فوری رسائی",
+        "favorites": "پسندیدہ",
+        "recent": "حالیہ",
+        "mine": "میرے اپ لوڈ کردہ",
+        "soon": "جلد آ رہا ہے"
+      },
+      "list": {
+        "label": "فائلیں",
+        "name": "نام",
+        "type": "قسم",
+        "size": "سائز",
+        "date": "تاریخ",
+        "uploadedBy": "اپ لوڈ کنندہ",
+        "usedBy": "استعمال کنندہ",
+        "agent": "ایجنٹ",
+        "task": "ٹاسک",
+        "elements": "{{count}} آئٹمز",
+        "elementsOne": "1 آئٹم",
+        "usedTasks": "{{count}} ٹاسکس",
+        "usedOne": "1 ٹاسک",
+        "starred": "پسندیدہ"
+      },
+      "status": {
+        "items": "{{count}} آئٹمز",
+        "itemsOne": "1 آئٹم",
+        "selected": "1 منتخب",
+        "ruleIn": "صرف افراد لکھتے ہیں · ایجنٹس پڑھتے ہیں",
+        "ruleOut": "صرف ایجنٹس لکھتے ہیں · آپ پڑھتے ہیں",
+        "copied": "لنک کاپی ہو گیا",
+        "copyFailed": "لنک کاپی نہیں ہو سکا"
+      },
+      "empty": {
+        "folder": "خالی فولڈر",
+        "folderHint": "فائلیں یہاں گھسیٹیں یا اپ لوڈ دبائیں",
+        "noMatch": "«{{q}}» سے کچھ مماثل نہیں",
+        "outHint": "اس ویو میں ابھی کوئی آرٹیفیکٹ نہیں"
+      },
+      "ctx": {
+        "menu": "کارروائیاں",
+        "open": "کھولیں",
+        "preview": "فوری ویو",
+        "download": "ڈاؤن لوڈ",
+        "copyLink": "لنک کاپی کریں",
+        "goTask": "ٹاسک پر جائیں",
+        "moveToInbox": "ان باکس میں منتقل کریں…",
+        "replace": "نئے ورژن سے تبدیل کریں",
+        "move": "منتقل کریں…",
+        "rename": "نام تبدیل کریں",
+        "remove": "حذف کریں",
+        "favorite": "پسندیدہ",
+        "unfavorite": "پسندیدہ سے ہٹائیں",
+        "properties": "خصوصیات",
+        "soon": "جلد آ رہا ہے"
+      },
+      "type": {
+        "folder": "فولڈر",
+        "task": "ٹاسک",
+        "image": "تصویر",
+        "video": "ویڈیو",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "متن",
+        "file": "فائل"
+      },
+      "meta": {
+        "person": "کمپنی کا صارف",
+        "uploadedBy": "اپ لوڈ کنندہ",
+        "folder": "فولڈر",
+        "visibleTo": "قابلِ مشاہدہ",
+        "allCompany": "پوری کمپنی",
+        "usedIn": "استعمال شدہ در",
+        "usedTasks": "{{count}} ٹاسکس",
+        "usedNone": "ابھی کوئی ٹاسک نہیں",
+        "agent": "ایجنٹ",
+        "task": "ٹاسک",
+        "origin": "ماخذ",
+        "originRun": "ایجنٹ رن"
+      },
+      "crumbs": {
+        "projects": "پروجیکٹس",
+        "noProject": "کوئی پروجیکٹ نہیں",
+        "project": "پروجیکٹ",
+        "task": "ٹاسک",
+        "byAgent": "ایجنٹ",
+        "byType": "فائل کی قسم",
+        "byDate": "تاریخ"
+      },
+      "errors": {
+        "load": "فائلیں لوڈ نہیں ہو سکیں۔",
+        "tree": "ٹری لوڈ نہیں ہو سکا۔",
+        "moveToInbox": "یہ آرٹیفیکٹ ان باکس میں منتقل نہیں ہو سکتا۔",
+        "usage": "استعمال کی تفصیلات لوڈ نہیں ہو سکیں۔"
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

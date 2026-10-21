@@ -1071,7 +1071,12 @@ export type {
   CompanyArtifactIssueSummary,
   CompanyArtifactMediaKind,
   CompanyArtifactProjectSummary,
+  CompanyArtifactSortDir,
+  CompanyArtifactSortKey,
   CompanyArtifactSource,
+  CompanyArtifactTreeNode,
+  CompanyArtifactTreeNodeKind,
+  CompanyArtifactTreeResponse,
   CompanyArtifactsResponse,
   CreateDocumentAnnotationCommentRequest,
   CreateDocumentAnnotationThreadRequest,
@@ -1744,8 +1749,10 @@ export {
 } from "./validators/sidebar-preferences.js";
 export {
   resourceMembershipStateSchema,
+  updateArtifactResourceMembershipSchema,
   updateDocumentResourceMembershipSchema,
   updateResourceMembershipSchema,
+  type UpdateArtifactResourceMembership,
   type UpdateDocumentResourceMembership,
   type UpdateResourceMembership,
 } from "./validators/resource-memberships.js";
@@ -1760,7 +1767,9 @@ export {
   type InboxAgentPolicy,
 } from "./types/inbox-agent-policy.js";
 export {
+  ARTIFACT_MEMBERSHIP_SOURCES,
   RESOURCE_MEMBERSHIP_STATES,
+  type ArtifactMembershipSource,
   type ResourceMembershipResourceType,
   type ResourceMembershipState,
   type ResourceMemberships,
@@ -2070,6 +2079,12 @@ export {
   companyArtifactSourceSchema,
   companyArtifactsQuerySchema,
   companyArtifactsResponseSchema,
+  companyArtifactsTreeQuerySchema,
+  companyArtifactSortKeySchema,
+  companyArtifactSortDirSchema,
+  companyArtifactTreeNodeIdSchema,
+  companyArtifactTreeNodeSchema,
+  companyArtifactTreeResponseSchema,
   reconcileExecutionWorkspaceBranchSchema,
   updateExecutionWorkspaceSchema,
   workspaceOverviewQuerySchema,
@@ -2124,6 +2139,7 @@ export {
   type UpdateIssueWorkProduct,
   type UpsertIssueWatchdog,
   type CompanyArtifactsQuery,
+  type CompanyArtifactsTreeQuery,
   type ReconcileExecutionWorkspaceBranch,
   type UpdateExecutionWorkspace,
   type WorkspaceOverviewQuery,
@@ -2647,6 +2663,10 @@ export type {
 } from "./environment-support.js";
 
 export type { AdapterRegistryEntry } from "./types/adapter-registry.js";
+export {
+  COMPANY_FILES_DEFAULT_ROOT_FOLDERS,
+  COMPANY_FILES_INDEX_MAX_ENTRIES,
+} from "./constants/company-files.js";
 export type {
   FolderKind,
   Folder,
@@ -2890,3 +2910,33 @@ export * from "./fast-response.js";
 export { HUMAN_TASK_ORIGIN_KINDS, isAgentCreatedIssue, type IssueCreationSourceFields } from "./issue-creation-source.js";
 
 export * from "./grok-bot.js";
+
+export type {
+  CompanyFile,
+  CompanyFileVersion,
+  CompanyFileFolderNode,
+  CompanyFilesListResponse,
+  CompanyFileUsage,
+  CompanyFileSortKey,
+} from "./types/company-file.js";
+
+export {
+  companyFileSortKeySchema,
+  listCompanyFilesQuerySchema,
+  updateCompanyFileSchema,
+  createCompanyFileFolderSchema,
+  updateCompanyFileFolderSchema,
+  createCompanyFileFromArtifactSchema,
+  addCompanyFileVersionNoteSchema,
+  companyFileListScopeSchema,
+  updateCompanyFileResourceMembershipSchema,
+} from "./validators/company-file.js";
+export type {
+  UpdateCompanyFileResourceMembership,
+  ListCompanyFilesQuery,
+  UpdateCompanyFile,
+  CreateCompanyFileFolder,
+  UpdateCompanyFileFolder,
+  CreateCompanyFileFromArtifact,
+  AddCompanyFileVersionNote,
+} from "./validators/company-file.js";

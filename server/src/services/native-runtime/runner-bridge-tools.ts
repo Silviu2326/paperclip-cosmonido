@@ -127,8 +127,10 @@ export async function settleRunnerBridgeRead(read: () => Promise<unknown>) {
     const storageCode = error && typeof error === "object" && "code" in error ? error.code : null;
     const message = error instanceof Error ? error.message : "";
     const code = storageCode === "ENOENT" ? "runner_bridge_file_not_found"
-      : /^runner_(workspace|bridge|skill|attachment)_[a-z0-9_]+$/.test(message) ? message : "runner_bridge_read_failed";
-    return { outcome: "failed", code, message: code === "runner_attachment_use_base64" ? "This file is binary. Retry read_task_attachment with encoding base64." : "The requested read did not succeed. Check the assigned file or pinned skill before continuing." };
+      : /^runner_(workspace|bridge|skill|attachment|company_file)_[a-z0-9_]+$/.test(message) ? message : "runner_bridge_read_failed";
+    return { outcome: "failed", code, message: code === "runner_attachment_use_base64" ? "This file is binary. Retry read_task_attachment with encoding base64."
+      : code === "runner_company_file_use_base64" ? "This file is binary. Retry read_company_file with encoding base64."
+      : "The requested read did not succeed. Check the assigned file or pinned skill before continuing." };
   }
 }
 const workspaceLanes = new Map<string, Promise<void>>();

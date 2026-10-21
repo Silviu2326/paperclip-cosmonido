@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SidebarAgents } from "./SidebarAgents";
 import { queryKeys } from "../lib/queryKeys";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { t } from "@/i18n";
 
 const mockAgentsApi = vi.hoisted(() => ({
   list: vi.fn(),
@@ -163,7 +164,15 @@ async function flushReact() {
   });
 }
 
-async function openAgentMenu(label = "Open actions for Alpha") {
+function openActionsLabel(name: string) {
+  return t("sidebarAgents.openActionsFor", { name });
+}
+
+function unstarLabel(name: string) {
+  return t("starToggle.unstarAria", { name });
+}
+
+async function openAgentMenu(label = openActionsLabel("Alpha")) {
   const trigger = document.body.querySelector(`button[aria-label="${label}"]`);
   expect(trigger).not.toBeNull();
 
@@ -242,6 +251,10 @@ describe("SidebarAgents", () => {
       agentMemberships: {},
       starredDocumentIds: [],
       documentStarredAt: {},
+      starredCompanyFileIds: [],
+      companyFileStarredAt: {},
+      starredArtifactRefs: [],
+      artifactStarredAt: {},
       updatedAt: null,
     };
     mockResourceMembershipsApi.listMine.mockImplementation(() => Promise.resolve(memberships));
@@ -405,7 +418,7 @@ describe("SidebarAgents", () => {
     expect(nameSpan?.className).toContain("overflow-hidden");
     const agentLink = container.querySelector('a[href^="/agents/"]:not([href="/agents/all"])');
     expect(agentLink?.parentElement?.getAttribute("data-slot")).toBe("tooltip-trigger");
-    expect(container.querySelector('button[aria-label="Open actions for Alpha"]')).toBeNull();
+    expect(container.querySelector(`button[aria-label="${openActionsLabel("Alpha")}"]`)).toBeNull();
 
     // The section header collapses to a divider (no caret / section menu).
     expect(container.querySelector('button[aria-label="Acciones de la sección de agentes"]')).toBeNull();
@@ -425,6 +438,10 @@ describe("SidebarAgents", () => {
       projectStarredAt: {},
       agentStarredAt: {},
       documentStarredAt: {},
+      starredCompanyFileIds: [],
+      companyFileStarredAt: {},
+      starredArtifactRefs: [],
+      artifactStarredAt: {},
       updatedAt: new Date(),
     };
 
@@ -440,7 +457,7 @@ describe("SidebarAgents", () => {
     expect(labels[0]).toBe("Bravo");
 
     // The starred row offers an explicit "Remove from starred" menu action.
-    await openAgentMenu("Open actions for Bravo");
+    await openAgentMenu(openActionsLabel("Bravo"));
     expect(document.body.textContent).toContain("Quitar de destacados");
   });
 
@@ -462,7 +479,7 @@ describe("SidebarAgents", () => {
       "agent-1",
       { state: undefined, starred: true },
     );
-    expect(document.body.querySelector('button[aria-label="Unstar Alpha"]')).not.toBeNull();
+    expect(document.body.querySelector(`button[aria-label="${unstarLabel("Alpha")}"]`)).not.toBeNull();
   });
 
   it("keeps the agent starred and toasts when an unstar request fails", async () => {
@@ -476,13 +493,17 @@ describe("SidebarAgents", () => {
       projectStarredAt: {},
       agentStarredAt: {},
       documentStarredAt: {},
+      starredCompanyFileIds: [],
+      companyFileStarredAt: {},
+      starredArtifactRefs: [],
+      artifactStarredAt: {},
       updatedAt: new Date(),
     };
     mockResourceMembershipsApi.updateAgent.mockRejectedValue(new Error("nope"));
 
     await renderSidebarAgents();
 
-    const unstar = document.body.querySelector('button[aria-label="Unstar Bravo"]');
+    const unstar = document.body.querySelector(`button[aria-label="${unstarLabel("Bravo")}"]`);
     expect(unstar).not.toBeNull();
 
     await act(async () => {
@@ -491,7 +512,7 @@ describe("SidebarAgents", () => {
     await flushReact();
 
     // Optimistic unstar is rolled back → the row stays in the starred group.
-    expect(document.body.querySelector('button[aria-label="Unstar Bravo"]')).not.toBeNull();
+    expect(document.body.querySelector(`button[aria-label="${unstarLabel("Bravo")}"]`)).not.toBeNull();
     expect(mockPushToast).toHaveBeenCalledWith(
       expect.objectContaining({ tone: "error" }),
     );
@@ -603,6 +624,10 @@ describe("SidebarAgents", () => {
         agentMemberships: { "agent-1": "left" },
         starredDocumentIds: [],
         documentStarredAt: {},
+        starredCompanyFileIds: [],
+        companyFileStarredAt: {},
+        starredArtifactRefs: [],
+        artifactStarredAt: {},
         updatedAt: null,
       });
     });
@@ -696,7 +721,7 @@ describe("SidebarAgents", () => {
       pauseItem?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     await flushReact();
-    await openAgentMenu("Open actions for Beta");
+    await openAgentMenu(openActionsLabel("Beta"));
 
     const betaPauseItem = Array.from(
       document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'),
@@ -748,7 +773,7 @@ describe("SidebarAgents", () => {
     let labels = agentLinkLabels(container);
     expect(labels).toHaveLength(1);
     expect(labels[0]).toContain("Alpha");
-    expect(labels[0]).toContain("1 live");
+    expect(labels[0]).toContain(t("sidebarNavItem.liveCount", { count: 1 }));
 
     mockHeartbeatsApi.liveRunsForCompany.mockResolvedValue([]);
     await act(async () => {
@@ -761,7 +786,7 @@ describe("SidebarAgents", () => {
 
     labels = agentLinkLabels(container);
     expect(labels).toEqual(["Alpha"]);
-    expect(labels.join(" ")).not.toContain("live");
+    expect(labels.join(" ")).not.toContain(t("sidebarNavItem.liveCount", { count: 1 }));
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(120_000);

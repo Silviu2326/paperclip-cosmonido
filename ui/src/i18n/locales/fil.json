@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "I-download ang folder (ZIP)",
+        "tooLarge": "Lampas 500 MB ang folder at hindi ito maida-download bilang ZIP.",
+        "empty": "Walang file na madi-download dito.",
+        "failed": "Hindi maihanda ang ZIP."
+      },
+      "visibility": {
+        "toggle": "Nakikita ng mga agent",
+        "hidden": "Nakatago sa mga agent",
+        "visible": "Nakikita ng mga agent",
+        "metaLabel": "Mga agent",
+        "error": "Hindi mabago ang visibility."
+      },
+      "pdf": {
+        "prev": "Nakaraang pahina",
+        "next": "Susunod na pahina",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Maghanap sa PDF",
+        "searchPlaceholder": "Maghanap sa dokumento…",
+        "searching": "Naghahanap…",
+        "noMatches": "Walang resulta",
+        "matchOf": "{{index}} sa {{total}}",
+        "prevMatch": "Nakaraang resulta",
+        "nextMatch": "Susunod na resulta"
+      },
+      "preview": {
+        "title": "Preview",
+        "fullscreen": "Buong screen",
+        "fullscreenTitle": "Preview sa buong screen",
+        "close": "Isara",
+        "empty": "Pumili ng file para makita ito rito.",
+        "emptyDetail": "I-double click para buksan ito sa buong screen.",
+        "box": {
+          "in": "Papasok",
+          "out": "Palabas"
+        },
+        "versions": "Mga bersyon",
+        "currentVersion": "kasalukuyan",
+        "download": "I-download",
+        "openNewTab": "Buksan sa bagong tab",
+        "unsupported": "Walang available na preview",
+        "unsupportedHint": "Hindi maipakita rito ang ganitong uri ng file. I-download ito para makita.",
+        "kind": {
+          "image": "Larawan",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Spreadsheet",
+          "json": "JSON",
+          "text": "Teksto",
+          "pr": "Pull request",
+          "unsupported": "File"
+        },
+        "folderHint": "Nabubuksan ang mga folder sa pamamagitan ng double click."
+      },
+      "viewer": {
+        "loading": "Naglo-load ng preview…",
+        "loadError": "Hindi ma-load ang preview.",
+        "tooLarge": "Masyadong malaki ang file na ito para ma-preview. I-download ito para makita.",
+        "unavailable": "Walang content na maaaring i-preview.",
+        "zoomFit": "Akma",
+        "zoomActual": "1:1",
+        "mode": "Mode ng preview",
+        "pdfBlocked": "Hindi maipakita ng iyong browser ang mga PDF dito.",
+        "sheet": "Sheet",
+        "sheetCapped": "Ipinapakita ang unang {{rows}} na row at {{columns}} na column.",
+        "sheetEmpty": "Walang laman ang sheet na ito.",
+        "jsonInvalid": "Hindi valid na JSON; ipinapakita bilang teksto."
+      },
+      "inbox": {
+        "cancel": "Kanselahin",
+        "nameLabel": "Pangalan",
+        "nameRequired": "Maglagay ng pangalan.",
+        "genericError": "Hindi natapos ang aksyon.",
+        "loading": "Naglo-load ng mga folder…",
+        "picker": {
+          "location": "Lokasyon sa Papasok",
+          "root": "Root ng Papasok",
+          "empty": "Wala pang folder. Mapupunta ang mga file sa root.",
+          "expand": "I-expand ang {{name}}",
+          "collapse": "I-collapse ang {{name}}"
+        },
+        "folder": {
+          "newTitle": "Bagong folder",
+          "newDescription": "Inaayos ng mga folder ang mga file sa Papasok.",
+          "newConfirm": "Gumawa ng folder",
+          "created": "Nagawa ang folder na “{{name}}”"
+        },
+        "rename": {
+          "fileTitle": "I-rename ang file",
+          "folderTitle": "I-rename ang folder",
+          "confirm": "I-rename",
+          "fileRenamed": "Naging “{{name}}” ang pangalan ng file",
+          "folderRenamed": "Naging “{{name}}” ang pangalan ng folder"
+        },
+        "move": {
+          "title": "Ilipat ang file",
+          "confirm": "Ilipat dito",
+          "moved": "Nailipat ang “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Burahin ang file",
+          "folderTitle": "Burahin ang folder",
+          "fileDescription": "Mabubura ang “{{name}}” sa Papasok. Hindi na ito mababasa ng mga agent. Hindi na ito maibabalik.",
+          "folderDescription": "Mabubura ang “{{name}}”. Mga walang lamang folder lang ang maaaring burahin: ilipat o burahin muna ang laman nila.",
+          "confirm": "Burahin",
+          "fileDeleted": "Nabura ang “{{name}}”",
+          "folderDeleted": "Nabura ang folder na “{{name}}”"
+        },
+        "version": {
+          "title": "Palitan ang bersyon",
+          "description": "Mag-upload ng bagong file. Mananatili sa kasaysayan ang nakaraang bersyon.",
+          "fileLabel": "File",
+          "noteLabel": "Tala (opsyonal)",
+          "confirm": "I-upload ang bersyon",
+          "noFile": "Pumili ng file na i-upload.",
+          "added": "Bersyon {{version}} na ngayon ang “{{name}}”"
+        },
+        "toInbox": {
+          "title": "Ilipat sa Papasok",
+          "description": "Kokopyahin ang “{{name}}” sa Papasok para magamit ito ng kompanya at ng mga agent nito.",
+          "nameLabel": "Pangalan sa Papasok (opsyonal)",
+          "confirm": "Ilipat sa Papasok",
+          "added": "Naidagdag ang “{{name}}” sa Papasok"
+        }
+      },
+      "box": {
+        "in": "Papasok",
+        "out": "Palabas"
+      },
+      "toolbar": {
+        "segBox": "Kahon",
+        "segView": "View",
+        "back": "Bumalik",
+        "forward": "Pasulong",
+        "crumbs": "Path",
+        "search": "Maghanap",
+        "searchScope": "Maghanap sa {{name}}",
+        "viewList": "Listahan",
+        "viewIcons": "Mga icon",
+        "previewToggle": "Ipakita o itago ang preview",
+        "preview": "Preview",
+        "upload": "I-upload",
+        "newFolder": "Folder",
+        "download": "I-download",
+        "chooseFiles": "Pumili ng mga file"
+      },
+      "tree": {
+        "label": "Explorer ng artifacts",
+        "entry": "Papasok",
+        "out": "Palabas",
+        "outBy": "Ipakita ang output ayon sa",
+        "byAgent": "Agent",
+        "byType": "Uri ng file",
+        "byDate": "Petsa",
+        "quick": "Mabilisang access",
+        "favorites": "Paborito",
+        "recent": "Kamakailan",
+        "mine": "In-upload ko",
+        "soon": "Malapit na"
+      },
+      "list": {
+        "label": "Mga file",
+        "name": "Pangalan",
+        "type": "Uri",
+        "size": "Laki",
+        "date": "Petsa",
+        "uploadedBy": "In-upload ni",
+        "usedBy": "Ginagamit ni",
+        "agent": "Agent",
+        "task": "Task",
+        "elements": "{{count}} na item",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} na task",
+        "usedOne": "1 task",
+        "starred": "Paborito"
+      },
+      "status": {
+        "items": "{{count}} na item",
+        "itemsOne": "1 item",
+        "selected": "1 napili",
+        "ruleIn": "Tao lang ang nagsusulat — binabasa ito ng mga agent",
+        "ruleOut": "Mga agent lang ang nagsusulat — binabasa ito ng iyo",
+        "copied": "Nakopya na ang link",
+        "copyFailed": "Hindi makopya ang link"
+      },
+      "empty": {
+        "folder": "Walang laman na folder",
+        "folderHint": "I-drag dito ang mga file o pindutin ang Upload",
+        "noMatch": "Walang tumutugma sa “{{q}}”",
+        "outHint": "Wala pang artifact sa view na ito"
+      },
+      "ctx": {
+        "menu": "Mga aksyon",
+        "open": "Buksan",
+        "preview": "Mabilisang view",
+        "download": "I-download",
+        "copyLink": "Kopyahin ang link",
+        "goTask": "Pumunta sa task",
+        "moveToInbox": "Ilipat sa Papasok",
+        "replace": "Palitan ng bagong bersyon",
+        "move": "Ilipat",
+        "rename": "I-rename",
+        "remove": "Burahin",
+        "favorite": "Paborito",
+        "unfavorite": "Alisin sa paborito",
+        "properties": "Properties",
+        "soon": "Malapit na"
+      },
+      "type": {
+        "folder": "Folder",
+        "task": "Task",
+        "image": "Larawan",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Teksto",
+        "file": "File"
+      },
+      "meta": {
+        "person": "User ng kompanya",
+        "uploadedBy": "In-upload ni",
+        "folder": "Folder",
+        "visibleTo": "Nakikita ng",
+        "allCompany": "buong kompanya",
+        "usedIn": "Ginamit sa",
+        "usedTasks": "{{count}} na task",
+        "usedNone": "wala pang task",
+        "agent": "Agent",
+        "task": "Task",
+        "origin": "Pinagmulan",
+        "originRun": "agent run"
+      },
+      "crumbs": {
+        "projects": "Mga proyekto",
+        "noProject": "Walang proyekto",
+        "project": "Proyekto",
+        "task": "Task",
+        "byAgent": "Agent",
+        "byType": "Uri ng file",
+        "byDate": "Petsa"
+      },
+      "errors": {
+        "load": "Hindi ma-load ang mga file.",
+        "tree": "Hindi ma-load ang tree.",
+        "moveToInbox": "Hindi maaaring ilipat sa Papasok ang artifact na ito.",
+        "usage": "Hindi ma-load ang usage."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

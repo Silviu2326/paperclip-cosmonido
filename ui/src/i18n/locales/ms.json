@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Muat turun folder (ZIP)",
+        "tooLarge": "Folder melebihi 500 MB dan tidak boleh dimuat turun sebagai ZIP.",
+        "empty": "Tiada fail untuk dimuat turun di sini.",
+        "failed": "ZIP tidak dapat disediakan."
+      },
+      "visibility": {
+        "toggle": "Kelihatan kepada ejen",
+        "hidden": "Disembunyikan daripada ejen",
+        "visible": "Kelihatan kepada ejen",
+        "metaLabel": "Ejen",
+        "error": "Keterlihatan tidak dapat diubah."
+      },
+      "pdf": {
+        "prev": "Halaman sebelumnya",
+        "next": "Halaman seterusnya",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Cari dalam PDF",
+        "searchPlaceholder": "Cari dalam dokumen…",
+        "searching": "Mencari…",
+        "noMatches": "Tiada hasil",
+        "matchOf": "{{index}} daripada {{total}}",
+        "prevMatch": "Hasil sebelumnya",
+        "nextMatch": "Hasil seterusnya"
+      },
+      "preview": {
+        "title": "Pratonton",
+        "fullscreen": "Skrin penuh",
+        "fullscreenTitle": "Pratonton skrin penuh",
+        "close": "Tutup",
+        "empty": "Pilih fail untuk melihatnya di sini.",
+        "emptyDetail": "Klik dua kali untuk membukanya dalam skrin penuh.",
+        "box": {
+          "in": "Peti masuk",
+          "out": "Output"
+        },
+        "versions": "Versi",
+        "currentVersion": "semasa",
+        "download": "Muat turun",
+        "openNewTab": "Buka dalam tab baharu",
+        "unsupported": "Tiada pratonton tersedia",
+        "unsupportedHint": "Jenis fail ini tidak dapat dipaparkan di sini. Muat turun untuk melihatnya.",
+        "kind": {
+          "image": "Imej",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Hamparan",
+          "json": "JSON",
+          "text": "Teks",
+          "pr": "Permintaan tarik",
+          "unsupported": "Fail"
+        },
+        "folderHint": "Folder dibuka dengan klik dua kali."
+      },
+      "viewer": {
+        "loading": "Memuatkan pratonton…",
+        "loadError": "Pratonton tidak dapat dimuatkan.",
+        "tooLarge": "Fail ini terlalu besar untuk dipratonton. Muat turun untuk melihatnya.",
+        "unavailable": "Tiada kandungan untuk dipratonton.",
+        "zoomFit": "Muat",
+        "zoomActual": "1:1",
+        "mode": "Mod pratonton",
+        "pdfBlocked": "Pelayar anda tidak dapat memaparkan PDF di sini.",
+        "sheet": "Helaian",
+        "sheetCapped": "Memaparkan {{rows}} baris pertama dan {{columns}} lajur pertama.",
+        "sheetEmpty": "Helaian ini kosong.",
+        "jsonInvalid": "Bukan JSON yang sah; dipaparkan sebagai teks."
+      },
+      "inbox": {
+        "cancel": "Batal",
+        "nameLabel": "Nama",
+        "nameRequired": "Masukkan nama.",
+        "genericError": "Tindakan tidak dapat diselesaikan.",
+        "loading": "Memuatkan folder…",
+        "picker": {
+          "location": "Lokasi dalam Peti masuk",
+          "root": "Akar Peti masuk",
+          "empty": "Belum ada folder. Fail akan pergi ke akar.",
+          "expand": "Kembangkan {{name}}",
+          "collapse": "Runtuhkan {{name}}"
+        },
+        "folder": {
+          "newTitle": "Folder baharu",
+          "newDescription": "Folder menyusun fail dalam Peti masuk.",
+          "newConfirm": "Cipta folder",
+          "created": "Folder “{{name}}” dicipta"
+        },
+        "rename": {
+          "fileTitle": "Namakan semula fail",
+          "folderTitle": "Namakan semula folder",
+          "confirm": "Namakan semula",
+          "fileRenamed": "Fail dinamakan semula kepada “{{name}}”",
+          "folderRenamed": "Folder dinamakan semula kepada “{{name}}”"
+        },
+        "move": {
+          "title": "Alih fail",
+          "confirm": "Alih ke sini",
+          "moved": "Dialihkan “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Padam fail",
+          "folderTitle": "Padam folder",
+          "fileDescription": "“{{name}}” akan dipadamkan daripada Peti masuk. Ejen tidak lagi dapat membacanya. Tindakan ini tidak boleh dibatalkan.",
+          "folderDescription": "“{{name}}” akan dipadamkan. Hanya folder kosong boleh dipadamkan: alih atau padam kandungannya dahulu.",
+          "confirm": "Padam",
+          "fileDeleted": "Dipadamkan “{{name}}”",
+          "folderDeleted": "Folder “{{name}}” dipadamkan"
+        },
+        "version": {
+          "title": "Gantikan versi",
+          "description": "Muat naik fail baharu. Versi sebelumnya kekal dalam sejarah.",
+          "fileLabel": "Fail",
+          "noteLabel": "Nota (pilihan)",
+          "confirm": "Muat naik versi",
+          "noFile": "Pilih fail untuk dimuat naik.",
+          "added": "“{{name}}” kini versi {{version}}"
+        },
+        "toInbox": {
+          "title": "Alih ke Peti masuk",
+          "description": "Menyalin “{{name}}” ke Peti masuk supaya syarikat dan ejennya boleh menggunakannya.",
+          "nameLabel": "Nama dalam Peti masuk (pilihan)",
+          "confirm": "Alih ke Peti masuk",
+          "added": "Ditambah “{{name}}” ke Peti masuk"
+        }
+      },
+      "box": {
+        "in": "Peti masuk",
+        "out": "Output"
+      },
+      "toolbar": {
+        "segBox": "Kotak",
+        "segView": "Paparan",
+        "back": "Kembali",
+        "forward": "Ke hadapan",
+        "crumbs": "Laluan",
+        "search": "Cari",
+        "searchScope": "Cari dalam {{name}}",
+        "viewList": "Senarai",
+        "viewIcons": "Ikon",
+        "previewToggle": "Tunjuk atau sembunyikan pratonton",
+        "preview": "Pratonton",
+        "upload": "Muat naik",
+        "newFolder": "Folder",
+        "download": "Muat turun",
+        "chooseFiles": "Pilih fail"
+      },
+      "tree": {
+        "label": "Penjelajah artifak",
+        "entry": "Peti masuk",
+        "out": "Output",
+        "outBy": "Lihat output mengikut",
+        "byAgent": "Ejen",
+        "byType": "Jenis fail",
+        "byDate": "Tarikh",
+        "quick": "Akses pantas",
+        "favorites": "Kegemaran",
+        "recent": "Terkini",
+        "mine": "Dimuat naik oleh saya",
+        "soon": "Akan datang"
+      },
+      "list": {
+        "label": "Fail",
+        "name": "Nama",
+        "type": "Jenis",
+        "size": "Saiz",
+        "date": "Tarikh",
+        "uploadedBy": "Dimuat naik oleh",
+        "usedBy": "Digunakan oleh",
+        "agent": "Ejen",
+        "task": "Tugas",
+        "elements": "{{count}} item",
+        "elementsOne": "1 item",
+        "usedTasks": "{{count}} tugas",
+        "usedOne": "1 tugas",
+        "starred": "Kegemaran"
+      },
+      "status": {
+        "items": "{{count}} item",
+        "itemsOne": "1 item",
+        "selected": "1 dipilih",
+        "ruleIn": "Hanya orang menulis · ejen membaca",
+        "ruleOut": "Hanya ejen menulis · anda membaca",
+        "copied": "Pautan disalin",
+        "copyFailed": "Pautan tidak dapat disalin"
+      },
+      "empty": {
+        "folder": "Folder kosong",
+        "folderHint": "Seret fail ke sini atau tekan Muat naik",
+        "noMatch": "Tiada yang sepadan dengan “{{q}}”",
+        "outHint": "Belum ada artifak dalam paparan ini"
+      },
+      "ctx": {
+        "menu": "Tindakan",
+        "open": "Buka",
+        "preview": "Lihat pantas",
+        "download": "Muat turun",
+        "copyLink": "Salin pautan",
+        "goTask": "Pergi ke tugas",
+        "moveToInbox": "Alih ke Peti masuk",
+        "replace": "Gantikan dengan versi baharu",
+        "move": "Alih",
+        "rename": "Namakan semula",
+        "remove": "Padam",
+        "favorite": "Tambah ke kegemaran",
+        "unfavorite": "Alih keluar daripada kegemaran",
+        "properties": "Sifat",
+        "soon": "Akan datang"
+      },
+      "type": {
+        "folder": "Folder",
+        "task": "Tugas",
+        "image": "Imej",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Teks",
+        "file": "Fail"
+      },
+      "meta": {
+        "person": "Pengguna syarikat",
+        "uploadedBy": "Dimuat naik oleh",
+        "folder": "Folder",
+        "visibleTo": "Kelihatan kepada",
+        "allCompany": "seluruh syarikat",
+        "usedIn": "Digunakan dalam",
+        "usedTasks": "{{count}} tugas",
+        "usedNone": "Belum ada tugas",
+        "agent": "Ejen",
+        "task": "Tugas",
+        "origin": "Asal",
+        "originRun": "larian ejen"
+      },
+      "crumbs": {
+        "projects": "Projek",
+        "noProject": "Tiada projek",
+        "project": "Projek",
+        "task": "Tugas",
+        "byAgent": "Ejen",
+        "byType": "Jenis fail",
+        "byDate": "Tarikh"
+      },
+      "errors": {
+        "load": "Fail tidak dapat dimuatkan.",
+        "tree": "Pepohon tidak dapat dimuatkan.",
+        "moveToInbox": "Artifak ini tidak dapat dialihkan ke Peti masuk.",
+        "usage": "Tidak dapat memuatkan penggunaan."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

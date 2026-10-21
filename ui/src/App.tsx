@@ -47,7 +47,7 @@ import { RoutineDetail } from "./pages/RoutineDetail";
 import { UserProfile } from "./pages/UserProfile";
 import { ExecutionWorkspaceDetail } from "./pages/ExecutionWorkspaceDetail";
 import { Goals } from "./pages/Goals";
-import { Artifacts } from "./pages/Artifacts";
+import { ArtifactsExplorer } from "./pages/artifacts/ArtifactsExplorer";
 import { GoalDetail } from "./pages/GoalDetail";
 import { Approvals } from "./pages/Approvals";
 import { ApprovalDetail } from "./pages/ApprovalDetail";
@@ -403,7 +403,11 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
       </Route>
       <Route path="goals" element={<Goals />} />
       <Route path="goals/:goalId" element={<GoalDetail />} />
-      <Route path="artifacts" element={<Artifacts />} />
+      <Route path="artifacts" element={<ArtifactsExplorer />} />
+      <Route path="artifacts/in" element={<ArtifactsExplorer />} />
+      <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />
+      <Route path="artifacts/out" element={<ArtifactsExplorer />} />
+      <Route path="artifacts/out/:node" element={<ArtifactsExplorer />} />
       <Route path="approvals" element={<Navigate to="/approvals/pending" replace />} />
       <Route path="approvals/pending" element={<Approvals />} />
       <Route path="approvals/all" element={<Approvals />} />
@@ -438,7 +442,11 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
           `/artifacts` in both modes. */}
       <Route element={<ConferenceRoomChatGate />}>
         <Route path="board-chat" element={<BoardChat />} />
-        <Route path="artifacts" element={<Artifacts />} />
+        <Route path="artifacts" element={<ArtifactsExplorer />} />
+        <Route path="artifacts/in" element={<ArtifactsExplorer />} />
+        <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />
+        <Route path="artifacts/out" element={<ArtifactsExplorer />} />
+        <Route path="artifacts/out/:node" element={<ArtifactsExplorer />} />
       </Route>
       {/* Task chat dev harness — dev builds only. */}
       {import.meta.env.DEV ? (

@@ -133,8 +133,10 @@ export {
 } from "./sidebar-preferences.js";
 export {
   resourceMembershipStateSchema,
+  updateArtifactResourceMembershipSchema,
   updateDocumentResourceMembershipSchema,
   updateResourceMembershipSchema,
+  type UpdateArtifactResourceMembership,
   type UpdateDocumentResourceMembership,
   type UpdateResourceMembership,
 } from "./resource-memberships.js";
@@ -276,6 +278,24 @@ export {
   type MoveFolderItem,
   type EnsureMySkillFolder,
 } from "./folder.js";
+export {
+  companyFileSortKeySchema,
+  listCompanyFilesQuerySchema,
+  updateCompanyFileSchema,
+  createCompanyFileFolderSchema,
+  updateCompanyFileFolderSchema,
+  createCompanyFileFromArtifactSchema,
+  addCompanyFileVersionNoteSchema,
+  companyFileListScopeSchema,
+  updateCompanyFileResourceMembershipSchema,
+  type UpdateCompanyFileResourceMembership,
+  type ListCompanyFilesQuery,
+  type UpdateCompanyFile,
+  type CreateCompanyFileFolder,
+  type UpdateCompanyFileFolder,
+  type CreateCompanyFileFromArtifact,
+  type AddCompanyFileVersionNote,
+} from "./company-file.js";
 export {
   catalogTeamKindSchema,
   catalogTeamTrustLevelSchema,
@@ -579,12 +599,19 @@ export {
   COMPANY_ARTIFACTS_MAX_QUERY_LENGTH,
   companyArtifactGroupBySchema,
   companyArtifactGroupSchema,
+  companyArtifactSortDirSchema,
+  companyArtifactSortKeySchema,
+  companyArtifactTreeNodeIdSchema,
+  companyArtifactTreeNodeSchema,
+  companyArtifactTreeResponseSchema,
+  companyArtifactsTreeQuerySchema,
   companyArtifactMediaKindSchema,
   companyArtifactSchema,
   companyArtifactSourceSchema,
   companyArtifactsQuerySchema,
   companyArtifactsResponseSchema,
   type CompanyArtifactsQuery,
+  type CompanyArtifactsTreeQuery,
 } from "./artifact.js";
 
 export {

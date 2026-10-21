@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Klasörü indir (ZIP)",
+        "tooLarge": "Klasör 500 MB'tan büyük olduğu için ZIP olarak indirilemiyor.",
+        "empty": "Burada indirilecek dosya yok.",
+        "failed": "ZIP hazırlanamadı."
+      },
+      "visibility": {
+        "toggle": "Ajanlara görünür",
+        "hidden": "Ajanlardan gizli",
+        "visible": "Ajanlara görünür",
+        "metaLabel": "Ajanlar",
+        "error": "Görünürlük değiştirilemedi."
+      },
+      "pdf": {
+        "prev": "Önceki sayfa",
+        "next": "Sonraki sayfa",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "PDF'te ara",
+        "searchPlaceholder": "Belgede ara…",
+        "searching": "Aranıyor…",
+        "noMatches": "Sonuç yok",
+        "matchOf": "{{index}} / {{total}}",
+        "prevMatch": "Önceki sonuç",
+        "nextMatch": "Sonraki sonuç"
+      },
+      "preview": {
+        "title": "Önizleme",
+        "fullscreen": "Tam ekran",
+        "fullscreenTitle": "Tam ekran önizleme",
+        "close": "Kapat",
+        "empty": "Burada görmek için bir dosya seçin.",
+        "emptyDetail": "Çift tıklayarak tam ekranda açın.",
+        "box": {
+          "in": "Giriş",
+          "out": "Çıktı"
+        },
+        "versions": "Sürümler",
+        "currentVersion": "mevcut",
+        "download": "İndir",
+        "openNewTab": "Yeni sekmede aç",
+        "unsupported": "Önizleme yok",
+        "unsupportedHint": "Bu dosya türü burada gösterilemiyor. Görüntülemek için indirin.",
+        "kind": {
+          "image": "Resim",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Elektronik tablo",
+          "json": "JSON",
+          "text": "Metin",
+          "pr": "Pull request",
+          "unsupported": "Dosya"
+        },
+        "folderHint": "Klasörler çift tıklamayla açılır."
+      },
+      "viewer": {
+        "loading": "Önizleme yükleniyor…",
+        "loadError": "Önizleme yüklenemedi.",
+        "tooLarge": "Bu dosya önizleme için çok büyük. Görüntülemek için indirin.",
+        "unavailable": "Bu dosyanın önizlemesi için içerik yok.",
+        "zoomFit": "Sığdır",
+        "zoomActual": "1:1",
+        "mode": "Önizleme modu",
+        "pdfBlocked": "Tarayıcınız burada PDF gösteremiyor.",
+        "sheet": "Sayfa",
+        "sheetCapped": "İlk {{rows}} satır ve {{columns}} sütun gösteriliyor.",
+        "sheetEmpty": "Bu sayfa boş.",
+        "jsonInvalid": "Geçerli JSON değil; metin olarak gösteriliyor."
+      },
+      "inbox": {
+        "cancel": "İptal",
+        "nameLabel": "Ad",
+        "nameRequired": "Bir ad girin.",
+        "genericError": "İşlem tamamlanamadı.",
+        "loading": "Klasörler yükleniyor…",
+        "picker": {
+          "location": "Gelen Kutusu içindeki konum",
+          "root": "Gelen Kutusu kökü",
+          "empty": "Henüz klasör yok. Dosyalar köke gidecek.",
+          "expand": "{{name}} klasörünü genişlet",
+          "collapse": "{{name}} klasörünü daralt"
+        },
+        "folder": {
+          "newTitle": "Yeni klasör",
+          "newDescription": "Klasörler, Gelen Kutusundaki dosyaları düzenler.",
+          "newConfirm": "Klasör oluştur",
+          "created": "“{{name}}” klasörü oluşturuldu"
+        },
+        "rename": {
+          "fileTitle": "Dosyayı yeniden adlandır",
+          "folderTitle": "Klasörü yeniden adlandır",
+          "confirm": "Yeniden adlandır",
+          "fileRenamed": "Dosya “{{name}}” olarak yeniden adlandırıldı",
+          "folderRenamed": "Klasör “{{name}}” olarak yeniden adlandırıldı"
+        },
+        "move": {
+          "title": "Dosyayı taşı",
+          "confirm": "Buraya taşı",
+          "moved": "“{{name}}” taşındı"
+        },
+        "delete": {
+          "fileTitle": "Dosyayı sil",
+          "folderTitle": "Klasörü sil",
+          "fileDescription": "“{{name}}” Gelen Kutusundan silinecek. Ajanlar artık bunu okuyamayacak. Bu işlem geri alınamaz.",
+          "folderDescription": "“{{name}}” silinecek. Yalnızca boş klasörler silinebilir: önce içeriklerini taşıyın veya silin.",
+          "confirm": "Sil",
+          "fileDeleted": "“{{name}}” silindi",
+          "folderDeleted": "“{{name}}” klasörü silindi"
+        },
+        "version": {
+          "title": "Sürümü değiştir",
+          "description": "Yeni bir dosya yükleyin. Önceki sürüm geçmişte kalır.",
+          "fileLabel": "Dosya",
+          "noteLabel": "Not (isteğe bağlı)",
+          "confirm": "Sürüm yükle",
+          "noFile": "Yüklemek için bir dosya seçin.",
+          "added": "“{{name}}” artık {{version}} sürümü"
+        },
+        "toInbox": {
+          "title": "Gelen Kutusuna taşı",
+          "description": "Şirketin ve ajanlarının kullanabilmesi için “{{name}}” Gelen Kutusuna kopyalanır.",
+          "nameLabel": "Gelen Kutusundaki ad (isteğe bağlı)",
+          "confirm": "Gelen Kutusuna taşı",
+          "added": "“{{name}}” Gelen Kutusuna eklendi"
+        }
+      },
+      "box": {
+        "in": "Gelen Kutusu",
+        "out": "Çıktı"
+      },
+      "toolbar": {
+        "segBox": "Kutu",
+        "segView": "Görünüm",
+        "back": "Geri",
+        "forward": "İleri",
+        "crumbs": "Yol",
+        "search": "Ara",
+        "searchScope": "{{name}} içinde ara",
+        "viewList": "Liste",
+        "viewIcons": "Simgeler",
+        "previewToggle": "Önizlemeyi göster veya gizle",
+        "preview": "Önizleme",
+        "upload": "Yükle",
+        "newFolder": "Klasör",
+        "download": "İndir",
+        "chooseFiles": "Dosya seç"
+      },
+      "tree": {
+        "label": "Artefakt gezgini",
+        "entry": "Gelen Kutusu",
+        "out": "Çıktı",
+        "outBy": "Çıktıyı şuna göre göster",
+        "byAgent": "Ajan",
+        "byType": "Dosya türü",
+        "byDate": "Tarih",
+        "quick": "Hızlı erişim",
+        "favorites": "Favoriler",
+        "recent": "Son kullanılanlar",
+        "mine": "Benim yüklediklerim",
+        "soon": "Yakında"
+      },
+      "list": {
+        "label": "Dosyalar",
+        "name": "Ad",
+        "type": "Tür",
+        "size": "Boyut",
+        "date": "Tarih",
+        "uploadedBy": "Yükleyen",
+        "usedBy": "Kullanan",
+        "agent": "Ajan",
+        "task": "Görev",
+        "elements": "{{count}} öğe",
+        "elementsOne": "1 öğe",
+        "usedTasks": "{{count}} görev",
+        "usedOne": "1 görev",
+        "starred": "Favori"
+      },
+      "status": {
+        "items": "{{count}} öğe",
+        "itemsOne": "1 öğe",
+        "selected": "1 seçili",
+        "ruleIn": "Yalnızca kişiler yazar · ajanlar okur",
+        "ruleOut": "Yalnızca ajanlar yazar · siz okursunuz",
+        "copied": "Bağlantı kopyalandı",
+        "copyFailed": "Bağlantı kopyalanamadı"
+      },
+      "empty": {
+        "folder": "Boş klasör",
+        "folderHint": "Dosyaları buraya sürükleyin veya Yükle'ye basın",
+        "noMatch": "«{{q}}» ile eşleşen bir şey yok",
+        "outHint": "Bu görünümde henüz artefakt yok"
+      },
+      "ctx": {
+        "menu": "İşlemler",
+        "open": "Aç",
+        "preview": "Hızlı görünüm",
+        "download": "İndir",
+        "copyLink": "Bağlantıyı kopyala",
+        "goTask": "Göreve git",
+        "moveToInbox": "Gelen Kutusuna taşı…",
+        "replace": "Yeni sürümle değiştir",
+        "move": "Taşı…",
+        "rename": "Yeniden adlandır",
+        "remove": "Sil",
+        "favorite": "Favori",
+        "unfavorite": "Favorilerden kaldır",
+        "properties": "Özellikler",
+        "soon": "Yakında"
+      },
+      "type": {
+        "folder": "Klasör",
+        "task": "Görev",
+        "image": "Resim",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Metin",
+        "file": "Dosya"
+      },
+      "meta": {
+        "person": "Şirket kullanıcısı",
+        "uploadedBy": "Yükleyen",
+        "folder": "Klasör",
+        "visibleTo": "Görünürlük",
+        "allCompany": "Tüm şirket",
+        "usedIn": "Kullanıldığı yer",
+        "usedTasks": "{{count}} görev",
+        "usedNone": "Henüz görev yok",
+        "agent": "Ajan",
+        "task": "Görev",
+        "origin": "Köken",
+        "originRun": "Ajan çalıştırması"
+      },
+      "crumbs": {
+        "projects": "Projeler",
+        "noProject": "Proje yok",
+        "project": "Proje",
+        "task": "Görev",
+        "byAgent": "Ajan",
+        "byType": "Dosya türü",
+        "byDate": "Tarih"
+      },
+      "errors": {
+        "load": "Dosyalar yüklenemedi.",
+        "tree": "Ağaç yüklenemedi.",
+        "moveToInbox": "Bu artefakt Gelen Kutusuna taşınamaz.",
+        "usage": "Kullanım bilgisi yüklenemedi."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

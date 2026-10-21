@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Hämta mapp (ZIP)",
+        "tooLarge": "Mappen är över 500 MB och kan inte hämtas som ZIP.",
+        "empty": "Det finns inga filer att hämta här.",
+        "failed": "ZIP-filen kunde inte förberedas."
+      },
+      "visibility": {
+        "toggle": "Synlig för agenter",
+        "hidden": "Dold för agenter",
+        "visible": "Synlig för agenter",
+        "metaLabel": "Agenter",
+        "error": "Synligheten kunde inte ändras."
+      },
+      "pdf": {
+        "prev": "Föregående sida",
+        "next": "Nästa sida",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Sök i PDF",
+        "searchPlaceholder": "Sök i dokumentet…",
+        "searching": "Söker…",
+        "noMatches": "Inga resultat",
+        "matchOf": "{{index}} av {{total}}",
+        "prevMatch": "Föregående resultat",
+        "nextMatch": "Nästa resultat"
+      },
+      "preview": {
+        "title": "Förhandsgranskning",
+        "fullscreen": "Helskärm",
+        "fullscreenTitle": "Förhandsgranskning i helskärm",
+        "close": "Stäng",
+        "empty": "Välj en fil för att se den här.",
+        "emptyDetail": "Dubbelklicka för att öppna den i helskärm.",
+        "box": {
+          "in": "Indata",
+          "out": "Utdata"
+        },
+        "versions": "Versioner",
+        "currentVersion": "aktuell",
+        "download": "Hämta",
+        "openNewTab": "Öppna i ny flik",
+        "unsupported": "Ingen förhandsgranskning tillgänglig",
+        "unsupportedHint": "Den här filtypen kan inte visas här. Hämta den för att se den.",
+        "kind": {
+          "image": "Bild",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Kalkylblad",
+          "json": "JSON",
+          "text": "Text",
+          "pr": "Pull request",
+          "unsupported": "Fil"
+        },
+        "folderHint": "Mappar öppnas med dubbelklick."
+      },
+      "viewer": {
+        "loading": "Läser in förhandsgranskning…",
+        "loadError": "Förhandsgranskningen kunde inte läsas in.",
+        "tooLarge": "Filen är för stor för förhandsgranskning. Hämta den för att se den.",
+        "unavailable": "Inget innehåll finns att förhandsgranska.",
+        "zoomFit": "Anpassa",
+        "zoomActual": "1:1",
+        "mode": "Förhandsgranskningsläge",
+        "pdfBlocked": "Din webbläsare kan inte visa PDF-filer här.",
+        "sheet": "Blad",
+        "sheetCapped": "Visar de första {{rows}} raderna och {{columns}} kolumnerna.",
+        "sheetEmpty": "Det här bladet är tomt.",
+        "jsonInvalid": "Ogiltig JSON; visas som text."
+      },
+      "inbox": {
+        "cancel": "Avbryt",
+        "nameLabel": "Namn",
+        "nameRequired": "Ange ett namn.",
+        "genericError": "Åtgärden kunde inte slutföras.",
+        "loading": "Läser in mappar…",
+        "picker": {
+          "location": "Plats i Inkorgen",
+          "root": "Inkorgens rot",
+          "empty": "Inga mappar ännu. Filer hamnar i roten.",
+          "expand": "Expandera {{name}}",
+          "collapse": "Komprimera {{name}}"
+        },
+        "folder": {
+          "newTitle": "Ny mapp",
+          "newDescription": "Mappar organiserar filerna i Inkorgen.",
+          "newConfirm": "Skapa mapp",
+          "created": "Mappen ”{{name}}” skapades"
+        },
+        "rename": {
+          "fileTitle": "Byt namn på fil",
+          "folderTitle": "Byt namn på mapp",
+          "confirm": "Byt namn",
+          "fileRenamed": "Filen döptes om till ”{{name}}”",
+          "folderRenamed": "Mappen döptes om till ”{{name}}”"
+        },
+        "move": {
+          "title": "Flytta fil",
+          "confirm": "Flytta hit",
+          "moved": "Flyttade ”{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Ta bort fil",
+          "folderTitle": "Ta bort mapp",
+          "fileDescription": "”{{name}}” tas bort från Inkorgen. Agenter kan inte längre läsa den. Detta kan inte ångras.",
+          "folderDescription": "”{{name}}” tas bort. Endast tomma mappar kan tas bort: flytta eller ta bort innehållet först.",
+          "confirm": "Ta bort",
+          "fileDeleted": "Tog bort ”{{name}}”",
+          "folderDeleted": "Tog bort mappen ”{{name}}”"
+        },
+        "version": {
+          "title": "Ersätt version",
+          "description": "Ladda upp en ny fil. Den tidigare versionen finns kvar i historiken.",
+          "fileLabel": "Fil",
+          "noteLabel": "Anteckning (valfritt)",
+          "confirm": "Ladda upp version",
+          "noFile": "Välj en fil att ladda upp.",
+          "added": "”{{name}}” är nu version {{version}}"
+        },
+        "toInbox": {
+          "title": "Flytta till Inkorgen",
+          "description": "Kopierar ”{{name}}” till Inkorgen så att företaget och dess agenter kan använda den.",
+          "nameLabel": "Namn i Inkorgen (valfritt)",
+          "confirm": "Flytta till Inkorgen",
+          "added": "Lade till ”{{name}}” i Inkorgen"
+        }
+      },
+      "box": {
+        "in": "Inkorg",
+        "out": "Utkorg"
+      },
+      "toolbar": {
+        "segBox": "Låda",
+        "segView": "Visa",
+        "back": "Tillbaka",
+        "forward": "Framåt",
+        "crumbs": "Sökväg",
+        "search": "Sök",
+        "searchScope": "Sök i {{name}}…",
+        "viewList": "Lista",
+        "viewIcons": "Ikoner",
+        "previewToggle": "Visa eller dölj förhandsgranskning",
+        "preview": "Förhandsgranska",
+        "upload": "Ladda upp",
+        "newFolder": "Mapp",
+        "download": "Hämta",
+        "chooseFiles": "Välj filer"
+      },
+      "tree": {
+        "label": "Artefaktutforskare",
+        "entry": "Inkorg",
+        "out": "Utkorg",
+        "outBy": "Visa utdata efter",
+        "byAgent": "Agent",
+        "byType": "Filtyp",
+        "byDate": "Datum",
+        "quick": "Snabbåtkomst",
+        "favorites": "Favoriter",
+        "recent": "Senaste",
+        "mine": "Uppladdade av mig",
+        "soon": "Kommer snart"
+      },
+      "list": {
+        "label": "Filer",
+        "name": "Namn",
+        "type": "Typ",
+        "size": "Storlek",
+        "date": "Datum",
+        "uploadedBy": "Uppladdad av",
+        "usedBy": "Använd av",
+        "agent": "Agent",
+        "task": "Uppgift",
+        "elements": "{{count}} objekt",
+        "elementsOne": "1 objekt",
+        "usedTasks": "{{count}} uppgifter",
+        "usedOne": "1 uppgift",
+        "starred": "Favorit"
+      },
+      "status": {
+        "items": "{{count}} objekt",
+        "itemsOne": "1 objekt",
+        "selected": "1 markerad",
+        "ruleIn": "Endast personer skriver · agenter läser",
+        "ruleOut": "Endast agenter skriver · du läser",
+        "copied": "Länken kopierades",
+        "copyFailed": "Länken kunde inte kopieras"
+      },
+      "empty": {
+        "folder": "Tom mapp",
+        "folderHint": "Dra filer hit eller tryck på Ladda upp",
+        "noMatch": "Inget matchar ”{{q}}”",
+        "outHint": "Inga artefakter i den här vyn ännu"
+      },
+      "ctx": {
+        "menu": "Åtgärder",
+        "open": "Öppna",
+        "preview": "Snabbvisning",
+        "download": "Hämta",
+        "copyLink": "Kopiera länk",
+        "goTask": "Gå till uppgift",
+        "moveToInbox": "Flytta till Inkorgen…",
+        "replace": "Ersätt med ny version",
+        "move": "Flytta…",
+        "rename": "Byt namn",
+        "remove": "Ta bort",
+        "favorite": "Lägg till i favoriter",
+        "unfavorite": "Ta bort från favoriter",
+        "properties": "Egenskaper",
+        "soon": "Kommer snart"
+      },
+      "type": {
+        "folder": "Mapp",
+        "task": "Uppgift",
+        "image": "Bild",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Text",
+        "file": "Fil"
+      },
+      "meta": {
+        "person": "Företagsanvändare",
+        "uploadedBy": "Uppladdad av",
+        "folder": "Mapp",
+        "visibleTo": "Synlig för",
+        "allCompany": "hela företaget",
+        "usedIn": "Används i",
+        "usedTasks": "{{count}} uppgifter",
+        "usedNone": "ingen uppgift ännu",
+        "agent": "Agent",
+        "task": "Uppgift",
+        "origin": "Ursprung",
+        "originRun": "agentkörning"
+      },
+      "crumbs": {
+        "projects": "Projekt",
+        "noProject": "Inget projekt",
+        "project": "Projekt",
+        "task": "Uppgift",
+        "byAgent": "Agent",
+        "byType": "Filtyp",
+        "byDate": "Datum"
+      },
+      "errors": {
+        "load": "Filerna kunde inte läsas in.",
+        "tree": "Trädet kunde inte läsas in.",
+        "moveToInbox": "Den här artefakten kan inte flyttas till Inkorgen.",
+        "usage": "Användningen kunde inte läsas in."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

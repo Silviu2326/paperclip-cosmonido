@@ -2709,6 +2709,263 @@
     "tabPending": "Pending"
   },
   "artifacts": {
+    "explorer": {
+      "zip": {
+        "folderCtx": "Pakua folda (ZIP)",
+        "tooLarge": "Folda ina zaidi ya MB 500 na haiwezi kupakuliwa kama ZIP.",
+        "empty": "Hakuna faili za kupakua hapa.",
+        "failed": "ZIP haikuweza kutayarishwa."
+      },
+      "visibility": {
+        "toggle": "Inaonekana kwa mawakala",
+        "hidden": "Imefichwa kwa mawakala",
+        "visible": "Inaonekana kwa mawakala",
+        "metaLabel": "Mawakala",
+        "error": "Mwonekano haukuweza kubadilishwa."
+      },
+      "pdf": {
+        "prev": "Ukurasa uliotangulia",
+        "next": "Ukurasa unaofuata",
+        "pageOf": "{{page}} / {{total}}",
+        "search": "Tafuta kwenye PDF",
+        "searchPlaceholder": "Tafuta kwenye hati…",
+        "searching": "Inatafuta…",
+        "noMatches": "Hakuna matokeo",
+        "matchOf": "{{index}} kati ya {{total}}",
+        "prevMatch": "Matokeo yaliyotangulia",
+        "nextMatch": "Matokeo yanayofuata"
+      },
+      "preview": {
+        "title": "Onyesho la kukagua",
+        "fullscreen": "Skrini nzima",
+        "fullscreenTitle": "Onyesho la kukagua kwenye skrini nzima",
+        "close": "Funga",
+        "empty": "Chagua faili ili kuiona hapa.",
+        "emptyDetail": "Bofya mara mbili ili kuifungua kwenye skrini nzima.",
+        "box": {
+          "in": "Ingizo",
+          "out": "Matokeo"
+        },
+        "versions": "Matoleo",
+        "currentVersion": "ya sasa",
+        "download": "Pakua",
+        "openNewTab": "Fungua kwenye kichupo kipya",
+        "unsupported": "Hakuna onyesho la kukagua linalopatikana",
+        "unsupportedHint": "Aina hii ya faili haiwezi kuonyeshwa hapa. Ipakue ili kuiona.",
+        "kind": {
+          "image": "Picha",
+          "video": "Video",
+          "pdf": "PDF",
+          "markdown": "Markdown",
+          "html": "HTML",
+          "csv": "CSV",
+          "sheet": "Lahajedwali",
+          "json": "JSON",
+          "text": "Maandishi",
+          "pr": "Ombi la kuvuta (pull request)",
+          "unsupported": "Faili"
+        },
+        "folderHint": "Folda hufunguka kwa kubofya mara mbili."
+      },
+      "viewer": {
+        "loading": "Inapakia onyesho la kukagua…",
+        "loadError": "Onyesho la kukagua halikuweza kupakiwa.",
+        "tooLarge": "Faili hii ni kubwa mno kuonyeshwa kama onyesho la kukagua. Ipakue ili kuiona.",
+        "unavailable": "Hakuna maudhui yanayopatikana kwa onyesho la kukagua.",
+        "zoomFit": "Lingana",
+        "zoomActual": "1:1",
+        "mode": "Hali ya onyesho la kukagua",
+        "pdfBlocked": "Kivinjari chako hakiwezi kuonyesha PDF hapa.",
+        "sheet": "Laha",
+        "sheetCapped": "Inaonyesha safu mlalo {{rows}} za kwanza na safu wima {{columns}}.",
+        "sheetEmpty": "Laha hili ni tupu.",
+        "jsonInvalid": "Si JSON halali; inaonyeshwa kama maandishi."
+      },
+      "inbox": {
+        "cancel": "Ghairi",
+        "nameLabel": "Jina",
+        "nameRequired": "Weka jina.",
+        "genericError": "Kitendo hakikuweza kukamilika.",
+        "loading": "Inapakia folda…",
+        "picker": {
+          "location": "Mahali kwenye Ingizo",
+          "root": "Mzizi wa Ingizo",
+          "empty": "Bado hakuna folda. Faili zitaenda kwenye mzizi.",
+          "expand": "Panua {{name}}",
+          "collapse": "Kunja {{name}}"
+        },
+        "folder": {
+          "newTitle": "Folda mpya",
+          "newDescription": "Folda hupanga faili zilizo kwenye Ingizo.",
+          "newConfirm": "Unda folda",
+          "created": "Folda “{{name}}” imeundwa"
+        },
+        "rename": {
+          "fileTitle": "Badilisha jina la faili",
+          "folderTitle": "Badilisha jina la folda",
+          "confirm": "Badilisha jina",
+          "fileRenamed": "Faili imebadilishwa jina kuwa “{{name}}”",
+          "folderRenamed": "Folda imebadilishwa jina kuwa “{{name}}”"
+        },
+        "move": {
+          "title": "Hamisha faili",
+          "confirm": "Hamishia hapa",
+          "moved": "Imehamishwa “{{name}}”"
+        },
+        "delete": {
+          "fileTitle": "Futa faili",
+          "folderTitle": "Futa folda",
+          "fileDescription": "“{{name}}” itafutwa kutoka kwenye Ingizo. Mawakala hawataweza tena kuisoma. Hatua hii haiwezi kutenduliwa.",
+          "folderDescription": "“{{name}}” itafutwa. Folda tupu pekee ndizo zinaweza kufutwa: hamisha au futa yaliyomo kwanza.",
+          "confirm": "Futa",
+          "fileDeleted": "Imefutwa “{{name}}”",
+          "folderDeleted": "Folda “{{name}}” imefutwa"
+        },
+        "version": {
+          "title": "Badilisha toleo",
+          "description": "Pakia faili mpya. Toleo lililopita litabaki kwenye historia.",
+          "fileLabel": "Faili",
+          "noteLabel": "Dokezo (si lazima)",
+          "confirm": "Pakia toleo",
+          "noFile": "Chagua faili la kupakia.",
+          "added": "“{{name}}” sasa ni toleo {{version}}"
+        },
+        "toInbox": {
+          "title": "Hamishia kwenye Ingizo",
+          "description": "Inanakili “{{name}}” kwenye Ingizo ili kampuni na mawakala wake waweze kuitumia.",
+          "nameLabel": "Jina kwenye Ingizo (si lazima)",
+          "confirm": "Hamishia kwenye Ingizo",
+          "added": "“{{name}}” imeongezwa kwenye Ingizo"
+        }
+      },
+      "box": {
+        "in": "Ingizo",
+        "out": "Matokeo"
+      },
+      "toolbar": {
+        "segBox": "Kisanduku",
+        "segView": "Mwonekano",
+        "back": "Rudi",
+        "forward": "Mbele",
+        "crumbs": "Njia",
+        "search": "Tafuta",
+        "searchScope": "Tafuta katika {{name}}…",
+        "viewList": "Orodha",
+        "viewIcons": "Aikoni",
+        "previewToggle": "Onyesha au ficha onyesho la kukagua",
+        "preview": "Kagua",
+        "upload": "Pakia",
+        "newFolder": "Folda",
+        "download": "Pakua",
+        "chooseFiles": "Chagua faili"
+      },
+      "tree": {
+        "label": "Kichunguzi cha artifacts",
+        "entry": "Ingizo",
+        "out": "Matokeo",
+        "outBy": "Onyesha matokeo kwa",
+        "byAgent": "Wakala",
+        "byType": "Aina ya faili",
+        "byDate": "Tarehe",
+        "quick": "Ufikiaji wa haraka",
+        "favorites": "Vipendwa",
+        "recent": "Za hivi karibuni",
+        "mine": "Nilizopakia mimi",
+        "soon": "Inakuja hivi karibuni"
+      },
+      "list": {
+        "label": "Faili",
+        "name": "Jina",
+        "type": "Aina",
+        "size": "Ukubwa",
+        "date": "Tarehe",
+        "uploadedBy": "Imepakiwa na",
+        "usedBy": "Imetumiwa na",
+        "agent": "Wakala",
+        "task": "Kazi",
+        "elements": "Vipengee {{count}}",
+        "elementsOne": "Kipengee 1",
+        "usedTasks": "Kazi {{count}}",
+        "usedOne": "Kazi 1",
+        "starred": "Kipendwa"
+      },
+      "status": {
+        "items": "Vipengee {{count}}",
+        "itemsOne": "Kipengee 1",
+        "selected": "Kimechaguliwa 1",
+        "ruleIn": "Watu pekee ndio huandika · mawakala husoma",
+        "ruleOut": "Mawakala pekee ndio huandika · wewe unasoma",
+        "copied": "Kiungo kimenakiliwa",
+        "copyFailed": "Kiungo hakikuweza kunakiliwa"
+      },
+      "empty": {
+        "folder": "Folda tupu",
+        "folderHint": "Buruta faili hapa au bonyeza Pakia",
+        "noMatch": "Hakuna kinacholingana na “{{q}}”",
+        "outHint": "Bado hakuna artifacts kwenye mwonekano huu"
+      },
+      "ctx": {
+        "menu": "Vitendo",
+        "open": "Fungua",
+        "preview": "Kuangalia haraka",
+        "download": "Pakua",
+        "copyLink": "Nakili kiungo",
+        "goTask": "Nenda kwenye kazi",
+        "moveToInbox": "Hamishia kwenye Ingizo…",
+        "replace": "Badilisha kwa toleo jipya",
+        "move": "Hamisha…",
+        "rename": "Badilisha jina",
+        "remove": "Futa",
+        "favorite": "Ongeza kwenye vipendwa",
+        "unfavorite": "Ondoa kwenye vipendwa",
+        "properties": "Sifa",
+        "soon": "Inakuja hivi karibuni"
+      },
+      "type": {
+        "folder": "Folda",
+        "task": "Kazi",
+        "image": "Picha",
+        "video": "Video",
+        "pdf": "PDF",
+        "sheet": "Excel",
+        "csv": "CSV",
+        "markdown": "Markdown",
+        "html": "HTML",
+        "word": "Word",
+        "json": "JSON",
+        "text": "Maandishi",
+        "file": "Faili"
+      },
+      "meta": {
+        "person": "Mtumiaji wa kampuni",
+        "uploadedBy": "Imepakiwa na",
+        "folder": "Folda",
+        "visibleTo": "Inaonekana kwa",
+        "allCompany": "kampuni nzima",
+        "usedIn": "Imetumiwa katika",
+        "usedTasks": "Kazi {{count}}",
+        "usedNone": "bado hakuna kazi",
+        "agent": "Wakala",
+        "task": "Kazi",
+        "origin": "Chanzo",
+        "originRun": "utekelezaji wa wakala"
+      },
+      "crumbs": {
+        "projects": "Miradi",
+        "noProject": "Hakuna mradi",
+        "project": "Mradi",
+        "task": "Kazi",
+        "byAgent": "Wakala",
+        "byType": "Aina ya faili",
+        "byDate": "Tarehe"
+      },
+      "errors": {
+        "load": "Faili hazikuweza kupakiwa.",
+        "tree": "Mti haukuweza kupakiwa.",
+        "moveToInbox": "Artifact hii haiwezi kuhamishiwa kwenye Ingizo.",
+        "usage": "Matumizi hayakuweza kupakiwa."
+      }
+    },
     "allStacks": "All stacks",
     "breadcrumb": "Artifacts",
     "clearSearch": "Clear artifact search",

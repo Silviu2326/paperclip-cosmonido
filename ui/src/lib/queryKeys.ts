@@ -583,6 +583,34 @@ export const queryKeys = {
       ] as const,
     byAgent: (companyId: string, agentId: string) =>
       ["artifacts", companyId, "by-agent", agentId] as const,
+    tree: (companyId: string, node: string) =>
+      ["artifacts", companyId, "tree", node] as const,
+  },
+  companyFiles: {
+    /** Prefix for the company-scoped list and tree queries. Per-file versions/usage keys are separate. */
+    all: (companyId: string) => ["company-files", companyId] as const,
+    list: (
+      companyId: string,
+      folderId?: string | null,
+      q?: string | null,
+      sort?: string | null,
+      dir?: string | null,
+      /** Quick-access view (`favorites`, `recent`, `mine`); plain folder listings omit it. */
+      view?: string | null,
+    ) =>
+      [
+        "company-files",
+        companyId,
+        "list",
+        folderId ?? "root",
+        q ?? "",
+        sort ?? "name",
+        dir ?? "asc",
+        view ?? "folder",
+      ] as const,
+    tree: (companyId: string) => ["company-files", companyId, "tree"] as const,
+    versions: (fileId: string) => ["company-files", "file", fileId, "versions"] as const,
+    usage: (fileId: string) => ["company-files", "file", fileId, "usage"] as const,
   },
   budgets: {
     overview: (companyId: string) =>
