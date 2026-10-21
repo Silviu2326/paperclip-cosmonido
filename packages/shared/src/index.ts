@@ -2940,3 +2940,9 @@ export type {
   CreateCompanyFileFromArtifact,
   AddCompanyFileVersionNote,
 } from "./validators/company-file.js";
+
+// Sprint 2 CRM contract (constants, types, validators, agent tool names).
+export * from "./constants/crm.js";
+export * from "./types/crm.js";
+export * from "./validators/crm.js";
+export * from "./crm-tools.js";

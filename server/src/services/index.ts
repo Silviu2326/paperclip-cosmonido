@@ -220,3 +220,6 @@ export {
 } from "./remote-agent-profiles.js";
 
 export { decisionModelService, defineDecisionFeature } from "./decision-models.js";
+
+// Sprint 2: external action gate (every outbound action goes through it).
+export { gateExternalAction, approveExternalAction, rejectExternalAction, resolveAutonomyLevel } from "./external-action-gate.js";

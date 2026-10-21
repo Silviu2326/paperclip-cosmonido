@@ -27,6 +27,12 @@
     "signingOut": "Signing out..."
   },
   "nav": {
+    "customers": "Customers",
+    "contacts": "Contacts",
+    "leads": "Leads",
+    "opportunities": "Opportunities",
+    "schedule": "Schedule",
+    "business": "Business",
     "newTask": "New Task",
     "search": "Search",
     "dashboard": "Dashboard",

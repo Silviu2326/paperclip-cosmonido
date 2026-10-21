@@ -41,3 +41,11 @@ export { instanceSettingsRoutes } from "./instance-settings.js";
 export { instanceDatabaseBackupRoutes } from "./instance-database-backups.js";
 export { managedAgentProfileRoutes } from "./managed-agent-profiles.js";
 export { remoteAgentProfileRoutes } from "./remote-agent-profiles.js";
+
+// Sprint 2 CRM surfaces (stubs filled by pistas A-I).
+export { crmRoutes } from "./crm.js";
+export { leadRoutes } from "./leads.js";
+export { conversationRoutes } from "./conversations.js";
+export { channelInboundRoutes } from "./channels-inbound.js";
+export { calendarRoutes } from "./calendar.js";
+export { publicSurfaceRoutes } from "./public-surface.js";

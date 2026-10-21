@@ -22,6 +22,12 @@ import {
   GanttChartSquare,
   LayoutGrid,
   Plus,
+  Users,
+  UserRound,
+  UserPlus,
+  Handshake,
+  CalendarDays,
+  Briefcase,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -310,6 +316,15 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               className="flex flex-col gap-0.5"
               itemClassName="text-(length:--text-compact) font-medium"
             />
+          </SidebarSection>
+
+          <SidebarSection label={t("nav.business")} divider>
+            <SidebarNavItem to="/customers" label={t("nav.customers")} icon={Users} />
+            <SidebarNavItem to="/contacts" label={t("nav.contacts")} icon={UserRound} />
+            <SidebarNavItem to="/leads" label={t("nav.leads")} icon={UserPlus} />
+            <SidebarNavItem to="/opportunities" label={t("nav.opportunities")} icon={Handshake} />
+            <SidebarNavItem to="/conversations" label={t("nav.inbox")} icon={Inbox} />
+            <SidebarNavItem to="/schedule" label={t("nav.schedule")} icon={CalendarDays} />
           </SidebarSection>
 
           {streamlinedUiEnabled ? (

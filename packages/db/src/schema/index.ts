@@ -257,6 +257,13 @@ export { executionWorkspaceRepositoryRoots } from "./execution_workspace_reposit
 export { executionWorkspaceRepositoryAccess } from "./execution_workspace_repository_access.js";
 export * from "./fast_responses.js";
 
-export * from "./deliverable_reviews.js";
 
-export * from "./media_studio.js";
+export * from "./customers.js";
+export * from "./contacts.js";
+export * from "./leads.js";
+export * from "./opportunities.js";
+export * from "./crm_activities.js";
+export * from "./commitments.js";
+export * from "./conversations.js";
+export * from "./autonomy.js";
+export * from "./external_actions.js";

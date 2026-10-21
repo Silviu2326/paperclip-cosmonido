@@ -49,6 +49,15 @@ import { ExecutionWorkspaceDetail } from "./pages/ExecutionWorkspaceDetail";
 import { Goals } from "./pages/Goals";
 import { ArtifactsExplorer } from "./pages/artifacts/ArtifactsExplorer";
 import { GoalDetail } from "./pages/GoalDetail";
+import { Customers } from "./pages/crm/Customers";
+import { CustomerDetail } from "./pages/crm/CustomerDetail";
+import { Contacts } from "./pages/crm/Contacts";
+import { Opportunities } from "./pages/crm/Opportunities";
+import { Leads } from "./pages/crm/Leads";
+import { LeadDetail } from "./pages/crm/LeadDetail";
+import { ConversationInbox } from "./pages/ConversationInbox";
+import { ConversationDetail } from "./pages/ConversationDetail";
+import { Schedule } from "./pages/Schedule";
 import { Approvals } from "./pages/Approvals";
 import { ApprovalDetail } from "./pages/ApprovalDetail";
 import { CompanyActivity } from "./pages/audit/CompanyActivity";
@@ -403,6 +412,15 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
       </Route>
       <Route path="goals" element={<Goals />} />
       <Route path="goals/:goalId" element={<GoalDetail />} />
+      <Route path="customers" element={<Customers />} />
+      <Route path="customers/:customerId" element={<CustomerDetail />} />
+      <Route path="contacts" element={<Contacts />} />
+      <Route path="leads" element={<Leads />} />
+      <Route path="leads/:leadId" element={<LeadDetail />} />
+      <Route path="opportunities" element={<Opportunities />} />
+      <Route path="conversations" element={<ConversationInbox />} />
+      <Route path="conversations/:conversationId" element={<ConversationDetail />} />
+      <Route path="schedule" element={<Schedule />} />
       <Route path="artifacts" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />

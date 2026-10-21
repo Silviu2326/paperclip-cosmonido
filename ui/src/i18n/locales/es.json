@@ -27,6 +27,12 @@
     "signingOut": "Cerrando sesión..."
   },
   "nav": {
+    "customers": "Clientes",
+    "contacts": "Contactos",
+    "leads": "Leads",
+    "opportunities": "Oportunidades",
+    "schedule": "Agenda",
+    "business": "Negocio",
     "newTask": "Nueva tarea",
     "search": "Buscar",
     "dashboard": "Inicio",
