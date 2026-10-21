@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packageName": "@paperclipai/skills-catalog",
   "packageVersion": "0.3.1",
-  "generatedAt": "2026-10-06T01:21:47.421Z",
+  "generatedAt": "2026-10-21T22:13:05.421Z",
   "skills": [
     {
       "id": "paperclipai:bundled:docs:doc-maintenance",
@@ -449,6 +449,78 @@
         }
       ],
       "contentHash": "sha256:eabb2c9f7b5e1a27ebb1e05a711d61433a266478154cd671a685e99e67aadea2"
+    },
+    {
+      "id": "paperclipai:optional:content:client-brief-intake",
+      "key": "paperclipai/optional/content/client-brief-intake",
+      "kind": "optional",
+      "category": "content",
+      "slug": "client-brief-intake",
+      "name": "client-brief-intake",
+      "description": "Turn a client's raw request into a structured content brief covering goal, audience, channels, deliverables, deadline, approvals, source material, and out-of-scope items, and stop to ask when critical fields are missing.",
+      "path": "catalog/optional/content/client-brief-intake",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "account-manager",
+        "content-strategist",
+        "writer",
+        "product"
+      ],
+      "requires": [],
+      "tags": [
+        "content",
+        "client",
+        "brief",
+        "planning"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 3053,
+          "sha256": "0751e56769b83f83625a225052d0aa996a76fc251c8a4ff0a3245db0a6e6d3ec"
+        }
+      ],
+      "contentHash": "sha256:53226673daffcfc6cc628f65e27129b5d625d7124d2c8597596fa47a1214570c"
+    },
+    {
+      "id": "paperclipai:optional:content:delivery-review",
+      "key": "paperclipai/optional/content/delivery-review",
+      "kind": "optional",
+      "category": "content",
+      "slug": "delivery-review",
+      "name": "delivery-review",
+      "description": "Review a content piece before it reaches the client, checking the brief, facts, claims, brand voice, links, format, and sensitive wording, and return approve, revise, or block with a prioritized fix list. The review itself publishes and delivers nothing.",
+      "path": "catalog/optional/content/delivery-review",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "editor",
+        "reviewer",
+        "content-strategist",
+        "account-manager"
+      ],
+      "requires": [],
+      "tags": [
+        "content",
+        "review",
+        "quality",
+        "delivery"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 2974,
+          "sha256": "da0de3ce2f9f1fa34c8594c21bb8d2eaa4473c9037b30c245f838be2a2abf965"
+        }
+      ],
+      "contentHash": "sha256:4cb4015874b73a843e4ccd4a9f62f3fa520eb39f6f9c2b8dd1cd9b4c7d1a3a65"
     },
     {
       "id": "paperclipai:optional:content:release-announcement",
@@ -1113,6 +1185,113 @@
         "path": "skills/last30days",
         "url": "https://github.com/mvanhorn/last30days-skill/tree/v3.3.0/skills/last30days"
       }
+    },
+    {
+      "id": "paperclipai:optional:sales:booking-etiquette",
+      "key": "paperclipai/optional/sales/booking-etiquette",
+      "kind": "optional",
+      "category": "sales",
+      "slug": "booking-etiquette",
+      "name": "booking-etiquette",
+      "description": "Arrange, move, or cancel a meeting with a contact by offering verified slots in their time zone, booking only on their explicit choice, and confirming in writing. Every external booking goes through the action gate.",
+      "path": "catalog/optional/sales/booking-etiquette",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "sdr",
+        "sales",
+        "assistant",
+        "scheduler"
+      ],
+      "requires": [],
+      "tags": [
+        "sales",
+        "scheduling",
+        "calendar",
+        "communication"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 2873,
+          "sha256": "fd26eaf6bd9a4ccd8019f9fa7011f512e0be24b449b703aaa36301ec71c79695"
+        }
+      ],
+      "contentHash": "sha256:2515ab853c5a31008dec0d091095cd456bcb6e541c443c620025050f26be12d8"
+    },
+    {
+      "id": "paperclipai:optional:sales:channel-reply",
+      "key": "paperclipai/optional/sales/channel-reply",
+      "kind": "optional",
+      "category": "sales",
+      "slug": "channel-reply",
+      "name": "channel-reply",
+      "description": "Write a reply inside an existing conversation on any channel, matched to the channel's length and tone, and draft it for approval instead of sending it. Covers email, WhatsApp, Messenger, Instagram, Telegram, and web chat.",
+      "path": "catalog/optional/sales/channel-reply",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "sdr",
+        "sales",
+        "support",
+        "customer-success"
+      ],
+      "requires": [],
+      "tags": [
+        "sales",
+        "support",
+        "messaging",
+        "communication"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 3229,
+          "sha256": "a2e36f96dda9a05f020be38a96c82a258c3dd4024f252a4c7b008d0f180bfce9"
+        }
+      ],
+      "contentHash": "sha256:aadd305a3364387d94643cd9a957a9427f560b61ed8f5b40e9d46f64e908b890"
+    },
+    {
+      "id": "paperclipai:optional:sales:lead-triage",
+      "key": "paperclipai/optional/sales/lead-triage",
+      "kind": "optional",
+      "category": "sales",
+      "slug": "lead-triage",
+      "name": "lead-triage",
+      "description": "Triage a new inbound lead: check for duplicates, judge fit and urgency, set priority and owner, and decide whether to qualify, reply, or discard. Triage records a decision and never contacts the lead.",
+      "path": "catalog/optional/sales/lead-triage",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "sales",
+        "sdr",
+        "founder"
+      ],
+      "requires": [],
+      "tags": [
+        "sales",
+        "leads",
+        "triage",
+        "crm"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 2948,
+          "sha256": "7083b7968df2fd46386209e88ca04fe87857eb0046e4e29722f3d5daf25ac30b"
+        }
+      ],
+      "contentHash": "sha256:baf5c0d2a07cae2764dfde1e8c0b581ed19801f085ffd8c4d3ea71c04df9b432"
     },
     {
       "id": "paperclipai:optional:software-development:prepare-mcp-integration",

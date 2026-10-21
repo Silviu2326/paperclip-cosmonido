@@ -15,7 +15,10 @@ const EXPECTED_BUNDLED_KEYS = [
 
 const EXPECTED_OPTIONAL_KEYS = [
   "paperclipai/optional/communications/speko-company-phone-agent",
+  "paperclipai/optional/content/agency-content",
   "paperclipai/optional/content/content-machine",
+  "paperclipai/optional/customer-care/customer-care",
+  "paperclipai/optional/sales/sales-inbound",
 ];
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -102,6 +105,15 @@ describe("shipped teams catalog", () => {
       "product-design/ux-designer": { role: "designer", reportsTo: null, skills: ["wireframe", "design-critique", "task-planning"] },
       "speko-company-phone-agent/speko-company-phone-agent": { role: "general", reportsTo: null, skills: undefined },
       "content-machine/content-lead": { role: "content-strategist", reportsTo: null, skills: ["content-calendar"] },
+      "sales-inbound/sdr": { role: "sales-development", reportsTo: null, skills: ["lead-triage", "channel-reply"] },
+      "sales-inbound/qualifier": { role: "sales-qualifier", reportsTo: "sdr", skills: ["lead-triage"] },
+      "sales-inbound/scheduler": { role: "scheduler", reportsTo: "sdr", skills: ["booking-etiquette", "channel-reply"] },
+      "agency-content/account-manager": { role: "account-manager", reportsTo: null, skills: ["client-brief-intake", "delivery-review"] },
+      "agency-content/writer": { role: "writer", reportsTo: "account-manager", skills: ["client-brief-intake"] },
+      "agency-content/editor": { role: "editor", reportsTo: "account-manager", skills: ["delivery-review"] },
+      "agency-content/reviewer": { role: "reviewer", reportsTo: "editor", skills: ["delivery-review"] },
+      "customer-care/support-agent": { role: "support", reportsTo: null, skills: ["channel-reply"] },
+      "customer-care/escalation-agent": { role: "escalation-lead", reportsTo: "support-agent", skills: ["channel-reply"] },
     };
     const observed: Record<string, unknown> = {};
     for (const team of catalogTeams) {

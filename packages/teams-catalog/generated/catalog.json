@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packageName": "@paperclipai/teams-catalog",
   "packageVersion": "0.1.0",
-  "generatedAt": "2026-10-08T10:35:56.448Z",
+  "generatedAt": "2026-10-21T22:13:11.678Z",
   "teams": [
     {
       "id": "paperclipai:bundled:company-defaults:core-exec-team",
@@ -448,6 +448,124 @@
       "contentHash": "sha256:e723a036948dcb292382fbcb116c68500c2247b004d0a8d8ef818b6725f91215"
     },
     {
+      "id": "paperclipai:optional:content:agency-content",
+      "key": "paperclipai/optional/content/agency-content",
+      "kind": "optional",
+      "category": "content",
+      "slug": "agency-content",
+      "name": "Agency Content",
+      "description": "Optional agency content team that turns client briefs into pieces, runs them through editorial correction and a final review, and delivers them with a weekly delivery check.",
+      "path": "catalog/optional/content/agency-content",
+      "entrypoint": "TEAM.md",
+      "schema": "agentcompanies/v1",
+      "defaultInstall": false,
+      "recommendedForCompanyTypes": [
+        "agency",
+        "marketing"
+      ],
+      "tags": [
+        "content",
+        "agency",
+        "client",
+        "delivery"
+      ],
+      "counts": {
+        "agents": 4,
+        "projects": 1,
+        "tasks": 0,
+        "routines": 1,
+        "localSkills": 0,
+        "catalogSkills": 2,
+        "externalSkillSources": 0
+      },
+      "rootAgentSlugs": [
+        "account-manager"
+      ],
+      "agentSlugs": [
+        "account-manager",
+        "editor",
+        "reviewer",
+        "writer"
+      ],
+      "projectSlugs": [
+        "client-deliveries"
+      ],
+      "requiredSkills": [
+        {
+          "type": "catalog",
+          "ref": "client-brief-intake",
+          "agentSlugs": [
+            "account-manager",
+            "writer"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:client-brief-intake",
+          "catalogSkillKey": "paperclipai/optional/content/client-brief-intake"
+        },
+        {
+          "type": "catalog",
+          "ref": "delivery-review",
+          "agentSlugs": [
+            "account-manager",
+            "editor",
+            "reviewer"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:delivery-review",
+          "catalogSkillKey": "paperclipai/optional/content/delivery-review"
+        }
+      ],
+      "envInputs": [],
+      "sourceRefs": [],
+      "files": [
+        {
+          "path": "TEAM.md",
+          "kind": "team",
+          "sizeBytes": 2074,
+          "sha256": "c4fb824cfa0e2f2efda6010e436a86f58fb5e20ae08fd8cbe97c5e289444a1ad"
+        },
+        {
+          "path": "agents/account-manager/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1446,
+          "sha256": "09eea955d4234537001bae85f4b3300aac72827699bcc52449697edc6534fb40"
+        },
+        {
+          "path": "agents/editor/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1076,
+          "sha256": "9f2c43465f2e70aba187e1bbf2db9ebb6d16dfe38eaa2b19144f5829f137e4ad"
+        },
+        {
+          "path": "agents/reviewer/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1095,
+          "sha256": "558b0943adb85c4e97e5e0dc4e8c7f993d09b7d5ddf85271adb1bbbc8f447ef3"
+        },
+        {
+          "path": "agents/writer/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1168,
+          "sha256": "072b7c5b785d99d6f50498e577a2b234bc90a348557cefc5a5aecaae93134a6d"
+        },
+        {
+          "path": "projects/client-deliveries/PROJECT.md",
+          "kind": "project",
+          "sizeBytes": 444,
+          "sha256": "f5585be3328bc5fcccd4a57eeac2d6b08de91caf7b9d7dd3161b720bbba78678"
+        },
+        {
+          "path": "projects/client-deliveries/tasks/weekly-delivery-review/TASK.md",
+          "kind": "task",
+          "sizeBytes": 337,
+          "sha256": "39d42cc57577a206711863d805e6dd070eb1457d5625cfe86e702d98ebcdd6ae"
+        }
+      ],
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "contentHash": "sha256:d558851ece25254476471f2bb558037d414d37c38b3cca61b2d991a39a42b3fb"
+    },
+    {
       "id": "paperclipai:optional:content:content-machine",
       "key": "paperclipai/optional/content/content-machine",
       "kind": "optional",
@@ -534,6 +652,220 @@
       "trustLevel": "markdown_only",
       "compatibility": "compatible",
       "contentHash": "sha256:06822cec5f2b6910cb37ba0ebd5e04ed5c7e34f77225564ddddc2470779cdaa6"
+    },
+    {
+      "id": "paperclipai:optional:customer-care:customer-care",
+      "key": "paperclipai/optional/customer-care/customer-care",
+      "kind": "optional",
+      "category": "customer-care",
+      "slug": "customer-care",
+      "name": "Customer Care",
+      "description": "Optional customer care team that answers customer messages across channels through drafts, escalates decisions that need a human, and runs a weekly care review of open conversations.",
+      "path": "catalog/optional/customer-care/customer-care",
+      "entrypoint": "TEAM.md",
+      "schema": "agentcompanies/v1",
+      "defaultInstall": false,
+      "recommendedForCompanyTypes": [
+        "services",
+        "software",
+        "agency"
+      ],
+      "tags": [
+        "customer-care",
+        "support",
+        "escalation",
+        "conversations"
+      ],
+      "counts": {
+        "agents": 2,
+        "projects": 1,
+        "tasks": 0,
+        "routines": 1,
+        "localSkills": 0,
+        "catalogSkills": 1,
+        "externalSkillSources": 0
+      },
+      "rootAgentSlugs": [
+        "support-agent"
+      ],
+      "agentSlugs": [
+        "escalation-agent",
+        "support-agent"
+      ],
+      "projectSlugs": [
+        "customer-support-queue"
+      ],
+      "requiredSkills": [
+        {
+          "type": "catalog",
+          "ref": "channel-reply",
+          "agentSlugs": [
+            "escalation-agent",
+            "support-agent"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:sales:channel-reply",
+          "catalogSkillKey": "paperclipai/optional/sales/channel-reply"
+        }
+      ],
+      "envInputs": [],
+      "sourceRefs": [],
+      "files": [
+        {
+          "path": "TEAM.md",
+          "kind": "team",
+          "sizeBytes": 2100,
+          "sha256": "373726a5b7bf885c69f3fccebefa107c2f8f0f6158959999de7503c8a81f7640"
+        },
+        {
+          "path": "agents/escalation-agent/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1549,
+          "sha256": "54c4cc3c8e4245d31bfc95672b16040a1b2b696d14697a71669295e2bfbc1e7c"
+        },
+        {
+          "path": "agents/support-agent/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1573,
+          "sha256": "d231abe7ccba5aabdb6db8fcfcd02beeb0ba016eb2ea39ec37890f7ba098e2a3"
+        },
+        {
+          "path": "projects/customer-support-queue/PROJECT.md",
+          "kind": "project",
+          "sizeBytes": 453,
+          "sha256": "cf9936c62397186b8e9bfe69db813cf008985ca4cf7a616ca966031c103e59a6"
+        },
+        {
+          "path": "projects/customer-support-queue/tasks/weekly-care-review/TASK.md",
+          "kind": "task",
+          "sizeBytes": 363,
+          "sha256": "75412397bdefd96867c1290e8db4ec49afa4fdb8144d13e7b53fc72d4cd3c17c"
+        }
+      ],
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "contentHash": "sha256:e848056ab915550d60c4582128e94aa37c96e454f11963b76291c3421ea7c782"
+    },
+    {
+      "id": "paperclipai:optional:sales:sales-inbound",
+      "key": "paperclipai/optional/sales/sales-inbound",
+      "kind": "optional",
+      "category": "sales",
+      "slug": "sales-inbound",
+      "name": "Sales Inbound",
+      "description": "Optional inbound sales team that triages new leads, qualifies them, replies through drafts, books meetings, and follows up, with a weekly pipeline review.",
+      "path": "catalog/optional/sales/sales-inbound",
+      "entrypoint": "TEAM.md",
+      "schema": "agentcompanies/v1",
+      "defaultInstall": false,
+      "recommendedForCompanyTypes": [
+        "agency",
+        "services",
+        "software"
+      ],
+      "tags": [
+        "sales",
+        "leads",
+        "inbound",
+        "crm"
+      ],
+      "counts": {
+        "agents": 3,
+        "projects": 1,
+        "tasks": 0,
+        "routines": 1,
+        "localSkills": 0,
+        "catalogSkills": 3,
+        "externalSkillSources": 0
+      },
+      "rootAgentSlugs": [
+        "sdr"
+      ],
+      "agentSlugs": [
+        "qualifier",
+        "scheduler",
+        "sdr"
+      ],
+      "projectSlugs": [
+        "sales-pipeline"
+      ],
+      "requiredSkills": [
+        {
+          "type": "catalog",
+          "ref": "booking-etiquette",
+          "agentSlugs": [
+            "scheduler"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:sales:booking-etiquette",
+          "catalogSkillKey": "paperclipai/optional/sales/booking-etiquette"
+        },
+        {
+          "type": "catalog",
+          "ref": "channel-reply",
+          "agentSlugs": [
+            "scheduler",
+            "sdr"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:sales:channel-reply",
+          "catalogSkillKey": "paperclipai/optional/sales/channel-reply"
+        },
+        {
+          "type": "catalog",
+          "ref": "lead-triage",
+          "agentSlugs": [
+            "qualifier",
+            "sdr"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:sales:lead-triage",
+          "catalogSkillKey": "paperclipai/optional/sales/lead-triage"
+        }
+      ],
+      "envInputs": [],
+      "sourceRefs": [],
+      "files": [
+        {
+          "path": "TEAM.md",
+          "kind": "team",
+          "sizeBytes": 2062,
+          "sha256": "164ad9abab61292704524b82c6ebd40eca0f7ee5d1e0f89dab3ce76574550b24"
+        },
+        {
+          "path": "agents/qualifier/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1450,
+          "sha256": "fa52aa060f42dd8e8c079173e194c3ea1bc2ae630ad902bed1d1bd9c96cbf97b"
+        },
+        {
+          "path": "agents/scheduler/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1372,
+          "sha256": "b7354e1e81a3b662ca926a48ba66758161086ee14297ad3e4c60fa0b0a7054d8"
+        },
+        {
+          "path": "agents/sdr/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1677,
+          "sha256": "f52e95ce59b5c4d3ba311f36056da42bcf68da8f2cb68369d4cf638611d52932"
+        },
+        {
+          "path": "projects/sales-pipeline/PROJECT.md",
+          "kind": "project",
+          "sizeBytes": 438,
+          "sha256": "74bd546090c4b9f70b959a8d0c183791fcdb97e853ef0f25b0cc978ce95089d9"
+        },
+        {
+          "path": "projects/sales-pipeline/tasks/weekly-pipeline-review/TASK.md",
+          "kind": "task",
+          "sizeBytes": 348,
+          "sha256": "5ccc4a0b9167eca96577bf0ad3cc9c2dff4e724bfd71bb7a82402ac4f1c9ac7e"
+        }
+      ],
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "contentHash": "sha256:7000a2c20641ee1148a511af68c81160d9199dca48a9b9b6683740256a1c00f9"
     }
   ]
 }
