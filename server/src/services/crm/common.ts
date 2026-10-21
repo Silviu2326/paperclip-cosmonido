@@ -59,7 +59,7 @@ export function decodeCursor(cursor: string | undefined | null): CursorPosition 
 
 /** Escapes LIKE wildcards so user search text is matched literally. */
 export function likeContains(text: string): string {
-  return `%${text.replace(/[\%_]/g, (ch) => `\${ch}`)}%`;
+  return `%${text.replace(/[\\%_]/g, (ch) => "\\" + ch)}%`;
 }
 
 /** Returns one page from a query fetched with limit + 1 rows, plus the cursor for the next page. */

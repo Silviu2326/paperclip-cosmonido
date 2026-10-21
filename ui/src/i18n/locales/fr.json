@@ -11042,6 +11042,361 @@
       "reasonPhone": "Same phone",
       "createAnyway": "Create anyway",
       "archivedBadge": "Archived"
+    },
+    "leads": {
+      "title": "Leads",
+      "selectCompany": "Select a company to see its leads.",
+      "empty": "No leads yet.",
+      "emptyFiltered": "No leads match these filters.",
+      "filters": {
+        "search": "Search leads",
+        "status": "Status",
+        "source": "Source",
+        "priority": "Priority",
+        "assigned": "Assignment",
+        "any": "All",
+        "unassigned": "Unassigned"
+      },
+      "status": {
+        "new": "New",
+        "triaged": "Triaged",
+        "qualified": "Qualified",
+        "converted": "Converted",
+        "discarded": "Discarded"
+      },
+      "source": {
+        "form": "Form",
+        "csv": "CSV",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "webchat": "Web chat",
+        "voice": "Voice",
+        "manual": "Manual",
+        "api": "API"
+      },
+      "priority": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "none": "No priority"
+      },
+      "columns": {
+        "name": "Name",
+        "source": "Source",
+        "status": "Status",
+        "priority": "Priority",
+        "received": "Received",
+        "actions": "Actions"
+      },
+      "actions": {
+        "open": "Open",
+        "triage": "Triage",
+        "convert": "Convert",
+        "discard": "Discard",
+        "confirmDiscard": "Discard lead",
+        "cancel": "Cancel",
+        "close": "Close",
+        "import": "Import CSV",
+        "loadMore": "Load more",
+        "saveTriage": "Save triage"
+      },
+      "discard": {
+        "title": "Discard lead",
+        "description": "The lead stays in the record as discarded. Converted leads cannot be discarded.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Reason (optional)"
+      },
+      "convert": {
+        "createOpportunity": "Create opportunity",
+        "opportunityTitle": "Opportunity title",
+        "hint": "Creates or links the customer and contact from the lead. Repeating the conversion is safe."
+      },
+      "detail": {
+        "notFound": "Lead not found.",
+        "payload": "Submitted data",
+        "noPayload": "No data was submitted.",
+        "identity": "Linked records",
+        "contact": "Contact",
+        "customer": "Customer",
+        "opportunity": "Opportunity",
+        "none": "None",
+        "triage": "Triage",
+        "priority": "Priority",
+        "keepPriority": "Keep priority",
+        "language": "Language (e.g. es)",
+        "convert": "Convert",
+        "discard": "Discard",
+        "activity": "Activity",
+        "noActivity": "No activity yet."
+      },
+      "import": {
+        "title": "Import leads from CSV",
+        "description": "Choose a CSV file with a header row. Map the columns, review the preview and confirm.",
+        "file": "CSV file",
+        "tooLarge": "The file is larger than 5 MB.",
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone",
+          "company": "Company",
+          "language": "Language",
+          "message": "Message",
+          "sourceRef": "External ID"
+        },
+        "notMapped": "Not mapped",
+        "totals": "{{rows}} rows: {{ready}} ready, {{duplicate}} duplicates, {{invalid}} invalid, {{known}} linked to known contacts.",
+        "previewLimit": "Showing {{shown}} of {{total}} rows.",
+        "columns": {
+          "line": "Line",
+          "name": "Name",
+          "identity": "Email / phone",
+          "status": "Status"
+        },
+        "rowStatus": {
+          "ready": "Ready",
+          "duplicateInFile": "Duplicate in file",
+          "duplicateExisting": "Already imported",
+          "invalid": "Invalid"
+        },
+        "knownContact": "known contact",
+        "skipDuplicates": "Skip duplicates",
+        "confirm": "Import leads",
+        "result": "Imported {{imported}} leads, skipped {{skipped}}."
+      }
+    },
+    "opportunities": {
+      "board": "Board",
+      "list": "List",
+      "empty": "No opportunities yet.",
+      "selectCompany": "Select a company to see its opportunities.",
+      "loadError": "Could not load opportunities.",
+      "moveError": "The stage could not be changed.",
+      "pendingApproval": "The stage change is waiting for approval.",
+      "columnEmpty": "No opportunities",
+      "nextAction": "Next action",
+      "noNextAction": "No next action",
+      "owner": "Owner",
+      "noOwner": "No owner",
+      "moveTo": "Move to",
+      "columns": {
+        "title": "Opportunity",
+        "stage": "Stage",
+        "amount": "Amount",
+        "nextAction": "Next action",
+        "owner": "Owner"
+      },
+      "stages": {
+        "new": "New",
+        "qualified": "Qualified",
+        "proposal": "Proposal",
+        "negotiation": "Negotiation",
+        "won": "Won",
+        "lost": "Lost"
+      }
+    },
+    "activities": {
+      "title": "Activity",
+      "empty": "No activity recorded.",
+      "loadError": "Could not load the activity.",
+      "more": "Load more",
+      "kinds": {
+        "note": "Note",
+        "call": "Call",
+        "email": "Email",
+        "message": "Message",
+        "meeting": "Meeting",
+        "stage_change": "Stage change",
+        "status_change": "Status change",
+        "task": "Task",
+        "system": "System"
+      }
+    },
+    "commitments": {
+      "title": "Commitments",
+      "empty": "No commitments.",
+      "loadError": "Could not load the commitments.",
+      "resolveError": "The commitment could not be updated.",
+      "who": {
+        "us": "We committed",
+        "them": "Customer committed"
+      },
+      "status": {
+        "proposed": "Proposed",
+        "open": "Open",
+        "kept": "Kept",
+        "missed": "Missed",
+        "cancelled": "Cancelled"
+      },
+      "resolve": {
+        "kept": "Mark kept",
+        "missed": "Mark missed",
+        "cancelled": "Cancel"
+      }
+    }
+  },
+  "schedule": {
+    "selectCompany": "Select a company to see its schedule.",
+    "loadFailed": "Could not load the schedule.",
+    "upcoming": "Upcoming meetings",
+    "upcomingEmpty": "No upcoming meetings.",
+    "bookingTypes": "Booking types",
+    "bookingTypesEmpty": "No booking types yet. Create one to share a public booking link.",
+    "newType": "New booking type",
+    "typeCreated": "Booking type created",
+    "saveFailed": "Could not save",
+    "cancelEvent": "Cancel",
+    "cancelled": "Meeting cancelled",
+    "cancelPending": "Cancellation sent; waiting for the provider to confirm",
+    "cancelFailed": "Could not cancel the meeting",
+    "noGroup": "No customer or opportunity",
+    "pendingNote": "Waiting for provider confirmation",
+    "typeSummary": "{{minutes}} min · buffer {{buffer}} min",
+    "noConnection": "No Google Calendar connection assigned",
+    "linkCopied": "Link copied",
+    "copyLink": "Copy link",
+    "copyFailed": "Could not copy the link",
+    "typeName": "Name",
+    "typeSlug": "Link name (slug)",
+    "typeDuration": "Duration (minutes)",
+    "typeBuffer": "Buffer between meetings (minutes)",
+    "typeTimezone": "Time zone",
+    "typeStart": "Start",
+    "typeEnd": "End",
+    "typeDays": "Available days",
+    "cancel": "Cancel",
+    "save": "Save",
+    "errors": {
+      "name": "Enter a name.",
+      "slug": "Use lowercase letters, digits and dashes.",
+      "duration": "Duration must be between 5 and 480 minutes.",
+      "buffer": "Buffer must be between 0 and 240 minutes.",
+      "hours": "Choose at least one day and an end time after the start."
+    },
+    "weekday": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
+    "status": {
+      "proposed": "Proposed",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "conversations": {
+    "title": "Conversations",
+    "description": "Every thread across email and channels, in one inbox.",
+    "tabs": {
+      "all": "All",
+      "waiting": "Awaiting reply",
+      "overdue": "Overdue"
+    },
+    "filters": {
+      "status": "Status",
+      "channel": "Channel",
+      "assigned": "Assigned",
+      "any": "Any",
+      "unassigned": "Unassigned",
+      "channelAll": "All channels"
+    },
+    "status": {
+      "open": "Open",
+      "waiting_us": "Awaiting reply",
+      "waiting_them": "Waiting for contact",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "channel": {
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "webchat": "Web chat",
+      "voice": "Voice",
+      "sms": "SMS"
+    },
+    "delivery": {
+      "draft": "Draft",
+      "queued": "Queued",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "read": "Read",
+      "failed": "Failed",
+      "uncertain": "Uncertain"
+    },
+    "deliveryHint": {
+      "draft": "Not sent yet.",
+      "queued": "Accepted, waiting for the provider.",
+      "uncertain": "We do not know if this reached the contact. It will not be sent again until someone checks it.",
+      "failed": "Not delivered. Write a new message to try again."
+    },
+    "sla": {
+      "overdue": "Overdue",
+      "due": "Reply due {{when}}",
+      "noDeadline": "No deadline"
+    },
+    "list": {
+      "empty": "No conversations match these filters.",
+      "loadError": "Could not load conversations.",
+      "loadMore": "Load more",
+      "noSubject": "No subject",
+      "lastActivity": "Last activity {{when}}",
+      "unassigned": "Unassigned"
+    },
+    "thread": {
+      "title": "Thread",
+      "empty": "No messages yet.",
+      "inbound": "Contact",
+      "outbound": "Us",
+      "draftLabel": "Draft"
+    },
+    "composer": {
+      "placeholder": "Write a reply…",
+      "saveDraft": "Save draft",
+      "send": "Send",
+      "sending": "Sending…",
+      "saved": "Draft saved",
+      "agentNote": "Agents at draft-only level save drafts; a person sends them.",
+      "approvalNote": "This reply needs approval before it is sent.",
+      "draftOnlyNote": "Saved as a draft. A person must send it."
+    },
+    "actions": {
+      "status": "Status",
+      "priority": "Priority",
+      "apply": "Apply",
+      "assignToMe": "Assign to me",
+      "unassign": "Unassign",
+      "assignedAgent": "Assigned agent",
+      "none": "None"
+    },
+    "reconcile": {
+      "title": "Settle this send",
+      "description": "The provider did not confirm the outcome. Check the provider, then mark what happened.",
+      "markSent": "It was sent",
+      "markFailed": "It was not delivered",
+      "check": "Check with provider"
+    },
+    "detail": {
+      "back": "Back to conversations",
+      "notFound": "This conversation does not exist or you do not have access."
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "send": "The message could not be sent.",
+      "draft": "The draft could not be saved."
     }
   }
 }

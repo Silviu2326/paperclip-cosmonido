@@ -51,7 +51,7 @@ export function registerPublicLeadRoutes(router: Router, db: Db): void {
   const formRateLimit = publicRateLimit(FORM_RATE_LIMIT);
 
   router.post(
-    "/form/:formSlug",
+    "/:companySlug/form/:formSlug",
     formRateLimit,
     express.urlencoded({ extended: false, limit: "64kb" }),
     async (req, res, next) => {

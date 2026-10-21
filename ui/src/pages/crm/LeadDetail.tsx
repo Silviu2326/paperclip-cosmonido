@@ -133,7 +133,7 @@ export function LeadDetail() {
         {payloadEntries.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("crm.leads.detail.noPayload")}</p>
         ) : (
-          <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
             {payloadEntries.map(([key, value]) => (
               <div key={key} className="contents">
                 <dt className="text-muted-foreground">{key}</dt>
@@ -248,7 +248,7 @@ function LinkedRecords({ lead }: { lead: Lead }) {
     [t("crm.leads.detail.opportunity"), lead.opportunityId, "/opportunities"],
   ];
   return (
-    <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
       {rows.map(([label, id, href]) => (
         <div key={label} className="contents">
           <dt className="text-muted-foreground">{label}</dt>

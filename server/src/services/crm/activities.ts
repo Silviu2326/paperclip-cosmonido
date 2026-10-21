@@ -130,7 +130,7 @@ export function crmActivityService(db: Db) {
       ];
       if (input.cursor) {
         const c = decodeCrmCursor(input.cursor);
-        conditions.push(or(lt(orderTs, c.t), and(sql`${orderTs} = ${c.t}`, lt(crmActivities.id, c.i)))!);
+        conditions.push(or(sql`${orderTs} < ${c.t.toISOString()}::timestamptz`, and(sql`${orderTs} = ${c.t.toISOString()}::timestamptz`, lt(crmActivities.id, c.i)))!);
       }
       const rows = await db
         .select()

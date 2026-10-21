@@ -197,7 +197,7 @@ export function opportunityService(db: Db) {
       const orderTs = sql`date_trunc('milliseconds', ${opportunities.updatedAt})`;
       if (query.cursor) {
         const c = decodeCrmCursor(query.cursor);
-        conditions.push(or(lt(orderTs, c.t), and(sql`${orderTs} = ${c.t}`, lt(opportunities.id, c.i)))!);
+        conditions.push(or(sql`${orderTs} < ${c.t.toISOString()}::timestamptz`, and(sql`${orderTs} = ${c.t.toISOString()}::timestamptz`, lt(opportunities.id, c.i)))!);
       }
       const rows = await db
         .select()

@@ -154,8 +154,8 @@ export async function recordInboundMessage(
       .set({
         status: "waiting_us",
         slaDueAt: windowAlreadyOpen ? conv.slaDueAt : slaDeadline(occurredAt),
-        lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${occurredAt}), ${occurredAt})`,
-        lastInboundAt: sql`greatest(coalesce(${conversations.lastInboundAt}, ${occurredAt}), ${occurredAt})`,
+        lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${occurredAt.toISOString()}::timestamptz), ${occurredAt.toISOString()}::timestamptz)`,
+        lastInboundAt: sql`greatest(coalesce(${conversations.lastInboundAt}, ${occurredAt.toISOString()}::timestamptz), ${occurredAt.toISOString()}::timestamptz)`,
         contactId: conv.contactId ?? resolved?.contactId ?? null,
         customerId: conv.customerId ?? resolved?.customerId ?? null,
         updatedAt: new Date(),

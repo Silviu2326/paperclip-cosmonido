@@ -342,7 +342,7 @@ export function conversationService(db: Db) {
         .update(conversations)
         .set({
           lastOutboundAt: sentAt,
-          lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${sentAt}), ${sentAt})`,
+          lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${sentAt.toISOString()}::timestamptz), ${sentAt.toISOString()}::timestamptz)`,
           status: sql`case when ${conversations.status} = 'closed' then 'closed' else 'waiting_them' end`,
           slaDueAt: null,
           updatedAt: new Date(),

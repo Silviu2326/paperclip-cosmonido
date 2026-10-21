@@ -11042,6 +11042,361 @@
       "reasonPhone": "Mismo teléfono",
       "createAnyway": "Crear de todos modos",
       "archivedBadge": "Archivado"
+    },
+    "leads": {
+      "title": "Leads",
+      "selectCompany": "Selecciona una empresa para ver sus leads.",
+      "empty": "Todavía no hay leads.",
+      "emptyFiltered": "Ningún lead coincide con estos filtros.",
+      "filters": {
+        "search": "Buscar leads",
+        "status": "Estado",
+        "source": "Origen",
+        "priority": "Prioridad",
+        "assigned": "Asignación",
+        "any": "Todos",
+        "unassigned": "Sin asignar"
+      },
+      "status": {
+        "new": "Nuevo",
+        "triaged": "Triado",
+        "qualified": "Cualificado",
+        "converted": "Convertido",
+        "discarded": "Descartado"
+      },
+      "source": {
+        "form": "Formulario",
+        "csv": "CSV",
+        "email": "Correo",
+        "whatsapp": "WhatsApp",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "webchat": "Chat web",
+        "voice": "Voz",
+        "manual": "Manual",
+        "api": "API"
+      },
+      "priority": {
+        "low": "Baja",
+        "normal": "Normal",
+        "high": "Alta",
+        "none": "Sin prioridad"
+      },
+      "columns": {
+        "name": "Nombre",
+        "source": "Origen",
+        "status": "Estado",
+        "priority": "Prioridad",
+        "received": "Recibido",
+        "actions": "Acciones"
+      },
+      "actions": {
+        "open": "Abrir",
+        "triage": "Triar",
+        "convert": "Convertir",
+        "discard": "Descartar",
+        "confirmDiscard": "Descartar lead",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "import": "Importar CSV",
+        "loadMore": "Cargar más",
+        "saveTriage": "Guardar triaje"
+      },
+      "discard": {
+        "title": "Descartar lead",
+        "description": "El lead queda en el registro como descartado. Los leads convertidos no se pueden descartar.",
+        "reasonLabel": "Motivo",
+        "reasonPlaceholder": "Motivo (opcional)"
+      },
+      "convert": {
+        "createOpportunity": "Crear oportunidad",
+        "opportunityTitle": "Título de la oportunidad",
+        "hint": "Crea o enlaza el cliente y el contacto a partir del lead. Repetir la conversión es seguro."
+      },
+      "detail": {
+        "notFound": "Lead no encontrado.",
+        "payload": "Datos enviados",
+        "noPayload": "No se enviaron datos.",
+        "identity": "Registros vinculados",
+        "contact": "Contacto",
+        "customer": "Cliente",
+        "opportunity": "Oportunidad",
+        "none": "Ninguno",
+        "triage": "Triaje",
+        "priority": "Prioridad",
+        "keepPriority": "Mantener prioridad",
+        "language": "Idioma (p. ej. es)",
+        "convert": "Convertir",
+        "discard": "Descartar",
+        "activity": "Actividad",
+        "noActivity": "Todavía no hay actividad."
+      },
+      "import": {
+        "title": "Importar leads desde CSV",
+        "description": "Elige un archivo CSV con fila de cabecera. Asigna las columnas, revisa la vista previa y confirma.",
+        "file": "Archivo CSV",
+        "tooLarge": "El archivo supera los 5 MB.",
+        "fields": {
+          "name": "Nombre",
+          "email": "Correo",
+          "phone": "Teléfono",
+          "company": "Empresa",
+          "language": "Idioma",
+          "message": "Mensaje",
+          "sourceRef": "ID externo"
+        },
+        "notMapped": "Sin asignar",
+        "totals": "{{rows}} filas: {{ready}} listas, {{duplicate}} duplicadas, {{invalid}} no válidas, {{known}} vinculadas a contactos conocidos.",
+        "previewLimit": "Mostrando {{shown}} de {{total}} filas.",
+        "columns": {
+          "line": "Línea",
+          "name": "Nombre",
+          "identity": "Correo / teléfono",
+          "status": "Estado"
+        },
+        "rowStatus": {
+          "ready": "Lista",
+          "duplicateInFile": "Duplicada en el archivo",
+          "duplicateExisting": "Ya importada",
+          "invalid": "No válida"
+        },
+        "knownContact": "contacto conocido",
+        "skipDuplicates": "Omitir duplicados",
+        "confirm": "Importar leads",
+        "result": "Importados {{imported}} leads, omitidos {{skipped}}."
+      }
+    },
+    "opportunities": {
+      "board": "Tablero",
+      "list": "Lista",
+      "empty": "Todavía no hay oportunidades.",
+      "selectCompany": "Selecciona una empresa para ver sus oportunidades.",
+      "loadError": "No se pudieron cargar las oportunidades.",
+      "moveError": "No se pudo cambiar la etapa.",
+      "pendingApproval": "El cambio de etapa espera aprobación.",
+      "columnEmpty": "Sin oportunidades",
+      "nextAction": "Próxima acción",
+      "noNextAction": "Sin próxima acción",
+      "owner": "Responsable",
+      "noOwner": "Sin responsable",
+      "moveTo": "Mover a",
+      "columns": {
+        "title": "Oportunidad",
+        "stage": "Etapa",
+        "amount": "Importe",
+        "nextAction": "Próxima acción",
+        "owner": "Responsable"
+      },
+      "stages": {
+        "new": "Nueva",
+        "qualified": "Calificada",
+        "proposal": "Propuesta",
+        "negotiation": "Negociación",
+        "won": "Ganada",
+        "lost": "Perdida"
+      }
+    },
+    "activities": {
+      "title": "Actividad",
+      "empty": "No hay actividad registrada.",
+      "loadError": "No se pudo cargar la actividad.",
+      "more": "Cargar más",
+      "kinds": {
+        "note": "Nota",
+        "call": "Llamada",
+        "email": "Correo",
+        "message": "Mensaje",
+        "meeting": "Reunión",
+        "stage_change": "Cambio de etapa",
+        "status_change": "Cambio de estado",
+        "task": "Tarea",
+        "system": "Sistema"
+      }
+    },
+    "commitments": {
+      "title": "Compromisos",
+      "empty": "No hay compromisos.",
+      "loadError": "No se pudieron cargar los compromisos.",
+      "resolveError": "No se pudo actualizar el compromiso.",
+      "who": {
+        "us": "Nos comprometimos",
+        "them": "El cliente se comprometió"
+      },
+      "status": {
+        "proposed": "Propuesto",
+        "open": "Abierto",
+        "kept": "Cumplido",
+        "missed": "Incumplido",
+        "cancelled": "Cancelado"
+      },
+      "resolve": {
+        "kept": "Marcar cumplido",
+        "missed": "Marcar incumplido",
+        "cancelled": "Cancelar"
+      }
+    }
+  },
+  "schedule": {
+    "selectCompany": "Selecciona una empresa para ver su agenda.",
+    "loadFailed": "No se pudo cargar la agenda.",
+    "upcoming": "Próximas reuniones",
+    "upcomingEmpty": "No hay reuniones próximas.",
+    "bookingTypes": "Tipos de reserva",
+    "bookingTypesEmpty": "Aún no hay tipos de reserva. Crea uno para compartir un enlace público de reserva.",
+    "newType": "Nuevo tipo de reserva",
+    "typeCreated": "Tipo de reserva creado",
+    "saveFailed": "No se pudo guardar",
+    "cancelEvent": "Cancelar",
+    "cancelled": "Reunión cancelada",
+    "cancelPending": "Cancelación enviada; esperando la confirmación del proveedor",
+    "cancelFailed": "No se pudo cancelar la reunión",
+    "noGroup": "Sin cliente ni oportunidad",
+    "pendingNote": "Pendiente de confirmación del proveedor",
+    "typeSummary": "{{minutes}} min · buffer {{buffer}} min",
+    "noConnection": "Sin conexión de Google Calendar asignada",
+    "linkCopied": "Enlace copiado",
+    "copyLink": "Copiar enlace",
+    "copyFailed": "No se pudo copiar el enlace",
+    "typeName": "Nombre",
+    "typeSlug": "Nombre del enlace (slug)",
+    "typeDuration": "Duración (minutos)",
+    "typeBuffer": "Margen entre reuniones (minutos)",
+    "typeTimezone": "Zona horaria",
+    "typeStart": "Inicio",
+    "typeEnd": "Fin",
+    "typeDays": "Días disponibles",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "errors": {
+      "name": "Escribe un nombre.",
+      "slug": "Usa letras minúsculas, dígitos y guiones.",
+      "duration": "La duración debe estar entre 5 y 480 minutos.",
+      "buffer": "El margen debe estar entre 0 y 240 minutos.",
+      "hours": "Elige al menos un día y una hora de fin posterior al inicio."
+    },
+    "weekday": {
+      "0": "Dom",
+      "1": "Lun",
+      "2": "Mar",
+      "3": "Mié",
+      "4": "Jue",
+      "5": "Vie",
+      "6": "Sáb"
+    },
+    "status": {
+      "proposed": "Propuesta",
+      "confirmed": "Confirmada",
+      "cancelled": "Cancelada"
+    }
+  },
+  "conversations": {
+    "title": "Conversaciones",
+    "description": "Todos los hilos de correo y canales, en una sola bandeja.",
+    "tabs": {
+      "all": "Todas",
+      "waiting": "Esperan respuesta",
+      "overdue": "Vencidas"
+    },
+    "filters": {
+      "status": "Estado",
+      "channel": "Canal",
+      "assigned": "Responsable",
+      "any": "Cualquiera",
+      "unassigned": "Sin asignar",
+      "channelAll": "Todos los canales"
+    },
+    "status": {
+      "open": "Abierta",
+      "waiting_us": "Esperan respuesta",
+      "waiting_them": "Esperando al contacto",
+      "closed": "Cerrada"
+    },
+    "priority": {
+      "low": "Baja",
+      "normal": "Normal",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "channel": {
+      "email": "Correo",
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "webchat": "Chat web",
+      "voice": "Voz",
+      "sms": "SMS"
+    },
+    "delivery": {
+      "draft": "Borrador",
+      "queued": "En cola",
+      "sent": "Enviado",
+      "delivered": "Entregado",
+      "read": "Leído",
+      "failed": "Fallido",
+      "uncertain": "Incierto"
+    },
+    "deliveryHint": {
+      "draft": "Todavía no enviado.",
+      "queued": "Aceptado, esperando al proveedor.",
+      "uncertain": "No sabemos si llegó al contacto. No se reenviará hasta que alguien lo revise.",
+      "failed": "No entregado. Escribe un mensaje nuevo para reintentar."
+    },
+    "sla": {
+      "overdue": "Vencida",
+      "due": "Respuesta antes de {{when}}",
+      "noDeadline": "Sin plazo"
+    },
+    "list": {
+      "empty": "Ninguna conversación coincide con estos filtros.",
+      "loadError": "No se pudieron cargar las conversaciones.",
+      "loadMore": "Cargar más",
+      "noSubject": "Sin asunto",
+      "lastActivity": "Última actividad {{when}}",
+      "unassigned": "Sin asignar"
+    },
+    "thread": {
+      "title": "Hilo",
+      "empty": "Todavía no hay mensajes.",
+      "inbound": "Contacto",
+      "outbound": "Nosotros",
+      "draftLabel": "Borrador"
+    },
+    "composer": {
+      "placeholder": "Escribe una respuesta…",
+      "saveDraft": "Guardar borrador",
+      "send": "Enviar",
+      "sending": "Enviando…",
+      "saved": "Borrador guardado",
+      "agentNote": "Los agentes en nivel solo borrador guardan borradores; una persona los envía.",
+      "approvalNote": "Esta respuesta necesita aprobación antes de enviarse.",
+      "draftOnlyNote": "Guardado como borrador. Una persona debe enviarlo."
+    },
+    "actions": {
+      "status": "Estado",
+      "priority": "Prioridad",
+      "apply": "Aplicar",
+      "assignToMe": "Asignarme",
+      "unassign": "Quitar asignación",
+      "assignedAgent": "Agente asignado",
+      "none": "Ninguno"
+    },
+    "reconcile": {
+      "title": "Resolver este envío",
+      "description": "El proveedor no confirmó el resultado. Revisa el proveedor y marca lo que pasó.",
+      "markSent": "Se envió",
+      "markFailed": "No se entregó",
+      "check": "Consultar al proveedor"
+    },
+    "detail": {
+      "back": "Volver a conversaciones",
+      "notFound": "Esta conversación no existe o no tienes acceso."
+    },
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "send": "No se pudo enviar el mensaje.",
+      "draft": "No se pudo guardar el borrador."
     }
   }
 }
