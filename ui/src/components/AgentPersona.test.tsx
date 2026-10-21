@@ -2,7 +2,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { appearanceForPalette } from "@paperclipai/shared";
+import { appearanceForLpc, appearanceForPalette, randomLpcCharacter } from "@paperclipai/shared";
 import { AgentAvatar } from "./AgentAvatar";
 import { AgentCharacter } from "./AgentCharacter";
 import { useAgentAppearanceDraft } from "../hooks/useAgentAppearanceDraft";
@@ -66,13 +66,22 @@ describe("agent persona presentation", () => {
   it("selects the correct saved draft when the company changes without remounting", async () => {
     let draft!: ReturnType<typeof useAgentAppearanceDraft>;
     function Draft({ company }: { company: string }) { draft = useAgentAppearanceDraft(`${company}:new-agent`); return null; }
-    sessionStorage.setItem("paperclip.agent-appearance.two:new-agent", JSON.stringify(appearance));
+    const saved = appearanceForLpc(randomLpcCharacter(), "deep-tide");
+    sessionStorage.setItem("paperclip.agent-appearance.two:new-agent", JSON.stringify(saved));
     await act(async () => root.render(<Draft company="one" />));
     const first = draft.appearance;
     await act(async () => root.render(<Draft company="two" />));
-    expect(draft.appearance).toEqual(appearance);
+    expect(draft.appearance).toEqual(saved);
     await act(async () => root.render(<Draft company="one" />));
     expect(draft.appearance).toEqual(first);
+  });
+  it("replaces a stale ClipLab draft with a pixel-art character", async () => {
+    let draft!: ReturnType<typeof useAgentAppearanceDraft>;
+    function Draft() { draft = useAgentAppearanceDraft("company:new-agent"); return null; }
+    sessionStorage.setItem("paperclip.agent-appearance.company:new-agent", JSON.stringify(appearance));
+    await act(async () => root.render(<Draft />));
+    expect(draft.appearance.characterVersion).toBe("lpc-v1");
+    expect(JSON.parse(sessionStorage.getItem("paperclip.agent-appearance.company:new-agent")!).characterVersion).toBe("lpc-v1");
   });
   it("retains the draft assignment across remounts and clears it only after creation", async () => {
     let draft!: ReturnType<typeof useAgentAppearanceDraft>;
