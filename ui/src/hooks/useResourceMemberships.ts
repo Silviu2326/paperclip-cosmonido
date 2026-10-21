@@ -4,7 +4,7 @@ import type {
   ResourceMembershipState,
   ResourceMemberships,
 } from "@paperclipai/shared";
-import { resourceMembershipsApi } from "../api/resourceMemberships";
+import { resourceMembershipsApi, type ExplorerStarTarget } from "../api/resourceMemberships";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
 
@@ -27,9 +27,13 @@ function emptyMemberships(): ResourceMemberships {
     starredProjectIds: [],
     starredAgentIds: [],
     starredDocumentIds: [],
+    starredCompanyFileIds: [],
+    starredArtifactRefs: [],
     projectStarredAt: {},
     agentStarredAt: {},
     documentStarredAt: {},
+    companyFileStarredAt: {},
+    artifactStarredAt: {},
     updatedAt: null,
   };
 }
@@ -195,6 +199,75 @@ export function useResourceMembershipMutation(companyId: string | null | undefin
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["primary-agent", companyId] });
       queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+/** Toggles a company file or Salida artifact star (explorer quick access). */
+function applyExplorerStar(
+  current: ResourceMemberships | undefined,
+  target: ExplorerStarTarget,
+  starred: boolean,
+): ResourceMemberships {
+  const base = current ?? emptyMemberships();
+  const toggle = (ids: string[] | undefined, id: string) => {
+    const list = ids ?? [];
+    const without = list.filter((existing) => existing !== id);
+    return starred ? [id, ...without] : without;
+  };
+  if (target.kind === "company-file") {
+    return { ...base, starredCompanyFileIds: toggle(base.starredCompanyFileIds, target.fileId), updatedAt: new Date() };
+  }
+  if (target.kind === "document") {
+    return { ...base, starredDocumentIds: toggle(base.starredDocumentIds, target.documentId), updatedAt: new Date() };
+  }
+  return {
+    ...base,
+    starredArtifactRefs: toggle(base.starredArtifactRefs, `${target.source}:${target.artifactId}`),
+    updatedAt: new Date(),
+  };
+}
+
+export function useExplorerStarMutation(companyId: string | null | undefined) {
+  const queryClient = useQueryClient();
+  const { pushToast } = useToastActions();
+  const queryKey = queryKeys.resourceMemberships.mine(companyId ?? "__none__");
+
+  return useMutation({
+    mutationFn: (variables: { target: ExplorerStarTarget; starred: boolean }) => {
+      if (!companyId) throw new Error("Select an organization first.");
+      const { target, starred } = variables;
+      if (target.kind === "company-file") {
+        return resourceMembershipsApi.updateCompanyFile(companyId, target.fileId, { starred });
+      }
+      if (target.kind === "document") {
+        return resourceMembershipsApi.updateDocument(companyId, target.documentId, { starred });
+      }
+      return resourceMembershipsApi.updateArtifact(companyId, target.source, target.artifactId, { starred });
+    },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<ResourceMemberships>(queryKey);
+      queryClient.setQueryData<ResourceMemberships>(
+        queryKey,
+        applyExplorerStar(previous, variables.target, variables.starred),
+      );
+      return { previous };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      pushToast({
+        title: variables.starred ? "Couldn't add favorite." : "Couldn't remove favorite.",
+        body: error instanceof Error ? error.message : "Try again.",
+        tone: "error",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+      if (companyId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.companyFiles.all(companyId) });
+        queryClient.invalidateQueries({ queryKey: ["artifacts", companyId] });
+      }
     },
   });
 }
