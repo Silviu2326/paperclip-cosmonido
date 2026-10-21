@@ -1534,6 +1534,34 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   animation: robot-loading-shadow 1.8s ease-in-out infinite;
 }
 
+/* lpc-v1 pixel-art agent sprites. The sheet is served at native 64px frames,
+   one row per character state; the element scales it with nearest-neighbour
+   sampling and steps through a row with a CSS animation. Frame geometry
+   (--lpc-end, position, duration, steps) is computed from the shared
+   LPC_POSES contract by LpcCharacter.tsx. */
+.pixel-art {
+  image-rendering: pixelated;
+}
+
+.lpc-sprite {
+  display: inline-block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation-name: lpc-sprite-row;
+  animation-iteration-count: infinite;
+}
+
+@keyframes lpc-sprite-row {
+  from { background-position-x: 0%; }
+  to { background-position-x: var(--lpc-end, 0%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lpc-sprite {
+    animation: none;
+  }
+}
+
 @keyframes robot-loading-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.5px); }

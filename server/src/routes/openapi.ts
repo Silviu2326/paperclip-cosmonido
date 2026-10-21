@@ -1334,7 +1334,7 @@ const RUNTIME_TOOLS_OPERATIONS = new Set([
 ]);
 
 const PUBLIC_OPERATIONS = new Set([
-  "GET /api/agent-avatars/{version}/{palette}/{file}",
+  "GET /api/agent-avatars/{version}/{preset}/{file}",
   "GET /api/health",
   "GET /api/liveness",
   "HEAD /api/liveness",
@@ -3159,20 +3159,21 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
-  path: "/api/agent-avatars/{version}/{palette}/{file}",
+  path: "/api/agent-avatars/{version}/{preset}/{file}",
   tags: ["agents"],
   summary: "Render or retrieve a public preset agent portrait",
-  description: "On-demand PNG artwork; no agent or company lookup. Logical size determines face detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion.",
+  description: "On-demand PNG artwork; no agent or company lookup. cap-v1 presets are palette ids (or muted-dream); lpc-v1 presets are the encoded pixel-art layer spec (bodyType.skin.eyes.hair.hairColor.torso.torsoColor.legs.legsColor.feet.feetColor) and additionally accept muted=1 and the file sheet.png, the native 64px animation sheet (one row per character state). Logical size determines detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion. GET /api/agent-avatars/lpc-v1/credits serves the Liberated Pixel Cup attribution CSV.",
   request: {
     params: z.object({
-      version: z.literal("cap-v1"),
-      palette: z.enum([...AGENT_PALETTE_IDS, "muted-dream"]),
-      file: z.enum(CHARACTER_STATES.map(pose => `${pose}.png`)),
+      version: z.enum(["cap-v1", "lpc-v1"]),
+      preset: z.string().describe("cap-v1: " + [...AGENT_PALETTE_IDS, "muted-dream"].join(" | ") + "; lpc-v1: encoded layer spec"),
+      file: z.enum([...CHARACTER_STATES.map(pose => `${pose}.png`), "sheet.png"]),
     }),
     query: z.object({
       size: z.enum(AGENT_AVATAR_SIZES.map(String)).optional().default("512"),
       scale: z.enum(["1", "2"]).optional().default("1"),
       background: z.enum(["transparent", "paperclip-dark"]).optional().default("transparent"),
+      muted: z.enum(["0", "1"]).optional().describe("lpc-v1 only: greyscale presentation"),
     }).strict(),
   },
   responses: {

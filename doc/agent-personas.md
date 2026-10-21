@@ -1,7 +1,22 @@
 # Agent personas
 
 Agents have a persisted visual identity independent of prompts and runtime
-configuration: `{ schemaVersion: 1, characterVersion: "cap-v1", paletteId }`.
+configuration. Two character versions coexist and are both frozen:
+
+- `lpc-v1` (default for new agents): a pixel-art character composed from
+  Liberated Pixel Cup layers, `{ schemaVersion: 1, characterVersion: "lpc-v1",
+  paletteId, lpc: { bodyType, skin, eyes, hair, hairColor, torso, torsoColor,
+  legs, legsColor, feet, feetColor } }`. See [Pixel-art characters](#pixel-art-characters-lpc-v1).
+- `cap-v1`: the ClipLab character, `{ schemaVersion: 1, characterVersion:
+  "cap-v1", paletteId }`, described in the rest of this section. Existing
+  agents keep it until someone opens the character editor.
+
+`paletteId` is present in both versions so accent-colour consumers keep working.
+`resolveAgentAppearance` accepts either; unknown or missing values fall back to
+the legacy cap-v1 ID mapping.
+
+## ClipLab (cap-v1)
+
 The cap-v1 library contains 17 permanent palettes and a presentation-only gray
 Muted dream palette. The character itself is one ClipLab studio export —
 `ui/src/assets/cliplab/onboarding.character.json` (end cap, custom idle,
@@ -188,3 +203,79 @@ token gates, UI build, and Storybook build. Hands-on inspection confirmed the
 single animated header at `/PER/agents/persona-tester-renamed/overview` and the
 larger onboarding character in the real route components. The repository-wide
 checks above were not repeated for this UI refinement.
+
+## Pixel-art characters (lpc-v1)
+
+`lpc-v1` composes the same artwork and palette system as the
+[Universal LPC Spritesheet Character Generator](https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator).
+The frozen catalog lives in `packages/shared/src/lpc-character.ts`: two body
+types, seven skin tones, six eye colours, seventeen hair styles (including none),
+thirteen hair colours, eight tops, six leg items, five shoes, and the 24 ULPC
+cloth colours. `lpcLayers` returns the draw order (feet, body, legs, top, head,
+hair by z position) and the material recolour for each layer. `randomLpcCharacter`
+is the persisted random assignment; `randomAgentAppearance` now returns lpc-v1.
+
+### Assets and attribution
+
+`server/src/lpc-assets/` holds the vendored subset: 58 sprite folders x six
+animations (idle, walk, emote, sit, spellcast, jump; ~2 MB), the four ULPC
+palettes with their base variants, `CREDITS.csv` (the upstream rows for every
+vendored folder) and `PROVENANCE.md` (upstream commit). Regenerate or verify it
+with `node scripts/sync-lpc-assets.mjs --source <generator checkout>` and
+`--check`; the server build copies the folder to `dist/lpc-assets`. The artwork
+is CC-BY-SA 3.0 (some folders also OGA-BY / GPL); the credits file is served at
+`GET /api/agent-avatars/lpc-v1/credits` and linked from the character editor,
+which satisfies the attribution requirement. Keep the bundle immutable; new
+artwork or palette changes need a new character version.
+
+### Rendering and URLs
+
+`GET /api/agent-avatars/lpc-v1/<spec>/<pose>.png?size=24&scale=2[&muted=1][&background=paperclip-dark]`
+
+`<spec>` is `encodeLpcSpec(appearance.lpc)`: the eleven catalog ids joined with
+dots in `LPC_FIELDS` order (`female.brown.green.bob.pink.cardigan.teal.formal.navy.boots.leather`).
+`decodeLpcSpec` validates every token, so the endpoint stays public preset
+artwork with a finite, cacheable key space. The avatar worker
+(`server/src/services/lpc-character-renderer.ts`) decodes each layer's
+down-facing row with sharp, recolours it by mapping the material's base palette
+to the chosen variant (tolerance 1 per channel, as the generator does),
+composites in z order and extracts the pose's `still` frame. Sizes below 64
+logical px are bust-cropped (a 32 px square anchored to the first opaque row);
+larger sizes use the full 64 px frame. Enlarging uses nearest-neighbour sampling.
+`muted=1` is greyscale. Cache keys, admission limits, ETags and immutability are
+shared with cap-v1 (`avatarCacheKey`).
+
+`GET /api/agent-avatars/lpc-v1/<spec>/sheet.png[?muted=1]` returns the native
+64 px animation sheet: one row per `CHARACTER_STATES` entry, the pose's
+materialized frame sequence (`LPC_POSES[state].frames`) across, padded to
+`LPC_SHEET_COLUMNS`. Poses map states to LPC animations: rest/idle/listening use
+idle, thinking and loading use spellcast, working walks, success jumps, confused
+emotes and sleepy sits.
+
+### Components
+
+- `AgentAvatar` adds the `pixel-art` class (`image-rendering: pixelated`) for
+  lpc-v1 portraits; everything else is unchanged.
+- `AgentCharacter` dispatches on the resolved version: lpc-v1 renders
+  `LpcCharacter`, a CSS sprite over the sheet (`.lpc-sprite` and the
+  `lpc-sprite-row` keyframes in `ui/src/index.css`, geometry from
+  `lpcSpriteStyle`). The still portrait stays until the sheet has loaded and is
+  the only rendering offscreen, under reduced motion, with `motion="still"` or in
+  the `rest` state. No canvas, WebGL, renderer slot or per-frame JavaScript.
+- `LpcCharacterEditorButton` / `LpcCharacterEditorDialog`
+  (`ui/src/components/LpcCharacterEditor.tsx`) sit under the avatar on the agent
+  page: live preview with a state selector, selects for body/hair/clothes, colour
+  swatches from `LPC_SWATCHES`, randomize, and the credits link. Saving sends the
+  full appearance through `PATCH /companies/:companyId/agents/:agentId`
+  (`updateAgentSchema.appearance`), which records a config revision; agents on
+  cap-v1 or with an uploaded image start from a random pixel-art draft and
+  switch on save.
+
+Focused checks:
+
+```sh
+pnpm exec vitest run packages/shared/src/lpc-character.test.ts
+pnpm exec vitest run server/src/__tests__/lpc-character-renderer.test.ts
+pnpm exec vitest run ui/src/components/LpcCharacter.test.tsx
+node scripts/sync-lpc-assets.mjs --check
+```

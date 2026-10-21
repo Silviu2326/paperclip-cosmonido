@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
-import { resolveAgentAppearance, type CharacterState } from "@paperclipai/shared";
+import { isLpcAppearance, resolveAgentAppearance, type AgentAppearance, type CharacterState } from "@paperclipai/shared";
+import { LpcCharacter } from "./LpcCharacter";
 import { cn } from "@/lib/utils";
 import { characterSlot } from "@/lib/agent-character-slot";
 import { AgentAvatar, avatarSizeClasses, type AgentAvatarProps } from "./AgentAvatar";
@@ -14,8 +15,17 @@ export interface AgentCharacterProps extends Omit<AgentAvatarProps, "pose"> {
   followCursor?: boolean;
   followRotation?: boolean;
 }
-export function AgentCharacter({ agent, appearance, size = 256, state = "idle", muted = false, motion = "auto", trackingRegion, trackingScope = "region", followCursor = true, followRotation = true, className, label, name }: AgentCharacterProps) {
+/** Dispatches on the persisted character version: lpc-v1 pixel-art sprites or the ClipLab cap-v1 live renderer. */
+export function AgentCharacter(props: AgentCharacterProps) {
+  const { agent, appearance } = props;
   const identity = useMemo(() => resolveAgentAppearance(appearance ?? agent?.appearance, agent?.id), [appearance, agent?.appearance, agent?.id]);
+  if (isLpcAppearance(identity)) {
+    const { trackingRegion: _region, trackingScope: _scope, followCursor: _cursor, followRotation: _rotation, ...rest } = props;
+    return <LpcCharacter {...rest} appearance={identity} />;
+  }
+  return <ClipLabCharacter {...props} identity={identity} />;
+}
+function ClipLabCharacter({ agent, identity, size = 256, state = "idle", muted = false, motion = "auto", trackingRegion, trackingScope = "region", followCursor = true, followRotation = true, className, label, name }: AgentCharacterProps & { identity: AgentAppearance }) {
   const root = useRef<HTMLSpanElement>(null), host = useRef<HTMLSpanElement>(null), player = useRef<Player | null>(null);
   const slotId = useRef(Symbol("agent-character"));
   const owner = useSyncExternalStore(characterSlot.subscribe, characterSlot.getSnapshot, () => null);

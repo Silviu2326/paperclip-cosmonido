@@ -7,6 +7,7 @@ import { AgentConnectionInstructions } from "@/features/connections/ConnectionIn
 import type { AgentInstructionCandidate, AgentInstructionsBundle } from "@paperclipai/shared";
 import { InstructionHistory } from "../components/InstructionHistory";
 import { AgentCharacter } from "../components/AgentCharacter";
+import { LpcCharacterEditorButton } from "../components/LpcCharacterEditor";
 import { characterStateForAgent } from "@paperclipai/shared";
 import { mergeRunLogChunks, readChunkSeq } from "../lib/run-log-chunks";
 import { getPageVisibility, usePageVisibility } from "../lib/page-visibility";
@@ -1261,8 +1262,11 @@ export function AgentDetail() {
       {/* Header */}
       <header className="flex flex-wrap items-center justify-between gap-5 border-b border-border pb-6">
         <div className="flex min-w-0 items-center gap-4">
-          <div role="img" aria-label={t("agentDetail.avatarLabel", { name: agent.name })} className="shrink-0">
-            <AgentCharacter agent={agent} state={characterStateForAgent(currentAgent.status)} size={96} trackingScope="page" />
+          <div className="flex shrink-0 flex-col items-center gap-1">
+            <div role="img" aria-label={t("agentDetail.avatarLabel", { name: agent.name })}>
+              <AgentCharacter agent={agent} state={characterStateForAgent(currentAgent.status)} size={96} trackingScope="page" />
+            </div>
+            <LpcCharacterEditorButton agent={agent} />
           </div>
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2"><h1 className="truncate text-2xl font-semibold tracking-tight">{agent.name}</h1><PrimaryAgentIndicator agentId={agent.id} companyId={agent.companyId} /></div>
