@@ -44,8 +44,9 @@ import { commercialDecisionRoutes, publicDecisionRoutes } from "./routes/commerc
 import { proposalRoutes, publicProposalRoutes } from "./routes/proposals.js";
 import { handoffRoutes } from "./routes/handoff.js";
 import { serviceAgreementRoutes } from "./routes/service-agreements.js";
-import { leadQualificationRoutes } from "./routes/leads.js";
+import { leadQualificationRoutes } from "./routes/lead-qualification.js";
 import { commitmentRoutes, commercialTriggerRoutes } from "./routes/commitments.js";
+import { detectedCommitmentsPersist } from "./services/crm/commitments.js";
 import { autonomyService } from "./services/autonomy.js";
 import { playbookService } from "./services/playbooks.js";
 import type { CommercialDecisionDeps } from "./services/commercial-decisions.js";
@@ -125,6 +126,17 @@ import { pipelineRoutes } from "./routes/pipelines.js";
 import { environmentRoutes } from "./routes/environments.js";
 import { executionWorkspaceRoutes } from "./routes/execution-workspaces.js";
 import { goalRoutes } from "./routes/goals.js";
+import { crmRoutes } from "./routes/crm.js";
+import { crmMemoryRoutes } from "./routes/crm-memory.js";
+import { customerChannelRoutes } from "./routes/customer-channels.js";
+import { webchatRoutes } from "./routes/webchat.js";
+import { registerChannelTransports } from "./services/conversations/transports/register.js";
+import { registerWebchatTransport } from "./services/conversations/transports/register-webchat.js";
+import { leadRoutes } from "./routes/leads.js";
+import { conversationRoutes } from "./routes/conversations.js";
+import { channelInboundRoutes } from "./routes/channels-inbound.js";
+import { calendarRoutes } from "./routes/calendar.js";
+import { publicSurfaceRoutes } from "./routes/public-surface.js";
 import { onboardingSeedRoutes } from "./routes/onboarding-seed.js";
 import { boardChatRoutes } from "./routes/board-chat.js";
 import { approvalRoutes } from "./routes/approvals.js";
@@ -905,7 +917,7 @@ export async function createApp(
   api.use(handoffRoutes(db));
   api.use(serviceAgreementRoutes(db));
   api.use(leadQualificationRoutes(db));
-  api.use(commitmentRoutes(db));
+  api.use(commitmentRoutes(db, { persist: detectedCommitmentsPersist(db) }));
   api.use(commercialTriggerRoutes(db, {
     findWaitingRuns: async (companyId, subjectKind, subjectId) => {
       const runs = await sprint3Playbooks.listRuns(companyId, { status: "waiting", subjectKind, subjectId });
@@ -922,6 +934,17 @@ export async function createApp(
   }));
   api.use(mediaStudioRoutes(db));
   api.use(deliverableReviewRoutes(db));
+  registerChannelTransports(db);
+  registerWebchatTransport();
+  api.use(crmRoutes(db));
+  api.use(customerChannelRoutes(db));
+  api.use(webchatRoutes(db));
+  api.use(crmMemoryRoutes(db));
+  api.use(leadRoutes(db));
+  api.use(conversationRoutes(db, emailChannels));
+  api.use(channelInboundRoutes(db));
+  api.use(calendarRoutes(db));
+  api.use("/p", publicSurfaceRoutes(db));
   api.use(onboardingSeedRoutes(db));
   api.use(boardChatRoutes(db, { deploymentMode: opts.deploymentMode }));
   api.use(voiceSessionRoutes(db, chatChannels.voice));

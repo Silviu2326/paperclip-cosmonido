@@ -16,7 +16,12 @@ export interface CommitmentPersistResult {
 }
 
 export interface CommitmentServiceDeps {
-  persist?: (companyId: string, candidates: CommitmentCandidate[], actor: CommitmentActor) => Promise<CommitmentPersistResult>;
+  persist?: (
+    companyId: string,
+    candidates: CommitmentCandidate[],
+    actor: CommitmentActor,
+    context: { conversationId: string },
+  ) => Promise<CommitmentPersistResult>;
   alert?: (companyId: string, commitment: { id: string; dueAt: string }) => Promise<void>;
 }
 
@@ -96,7 +101,7 @@ export function commitmentService(db: Db, deps: CommitmentServiceDeps = {}) {
   async function extract(companyId: string, input: CommitmentsExtractInput, actor: CommitmentActor) {
     const candidates = normalizeCandidates(input.conversationId, input);
     const persisted: CommitmentPersistResult = deps.persist
-      ? await deps.persist(companyId, candidates, actor)
+      ? await deps.persist(companyId, candidates, actor, { conversationId: input.conversationId })
       : { created: 0, existing: 0, unavailable: COMMITMENTS_UNAVAILABLE_REASON };
     return { candidates, persisted };
   }

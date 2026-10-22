@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { LeadQualification } from "@paperclipai/shared";
-import { leadsApi } from "../api/leads";
+import { leadQualificationApi } from "../api/lead-qualification";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ function latestQualification(rows: LeadQualification[] | undefined): LeadQualifi
 export function LeadQualificationCard({ companyId, leadId, threshold, canRequalify = false, onRequalify, className }: LeadQualificationCardProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["leads", companyId, leadId, "qualifications"] as const,
-    queryFn: () => leadsApi.qualifications(companyId, leadId),
+    queryFn: () => leadQualificationApi.qualifications(companyId, leadId),
     enabled: Boolean(companyId && leadId),
   });
   const latest = latestQualification(data);

@@ -565,6 +565,34 @@ export const queryKeys = {
     list: (companyId: string) => ["goals", companyId] as const,
     detail: (id: string) => ["goals", "detail", id] as const,
   },
+  customers: {
+    list: (companyId: string) => ["customers", companyId] as const,
+    detail: (id: string) => ["customers", "detail", id] as const,
+  },
+  contacts: {
+    list: (companyId: string) => ["contacts", companyId] as const,
+    detail: (id: string) => ["contacts", "detail", id] as const,
+  },
+  leads: {
+    list: (companyId: string) => ["leads", companyId] as const,
+    detail: (id: string) => ["leads", "detail", id] as const,
+  },
+  opportunities: {
+    list: (companyId: string) => ["opportunities", companyId] as const,
+    detail: (id: string) => ["opportunities", "detail", id] as const,
+  },
+  conversations: {
+    list: (companyId: string) => ["conversations", companyId] as const,
+    detail: (id: string) => ["conversations", "detail", id] as const,
+  },
+  commitments: {
+    list: (companyId: string) => ["commitments", companyId] as const,
+    detail: (id: string) => ["commitments", "detail", id] as const,
+  },
+  calendar: {
+    events: (companyId: string) => ["calendar", companyId, "events"] as const,
+    availability: (companyId: string) => ["calendar", companyId, "availability"] as const,
+  },
   artifacts: {
     list: (
       companyId: string,

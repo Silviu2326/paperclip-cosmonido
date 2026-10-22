@@ -27,6 +27,14 @@ import {
   LayoutGrid,
   Plus,
   Armchair,
+  Radio,
+  Globe,
+  Users,
+  UserRound,
+  UserPlus,
+  Handshake,
+  CalendarDays,
+  Briefcase,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -282,10 +290,6 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             ) : null}
             <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
             <SidebarNavItem to="/assignments" label={t("nav.assignments", { defaultValue: "Encargos" })} icon={Target} />
-            <SidebarNavItem to="/playbooks" label={t("nav.playbooks", { defaultValue: "Playbooks" })} icon={BookOpen} />
-            <SidebarNavItem to="/proposals" label={t("nav.proposals", { defaultValue: "Propuestas" })} icon={FileSignature} />
-            <SidebarNavItem to="/service-agreements" label={t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" })} icon={RefreshCw} />
-            <SidebarNavItem to="/autonomy" label={t("nav.autonomy", { defaultValue: "Autonomía" })} icon={ShieldCheck} />
             <SidebarNavItem to="/context" label={t("nav.context", { defaultValue: "Contexto" })} icon={FolderOpen} />
             <SidebarNavItem to="/artifacts" label={t("nav.artifacts")} icon={Package} />
             <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />
@@ -322,6 +326,21 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               className="flex flex-col gap-0.5"
               itemClassName="text-(length:--text-compact) font-medium"
             />
+          </SidebarSection>
+
+          <SidebarSection label={t("nav.business")} divider>
+            <SidebarNavItem to="/customers" label={t("nav.customers")} icon={Users} />
+            <SidebarNavItem to="/contacts" label={t("nav.contacts")} icon={UserRound} />
+            <SidebarNavItem to="/leads" label={t("nav.leads")} icon={UserPlus} />
+            <SidebarNavItem to="/opportunities" label={t("nav.opportunities")} icon={Handshake} />
+            <SidebarNavItem to="/conversations" label={t("nav.conversations")} icon={Inbox} />
+            <SidebarNavItem to="/schedule" label={t("nav.schedule")} icon={CalendarDays} />
+            <SidebarNavItem to="/playbooks" label={t("nav.playbooks", { defaultValue: "Playbooks" })} icon={BookOpen} />
+            <SidebarNavItem to="/proposals" label={t("nav.proposals", { defaultValue: "Propuestas" })} icon={FileSignature} />
+            <SidebarNavItem to="/service-agreements" label={t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" })} icon={RefreshCw} />
+            <SidebarNavItem to="/autonomy" label={t("nav.autonomy", { defaultValue: "Autonomía" })} icon={ShieldCheck} />
+            <SidebarNavItem to="/channels-settings" label={t("nav.channels")} icon={Radio} />
+            <SidebarNavItem to="/webchat-settings" label={t("nav.webchat")} icon={Globe} />
           </SidebarSection>
 
           {streamlinedUiEnabled ? (

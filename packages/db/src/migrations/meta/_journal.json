@@ -2514,6 +2514,13 @@
       "when": 1792619822802,
       "tag": "0360_nappy_wong",
       "breakpoints": true
+    },
+    {
+      "idx": 361,
+      "version": "7",
+      "when": 1792667373873,
+      "tag": "0361_loose_ikaris",
+      "breakpoints": true
     }
   ]
 }

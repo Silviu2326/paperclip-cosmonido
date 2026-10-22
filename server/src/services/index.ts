@@ -243,3 +243,5 @@ export { assignmentCostService } from "./assignment-costs.js";
 
 export { mediaStudioService } from "./media-studio.js";
 export { contextService } from "./context.js";
+// Sprint 2: external action gate (every outbound action goes through it).
+export { gateExternalAction, approveExternalAction, rejectExternalAction, resolveAutonomyLevel } from "./external-action-gate.js";

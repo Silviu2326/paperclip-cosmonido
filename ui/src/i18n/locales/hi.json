@@ -51,7 +51,16 @@
     "audit": "Audit",
     "recentTasks": "Recent Tasks",
     "settings": "Settings",
-    "office": "Office"
+    "office": "Office",
+    "customers": "Customers",
+    "contacts": "Contacts",
+    "leads": "Leads",
+    "opportunities": "Opportunities",
+    "schedule": "Schedule",
+    "business": "Business",
+    "conversations": "Conversations",
+    "channels": "Channels",
+    "webchat": "Web chat"
   },
   "dashboard": {
     "welcome": "Welcome to Paperclip. Set up your first organization and agent to get started.",
@@ -10946,5 +10955,555 @@
       "rejected": "Some changes could not be applied: {{reason}}",
       "error": "The assistant could not answer. Try again."
     }
+  },
+  "crm": {
+    "memory": {
+      "title": "Customer memory",
+      "description": "Notes the team and agents keep about this customer. Each change adds a new entry; archived notes are hidden.",
+      "loading": "Loading memory...",
+      "empty": "No notes yet.",
+      "error": "Could not load customer memory.",
+      "retry": "Retry",
+      "keyLabel": "Key",
+      "keyPlaceholder": "e.g. preferences",
+      "contentLabel": "Note",
+      "contentPlaceholder": "What should the team remember?",
+      "addTitle": "Add note",
+      "add": "Add note",
+      "adding": "Adding...",
+      "archive": "Archive",
+      "archiving": "Archiving...",
+      "source": {
+        "user": "User",
+        "agent": "Agent",
+        "detected": "Detected"
+      }
+    },
+    "customers": {
+      "title": "Customers",
+      "searchPlaceholder": "Search by name or domain",
+      "statusLabel": "Status",
+      "statusActive": "Active",
+      "statusArchived": "Archived",
+      "statusAll": "All",
+      "newCustomer": "New customer",
+      "empty": "No customers yet.",
+      "emptyFiltered": "No customers match these filters.",
+      "loading": "Loading customers...",
+      "loadError": "Could not load customers.",
+      "loadMore": "Load more",
+      "loadingMore": "Loading...",
+      "selectCompany": "Select a company to see its customers.",
+      "notFound": "Customer not found.",
+      "forbidden": "You do not have access to this customer.",
+      "kindOrganization": "Organization",
+      "kindPerson": "Person",
+      "createTitle": "New customer",
+      "fieldName": "Name",
+      "fieldKind": "Type",
+      "fieldDomain": "Domain",
+      "fieldContactEmail": "Contact email (optional)",
+      "fieldContactEmailHint": "Used to find existing records with the same contact.",
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating...",
+      "createError": "Could not create the customer.",
+      "duplicatesTitle": "Possible duplicates",
+      "duplicatesHint": "Nothing is merged. Review these records, or create the customer anyway.",
+      "reasonDomain": "Same domain",
+      "reasonName": "Same name",
+      "reasonContactEmail": "Contact with the same email",
+      "createAnyway": "Create anyway",
+      "summaryTab": "Summary",
+      "contactsTab": "Contacts",
+      "opportunitiesTab": "Opportunities",
+      "activityTab": "Activity",
+      "memoryTab": "Memory",
+      "placeholderOpportunities": "Opportunities for this customer will appear here.",
+      "placeholderActivity": "The activity timeline for this customer will appear here.",
+      "fieldStatus": "Status",
+      "fieldCreated": "Created",
+      "fieldUpdated": "Updated",
+      "noDomain": "No domain",
+      "archive": "Archive",
+      "restore": "Restore",
+      "archivedBadge": "Archived",
+      "updateError": "Could not update the customer.",
+      "contactsEmpty": "No contacts linked yet.",
+      "linkContact": "Link contact",
+      "chooseContact": "Choose a contact",
+      "link": "Link",
+      "linkError": "Could not link the contact.",
+      "unlink": "Unlink",
+      "primaryContact": "Primary",
+      "newContact": "New contact",
+      "allCustomers": "All customers"
+    },
+    "contacts": {
+      "title": "Contacts",
+      "searchPlaceholder": "Search by name, email or phone",
+      "statusLabel": "Status",
+      "statusActive": "Active",
+      "statusArchived": "Archived",
+      "statusAll": "All",
+      "newContact": "New contact",
+      "empty": "No contacts yet.",
+      "emptyFiltered": "No contacts match these filters.",
+      "loading": "Loading contacts...",
+      "loadError": "Could not load contacts.",
+      "loadMore": "Load more",
+      "loadingMore": "Loading...",
+      "selectCompany": "Select a company to see its contacts.",
+      "createTitle": "New contact",
+      "fieldDisplayName": "Name",
+      "fieldEmail": "Email",
+      "fieldPhone": "Phone",
+      "fieldTitle": "Job title",
+      "noEmail": "No email",
+      "noPhone": "No phone",
+      "cancel": "Cancel",
+      "create": "Create",
+      "creating": "Creating...",
+      "createError": "Could not create the contact.",
+      "duplicatesTitle": "Possible duplicates",
+      "duplicatesHint": "Contacts are matched by email or phone. Nothing is merged.",
+      "reasonEmail": "Same email",
+      "reasonPhone": "Same phone",
+      "createAnyway": "Create anyway",
+      "archivedBadge": "Archived"
+    },
+    "leads": {
+      "title": "Leads",
+      "selectCompany": "Select a company to see its leads.",
+      "empty": "No leads yet.",
+      "emptyFiltered": "No leads match these filters.",
+      "filters": {
+        "search": "Search leads",
+        "status": "Status",
+        "source": "Source",
+        "priority": "Priority",
+        "assigned": "Assignment",
+        "any": "All",
+        "unassigned": "Unassigned"
+      },
+      "status": {
+        "new": "New",
+        "triaged": "Triaged",
+        "qualified": "Qualified",
+        "converted": "Converted",
+        "discarded": "Discarded"
+      },
+      "source": {
+        "form": "Form",
+        "csv": "CSV",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "webchat": "Web chat",
+        "voice": "Voice",
+        "manual": "Manual",
+        "api": "API"
+      },
+      "priority": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "none": "No priority"
+      },
+      "columns": {
+        "name": "Name",
+        "source": "Source",
+        "status": "Status",
+        "priority": "Priority",
+        "received": "Received",
+        "actions": "Actions"
+      },
+      "actions": {
+        "open": "Open",
+        "triage": "Triage",
+        "convert": "Convert",
+        "discard": "Discard",
+        "confirmDiscard": "Discard lead",
+        "cancel": "Cancel",
+        "close": "Close",
+        "import": "Import CSV",
+        "loadMore": "Load more",
+        "saveTriage": "Save triage"
+      },
+      "discard": {
+        "title": "Discard lead",
+        "description": "The lead stays in the record as discarded. Converted leads cannot be discarded.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Reason (optional)"
+      },
+      "convert": {
+        "createOpportunity": "Create opportunity",
+        "opportunityTitle": "Opportunity title",
+        "hint": "Creates or links the customer and contact from the lead. Repeating the conversion is safe."
+      },
+      "detail": {
+        "notFound": "Lead not found.",
+        "payload": "Submitted data",
+        "noPayload": "No data was submitted.",
+        "identity": "Linked records",
+        "contact": "Contact",
+        "customer": "Customer",
+        "opportunity": "Opportunity",
+        "none": "None",
+        "triage": "Triage",
+        "priority": "Priority",
+        "keepPriority": "Keep priority",
+        "language": "Language (e.g. es)",
+        "convert": "Convert",
+        "discard": "Discard",
+        "activity": "Activity",
+        "noActivity": "No activity yet."
+      },
+      "import": {
+        "title": "Import leads from CSV",
+        "description": "Choose a CSV file with a header row. Map the columns, review the preview and confirm.",
+        "file": "CSV file",
+        "tooLarge": "The file is larger than 5 MB.",
+        "fields": {
+          "name": "Name",
+          "email": "Email",
+          "phone": "Phone",
+          "company": "Company",
+          "language": "Language",
+          "message": "Message",
+          "sourceRef": "External ID"
+        },
+        "notMapped": "Not mapped",
+        "totals": "{{rows}} rows: {{ready}} ready, {{duplicate}} duplicates, {{invalid}} invalid, {{known}} linked to known contacts.",
+        "previewLimit": "Showing {{shown}} of {{total}} rows.",
+        "columns": {
+          "line": "Line",
+          "name": "Name",
+          "identity": "Email / phone",
+          "status": "Status"
+        },
+        "rowStatus": {
+          "ready": "Ready",
+          "duplicateInFile": "Duplicate in file",
+          "duplicateExisting": "Already imported",
+          "invalid": "Invalid"
+        },
+        "knownContact": "known contact",
+        "skipDuplicates": "Skip duplicates",
+        "confirm": "Import leads",
+        "result": "Imported {{imported}} leads, skipped {{skipped}}."
+      }
+    },
+    "opportunities": {
+      "board": "Board",
+      "list": "List",
+      "empty": "No opportunities yet.",
+      "selectCompany": "Select a company to see its opportunities.",
+      "loadError": "Could not load opportunities.",
+      "moveError": "The stage could not be changed.",
+      "pendingApproval": "The stage change is waiting for approval.",
+      "columnEmpty": "No opportunities",
+      "nextAction": "Next action",
+      "noNextAction": "No next action",
+      "owner": "Owner",
+      "noOwner": "No owner",
+      "moveTo": "Move to",
+      "columns": {
+        "title": "Opportunity",
+        "stage": "Stage",
+        "amount": "Amount",
+        "nextAction": "Next action",
+        "owner": "Owner"
+      },
+      "stages": {
+        "new": "New",
+        "qualified": "Qualified",
+        "proposal": "Proposal",
+        "negotiation": "Negotiation",
+        "won": "Won",
+        "lost": "Lost"
+      }
+    },
+    "activities": {
+      "title": "Activity",
+      "empty": "No activity recorded.",
+      "loadError": "Could not load the activity.",
+      "more": "Load more",
+      "kinds": {
+        "note": "Note",
+        "call": "Call",
+        "email": "Email",
+        "message": "Message",
+        "meeting": "Meeting",
+        "stage_change": "Stage change",
+        "status_change": "Status change",
+        "task": "Task",
+        "system": "System"
+      }
+    },
+    "commitments": {
+      "title": "Commitments",
+      "empty": "No commitments.",
+      "loadError": "Could not load the commitments.",
+      "resolveError": "The commitment could not be updated.",
+      "who": {
+        "us": "We committed",
+        "them": "Customer committed"
+      },
+      "status": {
+        "proposed": "Proposed",
+        "open": "Open",
+        "kept": "Kept",
+        "missed": "Missed",
+        "cancelled": "Cancelled"
+      },
+      "resolve": {
+        "kept": "Mark kept",
+        "missed": "Mark missed",
+        "cancelled": "Cancel"
+      }
+    }
+  },
+  "schedule": {
+    "selectCompany": "Select a company to see its schedule.",
+    "loadFailed": "Could not load the schedule.",
+    "upcoming": "Upcoming meetings",
+    "upcomingEmpty": "No upcoming meetings.",
+    "bookingTypes": "Booking types",
+    "bookingTypesEmpty": "No booking types yet. Create one to share a public booking link.",
+    "newType": "New booking type",
+    "typeCreated": "Booking type created",
+    "saveFailed": "Could not save",
+    "cancelEvent": "Cancel",
+    "cancelled": "Meeting cancelled",
+    "cancelPending": "Cancellation sent; waiting for the provider to confirm",
+    "cancelFailed": "Could not cancel the meeting",
+    "noGroup": "No customer or opportunity",
+    "pendingNote": "Waiting for provider confirmation",
+    "typeSummary": "{{minutes}} min · buffer {{buffer}} min",
+    "noConnection": "No Google Calendar connection assigned",
+    "linkCopied": "Link copied",
+    "copyLink": "Copy link",
+    "copyFailed": "Could not copy the link",
+    "typeName": "Name",
+    "typeSlug": "Link name (slug)",
+    "typeDuration": "Duration (minutes)",
+    "typeBuffer": "Buffer between meetings (minutes)",
+    "typeTimezone": "Time zone",
+    "typeStart": "Start",
+    "typeEnd": "End",
+    "typeDays": "Available days",
+    "cancel": "Cancel",
+    "save": "Save",
+    "errors": {
+      "name": "Enter a name.",
+      "slug": "Use lowercase letters, digits and dashes.",
+      "duration": "Duration must be between 5 and 480 minutes.",
+      "buffer": "Buffer must be between 0 and 240 minutes.",
+      "hours": "Choose at least one day and an end time after the start."
+    },
+    "weekday": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
+    "status": {
+      "proposed": "Proposed",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "conversations": {
+    "title": "Conversations",
+    "description": "Every thread across email and channels, in one inbox.",
+    "tabs": {
+      "all": "All",
+      "waiting": "Awaiting reply",
+      "overdue": "Overdue"
+    },
+    "filters": {
+      "status": "Status",
+      "channel": "Channel",
+      "assigned": "Assigned",
+      "any": "Any",
+      "unassigned": "Unassigned",
+      "channelAll": "All channels"
+    },
+    "status": {
+      "open": "Open",
+      "waiting_us": "Awaiting reply",
+      "waiting_them": "Waiting for contact",
+      "closed": "Closed"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "channel": {
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "webchat": "Web chat",
+      "voice": "Voice",
+      "sms": "SMS"
+    },
+    "delivery": {
+      "draft": "Draft",
+      "queued": "Queued",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "read": "Read",
+      "failed": "Failed",
+      "uncertain": "Uncertain"
+    },
+    "deliveryHint": {
+      "draft": "Not sent yet.",
+      "queued": "Accepted, waiting for the provider.",
+      "uncertain": "We do not know if this reached the contact. It will not be sent again until someone checks it.",
+      "failed": "Not delivered. Write a new message to try again."
+    },
+    "sla": {
+      "overdue": "Overdue",
+      "due": "Reply due {{when}}",
+      "noDeadline": "No deadline"
+    },
+    "list": {
+      "empty": "No conversations match these filters.",
+      "loadError": "Could not load conversations.",
+      "loadMore": "Load more",
+      "noSubject": "No subject",
+      "lastActivity": "Last activity {{when}}",
+      "unassigned": "Unassigned"
+    },
+    "thread": {
+      "title": "Thread",
+      "empty": "No messages yet.",
+      "inbound": "Contact",
+      "outbound": "Us",
+      "draftLabel": "Draft"
+    },
+    "composer": {
+      "placeholder": "Write a reply…",
+      "saveDraft": "Save draft",
+      "send": "Send",
+      "sending": "Sending…",
+      "saved": "Draft saved",
+      "agentNote": "Agents at draft-only level save drafts; a person sends them.",
+      "approvalNote": "This reply needs approval before it is sent.",
+      "draftOnlyNote": "Saved as a draft. A person must send it."
+    },
+    "actions": {
+      "status": "Status",
+      "priority": "Priority",
+      "apply": "Apply",
+      "assignToMe": "Assign to me",
+      "unassign": "Unassign",
+      "assignedAgent": "Assigned agent",
+      "none": "None"
+    },
+    "reconcile": {
+      "title": "Settle this send",
+      "description": "The provider did not confirm the outcome. Check the provider, then mark what happened.",
+      "markSent": "It was sent",
+      "markFailed": "It was not delivered",
+      "check": "Check with provider"
+    },
+    "detail": {
+      "back": "Back to conversations",
+      "notFound": "This conversation does not exist or you do not have access."
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "send": "The message could not be sent.",
+      "draft": "The draft could not be saved."
+    }
+  },
+  "channels": {
+    "title": "Customer channels",
+    "description": "Connect the WhatsApp, Messenger, Instagram, Telegram and SMS accounts that customers write to. Only secret names are stored here; values stay in company secrets.",
+    "selectCompany": "Select a company to manage its customer channels.",
+    "add": "Add account",
+    "empty": "No customer channel accounts yet.",
+    "loadError": "Could not load channel accounts",
+    "cancel": "Cancel",
+    "save": "Save account",
+    "saving": "Saving...",
+    "test": "Test connection",
+    "testing": "Testing...",
+    "testOk": "Connected",
+    "testFailed": "Not connected",
+    "enable": "Enable",
+    "disable": "Disable",
+    "lastTested": "Last test: {{date}}",
+    "provider": {
+      "meta": "Meta (WhatsApp, Messenger, Instagram)",
+      "telegram": "Telegram",
+      "twilio": "Twilio (SMS)"
+    },
+    "kind": {
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "sms": "SMS"
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "fields": {
+      "provider": "Provider",
+      "kind": "Channel",
+      "label": "Name",
+      "externalAccountId": "Account, number or page ID",
+      "providerAccountSid": "Twilio account SID",
+      "verifySecretName": "Verification secret name",
+      "challengeSecretName": "Webhook verify token secret name",
+      "tokenSecretName": "Send token secret name",
+      "approvedTemplates": "Approved templates"
+    },
+    "hints": {
+      "externalAccountId": "WhatsApp phone number ID, Messenger page ID, Instagram account ID, Telegram bot ID, or the Twilio number in E.164 format.",
+      "secretNames": "Enter the name of a company secret. The value is never shown here.",
+      "templates": "One per line as name|language, for example reengage|es. Used outside the 24-hour WhatsApp window."
+    },
+    "errors": {
+      "templateFormat": "Each template line must look like name|language."
+    }
+  },
+  "webchat": {
+    "title": "Web chat",
+    "description": "Let visitors start a conversation from your website. Messages arrive in the inbox like any other channel.",
+    "selectCompany": "Select a company to configure web chat.",
+    "enabled": "Enable web chat",
+    "enabledHelp": "When off, the widget is not shown and new sessions are refused.",
+    "greeting": "Greeting",
+    "greetingPlaceholder": "Hi! How can we help you today?",
+    "greetingHelp": "Shown at the top of the chat. Up to 300 characters.",
+    "brandColor": "Brand color",
+    "brandColorPlaceholder": "#2563eb (default)",
+    "brandColorHelp": "Used for the launcher and the visitor's messages. Leave empty for the default.",
+    "brandColorInvalid": "Use a 6-digit hex color, for example #2563eb, or leave it empty.",
+    "discard": "Discard changes",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "copyFailed": "Could not copy. Select the code and copy it manually.",
+    "snippetTitle": "Install on your website",
+    "snippetHelp": "Paste this line before the closing body tag of every page where the chat should appear.",
+    "inactive": "Web chat is off. Turn it on to make the widget work on your site."
   }
 }

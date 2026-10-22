@@ -271,3 +271,18 @@ export * from "./handoff_receipts.js";
 export * from "./service_agreements.js";
 export * from "./commercial_decisions.js";
 export * from "./daily_brief_preferences.js";
+
+// Sprint 2 (CRM, conversaciones, canales, agenda, memoria, gate)
+export * from "./customers.js";
+export * from "./contacts.js";
+export * from "./leads.js";
+export * from "./opportunities.js";
+export * from "./crm_activities.js";
+export * from "./commitments.js";
+export * from "./conversations.js";
+export * from "./external_actions.js";
+export * from "./lead_forms.js";
+export * from "./calendar.js";
+export * from "./customer_memory.js";
+export * from "./customer_channels.js";
+export * from "./webchat_settings.js";

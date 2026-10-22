@@ -3,7 +3,7 @@ import type { Db } from "@paperclipai/db";
 import { commercialTriggerEventSchema, commitmentsExtractSchema } from "@paperclipai/shared";
 import { z } from "zod";
 import { badRequest } from "../errors.js";
-import { validateBody422 } from "./leads.js";
+import { validateBody422 } from "./lead-qualification.js";
 import { commitmentService, type CommitmentServiceDeps } from "../services/commitment-extractor.js";
 import { commercialTriggers, type CommercialTriggerDeps } from "../services/commercial-triggers.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";

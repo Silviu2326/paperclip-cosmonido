@@ -56,6 +56,17 @@ import { ServiceAgreements, ServiceAgreementDetail } from "./pages/ServiceAgreem
 import { ArtifactsExplorer } from "./pages/artifacts/ArtifactsExplorer";
 import { Office } from "./pages/Office";
 import { GoalDetail } from "./pages/GoalDetail";
+import { Customers } from "./pages/crm/Customers";
+import { CustomerDetail } from "./pages/crm/CustomerDetail";
+import { Contacts } from "./pages/crm/Contacts";
+import { Opportunities } from "./pages/crm/Opportunities";
+import { Leads } from "./pages/crm/Leads";
+import { ChannelsSettings } from "./pages/ChannelsSettings";
+import { WebchatSettings } from "./pages/WebchatSettings";
+import { LeadDetail } from "./pages/crm/LeadDetail";
+import { ConversationInbox } from "./pages/ConversationInbox";
+import { ConversationDetail } from "./pages/ConversationDetail";
+import { Schedule } from "./pages/Schedule";
 import { Approvals } from "./pages/Approvals";
 import { ApprovalDetail } from "./pages/ApprovalDetail";
 import { CompanyActivity } from "./pages/audit/CompanyActivity";
@@ -421,6 +432,17 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
       <Route path="service-agreements" element={<ServiceAgreements />} />
       <Route path="service-agreements/:id" element={<ServiceAgreementDetail />} />
       <Route path="goals/:goalId" element={<GoalDetail />} />
+      <Route path="customers" element={<Customers />} />
+      <Route path="customers/:customerId" element={<CustomerDetail />} />
+      <Route path="contacts" element={<Contacts />} />
+      <Route path="leads" element={<Leads />} />
+      <Route path="channels-settings" element={<ChannelsSettings />} />
+      <Route path="webchat-settings" element={<WebchatSettings />} />
+      <Route path="leads/:leadId" element={<LeadDetail />} />
+      <Route path="opportunities" element={<Opportunities />} />
+      <Route path="conversations" element={<ConversationInbox />} />
+      <Route path="conversations/:conversationId" element={<ConversationDetail />} />
+      <Route path="schedule" element={<Schedule />} />
       <Route path="artifacts" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />
@@ -886,6 +908,17 @@ export function App() {
           <Route path="proposals/:id" element={<UnprefixedBoardRedirect />} />
           <Route path="service-agreements" element={<UnprefixedBoardRedirect />} />
           <Route path="service-agreements/:id" element={<UnprefixedBoardRedirect />} />
+          <Route path="customers" element={<UnprefixedBoardRedirect />} />
+          <Route path="customers/:customerId" element={<UnprefixedBoardRedirect />} />
+          <Route path="contacts" element={<UnprefixedBoardRedirect />} />
+          <Route path="leads" element={<UnprefixedBoardRedirect />} />
+          <Route path="leads/:leadId" element={<UnprefixedBoardRedirect />} />
+          <Route path="opportunities" element={<UnprefixedBoardRedirect />} />
+          <Route path="conversations" element={<UnprefixedBoardRedirect />} />
+          <Route path="conversations/:conversationId" element={<UnprefixedBoardRedirect />} />
+          <Route path="schedule" element={<UnprefixedBoardRedirect />} />
+          <Route path="channels-settings" element={<UnprefixedBoardRedirect />} />
+          <Route path="webchat-settings" element={<UnprefixedBoardRedirect />} />
           <Route path="audit" element={<UnprefixedBoardRedirect />} />
           {streamlinedUiEnabled ? (
             <>

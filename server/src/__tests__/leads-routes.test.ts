@@ -6,7 +6,7 @@ import type { QualificationCriteria } from "@paperclipai/shared";
 const { log } = vi.hoisted(() => ({ log: vi.fn() }));
 vi.mock("../services/activity-log.js", async (importOriginal) => ({ ...(await importOriginal<object>()), logActivity: log }));
 
-import { leadQualificationRoutes } from "../routes/leads.js";
+import { leadQualificationRoutes } from "../routes/lead-qualification.js";
 import { commitmentRoutes, commercialTriggerRoutes } from "../routes/commitments.js";
 import { errorHandler } from "../middleware/index.js";
 

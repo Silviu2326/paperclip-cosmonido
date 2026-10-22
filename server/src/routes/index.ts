@@ -29,7 +29,7 @@ export { commercialDecisionRoutes, publicDecisionRoutes } from "./commercial-dec
 export { proposalRoutes, publicProposalRoutes } from "./proposals.js";
 export { handoffRoutes } from "./handoff.js";
 export { serviceAgreementRoutes } from "./service-agreements.js";
-export { leadQualificationRoutes } from "./leads.js";
+export { leadQualificationRoutes } from "./lead-qualification.js";
 export { commitmentRoutes, commercialTriggerRoutes } from "./commitments.js";
 export { deliverableReviewRoutes } from "./deliverable-reviews.js";
 export { onboardingSeedRoutes } from "./onboarding-seed.js";
@@ -55,3 +55,13 @@ export { managedAgentProfileRoutes } from "./managed-agent-profiles.js";
 export { remoteAgentProfileRoutes } from "./remote-agent-profiles.js";
 
 export { mediaStudioRoutes } from "./media-studio.js";
+// Sprint 2 CRM surfaces (stubs filled by pistas A-I).
+export { crmRoutes } from "./crm.js";
+export { leadRoutes } from "./leads.js";
+export { conversationRoutes } from "./conversations.js";
+export { channelInboundRoutes } from "./channels-inbound.js";
+export { calendarRoutes } from "./calendar.js";
+export { publicSurfaceRoutes } from "./public-surface.js";
+export { crmMemoryRoutes } from "./crm-memory.js";
+export { customerChannelRoutes } from "./customer-channels.js";
+export { webchatRoutes } from "./webchat.js";

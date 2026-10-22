@@ -2979,3 +2979,8 @@ export * from "./types/daily-brief.js";
 export * from "./validators/daily-brief.js";
 export * from "./types/commitment.js";
 export * from "./validators/commitment.js";
+// Sprint 2 CRM contract (constants, types, validators, agent tool names).
+export * from "./constants/crm.js";
+export * from "./types/crm.js";
+export * from "./validators/crm.js";
+export * from "./crm-tools.js";

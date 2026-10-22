@@ -1,4 +1,4 @@
-import type { AutonomyLevel } from "./playbook.js";
+import type { AutonomyLevel } from "../constants/crm.js";
 
 /** Sprint 3 WP3/WP4: earned autonomy. */
 export type AutonomyActionType = "email" | "message" | "booking" | "stage_change" | "proposal" | "publish" | "call";

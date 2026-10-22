@@ -1,16 +1,5 @@
 /** Sprint 3 WP1: playbooks. */
-export type AutonomyLevel = "draft_only" | "send_with_approval" | "send_direct";
-export const AUTONOMY_LEVELS: readonly AutonomyLevel[] = ["draft_only", "send_with_approval", "send_direct"];
-/** Numeric rank so `min()` over levels is well defined: a playbook never raises autonomy above the agent's grant. */
-export const AUTONOMY_LEVEL_RANK: Record<AutonomyLevel, number> = { draft_only: 0, send_with_approval: 1, send_direct: 2 };
-export function minAutonomyLevel(...levels: Array<AutonomyLevel | null | undefined>): AutonomyLevel {
-  let result: AutonomyLevel = "send_direct";
-  for (const level of levels) {
-    if (level && AUTONOMY_LEVEL_RANK[level] < AUTONOMY_LEVEL_RANK[result]) result = level;
-  }
-  return result;
-}
-
+import type { AutonomyLevel } from "../constants/crm.js";
 export type PlaybookStepKind = "qualify" | "respond" | "follow_up" | "propose" | "book" | "close" | "handoff" | "wait";
 export type PlaybookChannel = "email" | "whatsapp" | "sms" | "chat" | "call" | "internal";
 export type PlaybookScopeKind = "lead_type" | "offering" | "customer_segment";
