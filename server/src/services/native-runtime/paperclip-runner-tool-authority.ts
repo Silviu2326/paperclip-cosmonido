@@ -2,6 +2,7 @@ import { PRODUCT_TOOL_NAMES } from "./assigned-mcp-tools.js";
 import { callAssignmentTool } from "../assignment-tools.js";
 import { callMediaTool } from "../media-tools.js";
 import { dispatchSprint3Tool } from "../sprint3-tools.js";
+import { callSprint2Tool, SPRINT2_TOOL_NAMES } from "../sprint2-tools.js";
 import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notifications.js";
 import { skillAccessService } from "../skill-access.js";
 import { callTaskWorkspaceTool } from "../task-workspace-tools.js";
@@ -601,6 +602,18 @@ export class PaperclipRunnerToolAuthority {
       case "proposal_create": case "proposal_send": case "proposal_get":
       case "decision_create": case "decision_get":
       case "handoff_to_delivery": case "agreement_get": case "upsell_suggest":
+      case "crm_search": case "crm_get_customer": case "crm_create_customer": case "crm_create_contact": case "crm_create_opportunity":
+      case "crm_update_opportunity_stage": case "crm_set_next_action": case "crm_log_activity": case "commitment_create": case "commitment_resolve":
+      case "lead_get": case "lead_list": case "lead_triage": case "lead_convert":
+      case "conversation_list": case "conversation_get": case "message_draft": case "message_send": case "message_reply": case "conversation_set_state":
+      case "calendar_availability": case "calendar_book": case "calendar_reschedule": case "calendar_cancel":
+      case "customer_memory_get": case "customer_memory_append": case "webchat_handoff": {
+        if (!SPRINT2_TOOL_NAMES.includes(call.tool)) throw new Error(`Unknown tool ${call.tool}`);
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Sprint 2 tool authentication is unavailable");
+        return callSprint2Tool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
+      }
       case "lead_qualify": case "lead_enrich": case "commitments_extract": {
         const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
         const token = this.#apiToken(context);

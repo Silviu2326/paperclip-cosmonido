@@ -1,8 +1,8 @@
 import type { AutonomyLevel } from "../constants/crm.js";
 
 /** Sprint 3 WP3/WP4: earned autonomy. */
-export type AutonomyActionType = "email" | "message" | "booking" | "stage_change" | "proposal" | "publish" | "call";
-export const AUTONOMY_ACTION_TYPES: readonly AutonomyActionType[] = ["email", "message", "booking", "stage_change", "proposal", "publish", "call"];
+export type AutonomyActionType = "email" | "message" | "booking" | "stage_change" | "proposal" | "publish" | "call" | "review_link";
+export const AUTONOMY_ACTION_TYPES: readonly AutonomyActionType[] = ["email", "message", "booking", "stage_change", "proposal", "publish", "call", "review_link"];
 
 export interface AutonomyPolicy {
   id: string;

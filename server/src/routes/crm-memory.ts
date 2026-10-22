@@ -37,6 +37,7 @@ async function authorizeCustomerMemory(
   const linked = await linkedCustomerIdsForRun(db, {
     companyId: input.companyId,
     contextSnapshot: context.run.contextSnapshot as Record<string, unknown> | null,
+    issueId: context.issue.id,
   });
   if (!linked.includes(input.customerId)) {
     throw forbidden("Customer memory is limited to the customer linked to this run");

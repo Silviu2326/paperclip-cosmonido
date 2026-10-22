@@ -618,6 +618,10 @@ export async function createApp(
     createChatWebhookDiagnostics(),
     chatWebhookBodyParser,
   );
+  // Public surface (/api/p: chat, leads, booking, proposals). Anonymous bodies get a 4 kB cap
+  // before the global 10 MB parser runs; body-parser marks a request it parsed, so the global
+  // parser then skips it and the public router still receives req.body.
+  app.use("/api/p", express.json({ limit: "4kb" }), express.urlencoded({ extended: false, limit: "4kb" }));
   const jsonBodyParser = express.json({ limit: DEFAULT_JSON_BODY_LIMIT, verify: captureRawBody });
   // File tickets authenticate before parsing bytes; JSON attachments must remain bytes too.
   app.use((req, res, next) => ["/mcp/files/upload", "/mcp/runner/files/upload"].includes(req.path) ? next() : jsonBodyParser(req, res, next));

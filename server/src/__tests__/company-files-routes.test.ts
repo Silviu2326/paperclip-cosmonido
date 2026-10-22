@@ -5,7 +5,7 @@ import type { IncomingMessage } from "node:http";
 import express from "express";
 import request from "supertest";
 import sharp from "sharp";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   activityLog,
@@ -25,6 +25,7 @@ import {
   issueAttachments,
   issueWorkProducts,
   issues,
+  customers,
   projects,
   type Db,
 } from "@paperclipai/db";
@@ -375,6 +376,36 @@ describe("company files routes", () => {
       expect.objectContaining({ fileId: projectFile.body.id, name: "project-guide.md", readCount: 2, issueCount: 2 }),
       expect.objectContaining({ fileId: expiredFile.body.id, name: "expired.md", readCount: 1, issueCount: 1 }),
     ]));
+  });
+
+  it("customer audience: an agent sees only the files of its task project's customer; the board sees all", async () => {
+    const customerA = await db.insert(customers).values({ companyId: company.id, name: "Customer A" }).returning().then((rows) => rows[0]!);
+    const customerB = await db.insert(customers).values({ companyId: company.id, name: "Customer B" }).returning().then((rows) => rows[0]!);
+    const projectA = await db.insert(projects).values({ companyId: company.id, name: "Project for A", customerId: customerA.id }).returning().then((rows) => rows[0]!);
+    const projectNoCustomer = await db.insert(projects).values({ companyId: company.id, name: "Internal project" }).returning().then((rows) => rows[0]!);
+    const fileA = await upload("customer-a.md", "Notes for customer A");
+    const fileB = await upload("customer-b.md", "Notes for customer B");
+    for (const [fileId, audienceId] of [[fileA.body.id, customerA.id], [fileB.body.id, customerB.id]] as const) {
+      expect((await request(app).patch(`/api/company-files/${fileId}`).send({ audienceKind: "customer", audienceId, contextRole: "customer" })).status).toBe(200);
+    }
+
+    await db.update(issues).set({ projectId: projectA.id }).where(eq(issues.id, issue.id));
+    currentActor = { ...agentActor(company.id, agent.id, runId), source: "agent_jwt" };
+    const search = await request(app).get(`/api/companies/${company.id}/context?roles=customer`);
+    expect(search.status).toBe(200);
+    expect(search.body.files.map((entry: { id: string }) => entry.id)).toEqual([fileA.body.id]);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${fileA.body.id}`)).status).toBe(200);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${fileB.body.id}`)).status).toBe(404);
+
+    await db.update(issues).set({ projectId: projectNoCustomer.id }).where(eq(issues.id, issue.id));
+    const noCustomer = await request(app).get(`/api/companies/${company.id}/context?roles=customer`);
+    expect(noCustomer.body.files).toEqual([]);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${fileA.body.id}`)).status).toBe(404);
+
+    currentActor = boardActor(company.id);
+    const board = await request(app).get(`/api/companies/${company.id}/context?roles=customer`);
+    expect(board.body.files.map((entry: { id: string }) => entry.id).sort()).toEqual([fileA.body.id, fileB.body.id].sort());
+    await db.update(issues).set({ projectId: null }).where(eq(issues.id, issue.id));
   });
 
   it("searches past hidden-folder candidates and does not create system folders for agents without a run", async () => {

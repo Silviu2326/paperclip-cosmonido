@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import { and, eq, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { folders, goals, heartbeatRuns, projects } from "@paperclipai/db";
+import { customers, folders, goals, heartbeatRuns, projects } from "@paperclipai/db";
 import {
   contextSearchSchema,
   contextGetSchema,
@@ -137,12 +137,18 @@ export function companyFileRoutes(db: Db, storage: StorageService) {
   const context = contextService(db, storage);
 
   async function resolveContextActor(req: Request, companyId: string) {
-    if (req.actor.type !== "agent") return { companyId, allProjects: true as const };
+    if (req.actor.type !== "agent") return { companyId, allProjects: true as const, allCustomers: true as const };
     const runContext = await projectToolContext(db, req.actor, false, "Context");
     if (runContext.run.companyId !== companyId) throw notFound("Context file not found");
+    // A run sees customer-audience files only for the customer of its task's project.
+    const [project] = runContext.issue.projectId
+      ? await db.select({ customerId: projects.customerId }).from(projects)
+        .where(and(eq(projects.id, runContext.issue.projectId), eq(projects.companyId, companyId)))
+      : [];
     return {
       companyId,
       projectId: runContext.issue.projectId,
+      customerId: project?.customerId ?? null,
       issueId: runContext.issue.id,
       agentId: runContext.run.agentId,
       runId: runContext.run.id,
@@ -384,7 +390,10 @@ export function companyFileRoutes(db: Db, storage: StorageService) {
         .where(and(eq(projects.id, audienceId), eq(projects.companyId, existing.companyId))).then((rows) => rows[0] ?? null);
       if (!project) throw notFound("Project not found");
     } else if (audienceKind === "customer") {
-      throw unprocessable("Customer context is not available yet");
+      if (!audienceId) throw badRequest("audienceId is required for customer context");
+      const customer = await db.select({ id: customers.id }).from(customers)
+        .where(and(eq(customers.id, audienceId), eq(customers.companyId, existing.companyId))).then((rows) => rows[0] ?? null);
+      if (!customer) throw notFound("Customer not found");
     } else if (audienceId) {
       throw badRequest("audienceId must be empty for company context");
     }

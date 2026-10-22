@@ -13,6 +13,9 @@ export interface ConversationFilters {
   /** "none" for unassigned; otherwise an assigned user or agent id. */
   assigned?: string;
   overdue?: boolean;
+  /** Conversations linked to a customer or a contact (server filters customerId and contactId). */
+  customerId?: string;
+  contactId?: string;
   cursor?: string;
   limit?: number;
 }

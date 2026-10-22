@@ -278,12 +278,17 @@ export async function gateExternalAction(
   return { action: outcome.action, mode, result: outcome.result };
 }
 
+/** Result stored on an approved action whose executor lived in a process that restarted. */
+export const EXECUTOR_UNAVAILABLE_REASON = "executor_unavailable";
+
 /**
  * Approves a pending approval-mode action and executes it.
  *
- * The executor is the closure passed to gateExternalAction in this process.
- * If the process restarted since the action was requested, pass `execute`
- * explicitly; otherwise the action is refused with a conflict.
+ * The executor is the closure passed to gateExternalAction in this process, or
+ * `input.execute` when the caller can rebuild it. If no executor exists (the
+ * process restarted), the action is left `approved` with
+ * `result.reason = 'executor_unavailable'`; `retryExternalAction` (see
+ * external-action-retry.ts) can run it later from the stored subject.
  */
 export async function approveExternalAction(
   db: Db,
@@ -308,10 +313,7 @@ export async function approveExternalAction(
     throw conflict(`External action is ${action.status}`);
   }
 
-  const executor = input.execute ?? pendingExecutors.get(action.id);
-  if (!executor) {
-    throw conflict("No executor available for this external action in this process; resubmit the action");
-  }
+  const executor = input.execute ?? pendingExecutors.get(action.id) ?? null;
 
   if (action.approvalId) {
     const approvals = approvalService(db);
@@ -321,7 +323,10 @@ export async function approveExternalAction(
     }
   }
 
-  const approved = await updateAction(db, action.id, { status: "approved" });
+  const approved = await updateAction(db, action.id, {
+    status: "approved",
+    result: executor ? null : { reason: EXECUTOR_UNAVAILABLE_REASON },
+  });
   await logActivity(db, {
     companyId: action.companyId,
     actorType: "user",
@@ -329,12 +334,68 @@ export async function approveExternalAction(
     action: "external_action.approved",
     entityType: "external_action",
     entityId: action.id,
-    details: { actionType: action.actionType },
+    details: { actionType: action.actionType, executorAvailable: executor !== null },
   });
 
+  if (!executor) {
+    return { action: approved, mode: "approval", result: { reason: EXECUTOR_UNAVAILABLE_REASON } };
+  }
   pendingExecutors.delete(action.id);
   const outcome = await runExecutor(db, approved, executor);
   return { action: outcome.action, mode: "approval", result: outcome.result };
+}
+
+/**
+ * Runs an action that is already `approved` with a rebuilt executor. Only the
+ * retry path calls this; it refuses anything that is not waiting on an executor.
+ */
+export async function runApprovedExternalAction(
+  db: Db,
+  actionId: string,
+  execute: () => Promise<ExternalActionResult>,
+): Promise<GateExternalActionOutput> {
+  const action = await loadAction(db, actionId);
+  if (action.status !== "approved" || (action.result as { reason?: string } | null)?.reason !== EXECUTOR_UNAVAILABLE_REASON) {
+    throw conflict(`External action is ${action.status} and does not wait for an executor`);
+  }
+  await logActivity(db, {
+    companyId: action.companyId,
+    actorType: "user",
+    actorId: "system",
+    action: "external_action.retried",
+    entityType: "external_action",
+    entityId: action.id,
+    details: { actionType: action.actionType },
+  });
+  pendingExecutors.delete(action.id);
+  const outcome = await runExecutor(db, { ...action, result: null }, execute);
+  return { action: outcome.action, mode: "approval", result: outcome.result };
+}
+
+/**
+ * Called by the approval routes once an approval has been decided. External
+ * action approvals carry `payload.externalActionId` (written by the gate); the
+ * decision is forwarded to the action. A no-op for other approval types.
+ * Errors are returned, not thrown, so the approval decision itself stands.
+ */
+export async function resolveExternalActionApproval(
+  db: Db,
+  input: { approval: { id: string; type: string; payload: unknown }; decision: "approved" | "rejected"; approverUserId: string; reason?: string | null },
+): Promise<{ actionId: string; error?: string } | null> {
+  if (input.approval.type !== "external_action") return null;
+  const payload = (input.approval.payload ?? {}) as { externalActionId?: unknown };
+  if (typeof payload.externalActionId !== "string") return null;
+  const actionId = payload.externalActionId;
+  try {
+    if (input.decision === "approved") {
+      await approveExternalAction(db, { actionId, approverUserId: input.approverUserId });
+    } else {
+      await rejectExternalAction(db, { actionId, approverUserId: input.approverUserId, reason: input.reason ?? null });
+    }
+    return { actionId };
+  } catch (error) {
+    return { actionId, error: errorMessage(error) };
+  }
 }
 
 /** Rejects a pending approval-mode action. It never executes. */

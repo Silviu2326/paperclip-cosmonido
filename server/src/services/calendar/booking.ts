@@ -539,6 +539,31 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
     },
 
     /** Reminder as a CRM activity. Sending it over a channel belongs to the S3 playbook. */
+    /**
+     * Re-issues the provider create for a booking whose approved action lost its executor
+     * (process restart). Same request id as the original, so the provider can deduplicate.
+     */
+    async retryCreate(input: { companyId: string; eventId: string; requestId: string }): Promise<ExternalActionResult> {
+      const event = await loadEventRow(input.companyId, input.eventId);
+      if (event.externalId) throw conflict("La reserva ya existe en Google Calendar");
+      if (event.status === "cancelled") throw conflict("La reserva está cancelada");
+      const type = event.bookingTypeId
+        ? await loadType(input.companyId, { bookingTypeId: event.bookingTypeId }, { includeArchived: true })
+        : null;
+      const connectionId = requireConnection(event.connectionId ?? type?.connectionId);
+      const outcome = await calendar.createEvent({
+        companyId: input.companyId,
+        connectionId,
+        title: event.title,
+        startsAt: event.startsAt,
+        endsAt: event.endsAt,
+        attendeeEmail: event.attendeeEmail ?? "",
+        requestId: input.requestId,
+      });
+      await applyProviderOutcome(event.id, outcome);
+      return { externalId: outcome.externalId, status: outcome.status };
+    },
+
     async recordReminder(input: { companyId: string; eventId: string; actor: ExternalActionActor }) {
       const event = await loadEventRow(input.companyId, input.eventId);
       if (!event.contactId) throw unprocessable("La reserva no tiene contacto al que recordar");

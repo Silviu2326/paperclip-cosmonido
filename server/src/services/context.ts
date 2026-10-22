@@ -44,11 +44,15 @@ export function contextService(db: Db, storage: StorageService) {
     return db.select().from(folders).where(and(eq(folders.companyId, companyId), inArray(folders.systemKey, CONTEXT_FOLDERS.map(([key]) => key)))).orderBy(asc(folders.position));
   }
 
-  async function search(companyId: string, input: ContextSearch & { projectId?: string | null; allProjects?: boolean; isAgentVisible?: (folderId: string | null) => Promise<boolean> }) {
+  async function search(companyId: string, input: ContextSearch & { projectId?: string | null; allProjects?: boolean; customerId?: string | null; allCustomers?: boolean; isAgentVisible?: (folderId: string | null) => Promise<boolean> }) {
     const projectAudience = input.projectId
       ? and(eq(companyFiles.audienceKind, "project"), eq(companyFiles.audienceId, input.projectId))
       : input.allProjects ? eq(companyFiles.audienceKind, "project") : null;
-    const conditions = [eq(companyFiles.companyId, companyId), isNull(companyFiles.deletedAt), ...(input.includeExpired ? [] : [or(isNull(companyFiles.validUntil), gte(companyFiles.validUntil, new Date()))]), or(eq(companyFiles.audienceKind, "company"), ...(projectAudience ? [projectAudience] : []))!];
+    // Customer audience: only the customer the caller is linked to (a run's project customer), never others.
+    const customerAudience = input.customerId
+      ? and(eq(companyFiles.audienceKind, "customer"), eq(companyFiles.audienceId, input.customerId))
+      : input.allCustomers ? eq(companyFiles.audienceKind, "customer") : null;
+    const conditions = [eq(companyFiles.companyId, companyId), isNull(companyFiles.deletedAt), ...(input.includeExpired ? [] : [or(isNull(companyFiles.validUntil), gte(companyFiles.validUntil, new Date()))]), or(eq(companyFiles.audienceKind, "company"), ...(projectAudience ? [projectAudience] : []), ...(customerAudience ? [customerAudience] : []))!];
     if (input.roles?.length) conditions.push(inArray(companyFiles.contextRole, input.roles));
     const query = input.query?.trim().toLocaleLowerCase();
     const folderVisibility = new Map<string | null, Promise<boolean>>();
@@ -101,10 +105,11 @@ export function contextService(db: Db, storage: StorageService) {
     return { files: matches.slice(0, input.limit), truncated };
   }
 
-  async function get(fileId: string, scope: { companyId: string; projectId?: string | null; allProjects?: boolean; issueId?: string | null; agentId?: string | null; runId?: string | null; includeExpired?: boolean }) {
+  async function get(fileId: string, scope: { companyId: string; projectId?: string | null; allProjects?: boolean; customerId?: string | null; allCustomers?: boolean; issueId?: string | null; agentId?: string | null; runId?: string | null; includeExpired?: boolean }) {
     const row = await db.select({ file: companyFiles, asset: assets }).from(companyFiles).leftJoin(companyFileVersions, eq(companyFileVersions.id, companyFiles.currentVersionId)).leftJoin(assets, and(eq(assets.id, companyFileVersions.assetId), eq(assets.companyId, scope.companyId))).where(and(eq(companyFiles.id, fileId), eq(companyFiles.companyId, scope.companyId), isNull(companyFiles.deletedAt))).then(rows => rows[0] ?? null);
-    if (!row || !["company", "project"].includes(row.file.audienceKind)
+    if (!row || !["company", "project", "customer"].includes(row.file.audienceKind)
       || (row.file.audienceKind === "project" && !scope.allProjects && (!scope.projectId || row.file.audienceId !== scope.projectId))
+      || (row.file.audienceKind === "customer" && !scope.allCustomers && (!scope.customerId || row.file.audienceId !== scope.customerId))
       || (!scope.includeExpired && row.file.validUntil && row.file.validUntil < new Date())) throw notFound("Context file not found");
     await db.insert(companyFileReads).values({ companyId: scope.companyId, fileId, versionId: row.file.currentVersionId ?? null, issueId: scope.issueId ?? null, agentId: scope.agentId ?? null, runId: scope.runId ?? null });
     let content = "";

@@ -6,6 +6,8 @@ import { callCustomerMemoryTool, customerMemoryToolDefinitions } from "./memory-
 const COMPANY = "11111111-1111-4111-8111-111111111111";
 const CUSTOMER = "33333333-3333-4333-8333-333333333333";
 const CONVERSATION = "88888888-8888-4888-8888-888888888888";
+const ISSUE = "66666666-6666-4666-8666-666666666666";
+const PROJECT = "77777777-7777-4777-8777-777777777777";
 
 /**
  * Minimal drizzle-like double. Every builder method returns the same chain and the chain is
@@ -94,11 +96,43 @@ describe("customerMemoryService history", () => {
 });
 
 describe("linkedCustomerIdsForRun isolation", () => {
-  it("returns no customer when the run snapshot names no conversation", async () => {
+  it("returns no customer when the run has neither a conversation nor a task", async () => {
     const { db, calls } = fakeDb();
-    expect(await linkedCustomerIdsForRun(db, { companyId: COMPANY, contextSnapshot: { issueId: "x" } })).toEqual([]);
+    expect(await linkedCustomerIdsForRun(db, { companyId: COMPANY, contextSnapshot: {} })).toEqual([]);
     expect(await linkedCustomerIdsForRun(db, { companyId: COMPANY, contextSnapshot: null })).toEqual([]);
     expect(calls.select).toBe(0);
+  });
+
+  it("returns the customer of the run's task project, scoped to the company", async () => {
+    const { db } = fakeDb({ selects: [[{ projectId: PROJECT }], [{ customerId: CUSTOMER }]] });
+    expect(
+      await linkedCustomerIdsForRun(db, { companyId: COMPANY, contextSnapshot: null, issueId: ISSUE }),
+    ).toEqual([CUSTOMER]);
+  });
+
+  it("returns no project customer when the task has no project or the project has no customer", async () => {
+    const noProject = fakeDb({ selects: [[{ projectId: null }]] });
+    expect(await linkedCustomerIdsForRun(noProject.db, { companyId: COMPANY, contextSnapshot: { issueId: ISSUE } })).toEqual([]);
+    const unlinked = fakeDb({ selects: [[{ projectId: PROJECT }], [{ customerId: null }]] });
+    expect(await linkedCustomerIdsForRun(unlinked.db, { companyId: COMPANY, contextSnapshot: { issueId: ISSUE } })).toEqual([]);
+  });
+
+  it("does not link another customer's project when the task is outside the company", async () => {
+    const { db } = fakeDb({ selects: [[]] });
+    expect(await linkedCustomerIdsForRun(db, { companyId: COMPANY, contextSnapshot: null, issueId: ISSUE })).toEqual([]);
+  });
+
+  it("combines the conversation customer and the project customer without duplicates", async () => {
+    const OTHER = "44444444-4444-4444-8444-444444444444";
+    const { db } = fakeDb({
+      selects: [[{ customerId: CUSTOMER }], [{ projectId: PROJECT }], [{ customerId: OTHER }]],
+    });
+    expect(
+      await linkedCustomerIdsForRun(db, {
+        companyId: COMPANY,
+        contextSnapshot: { conversationId: CONVERSATION, issueId: ISSUE },
+      }),
+    ).toEqual([CUSTOMER, OTHER]);
   });
 
   it("returns the conversation's customer when the conversation belongs to the run's company", async () => {

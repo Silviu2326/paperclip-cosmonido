@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/select";
+import { LinkedConversations } from "../../components/crm/LinkedConversations";
 import { leadTitle } from "./Leads";
 
 const activityKey = (id: string) => ["leads", "activity", id] as const;
@@ -147,6 +148,15 @@ export function LeadDetail() {
       <section className="space-y-2">
         <h2 className="text-sm font-medium">{t("crm.leads.detail.identity")}</h2>
         <LinkedRecords lead={lead} />
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium">{t("crm.conversations.title")}</h2>
+        <LinkedConversations
+          companyId={lead.companyId}
+          filter={lead.contactId ? { contactId: lead.contactId } : null}
+          conversationIds={lead.conversationId ? [lead.conversationId] : []}
+        />
       </section>
 
       {open && (

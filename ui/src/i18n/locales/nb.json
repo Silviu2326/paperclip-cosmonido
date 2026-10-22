@@ -11037,7 +11037,9 @@
       "unlink": "Unlink",
       "primaryContact": "Primary",
       "newContact": "New contact",
-      "allCustomers": "All customers"
+      "allCustomers": "All customers",
+      "conversationsTab": "Conversations",
+      "opportunitiesEmpty": "This customer has no opportunities yet."
     },
     "contacts": {
       "title": "Contacts",
@@ -11224,6 +11226,22 @@
         "negotiation": "Negotiation",
         "won": "Won",
         "lost": "Lost"
+      },
+      "create": {
+        "title": "New opportunity",
+        "customer": "Customer",
+        "chooseCustomer": "Choose a customer",
+        "fieldTitle": "Title",
+        "fieldStage": "Stage",
+        "fieldAmount": "Amount (optional)",
+        "fieldCurrency": "Currency",
+        "fieldNextAction": "Next action (optional)",
+        "cancel": "Cancel",
+        "submit": "Create",
+        "submitting": "Creating...",
+        "error": "Could not create the opportunity.",
+        "noCustomers": "Create a customer first to attach the opportunity.",
+        "amountInvalid": "Enter a valid amount."
       }
     },
     "activities": {
@@ -11263,6 +11281,27 @@
         "kept": "Mark kept",
         "missed": "Mark missed",
         "cancelled": "Cancel"
+      }
+    },
+    "conversations": {
+      "title": "Conversations",
+      "empty": "No conversations linked yet.",
+      "loadError": "Could not load conversations.",
+      "channels": {
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "webchat": "Web chat",
+        "voice": "Voice",
+        "sms": "SMS"
+      },
+      "statuses": {
+        "open": "Open",
+        "waiting_us": "Waiting for us",
+        "waiting_them": "Waiting for the customer",
+        "closed": "Closed"
       }
     }
   },

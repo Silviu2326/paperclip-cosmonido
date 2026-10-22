@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
-import { AUTONOMY_ACTION_TYPES, type AutonomyActionType, type AutonomyLevel, type AutonomyMatrixCell } from "@paperclipai/shared";
+import { EXTERNAL_ACTION_TYPES, type AutonomyLevel, type AutonomyMatrixCell, type ExternalActionType } from "@paperclipai/shared";
 import { useTranslation } from "@/i18n";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -23,7 +23,7 @@ const LEVEL_LABELS: Record<AutonomyLevel, string> = {
   send_direct: "Envío directo",
 };
 
-const ACTION_LABELS: Record<AutonomyActionType, string> = {
+const ACTION_LABELS: Record<ExternalActionType, string> = {
   email: "Correo",
   message: "Mensaje",
   booking: "Reserva",
@@ -31,6 +31,7 @@ const ACTION_LABELS: Record<AutonomyActionType, string> = {
   proposal: "Propuesta",
   publish: "Publicación",
   call: "Llamada",
+  review_link: "Enlace de revisión",
 };
 
 const DIMENSION_LABELS: Record<string, string> = {
@@ -55,7 +56,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
-type CellRef = { agentId: string; actionType: AutonomyActionType };
+type CellRef = { agentId: string; actionType: ExternalActionType };
 
 export function Autonomy() {
   const { selectedCompanyId } = useCompany();
@@ -114,7 +115,7 @@ export function Autonomy() {
           <thead>
             <tr className="text-left">
               <th scope="col" className="p-2 font-medium">{t("autonomy.agent", { defaultValue: "Agente" })}</th>
-              {AUTONOMY_ACTION_TYPES.map((actionType) => (
+              {EXTERNAL_ACTION_TYPES.map((actionType) => (
                 <th scope="col" className="p-2 font-medium" key={actionType}>
                   {t(`autonomy.action.${actionType}`, { defaultValue: ACTION_LABELS[actionType] })}
                 </th>
@@ -125,7 +126,7 @@ export function Autonomy() {
             {rows.map(([agentId, cells]) => (
               <tr className="border-t align-top" key={agentId}>
                 <th scope="row" className="p-2 text-left font-medium">{agentName(agentId)}</th>
-                {AUTONOMY_ACTION_TYPES.map((actionType) => {
+                {EXTERNAL_ACTION_TYPES.map((actionType) => {
                   const cell = cells.find((item) => item.actionType === actionType);
                   if (!cell) return <td className="p-2" key={actionType} />;
                   return (

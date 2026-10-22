@@ -10,6 +10,7 @@ import { PageSkeleton } from "../../components/PageSkeleton";
 import { OpportunityBoard, formatOpportunityAmount } from "../../components/crm/OpportunityBoard";
 import { ActivityTimeline } from "../../components/crm/ActivityTimeline";
 import { CommitmentsList } from "../../components/crm/CommitmentsList";
+import { OpportunityCreateDialog } from "../../components/crm/OpportunityCreateDialog";
 import { crmApi, type StageChangeResponse } from "../../api/crm";
 import { queryKeys } from "../../lib/queryKeys";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ export function Opportunities() {
   const [view, setView] = useState<View>("board");
   const [selected, setSelected] = useState<Opportunity | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     setBreadcrumbs([{ label: t("nav.opportunities") }]);
@@ -61,12 +63,17 @@ export function Opportunities() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        <Button size="sm" variant={view === "board" ? "default" : "outline"} onClick={() => setView("board")}>
-          {t("crm.opportunities.board")}
-        </Button>
-        <Button size="sm" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}>
-          {t("crm.opportunities.list")}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-2">
+          <Button size="sm" variant={view === "board" ? "default" : "outline"} onClick={() => setView("board")}>
+            {t("crm.opportunities.board")}
+          </Button>
+          <Button size="sm" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}>
+            {t("crm.opportunities.list")}
+          </Button>
+        </div>
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
+          {t("crm.opportunities.create.title")}
         </Button>
       </div>
 
@@ -107,6 +114,12 @@ export function Opportunities() {
           </table>
         </div>
       )}
+
+      <OpportunityCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        companyId={companyId}
+      />
 
       <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
         <SheetContent side="right" className="overflow-y-auto">

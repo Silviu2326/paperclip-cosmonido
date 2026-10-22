@@ -119,6 +119,8 @@ export interface Project {
   privacyOwnerUserId?: string | null;
   status: ProjectStatus;
   leadAgentId: string | null;
+  /** CRM customer this project serves (Sprint 2). Null when not linked. */
+  customerId?: string | null;
   targetDate: string | null;
   color: string | null;
   icon: string | null;

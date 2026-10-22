@@ -104,7 +104,77 @@ export function conversationMessageService(db: Db) {
     return row?.providerMessageId ?? null;
   }
 
+  /**
+   * Builds the outbound payload and the delivery closure for one draft. Shared by `send`
+   * and by `deliveryExecutor`, so a retried approval delivers exactly as the original would.
+   */
+  async function buildDelivery(companyId: string, msg: MessageRow, actor: ConversationActor) {
+  const parent = await loadConversation(companyId, msg.conversationId);
+  const transport = transportForChannel(parent.channel);
+  if (!transport) throw conflict(`No transport is active for channel ${parent.channel}`);
+
+  const actionType: ExternalActionType = parent.channel === "email" ? "email" : "message";
+  const outbound: OutboundMessage = {
+    companyId,
+    messageId: msg.id,
+    conversationId: parent.id,
+    channel: parent.channel as ConversationChannel,
+    externalThreadId: parent.externalThreadId,
+    body: msg.body,
+    subject: parent.subject,
+    to: {},
+    replyToProviderMessageId: await lastInboundProviderId(companyId, parent.id),
+    actor: { userId: actor.userId ?? null, agentId: actor.agentId ?? null },
+  };
+
+  const deliver = async (): Promise<ExternalActionResult> => {
+    await setDelivery(msg.id, { deliveryStatus: "queued", provider: transport.provider });
+    let result;
+    try {
+      result = await transport.send(outbound);
+    } catch (error) {
+      if (error instanceof ExternalActionUncertainError) {
+        await setDelivery(msg.id, { deliveryStatus: "uncertain", providerReceipt: { error: error.message } });
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      await setDelivery(msg.id, {
+        deliveryStatus: "failed",
+        providerReceipt: { error: message, rejected: error instanceof TransportRejectedError },
+      });
+      throw error;
+    }
+    const sentAt = new Date();
+    const status: TransportReconcileStatus = result.status === "sent" ? "sent" : "queued";
+    await setDelivery(msg.id, {
+      deliveryStatus: status,
+      provider: transport.provider,
+      providerMessageId: result.providerMessageId ?? null,
+      providerReceipt: result.receipt ?? null,
+      sentAt: status === "sent" ? sentAt : null,
+    });
+    if (status === "sent") await conv.recordOutboundSent(parent.id, sentAt);
+    return { status, providerMessageId: result.providerMessageId ?? null };
+  };
+    return { actionType, deliver, channel: parent.channel as ConversationChannel, parent };
+  }
+
+  /**
+   * Delivery closure for a draft whose approved action lost its in-process executor (restart).
+   * Rebuilds exactly what `send` would have built; the caller runs it through the gate's retry.
+   */
+  async function deliveryExecutor(companyId: string, messageId: string, actor: ConversationActor) {
+    const msg = await loadMessage(companyId, messageId);
+    if (msg.direction !== "outbound") throw badRequest("Only outbound messages can be sent");
+    if (msg.deliveryStatus !== "draft") {
+      throw conflict("Only a draft message can be delivered again", { messageId, status: msg.deliveryStatus });
+    }
+    const built = await buildDelivery(companyId, msg, actor);
+    return { deliver: built.deliver, channel: built.channel };
+  }
+
   const api = {
+    deliveryExecutor,
     /** Loads by id alone, for route-level access checks (getAccessibleResource). */
     async findMessage(id: string): Promise<ConversationMessage | null> {
       const [row] = await db.select().from(conversationMessages).where(eq(conversationMessages.id, id)).limit(1);
@@ -197,53 +267,7 @@ export function conversationMessageService(db: Db) {
         return { message: toConversationMessage(msg), action: null, mode: null };
       }
 
-      const parent = await loadConversation(companyId, msg.conversationId);
-      const transport = transportForChannel(parent.channel);
-      if (!transport) throw conflict(`No transport is active for channel ${parent.channel}`);
-
-      const actionType: ExternalActionType = parent.channel === "email" ? "email" : "message";
-      const outbound: OutboundMessage = {
-        companyId,
-        messageId: msg.id,
-        conversationId: parent.id,
-        channel: parent.channel as ConversationChannel,
-        externalThreadId: parent.externalThreadId,
-        body: msg.body,
-        subject: parent.subject,
-        to: {},
-        replyToProviderMessageId: await lastInboundProviderId(companyId, parent.id),
-        actor: { userId: actor.userId ?? null, agentId: actor.agentId ?? null },
-      };
-
-      const deliver = async (): Promise<ExternalActionResult> => {
-        await setDelivery(msg.id, { deliveryStatus: "queued", provider: transport.provider });
-        let result;
-        try {
-          result = await transport.send(outbound);
-        } catch (error) {
-          if (error instanceof ExternalActionUncertainError) {
-            await setDelivery(msg.id, { deliveryStatus: "uncertain", providerReceipt: { error: error.message } });
-            throw error;
-          }
-          const message = error instanceof Error ? error.message : String(error);
-          await setDelivery(msg.id, {
-            deliveryStatus: "failed",
-            providerReceipt: { error: message, rejected: error instanceof TransportRejectedError },
-          });
-          throw error;
-        }
-        const sentAt = new Date();
-        const status: TransportReconcileStatus = result.status === "sent" ? "sent" : "queued";
-        await setDelivery(msg.id, {
-          deliveryStatus: status,
-          provider: transport.provider,
-          providerMessageId: result.providerMessageId ?? null,
-          providerReceipt: result.receipt ?? null,
-          sentAt: status === "sent" ? sentAt : null,
-        });
-        if (status === "sent") await conv.recordOutboundSent(parent.id, sentAt);
-        return { status, providerMessageId: result.providerMessageId ?? null };
-      };
+      const { actionType, deliver, channel, parent } = await buildDelivery(companyId, msg, actor);
 
       const actorKey = actor.agentId ? `agent:${actor.agentId}` : `user:${actor.userId ?? "board"}`;
       const outcome = await gateExternalAction(db, {
@@ -252,7 +276,7 @@ export function conversationMessageService(db: Db) {
         actor: { userId: actor.userId ?? null, agentId: actor.agentId ?? null },
         subjectKind: "conversation",
         subjectId: parent.id,
-        payload: { messageId: msg.id, channel: parent.channel, bodyLength: msg.body.length },
+        payload: { messageId: msg.id, channel, bodyLength: msg.body.length },
         // One gate row per message and actor: a board send after an agent draft is a new request.
         idempotencyKey: `message:${msg.id}:${actorKey}`,
         execute: deliver,

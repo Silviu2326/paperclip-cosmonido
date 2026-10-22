@@ -3,6 +3,12 @@
 Fecha: 2026-10-21
 Uso: cada pista anota aquí, bajo su encabezado, lo que necesita en archivos de un solo propietario (schema/index, migraciones, shared/index, app.ts, services/index, routes/index, App.tsx, Sidebar, queryKeys) y cualquier desviación del contrato. El responsable de integración aplica y tacha.
 
+## Integración S1 + Oficina + S3 + S2 (2026-10-22, rama `integracion`)
+
+Hecho: fusión de `sprint-2` sobre `ccr-4537c3c8-cqjuhz` (commit de fusión `42ac31432`); migraciones `0361_loose_ikaris.sql` (delta del S2: 17 tablas, sin `autonomy_policies` ni `ALTER company_files`) y `0362_complex_anita_blake.sql` (`projects.customer_id` + índice, FK `lead_qualifications.lead_id → leads`); `AutonomyLevel`/`AUTONOMY_LEVELS`/`AUTONOMY_LEVEL_RANK`/`minAutonomyLevel` una sola vez en `packages/shared/src/constants/crm.ts`; `AUTONOMY_ACTION_TYPES` incluye `review_link`; el gate del S2 delega el nivel efectivo en `autonomyService` del S3 (agente sin concesión propia = `draft_only`); `routes/leads.ts` del S3 pasa a `routes/lead-qualification.ts` (`ui/src/api/lead-qualification.ts`); el extractor de compromisos del S3 persiste en `commitments` del S2 (`detectedCommitmentsPersist`); aprobaciones → gate por `resolveExternalActionApproval` en `routes/approvals.ts`, con `retryExternalAction` para `message`, `booking` y `stage_change` tras reinicio; `projects.customerId` usado en memoria (`linkedCustomerIdsForRun`) y en contexto (audiencia `customer`); resumen diario con compromisos por vencer y alerta de vencidos como actividad `system`; `express.json({ limit: "4kb" })` previo para `/api/p`; las 27 herramientas del S2 registradas en el catálogo del runner (`protocol-actions/sprint2/*`, `services/sprint2-tools.ts`, `paperclip-runner-tool-authority.ts`), catálogo 99 entradas; UI: crear oportunidad, pestañas reales en la ficha de cliente, conversaciones desde cliente y lead, autonomía con `EXTERNAL_ACTION_TYPES`; mapas de producto y acceso con 10 capacidades del S2 (`check-maps`: 47 áreas, 243 ids).
+
+Pendiente tras la integración: drift previo del runner (`check:capability-inventory`, `spec/operation-groups/source.json`, constantes fijadas en tests de reconciliación, `ajv` con `format: uuid`); invocador real de Google Calendar en `calendarRoutes(db, { calendar })`; ruta HTTP para `retryExternalAction`; casos del banco de pruebas para `booking`, `stage_change`, `call`, `publish`, `review_link`; pantalla y endpoint de `lead_forms`; límite de 4 kB también para el formulario público (antes 64 kB); ciclo de import `sprint2-tools.ts ↔ crm-tools.ts` resuelto con import perezoso en `external-action-retry.ts`; `review_link_create`, `review_status_get`, `crm_sync_status` sin implementar; respuesta automática del chat web con contexto.
+
 ## Estado de integración fase B (2026-10-22)
 
 Hecho por el integrador: exports de `lead_forms`, `calendar` y `customer_memory` en `schema/index.ts`; migración única regenerada `0358_dapper_natasha_romanoff.sql` (16 tablas; al fusionar con S1 renumerar a 0361 y quitar los `ALTER TABLE company_files`); `crmMemoryRoutes` montada y exportada; `conversationRoutes(db, emailChannels)`; adaptadores de B/C/H sustituidos por `identityService`, `contactService`, `customerService`, `opportunityService` e `intake` (`leads/adapters.ts` eliminado). Verificado: db typecheck, servidor sin errores propios (solo `instrumentation.ts` preexistente), UI sin errores propios (solo Artefactos del commit base), locales 7/7, token gates sin violaciones en archivos S2, Vitest 14 archivos / 109 tests.
@@ -177,3 +183,25 @@ Desviaciones del brief y del contrato (decididas por F):
 - Widget: DOM en shadow root; texto solo con `textContent`; color validado con regex antes de usarlo; sondeo cada 3 s solo con el panel abierto; teclado (Escape cierra, foco al lanzador, `aria-live` en el registro); textos en español si el idioma de la página es `es`, en inglés en el resto.
 - No probado en navegador real: la prueba de humo fue jsdom con `fetch` simulado. Revisar la apariencia y el comportamiento en un sitio de prueba antes de producción.
 - El agente que responde automáticamente queda fuera (depende del contexto de negocio del S1).
+
+## Integración de enganches cruzados (integrador, 2026-10-22)
+
+Hecho en `paperclip-int` (rama `integracion`), sin commit.
+
+**Cambios de esquema para la migración (pendiente de `pnpm db:generate` por el responsable):**
+- `lead_qualifications.lead_id`: pasa a `references leads(id) on delete cascade` (FK nueva; antes sin FK). Sin ciclo de imports: `leads.ts` no importa `lead_qualifications.ts`.
+- `projects.customer_id uuid null` con FK a `customers(id)` `on delete set null`, e índice `projects_company_customer_idx (company_id, customer_id)`.
+- Sin tablas ni columnas nuevas en otros sitios. No se toca `external_actions` (la acción aprobada sin ejecutor usa `status='approved'` y `result.reason`).
+
+**Puente temporal en tests:** `server/src/__tests__/company-files-routes.test.ts` ejecuta `alter table "projects" add column if not exists "customer_id" ...` en `beforeAll`. Quitarlo tras regenerar la migración. Cualquier otra suite que lea `projects` fallará hasta que la migración exista (Drizzle selecciona la columna nueva).
+
+**Enganches:**
+- Cliente del proyecto en memoria de cliente: `linkedCustomerIdsForRun` añade el cliente del proyecto de la issue del run (`issueId` o `contextSnapshot.issueId`), además del de la conversación.
+- Contexto: `customer` como audiencia de archivos. Un run recibe los archivos `audience_kind='customer'` solo del `customer_id` de su proyecto. Tablero: `allCustomers`, igual que `allProjects`.
+- Aprobaciones del gate: `routes/approvals.ts` llama a `resolveExternalActionApproval` tras aprobar o rechazar (usa `payload.externalActionId` que escribe el gate). Los errores se registran, no se lanzan. Limitación: las decisiones tomadas por plugins (`plugin-host-services.ts`) no pasan por esta ruta.
+- Sin ejecutor (reinicio): `approveExternalAction` deja la acción en `approved` con `result.reason='executor_unavailable'`. `retryExternalAction(db, actionId, { calendar? })` (`services/external-action-retry.ts`) reconstruye el ejecutor para `message` (`conversationMessageService.deliveryExecutor`), `booking` (`bookingService.retryCreate`, requiere `calendar`) y `stage_change` (`opportunityService.changeStage`). Otros tipos y estados: 409. No hay ruta HTTP para reintentar todavía.
+- Resumen diario: `commitmentsDue` por defecto consulta `commitments` con `status='open'` y `due_at` en las próximas 48 h o vencido. `tick()` alerta una vez por compromiso vencido abierto, mediante `commitmentService.alertDue` (`deps.alert` opcional) y registra una `crm_activities` `kind='system'` con `external_ref='commitment-overdue:<id>'` como marca.
+
+**Superficie pública:** `app.ts` limita `/api/p` a `express.json` y `express.urlencoded` de 4 kB antes del parser global de 10 MB. Efecto colateral conocido: el formulario de leads (`routes/public/leads.ts`) tenía `urlencoded` de 64 kB a nivel de ruta; ahora queda limitado a 4 kB por el parser previo.
+
+**TRUST_PROXY (firma de Twilio):** `channels-inbound.ts` firma la URL como `${req.protocol}://${req.get("host")}${req.originalUrl}`. Tras un proxy que termina TLS, definir `TRUST_PROXY` con el número de saltos (por ejemplo `TRUST_PROXY=1`) para que `req.protocol` use `X-Forwarded-Proto`, y configurar el proxy para enviar `Host` público (`proxy_set_header Host $host` en nginx). Sin ello, la firma no coincide con la URL que configuró Twilio. `TRUST_PROXY` ya existe en `server/src/middleware/trust-proxy.ts`; no hace falta añadirlo.

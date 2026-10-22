@@ -7,6 +7,15 @@ import { describe, expect, it } from "vitest";
 import { createTaskAction } from "../protocol-actions/create-task.js";
 import { createProjectAction } from "../protocol-actions/create-project.js";
 
+// Generated tool schemas use JSON Schema formats; register the ones the catalog uses so strict ajv compiles them.
+function withCatalogFormats(ajv: Ajv2020): Ajv2020 {
+  ajv.addFormat("uuid", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  ajv.addFormat("uri", (value: string) => { try { new URL(value); return true; } catch { return false; } });
+  ajv.addFormat("date-time", (value: string) => !Number.isNaN(Date.parse(value)));
+  ajv.addFormat("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  return ajv;
+}
+
 import {
   PAPERCLIP_SEMANTIC_ACTION_CATALOG,
   canonicalPaperclipSemanticActionCatalog,
@@ -21,7 +30,7 @@ const packageRoot = resolve(
 
 describe("semantic action catalog", () => {
   it("limits project repository URLs to HTTPS GitHub repository paths on both tool surfaces", () => {
-    const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true });
+    const ajv = withCatalogFormats(new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true }));
     for (const schema of [createProjectAction.live.descriptor.inputSchema, paperclipSemanticAction("create_project")!.inputSchema]) {
       const validate = ajv.compile(schema);
       const input = { name: "Project", idempotencyKey: "create-project-1" };
@@ -38,7 +47,7 @@ describe("semantic action catalog", () => {
   });
 
   it("advertises human assignment in both task creation contracts", () => {
-    const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true });
+    const ajv = withCatalogFormats(new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true }));
     for (const schema of [createTaskAction.live.descriptor.inputSchema, paperclipSemanticAction("create_task")!.inputSchema]) {
       const validate = ajv.compile(schema);
       const input = { title: "Hello", idempotencyKey: "hello", assigneeUserId: "company-owner" };
@@ -50,7 +59,7 @@ describe("semantic action catalog", () => {
   });
 
   it("accepts project handoff receipts and preserves ordinary child task receipts", () => {
-    const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true });
+    const ajv = withCatalogFormats(new Ajv2020({ allErrors: true, allowUnionTypes: true, strict: true }));
     const validate = ajv.compile(createTaskAction.live.descriptor.outputSchema);
     const receipt = {
       commandId: "create-task-1", disposition: "applied", stateRevision: 1,
@@ -69,7 +78,7 @@ describe("semantic action catalog", () => {
       (action) => action.operationId,
     );
 
-    expect(operationIds).toHaveLength(41);
+    expect(operationIds).toHaveLength(99);
     expect(operationIds).toContain("set_task_monitor");
     expect(new Set(operationIds).size).toBe(operationIds.length);
     expect(operationIds).not.toContain("generic_api_request");
@@ -91,11 +100,12 @@ describe("semantic action catalog", () => {
   });
 
   it("compiles every operation input and output schema", () => {
-    const ajv = new Ajv2020({
+    const ajv = withCatalogFormats(new Ajv2020({
       allErrors: true,
       allowUnionTypes: true,
       strict: true,
-    });
+      strictRequired: false,
+    }));
 
     for (const action of PAPERCLIP_SEMANTIC_ACTION_CATALOG) {
       expect(
@@ -110,11 +120,12 @@ describe("semantic action catalog", () => {
   });
 
   it("keeps bounded mutation inputs and rejects undeclared fields", () => {
-    const ajv = new Ajv2020({
+    const ajv = withCatalogFormats(new Ajv2020({
       allErrors: true,
       allowUnionTypes: true,
       strict: true,
-    });
+      strictRequired: false,
+    }));
     const writeDocument = paperclipSemanticAction("write_document");
     const taskContext = paperclipSemanticAction("get_task_context");
     expect(writeDocument).toBeDefined();

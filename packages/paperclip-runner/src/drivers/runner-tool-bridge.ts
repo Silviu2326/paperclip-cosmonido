@@ -438,6 +438,8 @@ function compileValidators(
   tools: readonly RunnerToolDefinition[],
 ): Map<string, ValidateFunction> {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
+  // Tool schemas use JSON Schema `format: "uuid"`; ajv needs the format registered or it logs an unknown-format error.
+  ajv.addFormat("uuid", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
   return new Map(
     tools.map((tool) => [tool.name, ajv.compile(tool.inputSchema)]),
   );

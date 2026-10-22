@@ -10,6 +10,7 @@ import {
 } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import { logger } from "../middleware/logger.js";
+import { resolveExternalActionApproval } from "../services/external-action-gate.js";
 import {
   approvalService,
   accessService,
@@ -39,6 +40,23 @@ function isStatusOnlyRecoveryContext(contextSnapshot: unknown) {
     context.allowDeliverableWork === false &&
     context.allowDocumentUpdates === false &&
     context.resumeRequiresNormalModel === true;
+}
+
+/**
+ * An external action waiting on this approval follows its decision. Errors are logged, not
+ * thrown: the approval decision already stands and the action can be retried or inspected.
+ */
+async function forwardExternalActionDecision(
+  db: Db,
+  approval: { id: string; type: string; payload: unknown },
+  decision: "approved" | "rejected",
+  approverUserId: string,
+  reason: string | null | undefined,
+) {
+  const outcome = await resolveExternalActionApproval(db, { approval, decision, approverUserId, reason: reason ?? null });
+  if (outcome?.error) {
+    logger.warn({ approvalId: approval.id, externalActionId: outcome.actionId, error: outcome.error }, "external action did not follow approval decision");
+  }
 }
 
 export function approvalRoutes(
@@ -304,6 +322,7 @@ export function approvalRoutes(
     const { approval, applied } = await svc.approve(id, decidedByUserId, req.body.decisionNote);
 
     if (applied) {
+      await forwardExternalActionDecision(db, approval, "approved", decidedByUserId, req.body.decisionNote);
       const linkedIssues = await issueApprovalsSvc.listIssuesForApproval(approval.id);
       const linkedIssueIds = linkedIssues.map((issue) => issue.id);
       const primaryIssueId = linkedIssueIds[0] ?? null;
@@ -420,6 +439,7 @@ export function approvalRoutes(
     const { approval, applied } = await svc.reject(id, decidedByUserId, req.body.decisionNote);
 
     if (applied) {
+      await forwardExternalActionDecision(db, approval, "rejected", decidedByUserId, req.body.decisionNote);
       const linkedIssues = await issueApprovalsSvc.listIssuesForApproval(approval.id);
       const lostReviewIssueIds = await lostReviewPathIssueIds(approval.companyId, linkedIssues);
       await logActivity(db, {

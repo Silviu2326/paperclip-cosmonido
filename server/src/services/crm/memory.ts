@@ -2,6 +2,8 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { customers } from "@paperclipai/db/schema/customers";
 import { conversations } from "@paperclipai/db/schema/conversations";
+import { issues } from "@paperclipai/db/schema/issues";
+import { projects } from "@paperclipai/db/schema/projects";
 import { customerMemoryNotes } from "@paperclipai/db/schema/customer_memory";
 
 export type CustomerMemorySource = "user" | "agent" | "detected";
@@ -102,21 +104,40 @@ export function customerMemoryService(db: Db) {
 }
 
 /**
- * Customers an agent run may read or write memory for. The run is linked to a
- * customer only through its conversation: `contextSnapshot.conversationId` must
- * name a conversation of the same company whose `customer_id` is set.
- * TODO(integration): `projects.customerId` does not exist yet. When it is added,
- * also include the customer of the run's project.
+ * Customers an agent run may read or write memory for. Two links are honoured:
+ * - the run's conversation (`contextSnapshot.conversationId`), when the conversation
+ *   of the same company has a `customer_id`;
+ * - the run's task project (`issueId`, or `contextSnapshot.issueId`), when the project
+ *   of the same company has a `customer_id`.
+ * Returns an empty list when neither link exists.
  */
 export async function linkedCustomerIdsForRun(
   db: Db,
-  input: { companyId: string; contextSnapshot: Record<string, unknown> | null | undefined },
+  input: { companyId: string; contextSnapshot: Record<string, unknown> | null | undefined; issueId?: string | null },
 ): Promise<string[]> {
+  const customerIds = new Set<string>();
   const conversationId = input.contextSnapshot?.conversationId;
-  if (typeof conversationId !== "string" || conversationId.length === 0) return [];
-  const [conversation] = await db
-    .select({ customerId: conversations.customerId })
-    .from(conversations)
-    .where(and(eq(conversations.id, conversationId), eq(conversations.companyId, input.companyId)));
-  return conversation?.customerId ? [conversation.customerId] : [];
+  if (typeof conversationId === "string" && conversationId.length > 0) {
+    const [conversation] = await db
+      .select({ customerId: conversations.customerId })
+      .from(conversations)
+      .where(and(eq(conversations.id, conversationId), eq(conversations.companyId, input.companyId)));
+    if (conversation?.customerId) customerIds.add(conversation.customerId);
+  }
+  const snapshotIssueId = input.contextSnapshot?.issueId;
+  const issueId = input.issueId ?? (typeof snapshotIssueId === "string" ? snapshotIssueId : null);
+  if (issueId) {
+    const [issue] = await db
+      .select({ projectId: issues.projectId })
+      .from(issues)
+      .where(and(eq(issues.id, issueId), eq(issues.companyId, input.companyId)));
+    if (issue?.projectId) {
+      const [project] = await db
+        .select({ customerId: projects.customerId })
+        .from(projects)
+        .where(and(eq(projects.id, issue.projectId), eq(projects.companyId, input.companyId)));
+      if (project?.customerId) customerIds.add(project.customerId);
+    }
+  }
+  return [...customerIds];
 }

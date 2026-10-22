@@ -11037,7 +11037,9 @@
       "unlink": "Desvincular",
       "primaryContact": "Principal",
       "newContact": "Nuevo contacto",
-      "allCustomers": "Todos los clientes"
+      "allCustomers": "Todos los clientes",
+      "conversationsTab": "Conversaciones",
+      "opportunitiesEmpty": "Este cliente aún no tiene oportunidades."
     },
     "contacts": {
       "title": "Contactos",
@@ -11224,6 +11226,22 @@
         "negotiation": "Negociación",
         "won": "Ganada",
         "lost": "Perdida"
+      },
+      "create": {
+        "title": "Nueva oportunidad",
+        "customer": "Cliente",
+        "chooseCustomer": "Elige un cliente",
+        "fieldTitle": "Título",
+        "fieldStage": "Etapa",
+        "fieldAmount": "Importe (opcional)",
+        "fieldCurrency": "Moneda",
+        "fieldNextAction": "Próxima acción (opcional)",
+        "cancel": "Cancelar",
+        "submit": "Crear",
+        "submitting": "Creando...",
+        "error": "No se pudo crear la oportunidad.",
+        "noCustomers": "Crea primero un cliente para asociar la oportunidad.",
+        "amountInvalid": "Introduce un importe válido."
       }
     },
     "activities": {
@@ -11263,6 +11281,27 @@
         "kept": "Marcar cumplido",
         "missed": "Marcar incumplido",
         "cancelled": "Cancelar"
+      }
+    },
+    "conversations": {
+      "title": "Conversaciones",
+      "empty": "Todavía no hay conversaciones vinculadas.",
+      "loadError": "No se pudieron cargar las conversaciones.",
+      "channels": {
+        "email": "Correo",
+        "whatsapp": "WhatsApp",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "webchat": "Chat web",
+        "voice": "Voz",
+        "sms": "SMS"
+      },
+      "statuses": {
+        "open": "Abierta",
+        "waiting_us": "Esperando respuesta nuestra",
+        "waiting_them": "Esperando al cliente",
+        "closed": "Cerrada"
       }
     }
   },

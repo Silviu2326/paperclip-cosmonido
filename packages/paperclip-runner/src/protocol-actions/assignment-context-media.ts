@@ -8,6 +8,13 @@ import { handoffToolDefinitions } from "./sprint3/handoff.js";
 import { agreementsToolDefinitions } from "./sprint3/agreements.js";
 import { explainToolDefinitions } from "./sprint3/explain.js";
 import { media_v3ToolDefinitions } from "./sprint3/media-v3.js";
+import { sprint2CrmToolDefinitions } from "./sprint2/crm.js";
+import { sprint2CommitmentToolDefinitions } from "./sprint2/commitments.js";
+import { sprint2LeadToolDefinitions } from "./sprint2/leads.js";
+import { sprint2ConversationToolDefinitions } from "./sprint2/conversations.js";
+import { sprint2CalendarToolDefinitions } from "./sprint2/calendar.js";
+import { sprint2MemoryToolDefinitions } from "./sprint2/memory.js";
+import { sprint2WebchatToolDefinitions } from "./sprint2/webchat.js";
 
 /** Assignment, business-context and media operations use the authenticated server API. */
 const baseDefinitions = [
@@ -562,6 +569,14 @@ const definitions = [
   ...agreementsToolDefinitions,
   ...explainToolDefinitions,
   ...media_v3ToolDefinitions,
+  // Sprint 2 CRM, conversation, calendar, memory and web chat tools (27).
+  ...sprint2CrmToolDefinitions,
+  ...sprint2CommitmentToolDefinitions,
+  ...sprint2LeadToolDefinitions,
+  ...sprint2ConversationToolDefinitions,
+  ...sprint2CalendarToolDefinitions,
+  ...sprint2MemoryToolDefinitions,
+  ...sprint2WebchatToolDefinitions,
 ] as const;
 
 export type AssignmentContextMediaOperationId = typeof definitions[number]['name'];
@@ -582,6 +597,8 @@ const SPRINT3_NAMESPACES: Array<[prefix: string, namespace: string]> = [
   ["context_", "business_context"], ["media_", "media_studio"], ["playbook_", "playbooks"], ["lead_", "leads"],
   ["autonomy_", "autonomy"], ["decision_", "commercial_decisions"], ["commitments_", "commitments"], ["commercial_", "commercial_triggers"],
   ["proposal_", "proposals"], ["handoff_", "handoff"], ["agreement_", "agreements"], ["upsell_", "agreements"], ["explain_", "explain"],
+  ["crm_", "crm"], ["commitment_", "commitments"], ["conversation_", "conversations"], ["message_", "conversations"],
+  ["webchat_", "conversations"], ["calendar_", "calendar"], ["customer_memory_", "customer_memory"],
 ];
 function sprint3Namespace(name: string): string {
   for (const [prefix, namespace] of SPRINT3_NAMESPACES) if (name.startsWith(prefix)) return namespace;

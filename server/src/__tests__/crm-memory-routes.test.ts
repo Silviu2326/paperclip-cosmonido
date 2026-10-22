@@ -101,6 +101,7 @@ describe("crm memory routes: agent isolation", () => {
     );
     mockProjectToolContext.mockResolvedValue({
       run: { id: RUN_ID, agentId: AGENT_ID, companyId: COMPANY_1, contextSnapshot: { conversationId: "c" } },
+      issue: { id: "88888888-8888-4888-8888-888888888888" },
     });
     mockLinkedCustomerIdsForRun.mockResolvedValue([CUSTOMER_LINKED]);
   });

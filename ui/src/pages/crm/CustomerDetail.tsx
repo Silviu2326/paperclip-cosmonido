@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomerSummary } from "../../components/crm/CustomerSummary";
 import { CustomerContactsTab } from "../../components/crm/CustomerContactsTab";
 import { CustomerMemory } from "../../components/crm/CustomerMemory";
+import { CustomerOpportunitiesTab } from "../../components/crm/CustomerOpportunitiesTab";
+import { ActivityTimeline } from "../../components/crm/ActivityTimeline";
+import { LinkedConversations } from "../../components/crm/LinkedConversations";
 import { useCompany } from "../../context/CompanyContext";
 
 export function CustomerDetail() {
@@ -89,6 +92,7 @@ export function CustomerDetail() {
           <TabsTrigger value="contacts">{t("crm.customers.contactsTab")}</TabsTrigger>
           <TabsTrigger value="opportunities">{t("crm.customers.opportunitiesTab")}</TabsTrigger>
           <TabsTrigger value="activity">{t("crm.customers.activityTab")}</TabsTrigger>
+          <TabsTrigger value="conversations">{t("crm.customers.conversationsTab")}</TabsTrigger>
           <TabsTrigger value="memory">{t("crm.customers.memoryTab")}</TabsTrigger>
         </TabsList>
 
@@ -101,11 +105,15 @@ export function CustomerDetail() {
         </TabsContent>
 
         <TabsContent value="opportunities" className="pt-4">
-          <p className="text-sm text-muted-foreground">{t("crm.customers.placeholderOpportunities")}</p>
+          <CustomerOpportunitiesTab companyId={customer.companyId} customerId={customer.id} />
         </TabsContent>
 
         <TabsContent value="activity" className="pt-4">
-          <p className="text-sm text-muted-foreground">{t("crm.customers.placeholderActivity")}</p>
+          <ActivityTimeline companyId={customer.companyId} subjectKind="customer" subjectId={customer.id} />
+        </TabsContent>
+
+        <TabsContent value="conversations" className="pt-4">
+          <LinkedConversations companyId={customer.companyId} filter={{ customerId: customer.id }} />
         </TabsContent>
 
         <TabsContent value="memory" className="pt-4">

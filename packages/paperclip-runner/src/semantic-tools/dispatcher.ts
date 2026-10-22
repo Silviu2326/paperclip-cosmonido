@@ -70,6 +70,8 @@ export class CapabilitySemanticDispatcher {
     readonly options: CapabilitySemanticDispatcherOptions = {},
   ) {
     const ajv = new Ajv2020({ allErrors: true, strict: false });
+    // Tool schemas use JSON Schema `format: "uuid"`; ajv needs the format registered or it logs an unknown-format error.
+    ajv.addFormat("uuid", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     for (const descriptor of CAPABILITY_SEMANTIC_TOOL_CATALOG) {
       this.#validators.set(descriptor.operationId, ajv.compile(descriptor.inputSchema));
     }

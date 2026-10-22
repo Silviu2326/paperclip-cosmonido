@@ -1,14 +1,20 @@
-import { and, desc, eq, gte, isNull, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { costEvents, dailyBriefPreferences, decisions, issues } from "@paperclipai/db";
+import { commitments, costEvents, crmActivities, dailyBriefPreferences, decisions, issues } from "@paperclipai/db";
 import type { DailyBrief, DailyBriefChannel, DailyBriefItem, DailyBriefPreference } from "@paperclipai/shared";
 import type { UpdateDailyBriefPreferenceInput } from "@paperclipai/shared";
 import { unprocessable } from "../errors.js";
+import { logger } from "../middleware/logger.js";
 import { logActivity } from "./activity-log.js";
+import { commitmentService as commitmentExtractorService } from "./commitment-extractor.js";
 
 /** Sprint 3 WP13: daily owner brief composed from the same sources as Inicio. */
 
 const SECTION_LIMIT = 10;
+/** Open commitments due within this horizon (or already overdue) appear in the brief. */
+const COMMITMENT_HORIZON_MS = 48 * 60 * 60 * 1000;
+/** externalRef of the crm_activities row that marks an overdue commitment as alerted. */
+const OVERDUE_ALERT_REF_PREFIX = "commitment-overdue:";
 const DEFAULT_CURRENCY = "USD";
 const DEFAULT_TIMEZONE = "Europe/Madrid";
 
@@ -25,8 +31,13 @@ export interface DailyBriefDeps {
   send?: (input: DailyBriefSendInput) => Promise<DailyBriefSendResult>;
   /** Supplied by WP5 once decisions are answerable remotely. */
   remoteDecisionUrl?: (companyId: string, decisionId: string) => Promise<string | null>;
-  /** Supplied by the Sprint 2 commitments service; not available yet. */
+  /** Overrides the default query (open commitments due within 48 h, or overdue). */
   commitmentsDue?: (companyId: string, date: string) => Promise<DailyBriefItem[]>;
+  /**
+   * Called once per overdue commitment by the commitment extractor's alertDue. Every alert also
+   * leaves a `system` crm activity on the commitment; that activity is the once-only marker.
+   */
+  alert?: (companyId: string, commitment: { id: string; dueAt: string }) => Promise<void>;
   now?: () => Date;
 }
 
@@ -167,6 +178,48 @@ function renderMarkdown(brief: Omit<DailyBrief, "markdown">): string {
   return lines.join("\n");
 }
 
+/** Open commitments of the company that are due within the horizon or already overdue. */
+async function commitmentsDueDefault(db: Db, companyId: string, now: Date): Promise<DailyBriefItem[]> {
+  const horizon = new Date(now.getTime() + COMMITMENT_HORIZON_MS);
+  const rows = await db
+    .select({
+      id: commitments.id,
+      who: commitments.who,
+      what: commitments.what,
+      dueAt: commitments.dueAt,
+      customerId: commitments.customerId,
+    })
+    .from(commitments)
+    .where(
+      and(
+        eq(commitments.companyId, companyId),
+        eq(commitments.status, "open"),
+        isNotNull(commitments.dueAt),
+        lte(commitments.dueAt, horizon),
+      ),
+    )
+    .orderBy(commitments.dueAt)
+    .limit(50);
+  return rows.map((row) => {
+    const overdue = row.dueAt !== null && row.dueAt.getTime() < now.getTime();
+    const owner = row.who === "us" ? "Nuestro compromiso" : "Compromiso del cliente";
+    return {
+      title: row.what,
+      detail: `${owner} · ${overdue ? "vencido" : "vence"} ${row.dueAt?.toISOString() ?? ""}`.trim(),
+      link: row.customerId ? `/customers/${row.customerId}` : null,
+    };
+  });
+}
+
+/** Companies with at least one open commitment past its due date. */
+async function companiesWithOverdueCommitments(db: Db, now: Date): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ companyId: commitments.companyId })
+    .from(commitments)
+    .where(and(eq(commitments.status, "open"), isNotNull(commitments.dueAt), lte(commitments.dueAt, now)));
+  return rows.map((row) => row.companyId);
+}
+
 function defaultPreference(companyId: string, userId: string): DailyBriefPreference {
   const now = new Date();
   return {
@@ -262,7 +315,9 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
       }),
     );
 
-    const commitmentsDue = deps.commitmentsDue ? await deps.commitmentsDue(companyId, date) : [];
+    const commitmentsDue = deps.commitmentsDue
+      ? await deps.commitmentsDue(companyId, date)
+      : await commitmentsDueDefault(db, companyId, now());
 
     const [todayRow] = await db
       .select({ total: sql<number>`coalesce(sum(${costEvents.costCents}), 0)::double precision` })
@@ -366,11 +421,72 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
   }
 
   /**
+   * Alerts once per overdue open commitment of one company, through the commitment extractor
+   * (`deps.alert`), and records a `system` crm activity on each alerted commitment. The activity
+   * is the marker: a commitment that already has it is not alerted again.
+   */
+  async function alertOverdueCommitments(companyId: string, at: Date): Promise<number> {
+    const overdue = await db
+      .select({ id: commitments.id, what: commitments.what, dueAt: commitments.dueAt })
+      .from(commitments)
+      .where(
+        and(
+          eq(commitments.companyId, companyId),
+          eq(commitments.status, "open"),
+          isNotNull(commitments.dueAt),
+          lte(commitments.dueAt, at),
+        ),
+      )
+      .limit(200);
+    if (overdue.length === 0) return 0;
+
+    const refFor = (id: string) => `${OVERDUE_ALERT_REF_PREFIX}${id}`;
+    const markers = await db
+      .select({ externalRef: crmActivities.externalRef })
+      .from(crmActivities)
+      .where(and(eq(crmActivities.companyId, companyId), inArray(crmActivities.externalRef, overdue.map((row) => refFor(row.id)))));
+    const alerted = new Set(markers.map((marker) => marker.externalRef));
+
+    const candidates = overdue.map((row) => ({
+      id: row.id,
+      dueAt: row.dueAt,
+      alertedAt: alerted.has(refFor(row.id)) ? at : null,
+    }));
+    const extractor = commitmentExtractorService(db, { alert: deps.alert });
+    const dueIds = await extractor.alertDue(companyId, candidates, at);
+
+    for (const id of dueIds) {
+      const row = overdue.find((item) => item.id === id);
+      await db.insert(crmActivities).values({
+        companyId,
+        subjectKind: "commitment",
+        subjectId: id,
+        kind: "system",
+        actorUserId: null,
+        actorAgentId: null,
+        summary: `Compromiso vencido: ${row?.what ?? id}`,
+        payload: { dueAt: row?.dueAt?.toISOString() ?? null },
+        externalRef: refFor(id),
+        occurredAt: at,
+      });
+    }
+    return dueIds.length;
+  }
+
+  /**
    * Called every ~10 minutes by the scheduler. Sends at most one brief per
    * preference per local day: lastSentOn is claimed before sending, so a
    * failed attempt is not retried the same day.
    */
   async function tick(at: Date = now()): Promise<{ attempted: number; delivered: number }> {
+    for (const companyId of await companiesWithOverdueCommitments(db, at)) {
+      try {
+        await alertOverdueCommitments(companyId, at);
+      } catch (error) {
+        logger.warn({ err: error, companyId }, "overdue commitment alerts failed");
+      }
+    }
+
     const rows = await db
       .select()
       .from(dailyBriefPreferences)
@@ -431,7 +547,7 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
     return { attempted, delivered };
   }
 
-  return { compose, getPreference, updatePreference, tick };
+  return { compose, getPreference, updatePreference, tick, alertOverdueCommitments };
 }
 
 export type DailyBriefService = ReturnType<typeof dailyBriefService>;

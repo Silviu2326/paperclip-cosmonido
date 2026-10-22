@@ -38,7 +38,7 @@ Targeted evidence: [playbooks](../../server/src/__tests__/playbooks-services.int
 
 ## Gotchas
 
-- Sprint 2 tables (leads, opportunities, conversations, commitments, customers) do not exist yet: ids are stored without foreign keys and their behaviour sits behind injectable dependencies.
+- The Sprint 2 tables (leads, opportunities, conversations, commitments, customers) exist in the integrated branch, but sprint 3 tables store their ids without foreign keys; each subject still needs its own company check, and the companion records what is verified.
 - The default bench candidate echoes the reference answer, so an unconfigured bench scores 1.0; inject a real candidate and judge before trusting the raise button.
 - Commercial decisions can only originate from an agent run bound to an issue, because `decisions` requires an origin run.
 - Acceptance and payment of a proposal are separate facts; a paid deposit never implies acceptance.

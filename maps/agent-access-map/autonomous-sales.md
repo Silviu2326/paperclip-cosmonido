@@ -16,7 +16,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/playbooks.ts).
 
 Verification: `not-run` - follow the paired disposable-company journey with a real permitted agent and assert the stale-step 409 and the board-only 403.
 
-Gaps: Subjects (lead, opportunity, conversation, customer) are opaque ids until Sprint 2 tables exist.
+Gaps: Subjects (lead, opportunity, conversation, customer) are opaque ids stored without foreign keys. The Sprint 2 tables exist in the integrated branch; their company checks are not re-verified by this entry.
 
 ## `autonomy`
 
@@ -32,7 +32,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/autonomy.ts).
 
 Verification: `not-run` - grant without bench must return 409; revoke must disable queued triggers.
 
-Gaps: Queued Sprint 2 messages are cancelled through an injected hook that is not wired yet.
+Gaps: Queued Sprint 2 messages are cancelled through an injected hook that is not wired yet. The bench fixtures cover only email, message and proposal, so a bench for booking, stage change, publication, call or review link has no cases.
 
 ## `commercial-decisions`
 
@@ -112,7 +112,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/leads.ts).
 
 Verification: `not-run` - qualify without criteria and assert 422.
 
-Gaps: No lead, conversation or commitment tables yet; ids are not validated against Sprint 2 data.
+Gaps: Lead, conversation and commitment tables exist in the integrated branch; ids are not validated against them by this entry, so the company check remains source-level.
 
 ## `explain`
 
@@ -128,7 +128,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/agent-explain.ts).
 
 Verification: `not-run` - explain a run and assert context reads, tool calls and autonomy level appear.
 
-Gaps: Conversation message and calendar receipts arrive with Sprint 2.
+Gaps: The Sprint 2 send and booking paths now produce conversation message and calendar receipts. Whether the explain view composes them is not verified here.
 
 ## `daily-brief`
 
