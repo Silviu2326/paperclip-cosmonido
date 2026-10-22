@@ -7,6 +7,7 @@ import { useSearchParams } from "@/lib/router";
 import { CostEstimateLabel } from "../components/CostEstimateLabel";
 import { CostAmount } from "../components/CostAmount";
 import { CostByUserTable } from "../components/CostByUserTable";
+import { AssignmentCostsReport } from "../components/AssignmentCosts";
 import { CostDataQualityNotice } from "../components/CostDataQualityNotice";
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
@@ -47,7 +48,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const NO_COMPANY = "__none__";
-export type CostsMainTab = "overview" | "budgets" | "providers" | "billers" | "finance" | "decisions" | "fast-responses";
+export type CostsMainTab = "overview" | "budgets" | "providers" | "billers" | "assignments" | "finance" | "decisions" | "fast-responses";
 
 export interface CostsProps {
   /** Render inside Audit without a second page-level title or breadcrumb. */
@@ -205,7 +206,7 @@ export function Costs({
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    setMainTab(!lockTab && tab && ["overview", "providers", "billers", "finance", "budgets", "decisions", "fast-responses"].includes(tab) ? tab as CostsMainTab : initialTab);
+    setMainTab(!lockTab && tab && ["overview", "providers", "billers", "assignments", "finance", "budgets", "decisions", "fast-responses"].includes(tab) ? tab as CostsMainTab : initialTab);
   }, [initialTab, lockTab, searchParams]);
 
   const [today, setToday] = useState(() => new Date().toDateString());
@@ -731,6 +732,7 @@ export function Costs({
               {!hideBudgetsTab ? <TabsTrigger value="budgets">{t("costs.tabBudgets")}</TabsTrigger> : null}
               <TabsTrigger value="providers">{t("costs.tabProviders")}</TabsTrigger>
               <TabsTrigger value="billers">{t("costs.tabBillers")}</TabsTrigger>
+              <TabsTrigger value="assignments">{t("costs.tabAssignments", { defaultValue: "By assignment" })}</TabsTrigger>
               <TabsTrigger value="finance">{t("costs.tabFinance")}</TabsTrigger>
               <TabsTrigger value="decisions">{t("costs.tabDecisions")}</TabsTrigger>
               <TabsTrigger value="fast-responses">{t("costs.tabFastResponses")}</TabsTrigger>
@@ -739,6 +741,7 @@ export function Costs({
         ) : null}
 
         <TabsContent value="fast-responses" className="mt-4">{showCustomPrompt ? <p className="text-sm text-muted-foreground">{t("costs.selectDates")}</p> : <FastResponseHistory companyId={companyId} from={from} to={to} />}</TabsContent>
+        <TabsContent value="assignments" className="mt-4">{showCustomPrompt ? <p className="text-sm text-muted-foreground">{t("costs.selectDates")}</p> : <AssignmentCostsReport companyId={companyId} from={from || undefined} to={to || undefined} />}</TabsContent>
         <TabsContent value="decisions" className="mt-4">{showCustomPrompt ? <p className="text-sm text-muted-foreground">{t("costs.selectDates")}</p> : <DecisionHistory companyId={companyId} from={from} to={to} />}</TabsContent>
         <TabsContent value="overview" className="mt-4 space-y-4">
           {showCustomPrompt ? (

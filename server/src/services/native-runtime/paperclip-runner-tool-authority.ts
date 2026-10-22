@@ -1,3 +1,7 @@
+import { PRODUCT_TOOL_NAMES } from "./assigned-mcp-tools.js";
+import { callAssignmentTool } from "../assignment-tools.js";
+import { callMediaTool } from "../media-tools.js";
+import { dispatchSprint3Tool } from "../sprint3-tools.js";
 import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notifications.js";
 import { skillAccessService } from "../skill-access.js";
 import { callTaskWorkspaceTool } from "../task-workspace-tools.js";
@@ -114,6 +118,7 @@ import {
 
 const EXTERNAL_WORKSPACE_OPERATIONS = new Set(["get_workspace", "list_workspaces", "select_workspace", "prepare_repository", "register_deliverable"]);
 const IMPLEMENTED_OPERATIONS = new Set([
+  ...PRODUCT_TOOL_NAMES,
   "submit_complaint", "submit_suggestion",
   "read_agent_instructions", "update_agent_instructions", "get_agent_instruction_history", "restore_agent_instructions",
   "search_api", "call_api", "hire_agent",
@@ -564,6 +569,8 @@ export class PaperclipRunnerToolAuthority {
         if (!apiUrl || !token) throw new Error("Workspace tool authentication is unavailable");
         return callTaskWorkspaceTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, workspaceRoot: this.binding.workspaceRoot });
       }
+      case "context_search":
+      case "context_get":
       case "create_project":
       case "list_project_repositories":
       case "list_projects": {
@@ -574,7 +581,34 @@ export class PaperclipRunnerToolAuthority {
           companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId,
           conversation: Boolean(context.issue.conversationAgentId) });
       }
+      case "get_assignment":
+      case "submit_deliverable_for_review": {
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Assignment tool authentication is unavailable");
+        return callAssignmentTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId });
+      }
+      case "media_ingest": case "media_transcribe": case "media_detect_silences": case "media_detect_fillers":
+      case "media_cut": case "media_subtitle": case "media_export": case "media_dub": case "media_get_project": case "media_get_job":
+      case "media_stop_motion": case "media_dub_multivoice": case "media_voiceover": {
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Media tool authentication is unavailable");
+        return callMediaTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
+      }
       case "search_api": return searchRunnerApi(call.arguments);
+      case "playbook_start": case "playbook_get_run": case "playbook_advance":
+      case "proposal_create": case "proposal_send": case "proposal_get":
+      case "decision_create": case "decision_get":
+      case "handoff_to_delivery": case "agreement_get": case "upsell_suggest":
+      case "lead_qualify": case "lead_enrich": case "commitments_extract": {
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Sprint 3 tool authentication is unavailable");
+        const dispatch = dispatchSprint3Tool(call.tool);
+        if (!dispatch) throw new Error(`Unknown tool ${call.tool}`);
+        return dispatch({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId, conversation: Boolean(context.issue.conversationAgentId) });
+      }
       case "hire_agent": {
         const body: Record<string, unknown> = {
           name: requiredString(input.name),

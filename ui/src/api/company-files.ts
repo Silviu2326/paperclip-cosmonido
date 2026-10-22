@@ -56,6 +56,10 @@ export interface UpdateCompanyFileInput {
   name?: string;
   /** `null` moves the file back to the root. */
   folderId?: string | null;
+  audienceKind?: "company" | "project" | "customer";
+  audienceId?: string | null;
+  validUntil?: Date | null;
+  contextRole?: "offer" | "brand" | "procedure" | "customer" | "other" | null;
 }
 
 export interface CreateCompanyFileFolderInput {

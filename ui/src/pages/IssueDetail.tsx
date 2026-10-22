@@ -1,3 +1,4 @@
+import { DeliverableReviewPanel } from "../components/DeliverableReviewPanel";
 import { t, useTranslation } from "@/i18n";
 import { grokBotApi } from "@/api/grokBot";
 import { WorkspaceBaseRefRecoveryProvider } from "../components/WorkspaceBaseRefRecovery";
@@ -7903,6 +7904,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
 
           {taskChatShellEnabled ? null : (
             <IssueOutputSection
+              reviewIssueId={issue.id}
               workProducts={workProducts}
               onMediaClick={(item) => {
                 const meta = item.metadata;
@@ -8356,6 +8358,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             </TabsContent>
 
             <TabsContent value="activity" className={shellSectionClass}>
+              <DeliverableReviewPanel issueId={issue.id} />
               {detailTab === "activity" ? (
                 <IssueDetailActivityTab
                   issue={issue}

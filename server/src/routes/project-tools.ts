@@ -1,3 +1,6 @@
+import { assignmentToolDefinitions, callAssignmentTool, ASSIGNMENT_TOOL_NAMES } from "../services/assignment-tools.js";
+import { mediaToolDefinitions, callMediaTool, MEDIA_TOOL_NAMES } from "../services/media-tools.js";
+import { sprint3ToolDefinitions, dispatchSprint3Tool } from "../services/sprint3-tools.js";
 import { Router } from "express";
 import type { Db } from "@paperclipai/db";
 import { projectToolContext } from "../services/project-tool-context.js";
@@ -15,14 +18,15 @@ export function projectToolRoutes(db: Db) {
     const send = (result: unknown) => res.json({ jsonrpc: "2.0", id, result });
     if (method === "initialize") return send({ protocolVersion: "2025-03-26", capabilities: { tools: { listChanged: false } }, serverInfo: { name: "paperclip-project-tools", version: "1" } });
     if (method === "notifications/initialized") return res.status(202).end();
-    const definitions = projectToolDefinitions(context.issue.workMode, true);
+    const definitions = [...projectToolDefinitions(context.issue.workMode, true), ...assignmentToolDefinitions(context.issue.workMode), ...mediaToolDefinitions(context.issue.workMode), ...sprint3ToolDefinitions(context.issue.workMode)];
     if (method === "tools/list") return send({ tools: definitions });
     if (method !== "tools/call") return res.json({ jsonrpc: "2.0", id, error: { code: -32601, message: "Method not found" } });
     try {
       if (!definitions.some(tool => tool.name === params?.name)) throw forbidden("Tool is unavailable in this mode");
       const apiUrl = process.env.PAPERCLIP_API_URL;
       if (!apiUrl) throw new Error("Paperclip API origin is unavailable");
-      const result = await callProjectTool({
+      const dispatch = ASSIGNMENT_TOOL_NAMES.includes(params.name) ? callAssignmentTool : MEDIA_TOOL_NAMES.includes(params.name) ? callMediaTool : dispatchSprint3Tool(params.name) ?? callProjectTool;
+      const result = await dispatch({
         name: params.name, arguments: params.arguments ?? {}, apiUrl,
         token: req.header("authorization")!.replace(/^Bearer\s+/i, ""),
         companyId: context.run.companyId, issueId: context.issue.id, agentId: context.run.agentId,

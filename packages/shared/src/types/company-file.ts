@@ -17,6 +17,10 @@ export interface CompanyFile {
   createdByName: string | null;
   updatedByUserId: string | null;
   updatedByName: string | null;
+  audienceKind: "company" | "project" | "customer";
+  audienceId: string | null;
+  validUntil: Date | null;
+  contextRole: "offer" | "brand" | "procedure" | "customer" | "other" | null;
   contentPath: string;
   downloadPath: string;
   usedInIssueCount: number;

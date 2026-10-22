@@ -942,7 +942,7 @@ export type {
   InstanceSchedulerHeartbeatAgent,
 } from "./heartbeat.js";
 export type { LiveEvent } from "./live.js";
-export type { DashboardRunActivityDay, DashboardSummary } from "./dashboard.js";
+export type { DashboardRunActivityDay, DashboardSummary, DashboardSection, DashboardActiveAssignment, DashboardNeedsYouItem, DashboardCostWindow, DashboardAssignmentSections } from "./dashboard.js";
 export type {
   TimelineActorType,
   TimelineEventKind,

@@ -1,9 +1,10 @@
 import { projectDiscoverySchema, createProjectSchema, createIssueSchema, setIssueTitleSchema } from "@paperclipai/shared";
+import { contextGetSchema, contextSearchSchema } from "@paperclipai/shared/validators/company-file";
 import { z } from "zod";
 import { CAPABILITY_SEMANTIC_TOOL_CATALOG } from "../vendor/paperclip-runner/index.js";
 import { badRequest } from "../errors.js";
 
-export const PROJECT_TOOL_NAMES = ["create_project", "list_project_repositories", "list_projects"];
+export const PROJECT_TOOL_NAMES = ["create_project", "list_project_repositories", "list_projects", "context_search", "context_get"];
 export function projectToolDefinitions(workMode: string, includeTask = false) {
   return CAPABILITY_SEMANTIC_TOOL_CATALOG.filter(tool =>
     (PROJECT_TOOL_NAMES.includes(tool.operationId) || includeTask && ["create_task", "set_task_title"].includes(tool.operationId))
@@ -21,6 +22,21 @@ export async function callProjectTool(input: {
   companyId: string; issueId: string; agentId: string; conversation: boolean;
 }) {
   const args = input.arguments;
+  if (input.name === "context_search") {
+    const query = contextSearchSchema.parse(args);
+    const params = new URLSearchParams();
+    if (query.query) params.set("query", query.query);
+    if (query.roles?.length) params.set("roles", query.roles.join(","));
+    if (query.includeExpired) params.set("includeExpired", "true");
+    params.set("limit", String(query.limit));
+    return fetchContext(`${input.apiUrl.replace(/\/+$/, "").replace(/\/api$/, "")}/api/companies/${input.companyId}/context?${params}`, input.token);
+  }
+  if (input.name === "context_get") {
+    const query = contextGetSchema.parse(args);
+    const url = new URL(`${input.apiUrl.replace(/\/+$/, "").replace(/\/api$/, "")}/api/companies/${input.companyId}/context/${query.fileId}`);
+    if (query.includeExpired) url.searchParams.set("includeExpired", "true");
+    return fetchContext(url.toString(), input.token);
+  }
   const page = input.name === "list_projects" ? projectDiscoverySchema.parse(args) : null;
   let path = `/companies/${input.companyId}/projects`;
   let body: unknown;
@@ -56,5 +72,12 @@ export async function callProjectTool(input: {
   });
   const result = await response.json();
   if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : `Project tool failed (${response.status})`);
+  return result;
+}
+
+async function fetchContext(url: string, token: string) {
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(60_000) });
+  const result = await response.json();
+  if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : `Context tool failed (${response.status})`);
   return result;
 }

@@ -307,3 +307,11 @@ and sticky headers help operators scan exports. Rendered and raw view icons
 remain next to download; raw view preserves the original source. The table
 shows up to 500 data rows and 100 columns, with a notice when the preview is
 limited. Download retains the complete file.
+
+## Product strategy under definition
+
+The [product strategy for entrepreneurs, agencies, and commercial teams](plans/2026-10-21-estrategia-producto-tres-caminos.md) records the scope agreed on 2026-10-21 and the proposed shared business capabilities, customer profiles, workflows, launch scope, and validation plan. Detailed capabilities and commercial assumptions remain proposals. The strategy does not change the current V1 implementation contract or authorize implementation.
+
+The [detailed implementation roadmap and page specifications](plans/2026-10-21-plan-maestro-producto.md) expand that strategy into shared contracts, individual page plans, acceptance criteria, phases, dependencies, and parallel work. These documents describe proposed work and do not change the current implementation contract.
+
+Pilot decisions are independent for entrepreneurs, agencies, and commercial teams. The [F0 case register](plans/2026-10-21-producto/2026-10-21-f0-casos-y-evidencias.md) separates the selected internal business case, missing inputs, and unselected external candidates; internal builder use is distinct from evidence of demand.

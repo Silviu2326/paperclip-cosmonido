@@ -32,6 +32,10 @@ export interface CompanyArtifactAgentSummary {
 }
 
 export interface CompanyArtifact {
+  /** Studio identity and the exact review target for the selected version. */
+  assetId?: string | null;
+  mediaProjectId?: string | null;
+  reviewTargetId?: string | null;
   id: string;
   source: CompanyArtifactSource;
   mediaKind: CompanyArtifactMediaKind;

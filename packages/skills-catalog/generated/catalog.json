@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packageName": "@paperclipai/skills-catalog",
   "packageVersion": "0.3.1",
-  "generatedAt": "2026-10-06T01:21:47.421Z",
+  "generatedAt": "2026-10-21T21:02:36.149Z",
   "skills": [
     {
       "id": "paperclipai:bundled:docs:doc-maintenance",
@@ -451,6 +451,45 @@
       "contentHash": "sha256:eabb2c9f7b5e1a27ebb1e05a711d61433a266478154cd671a685e99e67aadea2"
     },
     {
+      "id": "paperclipai:optional:content:burned-subtitles-style",
+      "key": "paperclipai/optional/content/burned-subtitles-style",
+      "kind": "optional",
+      "category": "content",
+      "slug": "burned-subtitles-style",
+      "name": "burned-subtitles-style",
+      "description": "Create readable, accurate burned-in captions for short video, using transcript timings and the supplied brand style without obscuring the subject or inventing emphasis.",
+      "path": "catalog/optional/content/burned-subtitles-style",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "video-editor",
+        "content-producer"
+      ],
+      "requires": [],
+      "tags": [
+        "video",
+        "captions",
+        "accessibility"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 1314,
+          "sha256": "e35caf4ef8fe629ad96014bef9f832b26c3aa15f8f2e78f0dc05729a0e40cf17"
+        },
+        {
+          "path": "examples/caption-example.md",
+          "kind": "markdown",
+          "sizeBytes": 267,
+          "sha256": "58a1287ef7654130bd61d3f7332c65208ebab814a47dbb74f275df72abc67121"
+        }
+      ],
+      "contentHash": "sha256:db6c944eece545409ae77218858dce7d9006355ebfcbcd59c1fd4fbfb8b8390e"
+    },
+    {
       "id": "paperclipai:optional:content:release-announcement",
       "key": "paperclipai/optional/content/release-announcement",
       "kind": "optional",
@@ -484,6 +523,46 @@
         }
       ],
       "contentHash": "sha256:efe8ea89b552df95222609867c9c75f1b40e16f457d34e7e4a124f54daa33efa"
+    },
+    {
+      "id": "paperclipai:optional:content:short-video-script",
+      "key": "paperclipai/optional/content/short-video-script",
+      "kind": "optional",
+      "category": "content",
+      "slug": "short-video-script",
+      "name": "short-video-script",
+      "description": "Turn an approved assignment brief and company context into a concise short-video script with a clear hook, spoken lines, visual beats, and an explicit ending.",
+      "path": "catalog/optional/content/short-video-script",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "content-strategist",
+        "writer",
+        "video-editor"
+      ],
+      "requires": [],
+      "tags": [
+        "video",
+        "script",
+        "content"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 1348,
+          "sha256": "072d1297df9d47b9c3c7ffedb154718afc5b3f92ae183a1dd3129303a9460900"
+        },
+        {
+          "path": "examples/script-example.md",
+          "kind": "markdown",
+          "sizeBytes": 875,
+          "sha256": "749ba3ab952fd5cec73f8a280b1085f0a34c00e7ac774383c800fb0c700d3abe"
+        }
+      ],
+      "contentHash": "sha256:02e0778ab2f5b14aae648912e77b93d134b419c9ca3abf4d0690dead3f000f44"
     },
     {
       "id": "paperclipai:optional:content:simplified-english",
@@ -520,6 +599,85 @@
         }
       ],
       "contentHash": "sha256:642321f40d51e0125df05c6fbace49aeb07ec30392058756909c259c9c5eac6a"
+    },
+    {
+      "id": "paperclipai:optional:content:social-post-copy",
+      "key": "paperclipai/optional/content/social-post-copy",
+      "kind": "optional",
+      "category": "content",
+      "slug": "social-post-copy",
+      "name": "social-post-copy",
+      "description": "Write concise social copy that supports a finished video, fits the intended platform and audience, and makes only claims verified by the assignment and company context.",
+      "path": "catalog/optional/content/social-post-copy",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "copywriter",
+        "writer",
+        "content-strategist"
+      ],
+      "requires": [],
+      "tags": [
+        "social",
+        "copywriting",
+        "video"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 1181,
+          "sha256": "040f02bab578258fad78ea7ab1078572133f58b618c8ea70389952f1f468b6ec"
+        },
+        {
+          "path": "examples/post-example.md",
+          "kind": "markdown",
+          "sizeBytes": 322,
+          "sha256": "67c8d4cbc841a26988ff7b5ef6d4a0b0d528de9dd12c674c9cbfeb9055245dab"
+        }
+      ],
+      "contentHash": "sha256:95fa642d03ffc1456502e373203078db00763654581734980d51c5c40c4b3b13"
+    },
+    {
+      "id": "paperclipai:optional:content:transcript-based-editing",
+      "key": "paperclipai/optional/content/transcript-based-editing",
+      "kind": "optional",
+      "category": "content",
+      "slug": "transcript-based-editing",
+      "name": "transcript-based-editing",
+      "description": "Use word-timed transcripts and media-studio operations to remove unwanted pauses and filler words, preserve meaning, and produce a clean short-form edit.",
+      "path": "catalog/optional/content/transcript-based-editing",
+      "entrypoint": "SKILL.md",
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "defaultInstall": false,
+      "recommendedForRoles": [
+        "video-editor",
+        "content-producer"
+      ],
+      "requires": [],
+      "tags": [
+        "video",
+        "transcript",
+        "editing"
+      ],
+      "files": [
+        {
+          "path": "SKILL.md",
+          "kind": "skill",
+          "sizeBytes": 1374,
+          "sha256": "ae5ffdd462621a38d722c7ce3cee791a0e84aedd6535c1a69f18bfc343bac77b"
+        },
+        {
+          "path": "examples/edit-example.md",
+          "kind": "markdown",
+          "sizeBytes": 476,
+          "sha256": "c6ecc13ff2d0b4f87c997ea882633ea3c1422af76eaf60a98cbbef98e07e20d4"
+        }
+      ],
+      "contentHash": "sha256:15114bab8cac208eee27c278053552e66c9171ae0f3a6c1eb3ad58686800edff"
     },
     {
       "id": "paperclipai:optional:finance:ramp",

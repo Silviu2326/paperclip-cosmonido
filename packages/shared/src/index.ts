@@ -1,4 +1,9 @@
 export * from "./slack-app-manifest.js";
+export * from "./types/assignment.js";
+export * from "./types/deliverable-review.js";
+export * from "./types/assignment-costs.js";
+export * from "./validators/assignment.js";
+export * from "./validators/deliverable-review.js";
 export { composioAppSetupSchema, composioAppsRefreshSchema, composioAppsSyncSchema, composioAppAccountSchema, type ComposioAppSetupInput, type ComposioAppSetupResult, type ComposioAppAccountInput, type ComposioAppAccount, type ComposioAppSnapshot, type ComposioAppSyncState, type ComposioAppsResponse } from "./composio-app-setup.js";
 export { agentAdapterTypeSchema, optionalAgentAdapterTypeSchema } from "./adapter-type.js";
 export {
@@ -2837,6 +2842,8 @@ export * from "./validators/voice-sessions.js";
 
 export * from "./agent-appearance.js";
 export * from "./lpc-character.js";
+export * from "./office-layout.js";
+export * from "./validators/office.js";
 export * from "./ai-connections.js";
 export * from "./ai-connection-router.js";
 export * from "./ai-connection-usage.js";
@@ -2930,6 +2937,8 @@ export {
   addCompanyFileVersionNoteSchema,
   companyFileListScopeSchema,
   updateCompanyFileResourceMembershipSchema,
+  contextSearchSchema,
+  contextGetSchema,
 } from "./validators/company-file.js";
 export type {
   UpdateCompanyFileResourceMembership,
@@ -2939,4 +2948,34 @@ export type {
   UpdateCompanyFileFolder,
   CreateCompanyFileFromArtifact,
   AddCompanyFileVersionNote,
+  ContextSearch,
+  ContextGet,
 } from "./validators/company-file.js";
+
+export * from "./types/media-studio.js";
+export * from "./validators/media-studio.js";
+
+export * from "./types/dashboard.js";
+
+export { mediaArtifactWorkProductMetadataSchema, type MediaArtifactWorkProductMetadata } from "./validators/work-product.js";
+
+// Sprint 3: autonomous sales and delivery
+export * from "./types/playbook.js";
+export * from "./validators/playbook.js";
+export * from "./types/autonomy.js";
+export * from "./validators/autonomy.js";
+export * from "./types/proposal.js";
+export * from "./validators/proposal.js";
+export * from "./types/handoff.js";
+export * from "./validators/handoff.js";
+export * from "./types/service-agreement.js";
+export * from "./validators/service-agreement.js";
+export * from "./types/commercial-decision.js";
+export * from "./validators/commercial-decision.js";
+export * from "./types/lead-qualification.js";
+export * from "./validators/lead-qualification.js";
+export * from "./types/agent-explain.js";
+export * from "./types/daily-brief.js";
+export * from "./validators/daily-brief.js";
+export * from "./types/commitment.js";
+export * from "./validators/commitment.js";

@@ -202,3 +202,17 @@ export async function createAssignedMcpTools(input: {
     },
   };
 }
+
+/** First-party product tools retain normal authenticated REST authorization. */
+export const PRODUCT_TOOL_NAMES = [
+  "get_assignment", "submit_deliverable_for_review", "context_search", "context_get",
+  "media_ingest", "media_transcribe", "media_detect_silences", "media_detect_fillers",
+  "media_cut", "media_subtitle", "media_export", "media_dub", "media_get_project", "media_get_job",
+  // Sprint 3
+  "media_stop_motion", "media_dub_multivoice", "media_voiceover",
+  "playbook_start", "playbook_get_run", "playbook_advance",
+  "proposal_create", "proposal_send", "proposal_get",
+  "decision_create", "decision_get",
+  "handoff_to_delivery", "agreement_get", "upsell_suggest",
+  "lead_qualify", "lead_enrich", "commitments_extract",
+] as const;

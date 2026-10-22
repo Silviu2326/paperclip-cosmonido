@@ -1,3 +1,4 @@
+import { DeliverableReviewPanel } from "../DeliverableReviewPanel";
 import { Play } from "lucide-react";
 import type { IssueWorkProduct } from "@paperclipai/shared";
 import {
@@ -13,6 +14,7 @@ import { OutputRow } from "./OutputRow";
 import { cn, relativeTime } from "@/lib/utils";
 
 interface IssueOutputSectionProps {
+  reviewIssueId?: string;
   workProducts: IssueWorkProduct[] | null | undefined;
   /** Optional resolver for the artifact creator's display name. */
   resolveCreatorName?: (item: IssueOutputItem) => string | null;
@@ -110,7 +112,7 @@ function OutputMediaPreview({
  * omitted entirely when the issue has produced no outputs — we never show a
  * permanent empty card.
  */
-export function IssueOutputSection({ workProducts, resolveCreatorName, onMediaClick }: IssueOutputSectionProps) {
+export function IssueOutputSection({ workProducts, resolveCreatorName, onMediaClick, reviewIssueId }: IssueOutputSectionProps) {
   const { primary, rest, count } = getIssueOutputs(workProducts);
 
   if (!primary) return null;
@@ -156,6 +158,7 @@ export function IssueOutputSection({ workProducts, resolveCreatorName, onMediaCl
           ))}
         </div>
       ) : null}
+      {reviewIssueId ? <DeliverableReviewPanel issueId={reviewIssueId} /> : null}
     </section>
   );
 }

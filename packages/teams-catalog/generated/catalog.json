@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packageName": "@paperclipai/teams-catalog",
   "packageVersion": "0.1.0",
-  "generatedAt": "2026-10-08T10:35:56.448Z",
+  "generatedAt": "2026-10-21T21:10:50.509Z",
   "teams": [
     {
       "id": "paperclipai:bundled:company-defaults:core-exec-team",
@@ -446,6 +446,143 @@
       "trustLevel": "assets",
       "compatibility": "compatible",
       "contentHash": "sha256:e723a036948dcb292382fbcb116c68500c2247b004d0a8d8ef818b6725f91215"
+    },
+    {
+      "id": "paperclipai:optional:content:content-and-video",
+      "key": "paperclipai/optional/content/content-and-video",
+      "kind": "optional",
+      "category": "content",
+      "slug": "content-and-video",
+      "name": "Content and Video",
+      "description": "Small production team that turns an assignment brief and company context into reviewed short-form video deliverables.",
+      "path": "catalog/optional/content/content-and-video",
+      "entrypoint": "TEAM.md",
+      "schema": "agentcompanies/v1",
+      "defaultInstall": false,
+      "recommendedForCompanyTypes": [
+        "agency",
+        "marketing"
+      ],
+      "tags": [
+        "content",
+        "video",
+        "production"
+      ],
+      "counts": {
+        "agents": 4,
+        "projects": 1,
+        "tasks": 1,
+        "routines": 0,
+        "localSkills": 0,
+        "catalogSkills": 4,
+        "externalSkillSources": 0
+      },
+      "rootAgentSlugs": [
+        "content-strategist"
+      ],
+      "agentSlugs": [
+        "content-strategist",
+        "copywriter",
+        "reviewer",
+        "video-editor"
+      ],
+      "projectSlugs": [
+        "content-production"
+      ],
+      "requiredSkills": [
+        {
+          "type": "catalog",
+          "ref": "burned-subtitles-style",
+          "agentSlugs": [
+            "reviewer",
+            "video-editor"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:burned-subtitles-style",
+          "catalogSkillKey": "paperclipai/optional/content/burned-subtitles-style"
+        },
+        {
+          "type": "catalog",
+          "ref": "short-video-script",
+          "agentSlugs": [
+            "content-strategist",
+            "reviewer"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:short-video-script",
+          "catalogSkillKey": "paperclipai/optional/content/short-video-script"
+        },
+        {
+          "type": "catalog",
+          "ref": "social-post-copy",
+          "agentSlugs": [
+            "copywriter",
+            "reviewer"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:social-post-copy",
+          "catalogSkillKey": "paperclipai/optional/content/social-post-copy"
+        },
+        {
+          "type": "catalog",
+          "ref": "transcript-based-editing",
+          "agentSlugs": [
+            "video-editor"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:optional:content:transcript-based-editing",
+          "catalogSkillKey": "paperclipai/optional/content/transcript-based-editing"
+        }
+      ],
+      "envInputs": [],
+      "sourceRefs": [],
+      "files": [
+        {
+          "path": "TEAM.md",
+          "kind": "team",
+          "sizeBytes": 1005,
+          "sha256": "687135c5d273ada0b93ec1dafcc035afc2f08dad62f6e0b82175c33ccc0ac9e1"
+        },
+        {
+          "path": "agents/content-strategist/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 583,
+          "sha256": "90b80f5cc66a9a2e50cc974a29542c9c63976c2ba2069ff0f40d8266a938523d"
+        },
+        {
+          "path": "agents/copywriter/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 439,
+          "sha256": "604226f382fd077c4cc6cb541e28867bf11f7c5e179745956650a153e7b2ee6a"
+        },
+        {
+          "path": "agents/reviewer/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 621,
+          "sha256": "2ce360fe13de0cae793cd939f0045d66289ff2bd733902ddc6a5cd3f79a59768"
+        },
+        {
+          "path": "agents/video-editor/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 749,
+          "sha256": "0fc766521c98f24cfd5375a3e01651c2f1d3950dc8786608976c9c3676e096e9"
+        },
+        {
+          "path": "projects/content-production/PROJECT.md",
+          "kind": "project",
+          "sizeBytes": 268,
+          "sha256": "c2e1413b188850cd528d6a06691af6120f3a065c35ca075b57fec9af45f0286b"
+        },
+        {
+          "path": "projects/content-production/tasks/produce-video-series/TASK.md",
+          "kind": "task",
+          "sizeBytes": 552,
+          "sha256": "6db8ced75bd0a7ef367c00ba03d39dff56f2cda42bbf7e9f48cc38a92466c577"
+        }
+      ],
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "contentHash": "sha256:e18624d33881cc53e585fa9830e0597e62a7bebdfbf9a9b97e83d68912ea9960"
     },
     {
       "id": "paperclipai:optional:content:content-machine",

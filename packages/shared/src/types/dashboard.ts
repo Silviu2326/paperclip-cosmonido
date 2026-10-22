@@ -24,7 +24,55 @@ export interface DashboardRunActivityDay {
   failedByErrorCode: Record<string, number>;
 }
 
-export interface DashboardSummary {
+/** A dashboard section either carries data or the reason it could not be built. */
+export type DashboardSection<T> = ({ error?: undefined } & T) | { error: string };
+
+export interface DashboardActiveAssignment {
+  id: string;
+  title: string;
+  status: string;
+  assigneeAgentId: string | null;
+  assigneeName: string | null;
+  rootIssueId: string | null;
+  spendCents: number;
+  budgetCents: number | null;
+  lastEventAt: string | null;
+  href: string;
+}
+
+export interface DashboardNeedsYouItem {
+  kind: "approval" | "decision" | "deliverable_review";
+  id: string;
+  title: string;
+  createdAt: string;
+  href: string;
+}
+
+export interface DashboardCostWindow {
+  spendCents: number;
+  /** Events counted vs. events carrying an assignment; the rest is unattributed. */
+  eventCount: number;
+  assignmentCents: number;
+  unattributedCents: number;
+  /** Share of spend (0-100) attributed to an assignment; null when nothing was spent. */
+  coveragePercent: number | null;
+  /** Unpriced events and runs awaiting accounting make a window incomplete. */
+  pricingComplete: boolean;
+  from: string;
+  to: string;
+}
+
+export interface DashboardAssignmentSections {
+  activeAssignments?: DashboardSection<{ items: DashboardActiveAssignment[] }>;
+  needsYou?: DashboardSection<{
+    items: DashboardNeedsYouItem[];
+    counts: { approvals: number; decisions: number; deliverableReviews: number };
+  }>;
+  costsToday?: DashboardSection<DashboardCostWindow>;
+  costsThisWeek?: DashboardSection<DashboardCostWindow>;
+}
+
+export interface DashboardSummary extends DashboardAssignmentSections {
   companyId: string;
   agents: {
     active: number;

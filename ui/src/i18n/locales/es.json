@@ -50,7 +50,8 @@
     "connectors": "Conectores",
     "audit": "Auditoría",
     "recentTasks": "Tareas recientes",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "office": "Oficina"
   },
   "dashboard": {
     "welcome": "Bienvenido a Paperclip. Configura tu primera organización y tu primer agente para empezar.",
@@ -10920,5 +10921,30 @@
     "saving": "Guardando…",
     "reroll": "Otro personaje",
     "customize": "Personalizar"
+  },
+  "office": {
+    "title": "Oficina",
+    "selectCompany": "Selecciona una empresa para ver su oficina.",
+    "presentCount": "{{count}} agentes presentes",
+    "credits": "Créditos",
+    "showChat": "Mostrar chat",
+    "hideChat": "Ocultar chat",
+    "loadError": "No se pudo cargar la oficina.",
+    "saving": "Guardando…",
+    "saveError": "No se pudo guardar la oficina. El último cambio sigue en pantalla.",
+    "canvasLabel": "Oficina en pixel art",
+    "agentLink": "Abrir a {{name}}",
+    "chat": {
+      "intro": "Dime qué cambiar: \"pon una planta arriba a la izquierda\", \"mesa para Walter\", \"cambia el suelo a madera\". Funciona en español e inglés.",
+      "placeholder": "Describe un cambio…",
+      "send": "Enviar",
+      "sending": "Pensando…",
+      "undo": "Deshacer",
+      "reset": "Restablecer oficina",
+      "resetDone": "La oficina vuelve a la distribución por defecto.",
+      "changes": "{{count}} cambio(s) aplicado(s)",
+      "rejected": "No se pudieron aplicar algunos cambios: {{reason}}",
+      "error": "El asistente no pudo responder. Inténtalo de nuevo."
+    }
   }
 }

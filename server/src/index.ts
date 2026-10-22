@@ -86,6 +86,9 @@ import {
   bootstrapExecutionPolicyFromEnv,
   environmentCustomImageService,
   decisionService,
+  dailyBriefService,
+  playbookService,
+  autonomyService,
   decisionRetentionService,
   externalObjectService,
   executionWorkspaceService,
@@ -909,6 +912,14 @@ async function startServerWithDatabaseTeardown(
   const decisionServiceOptions = {
     wakeOriginAgent: createDecisionWakeOriginAgent(heartbeat?.wakeup ?? null),
   };
+  // Sprint 3 WP5: resolving a commercial decision feeds the agent's shadow-mode statistics (WP3).
+  const sprint3AutonomyForDecisions = autonomyService(db as any);
+  const commercialDecisionDeps = {
+    recordShadowOutcome: async (input: { companyId: string; agentId: string; actionType: string; outcome: "sent_unchanged" | "edited" | "rejected" }) => {
+      await sprint3AutonomyForDecisions.recordShadowOutcome(input.companyId, { agentId: input.agentId, actionType: input.actionType as any, outcome: input.outcome });
+    },
+    publicBaseUrl: config.authPublicBaseUrl ?? undefined,
+  };
   // Managed instances drive bundled plugin auto-install from the managed-config
   // document parsed fail-closed above (`plugins.autoInstall`). Absent env means
   // self-hosted: createApp falls back to its built-in kubernetes-only default.
@@ -954,6 +965,7 @@ async function startServerWithDatabaseTeardown(
     resolveSession,
     pluginWorkerManager,
     decisionServiceOptions,
+    commercialDecisionDeps,
     managedPluginAutoInstall,
   });
   
@@ -1416,6 +1428,9 @@ async function startServerWithDatabaseTeardown(
   if (heartbeat) {
     const secretProposals = createSecretProposalsService(db as any);
     const decisionExecutor = decisionService(db as any, decisionServiceOptions);
+    const dailyBrief = dailyBriefService(db as any);
+    const sprint3Playbooks = playbookService(db as any);
+    let lastDailyBriefTickAt = 0;
     const retentionExecutor = decisionRetentionService(db as any, {
       notifyOriginAgent: createDecisionRetentionNotifyOriginAgent(heartbeat.wakeup),
     });
@@ -1760,6 +1775,13 @@ async function startServerWithDatabaseTeardown(
         trackHeartbeatSchedulerWork(runRetentionSweep().catch((err: unknown) => {
           logger.error({ err }, "decision retention sweep failed");
         }));
+        // Sprint 3 WP13: the daily owner brief checks every ten minutes which users are due at their local hour.
+        if (Date.now() - lastDailyBriefTickAt >= 10 * 60 * 1000) {
+          lastDailyBriefTickAt = Date.now();
+          trackHeartbeatSchedulerWork(dailyBrief.tick()
+            .then((result) => { if (result.attempted > 0) logger.info({ ...result }, "daily brief tick"); })
+            .catch((err: unknown) => { logger.error({ err }, "daily brief tick failed"); }));
+        }
         const sweptRuntimeStatuses = heartbeat.sweepExpiredRuntimeStatuses();
         if (sweptRuntimeStatuses > 0) {
           logger.info(
@@ -1915,8 +1937,11 @@ async function startServerWithDatabaseTeardown(
           const result = await heartbeat.tickTimers(new Date());
           if (result.enqueued > 0) logger.info({ ...result }, "heartbeat timer tick enqueued runs");
         },
-        tickRoutines: () => routines.tickScheduledTriggers(new Date()).then(result => {
+        tickRoutines: () => routines.tickScheduledTriggers(new Date()).then(async result => {
           if (result.triggered > 0) logger.info({ ...result }, "routine scheduler tick enqueued runs");
+          // Sprint 3 WP1: delayed playbook steps are dispatched here instead of through a one-shot trigger.
+          const dispatched = await sprint3Playbooks.tickDue(new Date()).catch((err: unknown) => { logger.error({ err }, "playbook tick failed"); return 0; });
+          if (dispatched > 0) logger.info({ dispatched }, "playbook tick dispatched waiting steps");
         }),
       });
       trackHeartbeatSchedulerWork(Promise.all([scheduled.timers.ready, scheduled.routines.ready]));

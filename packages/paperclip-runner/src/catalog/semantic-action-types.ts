@@ -1,4 +1,6 @@
+import type { AssignmentContextMediaOperationId } from "../protocol-actions/assignment-context-media.js";
 export type PaperclipSemanticActionId =
+  | AssignmentContextMediaOperationId
   | "search_api"
   | "call_api"
   | "set_task_title"

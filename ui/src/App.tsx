@@ -46,8 +46,15 @@ import { StatusCards } from "./pages/StatusCards";
 import { RoutineDetail } from "./pages/RoutineDetail";
 import { UserProfile } from "./pages/UserProfile";
 import { ExecutionWorkspaceDetail } from "./pages/ExecutionWorkspaceDetail";
+import { Context } from "./pages/Context";
 import { Goals } from "./pages/Goals";
+import { Assignments, AssignmentDetail } from "./pages/Assignments";
+import { Playbooks, PlaybookDetail } from "./pages/Playbooks";
+import { Autonomy } from "./pages/Autonomy";
+import { Proposals, ProposalDetail } from "./pages/Proposals";
+import { ServiceAgreements, ServiceAgreementDetail } from "./pages/ServiceAgreements";
 import { ArtifactsExplorer } from "./pages/artifacts/ArtifactsExplorer";
+import { Office } from "./pages/Office";
 import { GoalDetail } from "./pages/GoalDetail";
 import { Approvals } from "./pages/Approvals";
 import { ApprovalDetail } from "./pages/ApprovalDetail";
@@ -401,7 +408,18 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
           <Route path="execution-workspaces/:workspaceId/routines" element={<ExecutionWorkspaceDetail />} />
         </Route>
       </Route>
+      <Route path="office" element={<Office />} />
+      <Route path="context" element={<Context />} />
       <Route path="goals" element={<Goals />} />
+      <Route path="assignments" element={<Assignments />} />
+      <Route path="assignments/:id" element={<AssignmentDetail />} />
+      <Route path="playbooks" element={<Playbooks />} />
+      <Route path="playbooks/:id" element={<PlaybookDetail />} />
+      <Route path="autonomy" element={<Autonomy />} />
+      <Route path="proposals" element={<Proposals />} />
+      <Route path="proposals/:id" element={<ProposalDetail />} />
+      <Route path="service-agreements" element={<ServiceAgreements />} />
+      <Route path="service-agreements/:id" element={<ServiceAgreementDetail />} />
       <Route path="goals/:goalId" element={<GoalDetail />} />
       <Route path="artifacts" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in" element={<ArtifactsExplorer />} />
@@ -857,6 +875,17 @@ export function App() {
           <Route path="pipelines/:pipelineId/items/:caseId" element={<UnprefixedBoardRedirect />} />
           <Route path="pipelines/:pipelineId/cases/:caseId" element={<UnprefixedBoardRedirect />} />
           <Route path="artifacts" element={<UnprefixedBoardRedirect />} />
+          <Route path="office" element={<UnprefixedBoardRedirect />} />
+          <Route path="context" element={<UnprefixedBoardRedirect />} />
+          <Route path="assignments" element={<UnprefixedBoardRedirect />} />
+          <Route path="assignments/:id" element={<UnprefixedBoardRedirect />} />
+          <Route path="playbooks" element={<UnprefixedBoardRedirect />} />
+          <Route path="playbooks/:id" element={<UnprefixedBoardRedirect />} />
+          <Route path="autonomy" element={<UnprefixedBoardRedirect />} />
+          <Route path="proposals" element={<UnprefixedBoardRedirect />} />
+          <Route path="proposals/:id" element={<UnprefixedBoardRedirect />} />
+          <Route path="service-agreements" element={<UnprefixedBoardRedirect />} />
+          <Route path="service-agreements/:id" element={<UnprefixedBoardRedirect />} />
           <Route path="audit" element={<UnprefixedBoardRedirect />} />
           {streamlinedUiEnabled ? (
             <>

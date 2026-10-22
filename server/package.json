@@ -35,7 +35,7 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "cross-env PAPERCLIP_MIGRATION_PROMPT=never PAPERCLIP_MIGRATION_AUTO_APPLY=true tsx ./scripts/dev-watch.ts",
     "prepare:ui-dist": "bash ../scripts/prepare-server-ui-dist.sh",
-    "build": "pnpm run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc && mkdir -p dist/onboarding-assets dist/lpc-assets dist/built-ins dist/services/scripts dist/vendor/paperclip-runner && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/lpc-assets/. dist/lpc-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && cp -Rf ../packages/paperclip-runner/dist/. dist/vendor/paperclip-runner/ && node scripts/write-build-stamp.mjs",
+    "build": "pnpm run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc && mkdir -p dist/onboarding-assets dist/lpc-assets dist/built-ins dist/services/scripts dist/services/fixtures dist/vendor/paperclip-runner && cp -R src/services/fixtures/. dist/services/fixtures/ && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/lpc-assets/. dist/lpc-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && cp -Rf ../packages/paperclip-runner/dist/. dist/vendor/paperclip-runner/ && node scripts/write-build-stamp.mjs",
     "prepack": "pnpm run prepare:ui-dist && pnpm run build",
     "postpack": "rm -rf ui-dist",
     "clean": "rm -rf dist",
@@ -112,7 +112,8 @@
     "ssh2": "^1.17.0",
     "svix": "1.76.1",
     "ws": "^8.22.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "@paperclipai/media-studio": "workspace:*"
   },
   "bundleDependencies": [
     "@agentclientprotocol/claude-agent-acp",

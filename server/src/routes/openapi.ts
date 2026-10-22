@@ -1,5 +1,6 @@
 import { createGrokInvitationSchema, configureGrokRoutineSchema, verifyGrokRoutineSchema, recoverGrokRoutineSchema, pairGrokBindingSchema, stopGrokWorkSchema, retryGrokDeliverySchema } from "@paperclipai/shared";
 import { updateFastResponseSchema } from "@paperclipai/shared";
+import { putOfficeLayoutSchema, officeDesignChatSchema, officeLayoutResponseSchema, officeDesignChatResponseSchema } from "@paperclipai/shared";
 import { slackTestMessageSchema, slackTestMessageResultSchema, slackManagerAuthorizationSchema, slackSetupOptionsSchema, slackManagedProvisionSchema, slackManagedResultSchema, slackRegistrationSchema, slackSetupActionSchema, slackInstallAuthorizationSchema, slackRegistrationStateSchema, slackAppConfigurationSchema, slackAvatarStateSchema, slackAccountStateSchema } from "@paperclipai/shared";
 import { experimentalApiMetadata } from "./experimental-api-metadata.js";
 import {
@@ -3209,12 +3210,12 @@ registry.registerPath({
   path: "/api/agent-avatars/{version}/{preset}/{file}",
   tags: ["agents"],
   summary: "Render or retrieve a public preset agent portrait",
-  description: "On-demand PNG artwork; no agent or company lookup. cap-v1 presets are palette ids (or muted-dream); lpc-v1 presets are the encoded pixel-art layer spec (bodyType.skin.eyes.hair.hairColor.torso.torsoColor.legs.legsColor.feet.feetColor) and additionally accept muted=1 and the file sheet.png, the native 64px animation sheet (one row per character state). Logical size determines detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion. GET /api/agent-avatars/lpc-v1/credits serves the Liberated Pixel Cup attribution CSV.",
+  description: "On-demand PNG artwork; no agent or company lookup. cap-v1 presets are palette ids (or muted-dream); lpc-v1 presets are the encoded pixel-art layer spec (bodyType.skin.eyes.hair.hairColor.torso.torsoColor.legs.legsColor.feet.feetColor) and additionally accept muted=1 the file sheet.png, the native 64px animation sheet (one row per character state), and world.png, the 9x8 office world sheet (directional idle/walk rows and sit rows). Logical size determines detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion. GET /api/agent-avatars/lpc-v1/credits serves the Liberated Pixel Cup attribution CSV.",
   request: {
     params: z.object({
       version: z.enum(["cap-v1", "lpc-v1"]),
       preset: z.string().describe("cap-v1: " + [...AGENT_PALETTE_IDS, "muted-dream"].join(" | ") + "; lpc-v1: encoded layer spec"),
-      file: z.enum([...CHARACTER_STATES.map(pose => `${pose}.png`), "sheet.png"]),
+      file: z.enum([...CHARACTER_STATES.map(pose => `${pose}.png`), "sheet.png", "world.png"]),
     }),
     query: z.object({
       size: z.enum(AGENT_AVATAR_SIZES.map(String)).optional().default("512"),
@@ -5265,6 +5266,54 @@ registry.registerPath({
   summary: "Fire a public routine trigger",
   request: { params: z.object({ publicId: z.string() }) },
   responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+
+// ─── Pixel-art office ────────────────────────────────────────────────────────
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Get the caller's office layout",
+  description: "Board users only. Returns the saved layout for this user and company, or the default layout built from the company's non-terminated agents (source default, not persisted).",
+  request: { params: z.object({ companyId: z.string().uuid() }) },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "put",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Save the caller's office layout",
+  description: "Board users only. Validates the layout and upserts it for (company, user). Records activity office.layout_updated.",
+  request: {
+    params: z.object({ companyId: z.string().uuid() }),
+    body: jsonBody(putOfficeLayoutSchema),
+  },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Reset the caller's office layout",
+  description: "Board users only. Deletes the saved layout and returns the default layout (source default).",
+  request: { params: z.object({ companyId: z.string().uuid() }) },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/office/design-chat",
+  tags: ["office"],
+  summary: "Design the office from a chat message",
+  description: "Board users only. Uses the caller's default Anthropic connection with forced tool use (apply_office_patch). Returns a reply and the accepted patch; the client applies and saves it. Responds 409 with error no_ai_connection when no usable Anthropic key is available.",
+  request: {
+    params: z.object({ companyId: z.string().uuid() }),
+    body: jsonBody(officeDesignChatSchema),
+  },
+  responses: { 200: r.ok(officeDesignChatResponseSchema), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 502: { description: "The AI provider failed or returned no patch" } },
 });
 
 // ─── Goals ───────────────────────────────────────────────────────────────────

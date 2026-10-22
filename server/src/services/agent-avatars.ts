@@ -11,14 +11,15 @@ export interface AgentAvatarRequest {
   pose: CharacterState;
   muted: boolean;
   background?: AgentAvatarBackground;
-  /** lpc-v1 only: the native animation sheet instead of a single portrait. */
-  sheet?: boolean;
+  /** lpc-v1 only: the native animation sheet (`states`) or the office world sheet (`world`) instead of a portrait. */
+  sheet?: "states" | "world";
 }
 export function avatarCacheKey(request: AgentAvatarRequest) {
   const { appearance, size, scale, pose, muted, background, sheet } = request;
   const dark = background === "paperclip-dark" ? "-paperclip-dark-v1" : "";
   if (isLpcAppearance(appearance)) {
-    return `generated-agent-avatars/${appearance.characterVersion}/${encodeLpcSpec(appearance.lpc)}/${sheet ? "sheet" : `${pose}-${size}-${scale}`}${muted ? "-muted" : ""}${sheet ? "" : dark}.png`;
+    const name = sheet === "world" ? "world" : sheet === "states" ? "sheet" : `${pose}-${size}-${scale}`;
+    return `generated-agent-avatars/${appearance.characterVersion}/${encodeLpcSpec(appearance.lpc)}/${name}${muted ? "-muted" : ""}${sheet ? "" : dark}.png`;
   }
   return `generated-agent-avatars/${appearance.characterVersion}/${muted ? "muted-dream" : appearance.paletteId}/${pose}-${size}-${scale}${dark}.png`;
 }

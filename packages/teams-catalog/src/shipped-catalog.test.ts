@@ -15,6 +15,7 @@ const EXPECTED_BUNDLED_KEYS = [
 
 const EXPECTED_OPTIONAL_KEYS = [
   "paperclipai/optional/communications/speko-company-phone-agent",
+  "paperclipai/optional/content/content-and-video",
   "paperclipai/optional/content/content-machine",
 ];
 
@@ -102,6 +103,10 @@ describe("shipped teams catalog", () => {
       "product-design/ux-designer": { role: "designer", reportsTo: null, skills: ["wireframe", "design-critique", "task-planning"] },
       "speko-company-phone-agent/speko-company-phone-agent": { role: "general", reportsTo: null, skills: undefined },
       "content-machine/content-lead": { role: "content-strategist", reportsTo: null, skills: ["content-calendar"] },
+      "content-and-video/content-strategist": { role: "content-strategist", reportsTo: null, skills: ["short-video-script"] },
+      "content-and-video/video-editor": { role: "video-editor", reportsTo: "content-strategist", skills: ["transcript-based-editing", "burned-subtitles-style"] },
+      "content-and-video/copywriter": { role: "copywriter", reportsTo: "content-strategist", skills: ["social-post-copy"] },
+      "content-and-video/reviewer": { role: "reviewer", reportsTo: "content-strategist", skills: ["short-video-script", "burned-subtitles-style", "social-post-copy"] },
     };
     const observed: Record<string, unknown> = {};
     for (const team of catalogTeams) {

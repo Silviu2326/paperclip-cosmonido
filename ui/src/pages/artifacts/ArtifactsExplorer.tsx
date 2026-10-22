@@ -1,3 +1,5 @@
+import { DeliverableReviewPanel } from "@/components/DeliverableReviewPanel";
+import { MediaProjectPanel } from "@/components/MediaProjectPanel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { companyArtifactsArchivePath, type CompanyArtifact } from "@/api/artifacts";
@@ -244,6 +246,7 @@ export function ArtifactsExplorer() {
   }, [rawItems, starSets, nav.q, nav.sort, nav.dir]);
 
   const selected = items.find((item) => item.id === nav.sel) ?? null;
+  const selectedArtifact = selected?.box === "out" && selected.kind === "file" ? selected.raw as CompanyArtifact : null;
   const selectedFile = selected?.box === "in" && selected.kind === "file" ? (selected.raw as CompanyFile) : null;
 
   const versionsQuery = useQuery({
@@ -542,6 +545,10 @@ export function ArtifactsExplorer() {
       emptyHint={previewEmptyHint}
       usage={selectedFile ? previewUsage : null}
       folder={folderPanel}
+      supplement={<>
+        {selectedArtifact ? <DeliverableReviewPanel issueId={selectedArtifact.issue.id} targetId={selectedArtifact.reviewTargetId ?? selectedArtifact.id.replace(/^work_product:/, "")} /> : selectedFile?.currentVersionId ? <DeliverableReviewPanel companyId={companyId} targetId={selectedFile.currentVersionId} /> : null}
+        {(selectedArtifact?.mediaProjectId || selectedArtifact?.assetId && selectedArtifact.contentType?.startsWith("video/") || selectedFile?.contentType.startsWith("video/")) ? <MediaProjectPanel key={selectedArtifact?.id ?? selectedFile?.id} companyId={companyId} assetId={selectedArtifact?.assetId ?? undefined} projectId={selectedArtifact?.mediaProjectId ?? undefined} companyFileId={selectedFile?.id} /> : null}
+      </>}
     />
   );
 

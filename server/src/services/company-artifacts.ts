@@ -18,6 +18,8 @@ import {
 } from "@paperclipai/db";
 import {
   attachmentArtifactWorkProductMetadataSchema,
+  mediaArtifactWorkProductMetadataSchema,
+  isUuidLike,
   COMPANY_ARTIFACTS_MAX_LIMIT,
   companyArtifactsQuerySchema,
   companyArtifactsTreeQuerySchema,
@@ -677,7 +679,7 @@ async function loadTreeIssueRows(db: Db, companyId: string, issueConditions: SQL
     .leftJoin(projects, and(eq(issues.projectId, projects.id), eq(projects.companyId, issueWorkProducts.companyId)))
     .where(and(
       eq(issueWorkProducts.companyId, companyId),
-      eq(issueWorkProducts.type, "artifact"),
+      inArray(issueWorkProducts.type, ["artifact", "media"]),
       eq(issueWorkProducts.provider, "paperclip"),
       ...issueConditions,
     ))
@@ -1023,6 +1025,7 @@ export function companyArtifactsService(db: Db, storage?: StorageService) {
           .select({
             artifactId: documentArtifactId,
             documentId: documents.id,
+            reviewTargetId: documents.latestRevisionId,
             issueId: issues.id,
             issueIdentifier: issues.identifier,
             issueTitle: issues.title,
@@ -1091,6 +1094,7 @@ export function companyArtifactsService(db: Db, storage?: StorageService) {
           artifacts.push({
             id: row.artifactId,
             source: "document",
+            reviewTargetId: row.reviewTargetId,
             mediaKind: "document",
             title: row.title ?? row.key,
             previewText: normalizePreviewText(row.latestBody),
@@ -1121,7 +1125,7 @@ export function companyArtifactsService(db: Db, storage?: StorageService) {
         const workProductContentType = sql<string>`coalesce(${issueWorkProducts.metadata}->>'contentType', '')`;
         const workProductBaseConditions: SQL[] = [
           eq(issueWorkProducts.companyId, companyId),
-          eq(issueWorkProducts.type, "artifact"),
+          inArray(issueWorkProducts.type, ["artifact", "media"]),
           eq(issueWorkProducts.provider, "paperclip"),
           ...issueConditions,
         ];
@@ -1162,6 +1166,7 @@ export function companyArtifactsService(db: Db, storage?: StorageService) {
           .select({
             artifactId: workProductArtifactId,
             workProductId: issueWorkProducts.id,
+            workProductType: issueWorkProducts.type,
             issueId: issues.id,
             issueIdentifier: issues.identifier,
             issueTitle: issues.title,
@@ -1242,24 +1247,30 @@ export function companyArtifactsService(db: Db, storage?: StorageService) {
         for (const row of workProductRows) {
           const metadata = attachmentArtifactWorkProductMetadataSchema.safeParse(row.metadata);
           const attachmentMetadata = metadata.success ? metadata.data : null;
+            const media = mediaArtifactWorkProductMetadataSchema.safeParse(row.metadata);
+            const mediaMetadata = media.success ? media.data : null;
           if (attachmentMetadata) {
             workProductAttachmentIds.add(attachmentMetadata.attachmentId);
           }
-          const contentType = attachmentMetadata?.contentType ?? null;
+          const contentType = attachmentMetadata?.contentType ?? mediaMetadata?.contentType ?? null;
           const identifier = row.issueIdentifier ?? row.issueId;
           if (query.starred && row.starredAt) artifactSortDates.set(row.artifactId, row.starredAt.toISOString());
           artifacts.push({
             id: row.artifactId,
             source: "work_product",
-            mediaKind: classifyMediaKind(contentType, attachmentMetadata ? "file" : "empty"),
+              reviewTargetId: row.workProductId,
+              assetId: mediaMetadata?.assetId ?? (attachmentMetadata && typeof row.metadata?.assetId === "string" && isUuidLike(row.metadata.assetId) ? row.metadata.assetId : null),
+              mediaProjectId: mediaMetadata?.mediaProjectId ?? (attachmentMetadata && typeof row.metadata?.mediaProjectId === "string" && isUuidLike(row.metadata.mediaProjectId) ? row.metadata.mediaProjectId : null),
+            mediaKind: classifyMediaKind(contentType, attachmentMetadata || mediaMetadata ? "file" : "empty"),
             title: row.title,
             previewText: normalizePreviewText(row.summary),
             contentType,
             byteSize: attachmentMetadata?.byteSize
               ?? (typeof row.metadata?.byteSize === "number" ? row.metadata.byteSize : null),
-            contentPath: attachmentMetadata?.contentPath ?? null,
-            openPath: attachmentMetadata?.openPath ?? (typeof row.metadata?.openPath === "string" ? row.metadata.openPath : null),
-            downloadPath: attachmentMetadata?.downloadPath ?? null,
+            contentPath: attachmentMetadata?.contentPath ?? mediaMetadata?.contentPath ?? null,
+              openPath: attachmentMetadata?.openPath ?? mediaMetadata?.openPath
+                ?? (row.workProductType !== "media" && typeof row.metadata?.openPath === "string" ? row.metadata.openPath : null),
+            downloadPath: attachmentMetadata?.downloadPath ?? mediaMetadata?.downloadPath ?? null,
             thumbnailPath: attachmentMetadata
               ? attachmentThumbnailPath(attachmentMetadata.attachmentId, contentType)
               : null,

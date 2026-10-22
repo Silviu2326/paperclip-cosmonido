@@ -21,6 +21,7 @@ import { slackToolRoutes } from "./routes/slack-tools.js";
 import { createPublicMcpOAuth, publicMcpConfig } from "./services/public-mcp/oauth.js";
 import { createDotRunnerMcpTools, dotRunnerBroker } from "./services/dot-runner-broker.js";
 import { agentProfileAvatarRoutes } from "./routes/agent-profile-avatar.js";
+import { officeRoutes } from "./routes/office.js";
 import { grokBotRoutes } from "./routes/grok-bot.js";
 import { createGrokRoutineDispatcher } from "./services/grok-bot/dispatcher.js";
 import { dotRunnerRoutes } from "./routes/dot-runner.js";
@@ -33,6 +34,23 @@ import { decisionModelRoutes } from "./routes/decision-models.js";
 import { aiConnectionRoutes } from "./routes/ai-connections.js";
 import { taskWorkspaceRoutes } from "./routes/task-workspaces.js";
 import { projectToolRoutes } from "./routes/project-tools.js";
+import { mediaStudioRoutes } from "./routes/media-studio.js";
+import { assignmentRoutes } from "./routes/assignments.js";
+import { dailyBriefRoutes } from "./routes/daily-brief.js";
+import { agentExplainRoutes } from "./routes/agent-explain.js";
+import { playbookRoutes } from "./routes/playbooks.js";
+import { autonomyRoutes } from "./routes/autonomy.js";
+import { commercialDecisionRoutes, publicDecisionRoutes } from "./routes/commercial-decisions.js";
+import { proposalRoutes, publicProposalRoutes } from "./routes/proposals.js";
+import { handoffRoutes } from "./routes/handoff.js";
+import { serviceAgreementRoutes } from "./routes/service-agreements.js";
+import { leadQualificationRoutes } from "./routes/leads.js";
+import { commitmentRoutes, commercialTriggerRoutes } from "./routes/commitments.js";
+import { autonomyService } from "./services/autonomy.js";
+import { playbookService } from "./services/playbooks.js";
+import type { CommercialDecisionDeps } from "./services/commercial-decisions.js";
+import type { AutonomyActionType } from "@paperclipai/shared";
+import { deliverableReviewRoutes } from "./routes/deliverable-reviews.js";
 import { emailChannelService } from "./services/email-channels.js";
 import { emailRoutes, emailWebhookRoutes } from "./routes/email.js";
 import { toolActionDeliveryService } from "./services/tool-action-delivery.js";
@@ -530,6 +548,8 @@ export async function createApp(
     pluginMigrationDb?: Db;
     pluginWorkerManager?: PluginWorkerManager;
     decisionServiceOptions: DecisionServiceOptions;
+    /** Sprint 3: effect handlers and shadow recording for commercial decisions. */
+    commercialDecisionDeps?: Omit<CommercialDecisionDeps, "decisions">;
     betterAuthHandler?: express.RequestHandler;
     resolveSession?: (
       req: ExpressRequest,
@@ -621,6 +641,9 @@ export async function createApp(
   app.use(cloudWarmStandbyMiddleware(isWarmStandby, health, staticUi));
   app.use("/api/customer-success/v1", customerSuccessRoutes(db, opts.storageService));
   app.use(publicMcpIngress);
+  // Sprint 3 public surfaces: proposal view/accept + Stripe webhook (needs rawBody) and remote decision links.
+  app.use(publicProposalRoutes(db));
+  app.use(publicDecisionRoutes(db, opts.decisionServiceOptions, opts.commercialDecisionDeps));
   // Connection-intent tools carry their own short-lived, run-bound bearer and
   // must be reachable by remote adapters that intentionally do not receive an
   // agent API key. Every request revalidates the active heartbeat row.
@@ -843,6 +866,7 @@ export async function createApp(
   );
   api.use(assetRoutes(db, opts.storageService));
   api.use(agentProfileAvatarRoutes(db, opts.storageService));
+  api.use(officeRoutes(db));
   api.use(projectToolRoutes(db));
   api.use(taskWorkspaceRoutes(db));
   api.use(projectRoutes(db));
@@ -865,6 +889,39 @@ export async function createApp(
   api.use(executionWorkspaceRoutes(db, { pluginWorkerManager: workerManager }));
   api.use(emailRoutes(db, emailChannels));
   api.use(goalRoutes(db));
+  api.use(assignmentRoutes(db));
+  // Sprint 3: autonomous sales and delivery
+  api.use(dailyBriefRoutes(db));
+  api.use(agentExplainRoutes(db));
+  const sprint3Autonomy = autonomyService(db);
+  // Effective autonomy of a playbook step is min(step, agent grant): the playbook never raises what was granted.
+  const resolveAgentAutonomy = async (companyId: string, agentId: string | null, actionType: string) =>
+    (await sprint3Autonomy.effectiveLevel(companyId, agentId, actionType as AutonomyActionType)).level;
+  const sprint3Playbooks = playbookService(db, { resolveAgentAutonomy });
+  api.use(playbookRoutes(db, { resolveAgentAutonomy }));
+  api.use(autonomyRoutes(db));
+  api.use(commercialDecisionRoutes(db, opts.decisionServiceOptions, opts.commercialDecisionDeps));
+  api.use(proposalRoutes(db));
+  api.use(handoffRoutes(db));
+  api.use(serviceAgreementRoutes(db));
+  api.use(leadQualificationRoutes(db));
+  api.use(commitmentRoutes(db));
+  api.use(commercialTriggerRoutes(db, {
+    findWaitingRuns: async (companyId, subjectKind, subjectId) => {
+      const runs = await sprint3Playbooks.listRuns(companyId, { status: "waiting", subjectKind, subjectId });
+      const out: Array<{ id: string; currentStepKind: string; nextActionAt: string | null }> = [];
+      for (const run of runs) {
+        const playbook = await sprint3Playbooks.getById(run.playbookId);
+        const step = playbook?.steps[run.currentStepIndex];
+        out.push({ id: run.id, currentStepKind: step?.kind ?? "unknown", nextActionAt: run.nextActionAt ? new Date(run.nextActionAt).toISOString() : null });
+      }
+      return out;
+    },
+    advanceRun: async (runId, reason) => { await sprint3Playbooks.advance(runId, { outcome: "done", note: reason }, {}); },
+    stopSequence: async (runId) => { await sprint3Playbooks.cancel(runId, {}); },
+  }));
+  api.use(mediaStudioRoutes(db));
+  api.use(deliverableReviewRoutes(db));
   api.use(onboardingSeedRoutes(db));
   api.use(boardChatRoutes(db, { deploymentMode: opts.deploymentMode }));
   api.use(voiceSessionRoutes(db, chatChannels.voice));

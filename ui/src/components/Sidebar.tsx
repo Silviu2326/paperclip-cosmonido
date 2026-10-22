@@ -3,6 +3,10 @@ import {
   ListChecks,
   CircleCheck,
   Target,
+  RefreshCw,
+  FileSignature,
+  ShieldCheck,
+  BookOpen,
   LayoutDashboard,
   DollarSign,
   History,
@@ -22,6 +26,7 @@ import {
   GanttChartSquare,
   LayoutGrid,
   Plus,
+  Armchair,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -276,7 +281,14 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               </>
             ) : null}
             <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
+            <SidebarNavItem to="/assignments" label={t("nav.assignments", { defaultValue: "Encargos" })} icon={Target} />
+            <SidebarNavItem to="/playbooks" label={t("nav.playbooks", { defaultValue: "Playbooks" })} icon={BookOpen} />
+            <SidebarNavItem to="/proposals" label={t("nav.proposals", { defaultValue: "Propuestas" })} icon={FileSignature} />
+            <SidebarNavItem to="/service-agreements" label={t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" })} icon={RefreshCw} />
+            <SidebarNavItem to="/autonomy" label={t("nav.autonomy", { defaultValue: "Autonomía" })} icon={ShieldCheck} />
+            <SidebarNavItem to="/context" label={t("nav.context", { defaultValue: "Contexto" })} icon={FolderOpen} />
             <SidebarNavItem to="/artifacts" label={t("nav.artifacts")} icon={Package} />
+            <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />
             {showCases ? (
               <SidebarNavItem to="/cases" label={t("nav.cases")} icon={Layers} textBadge="beta" />
             ) : null}

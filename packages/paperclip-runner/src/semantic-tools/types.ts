@@ -1,3 +1,4 @@
+import type { AssignmentContextMediaOperationId } from "../protocol-actions/assignment-context-media.js";
 import type {
   CapabilityInteractionKind,
   CapabilityJsonValue,
@@ -16,6 +17,7 @@ import type { PrpSemanticToolEnvelope } from "../protocol/replay-contract.js";
 export type CapabilitySemanticToolExposure = "always" | "optional";
 
 export type CapabilitySemanticOperationId =
+  | AssignmentContextMediaOperationId
   | "search_api"
   | "call_api"
   | "set_task_title"

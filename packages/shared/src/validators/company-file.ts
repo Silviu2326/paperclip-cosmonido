@@ -21,7 +21,22 @@ export const listCompanyFilesQuerySchema = z.object({
 export const updateCompanyFileSchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
   folderId: z.string().guid().nullable().optional(),
+  audienceKind: z.enum(["company", "project", "customer"]).optional(),
+  audienceId: z.string().guid().nullable().optional(),
+  validUntil: z.coerce.date().nullable().optional(),
+  contextRole: z.enum(["offer", "brand", "procedure", "customer", "other"]).nullable().optional(),
 });
+
+export const contextSearchSchema = z.object({
+  query: z.string().trim().max(200).optional(),
+  roles: z.array(z.enum(["offer", "brand", "procedure", "customer", "other"])).max(5).optional(),
+  includeExpired: z.boolean().optional().default(false),
+  limit: z.number().int().min(1).max(50).optional().default(20),
+});
+
+export const contextGetSchema = z.object({ fileId: z.string().uuid(), includeExpired: z.boolean().optional().default(false) });
+export type ContextSearch = z.infer<typeof contextSearchSchema>;
+export type ContextGet = z.infer<typeof contextGetSchema>;
 
 export const createCompanyFileFolderSchema = z.object({
   name: z.string().trim().min(1).max(120),

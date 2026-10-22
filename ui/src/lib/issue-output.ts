@@ -1,5 +1,7 @@
 import {
   attachmentArtifactWorkProductMetadataSchema,
+  mediaArtifactWorkProductMetadataSchema,
+  type MediaArtifactWorkProductMetadata,
   type AttachmentArtifactWorkProductMetadata,
   type IssueWorkProduct,
 } from "@paperclipai/shared";
@@ -251,7 +253,7 @@ export interface IssueOutputItem {
   status: string;
   isPrimary: boolean;
   createdAt: string | Date;
-  metadata: AttachmentArtifactWorkProductMetadata | null;
+  metadata: AttachmentArtifactWorkProductMetadata | MediaArtifactWorkProductMetadata | null;
   /** True when stored metadata could not be parsed into a usable artifact. */
   degraded: boolean;
   workProduct: IssueWorkProduct;
@@ -279,10 +281,11 @@ function toTime(value: string | Date): number {
  *   marked primary) comes first, then remaining artifacts by most-recent.
  */
 export function getIssueOutputs(workProducts: IssueWorkProduct[] | null | undefined): IssueOutputs {
-  const artifacts = (workProducts ?? []).filter((wp) => wp.type === "artifact" && wp.provider === "paperclip");
+  const artifacts = (workProducts ?? []).filter((wp) => (wp.type === "artifact" || wp.type === "media") && wp.provider === "paperclip");
 
   const items: IssueOutputItem[] = artifacts.flatMap((wp) => {
-    const parsed = attachmentArtifactWorkProductMetadataSchema.safeParse(wp.metadata);
+    const attachment = attachmentArtifactWorkProductMetadataSchema.safeParse(wp.metadata);
+      const parsed = wp.type === "media" && !attachment.success ? mediaArtifactWorkProductMetadataSchema.safeParse(wp.metadata) : attachment;
     if (parsed.success && !isOutputEligibleContentType(parsed.data.contentType, parsed.data.originalFilename)) {
       return [];
     }

@@ -20,6 +20,18 @@ export {
 } from "./file-resources.js";
 export { routineRoutes } from "./routines.js";
 export { goalRoutes } from "./goals.js";
+export { assignmentRoutes } from "./assignments.js";
+export { dailyBriefRoutes } from "./daily-brief.js";
+export { agentExplainRoutes } from "./agent-explain.js";
+export { playbookRoutes } from "./playbooks.js";
+export { autonomyRoutes } from "./autonomy.js";
+export { commercialDecisionRoutes, publicDecisionRoutes } from "./commercial-decisions.js";
+export { proposalRoutes, publicProposalRoutes } from "./proposals.js";
+export { handoffRoutes } from "./handoff.js";
+export { serviceAgreementRoutes } from "./service-agreements.js";
+export { leadQualificationRoutes } from "./leads.js";
+export { commitmentRoutes, commercialTriggerRoutes } from "./commitments.js";
+export { deliverableReviewRoutes } from "./deliverable-reviews.js";
 export { onboardingSeedRoutes } from "./onboarding-seed.js";
 export { approvalRoutes } from "./approvals.js";
 export { secretRoutes } from "./secrets.js";
@@ -41,3 +53,5 @@ export { instanceSettingsRoutes } from "./instance-settings.js";
 export { instanceDatabaseBackupRoutes } from "./instance-database-backups.js";
 export { managedAgentProfileRoutes } from "./managed-agent-profiles.js";
 export { remoteAgentProfileRoutes } from "./remote-agent-profiles.js";
+
+export { mediaStudioRoutes } from "./media-studio.js";

@@ -5,6 +5,8 @@ import { notFound } from "../errors.js";
 import { budgetService } from "./budgets.js";
 import { executionIssueCondition } from "./issue-visibility.js";
 import { retryIdempotentDatabaseOperation } from "../database-retry.js";
+import type { DashboardSummary } from "@paperclipai/shared";
+import { assignmentDashboardService } from "./assignment-dashboard.js";
 
 const DASHBOARD_RUN_ACTIVITY_DAYS = 14;
 
@@ -26,8 +28,9 @@ function getRecentUtcDateKeys(now: Date, days: number): string[] {
 
 export function dashboardService(db: Db) {
   const budgets = budgetService(db);
-  return {
-    summary: async (companyId: string) => {
+  const assignmentSections = assignmentDashboardService(db);
+  const service = {
+    summary: async (companyId: string): Promise<DashboardSummary> => {
       // This lookup only reads the company row. Rebuild it after a transient
       // disconnect; do not replay the later summary or budget workflows.
       const company = await retryIdempotentDatabaseOperation(() => db
@@ -69,7 +72,7 @@ export function dashboardService(db: Db) {
         agentCounts[bucket] = (agentCounts[bucket] ?? 0) + count;
       }
 
-      const taskCounts: Record<string, number> = {
+      const taskCounts = {
         open: 0,
         inProgress: 0,
         blocked: 0,
@@ -212,6 +215,19 @@ export function dashboardService(db: Db) {
         },
         runActivity: Array.from(runActivity.values()),
       };
+    },
+  };
+  return {
+    ...service,
+    /**
+     * `summary` plus the result-oriented sections (active assignments, what needs
+     * the operator, today/week cost). `summary` stays untouched so the current
+     * dashboard keeps its exact reads; each added section reports its own `error`
+     * instead of failing the response.
+     */
+    summaryWithAssignments: async (companyId: string): Promise<DashboardSummary> => {
+      const summary = await service.summary(companyId);
+      return { ...summary, ...(await assignmentSections.sections(companyId)) };
     },
   };
 }

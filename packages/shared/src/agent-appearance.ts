@@ -78,6 +78,10 @@ export function agentAvatarUrl(appearance: AgentAppearance, size: AgentAvatarSiz
   const lpc = isLpcAppearance(appearance);
   return `/api/agent-avatars/${appearance.characterVersion}/${agentAvatarPresetKey(appearance, muted)}/${pose}.png?size=${size}&scale=${scale}${lpc && muted ? "&muted=1" : ""}${background === "paperclip-dark" ? "&background=paperclip-dark" : ""}`;
 }
+/** lpc-v1 only: the 9x8 walk/sit sheet (LPC_WORLD_SHEET) consumed by the pixel-art office. */
+export function agentWorldSheetUrl(appearance: LpcAgentAppearance, muted = false): string {
+  return `/api/agent-avatars/${appearance.characterVersion}/${agentAvatarPresetKey(appearance)}/world.png${muted ? "?muted=1" : ""}`;
+}
 /** lpc-v1 only: the native-resolution animation sheet consumed by the live sprite. */
 export function agentSpriteSheetUrl(appearance: LpcAgentAppearance, muted = false): string {
   return `/api/agent-avatars/${appearance.characterVersion}/${agentAvatarPresetKey(appearance)}/sheet.png${muted ? "?muted=1" : ""}`;

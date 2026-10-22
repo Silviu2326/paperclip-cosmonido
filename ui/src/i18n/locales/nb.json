@@ -50,7 +50,8 @@
     "connectors": "Connectors",
     "audit": "Audit",
     "recentTasks": "Recent Tasks",
-    "settings": "Settings"
+    "settings": "Settings",
+    "office": "Office"
   },
   "dashboard": {
     "welcome": "Welcome to Paperclip. Set up your first organization and agent to get started.",
@@ -10920,5 +10921,30 @@
     "saving": "Saving…",
     "reroll": "Another one",
     "customize": "Customize"
+  },
+  "office": {
+    "title": "Office",
+    "selectCompany": "Select a company to see its office.",
+    "presentCount": "{{count}} agents present",
+    "credits": "Credits",
+    "showChat": "Show chat",
+    "hideChat": "Hide chat",
+    "loadError": "The office could not be loaded.",
+    "saving": "Saving…",
+    "saveError": "Could not save the office. Your last change is still on screen.",
+    "canvasLabel": "Pixel-art office",
+    "agentLink": "Open {{name}}",
+    "chat": {
+      "intro": "Tell me what to change: \"put a plant top left\", \"desk for Walter\", \"change the floor to wood\". English and Spanish work.",
+      "placeholder": "Describe a change…",
+      "send": "Send",
+      "sending": "Thinking…",
+      "undo": "Undo",
+      "reset": "Reset office",
+      "resetDone": "The office is back to the default layout.",
+      "changes": "{{count}} change(s) applied",
+      "rejected": "Some changes could not be applied: {{reason}}",
+      "error": "The assistant could not answer. Try again."
+    }
   }
 }

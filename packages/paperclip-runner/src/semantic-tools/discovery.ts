@@ -1,3 +1,4 @@
+import { assignmentContextMediaNamespaces } from "../protocol-actions/assignment-context-media.js";
 import { CAPABILITY_SEMANTIC_TOOL_CATALOG } from "./catalog.js";
 import { decideCapabilitySemanticAuthorization } from "./policy.js";
 import type {
@@ -20,6 +21,7 @@ export interface CapabilityDiscoveryResult {
 const MAX_DISCOVERY_RESULTS = 10;
 
 const NAMESPACE: Readonly<Record<CapabilitySemanticOperationId, string>> = Object.freeze({
+  ...assignmentContextMediaNamespaces,
   set_task_title: "active_task",
   set_task_monitor: "continuation",
   search_api: "api_fallback",
@@ -44,6 +46,9 @@ const NAMESPACE: Readonly<Record<CapabilitySemanticOperationId, string>> = Objec
 });
 
 export const CAPABILITY_DISCOVERY_NAMESPACES = Object.freeze([
+  { name: "assignments", description: "Read assignments and submit deliverable versions for human review." },
+  { name: "business_context", description: "Search and read current business context for the task project." },
+  { name: "media_studio", description: "Edit, transcribe, render and dub company media with durable jobs." },
   { name: "api_fallback", description: "API escape hatch for work unsupported by available dedicated tools." },
   { name: "discovery", description: "Find company tasks and agents." },
   { name: "delegation", description: "Create bounded child work and task dependencies." },

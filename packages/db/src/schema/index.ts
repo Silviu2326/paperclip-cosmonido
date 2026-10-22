@@ -247,6 +247,7 @@ export { chatVoiceReports } from "./chat_voice_reports.js";
 export { chatVoicePhoneLines, chatVoiceInboundCalls } from "./chat_voice_inbound.js";
 export * from "./decision_models.js";
 export { userCompanyPreferences } from "./user_company_preferences.js";
+export { officeLayouts } from "./office_layouts.js";
 
 export { chatSlackManagerGrants } from "./chat_slack_manager_grants.js";
 export { aiSubscriptions, aiSubscriptionPrices, aiSubscriptionConnections } from "./ai_subscriptions.js";
@@ -260,3 +261,13 @@ export * from "./fast_responses.js";
 export * from "./deliverable_reviews.js";
 
 export * from "./media_studio.js";
+
+// Sprint 3: autonomous sales and delivery
+export * from "./playbooks.js";
+export * from "./lead_qualifications.js";
+export * from "./autonomy.js";
+export * from "./proposals.js";
+export * from "./handoff_receipts.js";
+export * from "./service_agreements.js";
+export * from "./commercial_decisions.js";
+export * from "./daily_brief_preferences.js";

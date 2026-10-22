@@ -29,7 +29,7 @@ const lpcSchema = z.object({
   version: z.literal(LPC_CHARACTER_VERSION),
   /** Encoded layer spec; decodeLpcSpec validates every token against the frozen catalog. */
   preset: z.string().regex(/^[a-z0-9_.]{1,200}$/),
-  pose: z.enum([...CHARACTER_STATES, "sheet"]),
+  pose: z.enum([...CHARACTER_STATES, "sheet", "world"]),
   muted: z.enum(["0", "1"]).default("0"),
   ...commonQuery,
 }).strict();
@@ -51,10 +51,10 @@ function parseRequest(params: { version: string; preset: string; file: string },
   const character = decodeLpcSpec(parsed.data.preset);
   if (!character) return null;
   const { pose, size, scale, background, muted } = parsed.data;
-  if (pose === "sheet") {
-    // The sheet is native resolution; size/scale/background do not apply.
+  if (pose === "sheet" || pose === "world") {
+    // Sheets are native resolution; size/scale/background do not apply.
     if (Object.keys(query).some(key => key !== "muted")) return null;
-    return { appearance: appearanceForLpc(character), muted: muted === "1", pose: "rest", size: 512, scale: 1, sheet: true };
+    return { appearance: appearanceForLpc(character), muted: muted === "1", pose: "rest", size: 512, scale: 1, sheet: pose === "world" ? "world" : "states" };
   }
   return { appearance: appearanceForLpc(character), muted: muted === "1", pose, size: size as AgentAvatarSize, scale: Number(scale) as 1 | 2, background };
 }

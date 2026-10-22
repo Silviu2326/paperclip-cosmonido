@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Eye, EyeOff, Maximize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ export interface PreviewFolder {
 const USAGE_INLINE_LIMIT = 3;
 
 interface ArtifactPreviewPaneProps {
+  supplement?: ReactNode;
   target: PreviewTarget | null;
   onClose: () => void;
   onOpenFullscreen: (target: PreviewTarget) => void;
@@ -60,6 +61,7 @@ export function ArtifactPreviewPane({
   emptyHint,
   usage,
   folder,
+  supplement,
 }: ArtifactPreviewPaneProps) {
   const { t } = useTranslation();
 
@@ -96,7 +98,7 @@ export function ArtifactPreviewPane({
       </div>
 
       {target ? (
-        <PreviewBody target={target} actions={actions} usage={usage ?? null} />
+        <PreviewBody target={target} actions={actions} usage={usage ?? null} supplement={supplement} />
       ) : folder ? (
         <FolderBody folder={folder} emptyHint={emptyHint} />
       ) : (
@@ -164,7 +166,9 @@ function PreviewBody({
   target,
   actions,
   usage,
+  supplement,
 }: {
+  supplement?: ReactNode;
   target: PreviewTarget;
   actions: ArtifactPreviewAction[];
   usage: PreviewUsage | null;
@@ -231,6 +235,8 @@ function PreviewBody({
             })}
           </div>
         ) : null}
+
+        {supplement ? <div className="flex flex-col gap-4">{supplement}</div> : null}
 
         {versions.length > 0 ? (
           <section className="text-xs">

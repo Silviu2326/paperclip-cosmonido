@@ -7,6 +7,13 @@ export interface Goal {
   description: string | null;
   level: GoalLevel;
   status: GoalStatus;
+  kind?: "goal" | "assignment";
+  acceptanceCriteria?: string | null;
+  expectedDeliverable?: string | null;
+  budgetCents?: number | null;
+  projectId?: string | null;
+  assigneeAgentId?: string | null;
+  rootIssueId?: string | null;
   parentId: string | null;
   ownerAgentId: string | null;
   createdAt: Date;

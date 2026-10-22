@@ -28,3 +28,18 @@ describe("project discovery result bounds", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+describe("context search options", () => {
+  it("forwards includeExpired to the authenticated context endpoint", async () => {
+    const fetch = vi.fn(async (_url: string, _options: RequestInit) => ({ ok: true, json: async () => ({ files: [], truncated: false }) }));
+    vi.stubGlobal("fetch", fetch);
+
+    await callProjectTool({
+      ...input,
+      name: "context_search",
+      arguments: { includeExpired: true },
+    });
+
+    expect(fetch.mock.calls[0]?.[0]).toBe("http://paperclip.test/api/companies/company/context?includeExpired=true&limit=20");
+  });
+});

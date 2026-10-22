@@ -8,6 +8,8 @@ import type {
   CostByAgentModel,
   CostByProject,
   CostWindowSpendRow,
+  GoalCostReport,
+  GoalCostSummary,
   FinanceSummary,
   FinanceByBiller,
   FinanceByKind,
@@ -40,6 +42,9 @@ export const costsApi = {
     api.get<CostByAgentModel[]>(`/companies/${companyId}/costs/by-agent-model${dateParams(from, to)}`),
   byProject: (companyId: string, from?: string, to?: string) =>
     api.get<CostByProject[]>(`/companies/${companyId}/costs/by-project${dateParams(from, to)}`),
+  byGoal: (companyId: string, from?: string, to?: string) =>
+    api.get<GoalCostReport>(`/companies/${companyId}/costs/by-goal${dateParams(from, to)}`),
+  goalSummary: (goalId: string) => api.get<GoalCostSummary>(`/goals/${goalId}/cost-summary`),
   byProvider: (companyId: string, from?: string, to?: string) =>
     api.get<CostByProviderModel[]>(`/companies/${companyId}/costs/by-provider${dateParams(from, to)}`),
   byBiller: (companyId: string, from?: string, to?: string) =>

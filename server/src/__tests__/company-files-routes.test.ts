@@ -5,7 +5,7 @@ import type { IncomingMessage } from "node:http";
 import express from "express";
 import request from "supertest";
 import sharp from "sharp";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   activityLog,
@@ -19,10 +19,13 @@ import {
   companyFiles,
   createDb,
   documents,
+  folders,
   heartbeatRuns,
+  goals,
   issueAttachments,
   issueWorkProducts,
   issues,
+  projects,
   type Db,
 } from "@paperclipai/db";
 import type { StorageService } from "../storage/types.js";
@@ -106,7 +109,7 @@ async function createCompanyWithAgent(label: string) {
     .returning()
     .then((rows) => rows[0]!);
   const runId = randomUUID();
-  await db.insert(heartbeatRuns).values({ id: runId, companyId: company.id, agentId: agent.id, status: "running", issueId: issue.id });
+  await db.insert(heartbeatRuns).values({ id: runId, companyId: company.id, agentId: agent.id, status: "running", issueId: issue.id, nativeIssueId: issue.id, contextSnapshot: { issueId: issue.id } });
   return { company, agent, issue, runId };
 }
 
@@ -157,7 +160,7 @@ describe("company files routes", () => {
   beforeAll(async () => {
     tempDb = await startEmbeddedPostgresTestDatabase("paperclip-company-files-");
     db = createDb(tempDb.connectionString);
-  }, 60_000);
+  }, 90_000);
 
   afterAll(async () => {
     await tempDb?.cleanup();
@@ -295,7 +298,7 @@ describe("company files routes", () => {
 
   it("an agent read is recorded with the run's issue and appears in usage", async () => {
     const created = await upload("brief.txt", "contexto");
-    currentActor = agentActor(company.id, agent.id, runId);
+    currentActor = { ...agentActor(company.id, agent.id, runId), source: "agent_jwt" };
 
     const read = await request(app)
       .get(`/api/company-files/${created.body.id}/content`)
@@ -316,6 +319,90 @@ describe("company files routes", () => {
 
     const listed = await request(app).get(`/api/companies/${company.id}/files`);
     expect(listed.body.files.find((f: { id: string }) => f.id === created.body.id).usedInIssueCount).toBe(1);
+  });
+
+  it("context search scopes project files, filters expired files, and get records a read", async () => {
+    const projectA = await db.insert(projects).values({ companyId: company.id, name: "Project A" }).returning().then((rows) => rows[0]!);
+    const projectB = await db.insert(projects).values({ companyId: company.id, name: "Project B" }).returning().then((rows) => rows[0]!);
+    await db.update(issues).set({ projectId: projectA.id }).where(eq(issues.id, issue.id));
+    const companyFile = await upload("company-guide.md", "Company-wide guide");
+    const projectFile = await upload("project-guide.md", "Project A guide");
+    const otherProjectFile = await upload("other-project.md", "Project B secret");
+    const expiredFile = await upload("expired.md", "Old policy");
+    const hiddenFile = await upload("hidden-context.md", "Not visible to agents");
+    for (const [fileId, metadata] of [
+      [companyFile.body.id, { audienceKind: "company", audienceId: null, contextRole: "procedure" }],
+      [projectFile.body.id, { audienceKind: "project", audienceId: projectA.id, contextRole: "procedure" }],
+      [otherProjectFile.body.id, { audienceKind: "project", audienceId: projectB.id, contextRole: "procedure" }],
+      [expiredFile.body.id, { audienceKind: "company", audienceId: null, contextRole: "procedure", validUntil: new Date("2020-01-01T00:00:00Z") }],
+      [hiddenFile.body.id, { audienceKind: "company", audienceId: null, contextRole: "procedure" }],
+    ] as const) {
+      expect((await request(app).patch(`/api/company-files/${fileId}`).send(metadata)).status).toBe(200);
+    }
+    const hiddenFolder = await request(app).post(`/api/companies/${company.id}/files/folders`).send({ name: "Private Context" });
+    expect(hiddenFolder.status).toBe(201);
+    expect((await request(app).patch(`/api/company-files/${hiddenFile.body.id}`).send({ folderId: hiddenFolder.body.id })).status).toBe(200);
+    expect((await request(app).patch(`/api/company-files/folders/${hiddenFolder.body.id}`).send({ agentVisible: false })).status).toBe(200);
+
+    currentActor = { ...agentActor(company.id, agent.id, runId), source: "agent_jwt" };
+    const search = await request(app).get(`/api/companies/${company.id}/context?roles=procedure`);
+    expect(search.status).toBe(200);
+    expect(search.body.files.map((entry: { id: string }) => entry.id).sort()).toEqual([companyFile.body.id, projectFile.body.id].sort());
+    expect(search.body.files.map((entry: { id: string }) => entry.id)).not.toContain(hiddenFile.body.id);
+    const includingExpired = await request(app).get(`/api/companies/${company.id}/context?roles=procedure&includeExpired=true`);
+    expect(includingExpired.body.files.map((entry: { id: string }) => entry.id)).toContain(expiredFile.body.id);
+    const read = await request(app).get(`/api/companies/${company.id}/context/${projectFile.body.id}`);
+    expect(read.status).toBe(200);
+    expect(read.body.content).toBe("Project A guide");
+    const reads = await db.select().from(companyFileReads).where(eq(companyFileReads.fileId, projectFile.body.id));
+    expect(reads).toHaveLength(1);
+    expect(reads[0]).toMatchObject({ companyId: company.id, issueId: issue.id, agentId: agent.id, runId });
+    expect((await request(app).get(`/api/companies/${company.id}/context/${otherProjectFile.body.id}`)).status).toBe(404);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${expiredFile.body.id}`)).status).toBe(404);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${hiddenFile.body.id}`)).status).toBe(404);
+    expect((await request(app).get(`/api/companies/${company.id}/context/${expiredFile.body.id}?includeExpired=true`)).status).toBe(200);
+    expect((await request(app).get(`/api/companies/${company.id}/context?roles=nope`)).status).toBe(400);
+    currentActor = { ...agentActor(company.id, agent.id, runId), runId: undefined, source: "agent_jwt" };
+    expect((await request(app).get(`/api/companies/${company.id}/context`)).status).toBe(403);
+
+    const assignment = await db.insert(goals).values({ companyId: company.id, title: "Use context", kind: "assignment", rootIssueId: issue.id }).returning().then((rows) => rows[0]!);
+    const childTask = await db.insert(issues).values({ companyId: company.id, title: "Context child task", status: "todo", parentId: issue.id }).returning().then((rows) => rows[0]!);
+    await db.insert(companyFileReads).values({ companyId: company.id, fileId: projectFile.body.id, versionId: projectFile.body.currentVersionId, issueId: childTask.id, agentId: agent.id, runId });
+    currentActor = boardActor(company.id);
+    const usage = await request(app).get(`/api/assignments/${assignment.id}/context-usage`);
+    expect(usage.status).toBe(200);
+    expect(usage.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileId: projectFile.body.id, name: "project-guide.md", readCount: 2, issueCount: 2 }),
+      expect.objectContaining({ fileId: expiredFile.body.id, name: "expired.md", readCount: 1, issueCount: 1 }),
+    ]));
+  });
+
+  it("searches past hidden-folder candidates and does not create system folders for agents without a run", async () => {
+    const hiddenFolder = await db.insert(folders).values({ companyId: company.id, kind: "company_files", name: "Private Context", slug: "private-context", agentVisible: false }).returning().then((rows) => rows[0]!);
+    await db.insert(companyFiles).values(Array.from({ length: 21 }, (_, index) => ({
+      companyId: company.id,
+      folderId: hiddenFolder.id,
+      name: `a-hidden-${String(index).padStart(2, "0")}.pdf`,
+      slug: `a-hidden-${String(index).padStart(2, "0")}.pdf`,
+      contentType: "application/pdf",
+      contextRole: "procedure",
+    })));
+    const visible = await db.insert(companyFiles).values({
+      companyId: company.id,
+      name: "z-visible-guide.pdf",
+      slug: "z-visible-guide.pdf",
+      contentType: "application/pdf",
+      contextRole: "procedure",
+    }).returning().then((rows) => rows[0]!);
+    currentActor = { ...agentActor(company.id, agent.id, runId), runId: undefined, source: "agent_jwt" };
+    expect((await request(app).get(`/api/companies/${company.id}/context`)).status).toBe(403);
+    const systemFolders = await db.select().from(folders).where(and(eq(folders.companyId, company.id), inArray(folders.systemKey, ["context.offer", "context.brand", "context.procedures", "context.customers"])));
+    expect(systemFolders).toHaveLength(0);
+
+    currentActor = { ...agentActor(company.id, agent.id, runId), source: "agent_jwt" };
+    const search = await request(app).get(`/api/companies/${company.id}/context?roles=procedure&limit=1`);
+    expect(search.status).toBe(200);
+    expect(search.body.files.map((entry: { id: string }) => entry.id)).toEqual([visible.id]);
   });
 
   it("agents cannot write files", async () => {

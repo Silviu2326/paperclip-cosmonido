@@ -1,9 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { folders, heartbeatRuns } from "@paperclipai/db";
+import { folders, goals, heartbeatRuns, projects } from "@paperclipai/db";
 import {
+  contextSearchSchema,
+  contextGetSchema,
   createCompanyFileFolderSchema,
   createCompanyFileFromArtifactSchema,
   listCompanyFilesQuerySchema,
@@ -14,6 +16,8 @@ import { validate } from "../middleware/validate.js";
 import { badRequest, notFound, payloadTooLarge, unprocessable } from "../errors.js";
 import { logActivity } from "../services/index.js";
 import { companyFilesService } from "../services/company-files.js";
+import { contextService } from "../services/context.js";
+import { projectToolContext } from "../services/project-tool-context.js";
 import { getAssetThumbnail, type ThumbnailResult } from "../services/thumbnails.js";
 import { ARCHIVE_MAX_TOTAL_BYTES, archiveTotalBytes, safeZipSegment, streamZipResponse } from "../services/zip-archive.js";
 import type { StorageService } from "../storage/types.js";
@@ -130,6 +134,83 @@ async function readUpload(req: Request, res: Response) {
 export function companyFileRoutes(db: Db, storage: StorageService) {
   const router = Router();
   const svc = companyFilesService(db, storage);
+  const context = contextService(db, storage);
+
+  async function resolveContextActor(req: Request, companyId: string) {
+    if (req.actor.type !== "agent") return { companyId, allProjects: true as const };
+    const runContext = await projectToolContext(db, req.actor, false, "Context");
+    if (runContext.run.companyId !== companyId) throw notFound("Context file not found");
+    return {
+      companyId,
+      projectId: runContext.issue.projectId,
+      issueId: runContext.issue.id,
+      agentId: runContext.run.agentId,
+      runId: runContext.run.id,
+      isAgentVisible: (folderId: string | null) => svc.isAgentVisible(companyId, folderId),
+    };
+  }
+
+  router.get("/companies/:companyId/context", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const parsed = contextSearchSchema.safeParse({
+      query: typeof req.query.query === "string" ? req.query.query : undefined,
+      roles: typeof req.query.roles === "string" ? req.query.roles.split(",") : undefined,
+      includeExpired: parseOptionalBooleanQuery(req.query.includeExpired) ?? false,
+      limit: req.query.limit === undefined ? undefined : Number(req.query.limit),
+    });
+    if (!parsed.success) throw badRequest("Invalid context query", parsed.error.issues);
+    const scope = await resolveContextActor(req, companyId);
+    const folders = await context.ensureSystemFolders(companyId);
+    const result = await context.search(companyId, { ...parsed.data, ...scope, allProjects: req.actor.type === "board" });
+    res.json({ folders, ...result });
+  });
+
+  router.get("/companies/:companyId/context/:fileId", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const parsed = contextGetSchema.safeParse({ fileId: req.params.fileId, includeExpired: parseOptionalBooleanQuery(req.query.includeExpired) ?? false });
+    if (!parsed.success) throw badRequest("Invalid context file id", parsed.error.issues);
+    const scope = await resolveContextActor(req, companyId);
+    if (req.actor.type === "agent") {
+      const file = await svc.getRow(parsed.data.fileId);
+      if (!file || file.companyId !== companyId || file.deletedAt || !(await svc.isAgentVisible(companyId, file.folderId))) throw notFound("Context file not found");
+    }
+    const file = await context.get(parsed.data.fileId, {
+      ...scope,
+      includeExpired: parsed.data.includeExpired,
+    });
+    res.json(file);
+  });
+
+  router.get("/assignments/:id/context-usage", async (req, res) => {
+    assertBoard(req);
+    const assignmentId = req.params.id as string;
+    const assignment = await db.select({ id: goals.id, companyId: goals.companyId, rootIssueId: goals.rootIssueId })
+      .from(goals).where(and(eq(goals.id, assignmentId), eq(goals.kind, "assignment"))).then((rows) => rows[0] ?? null);
+    if (!assignment) throw notFound("Assignment not found");
+    assertCompanyAccess(req, assignment.companyId);
+    if (!assignment.rootIssueId) return res.json([]);
+    const result = await db.execute(sql`
+      WITH RECURSIVE task_tree(id, depth) AS (
+        SELECT id, 0 FROM issues WHERE id = ${assignment.rootIssueId} AND company_id = ${assignment.companyId}
+        UNION ALL
+        SELECT child.id, parent.depth + 1 FROM issues child JOIN task_tree parent ON child.parent_id = parent.id
+        WHERE child.company_id = ${assignment.companyId} AND parent.depth < 64
+      )
+      SELECT f.id AS "fileId", f.name, f.context_role AS "contextRole",
+        max(r.created_at) AS "lastReadAt", count(r.id)::int AS "readCount",
+        count(DISTINCT r.issue_id)::int AS "issueCount"
+      FROM company_file_reads r
+      JOIN task_tree t ON t.id = r.issue_id
+      JOIN company_files f ON f.id = r.file_id AND f.company_id = ${assignment.companyId}
+      WHERE r.company_id = ${assignment.companyId}
+      GROUP BY f.id, f.name, f.context_role
+      ORDER BY max(r.created_at) DESC, f.name ASC
+    `);
+    const rows = Array.isArray(result) ? result : (result as { rows?: unknown }).rows ?? [];
+    res.json(rows);
+  });
 
   async function logFileActivity(
     req: Request,
@@ -295,6 +376,18 @@ export function companyFileRoutes(db: Db, storage: StorageService) {
     const existing = await getAccessibleResource(req, res, svc.getRow(id), "File not found");
     if (!existing) return;
     assertBoard(req);
+    const audienceKind = req.body.audienceKind ?? existing.audienceKind;
+    const audienceId = req.body.audienceId === undefined ? existing.audienceId : req.body.audienceId;
+    if (audienceKind === "project") {
+      if (!audienceId) throw badRequest("audienceId is required for project context");
+      const project = await db.select({ id: projects.id }).from(projects)
+        .where(and(eq(projects.id, audienceId), eq(projects.companyId, existing.companyId))).then((rows) => rows[0] ?? null);
+      if (!project) throw notFound("Project not found");
+    } else if (audienceKind === "customer") {
+      throw unprocessable("Customer context is not available yet");
+    } else if (audienceId) {
+      throw badRequest("audienceId must be empty for company context");
+    }
     const actor = getActorInfo(req);
     const updated = await svc.update(existing.companyId, id, {
       ...req.body,

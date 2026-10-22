@@ -1,3 +1,4 @@
+import { assignmentContextMediaActions } from "../protocol-actions/assignment-context-media.js";
 import { getWorkspaceAction } from "../protocol-actions/get-workspace.js";
 import { listWorkspacesAction } from "../protocol-actions/list-workspaces.js";
 import { selectWorkspaceAction } from "../protocol-actions/select-workspace.js";
@@ -117,6 +118,7 @@ function descriptor(input: DescriptorInput): PaperclipSemanticActionDescriptor {
 }
 
 const descriptors: readonly PaperclipSemanticActionDescriptor[] = [
+  ...assignmentContextMediaActions.map(action => descriptor({ ...action.live.descriptor, placement: "optional", effect: action.live.descriptor.effect })), 
   descriptor({ ...createSkillAction.live.descriptor, placement: "optional", effect: "write" }),
   ...[searchApiAction, callApiAction].map(action => descriptor({
     operationId: action.id,
