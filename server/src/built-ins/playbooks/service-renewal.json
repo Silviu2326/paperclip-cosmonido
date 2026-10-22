@@ -1,0 +1,56 @@
+{
+  "key": "service-renewal",
+  "name": "Renovación de servicio",
+  "description": "Prepara la renovación de un servicio antes de su vencimiento: revisión de uso, propuesta y cierre.",
+  "scopeKind": "customer_segment",
+  "scopeValue": "recurring_service",
+  "steps": [
+    {
+      "key": "qualify",
+      "kind": "qualify",
+      "title": "Revisar uso y satisfacción",
+      "channel": "internal",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Revisa el uso del servicio, incidencias abiertas y el último feedback del cliente antes de contactar."
+    },
+    {
+      "key": "respond",
+      "kind": "respond",
+      "title": "Contactar antes del vencimiento",
+      "channel": "email",
+      "delayHours": 0,
+      "templateKey": "service-renewal-outreach",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 2,
+      "instructions": "Comenta el valor entregado en el último periodo y pregunta si quieren revisar el alcance."
+    },
+    {
+      "key": "propose",
+      "kind": "propose",
+      "title": "Enviar propuesta de renovación",
+      "channel": "email",
+      "templateKey": "service-renewal-proposal",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 1,
+      "instructions": "Envía la propuesta con el mismo alcance o con los cambios acordados. No cambies precios sin aprobación."
+    },
+    {
+      "key": "wait_decision",
+      "kind": "wait",
+      "title": "Esperar decisión",
+      "delayHours": 168,
+      "autonomy": "draft_only",
+      "condition": "Esperar 7 días la decisión del cliente"
+    },
+    {
+      "key": "close",
+      "kind": "close",
+      "title": "Cerrar renovación",
+      "channel": "internal",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Registra la renovación o la baja con el motivo indicado por el cliente."
+    }
+  ]
+}

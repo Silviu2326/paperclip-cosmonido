@@ -1,0 +1,92 @@
+[
+  {
+    "caseId": "fx-email-01",
+    "actionType": "email",
+    "transcript": [
+      { "role": "contact", "text": "Hola, ¿me podéis enviar la propuesta de precios para el plan anual?", "at": "2026-09-01T09:00:00.000Z" }
+    ],
+    "reference": { "text": "Hola, gracias por escribir. Te adjunto la propuesta del plan anual con los precios actualizados. Quedo a tu disposición si quieres revisarla juntos.", "proposedAction": "send_proposal" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-email-02",
+    "actionType": "email",
+    "transcript": [
+      { "role": "contact", "text": "Buenos días. Necesito cancelar la reunión de mañana por un imprevisto.", "at": "2026-09-02T08:30:00.000Z" }
+    ],
+    "reference": { "text": "Buenos días, lamentamos el imprevisto. He cancelado la reunión de mañana. Avísanos cuando quieras retomarla y te propondremos nuevos horarios.", "proposedAction": "cancel_meeting" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-email-03",
+    "actionType": "email",
+    "transcript": [
+      { "role": "contact", "text": "¿Podéis darme acceso a la documentación técnica de la integración?", "at": "2026-09-03T11:15:00.000Z" }
+    ],
+    "reference": { "text": "Claro, te comparto el acceso a la documentación técnica de la integración en el enlace de tu portal. Si necesitas ayuda con la configuración, dímelo.", "proposedAction": "share_documentation" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-message-01",
+    "actionType": "message",
+    "transcript": [
+      { "role": "contact", "text": "¿A qué hora abrís mañana?", "at": "2026-09-04T16:00:00.000Z" }
+    ],
+    "reference": { "text": "Mañana abrimos a las nueve de la mañana y cerramos a las seis de la tarde.", "proposedAction": null },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-message-02",
+    "actionType": "message",
+    "transcript": [
+      { "role": "contact", "text": "Ya recibí la factura, gracias. ¿Me podéis confirmar el número de pedido?", "at": "2026-09-05T10:05:00.000Z" }
+    ],
+    "reference": { "text": "Perfecto, gracias a ti. El número de pedido es el que aparece en la factura, en la parte superior derecha.", "proposedAction": null },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-message-03",
+    "actionType": "message",
+    "transcript": [
+      { "role": "contact", "text": "La app se cierra cada vez que intento subir una foto.", "at": "2026-09-06T14:20:00.000Z" }
+    ],
+    "reference": { "text": "Sentimos las molestias. Prueba a actualizar la app a la última versión y, si sigue ocurriendo, dinos el modelo del teléfono para revisarlo.", "proposedAction": "open_support_ticket" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-proposal-01",
+    "actionType": "proposal",
+    "transcript": [
+      { "role": "contact", "text": "Necesitamos una propuesta para 40 licencias con descuento por volumen.", "at": "2026-09-07T09:45:00.000Z" }
+    ],
+    "reference": { "text": "Preparamos una propuesta para 40 licencias con un descuento por volumen del 10 por ciento sobre la tarifa estándar.", "proposedAction": "draft_proposal" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-proposal-02",
+    "actionType": "proposal",
+    "transcript": [
+      { "role": "contact", "text": "Nos interesa el módulo de reporting. ¿Qué incluye el plan profesional?", "at": "2026-09-08T12:00:00.000Z" }
+    ],
+    "reference": { "text": "El plan profesional incluye el módulo de reporting, exportación de datos y soporte prioritario en días laborables.", "proposedAction": "draft_proposal" },
+    "source": "fixture",
+    "sourceId": null
+  },
+  {
+    "caseId": "fx-proposal-03",
+    "actionType": "proposal",
+    "transcript": [
+      { "role": "contact", "text": "¿Podéis ajustar la propuesta para incluir la formación del equipo?", "at": "2026-09-09T13:30:00.000Z" }
+    ],
+    "reference": { "text": "Añadimos a la propuesta dos sesiones de formación para el equipo, una inicial y otra de seguimiento al mes.", "proposedAction": "revise_proposal" },
+    "source": "fixture",
+    "sourceId": null
+  }
+]

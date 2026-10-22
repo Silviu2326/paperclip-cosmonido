@@ -1,0 +1,44 @@
+{
+  "key": "personalized-demo",
+  "name": "Demo personalizada tras cualificar",
+  "description": "Tras cualificar un lead, genera un vídeo corto de demo por idioma con el contexto del lead, lo envía con aprobación y hace un seguimiento a las 72 horas.",
+  "scopeKind": "lead_type",
+  "scopeValue": null,
+  "steps": [
+    {
+      "key": "qualify",
+      "kind": "qualify",
+      "title": "Cualificar lead",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Ejecuta lead_qualify con los criterios de cualificación. Anota el idioma preferido del contacto, el problema principal y la fuente. No inventes datos que falten."
+    },
+    {
+      "key": "prepare-demo-videos",
+      "kind": "respond",
+      "channel": "internal",
+      "title": "Preparar un vídeo de demo por idioma",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Para cada idioma en el que el lead pueda leer (como mínimo el idioma preferido del contacto), crea un vídeo corto con las imágenes del contexto del lead: llama a media_stop_motion con los identificadores de imagen del contexto, una cadencia de 0,5 s por imagen y movimiento de cámara suave. Después llama a media_voiceover con un guion breve y personalizado en ese idioma (nombre de la empresa, problema detectado y siguiente paso) y el voiceId de esa lengua. Si falta una imagen o un voiceId del idioma, no generes ese vídeo y anótalo. No generes imágenes nuevas: solo usa las que existan en el contexto. Espera a que media_get_job indique estado done antes de citar el enlace."
+    },
+    {
+      "key": "send-demo",
+      "kind": "respond",
+      "title": "Enviar la demo personalizada",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 2,
+      "instructions": "Responde en el idioma del lead con el enlace al vídeo de demo generado para ese idioma. Resume en una frase qué muestra el vídeo y propone una llamada corta. No envíes un enlace de un vídeo que no esté en estado done."
+    },
+    {
+      "key": "follow-up-demo",
+      "kind": "follow_up",
+      "title": "Seguimiento tras la demo",
+      "delayHours": 72,
+      "condition": "Sin respuesta del lead a la demo en 72 horas",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 2,
+      "instructions": "Escribe un seguimiento breve en el mismo idioma con una única pregunta concreta sobre si la demo responde a su necesidad. Reutiliza el mismo enlace de demo; no generes un vídeo nuevo."
+    }
+  ]
+}

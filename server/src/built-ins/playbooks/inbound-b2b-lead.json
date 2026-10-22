@@ -1,0 +1,58 @@
+{
+  "key": "inbound-b2b-lead",
+  "name": "Lead entrante B2B",
+  "description": "Responde a un lead entrante B2B, cualifica la necesidad, propone una reunión y deja el cierre a una persona.",
+  "scopeKind": "lead_type",
+  "scopeValue": "b2b_inbound",
+  "steps": [
+    {
+      "key": "qualify",
+      "kind": "qualify",
+      "title": "Cualificar necesidad",
+      "channel": "email",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Identifica empresa, rol, problema principal, plazo y presupuesto orientativo. Anota lo que falte sin inventar datos."
+    },
+    {
+      "key": "respond",
+      "kind": "respond",
+      "title": "Responder al lead",
+      "channel": "email",
+      "templateKey": "b2b-inbound-reply",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 2,
+      "instructions": "Agradece el contacto, resume la necesidad en una frase y pregunta la disponibilidad para una llamada de 20 minutos."
+    },
+    {
+      "key": "follow_up",
+      "kind": "follow_up",
+      "title": "Seguimiento si no hay respuesta",
+      "channel": "email",
+      "delayHours": 72,
+      "condition": "Sin respuesta del lead en 3 días",
+      "templateKey": "b2b-inbound-follow-up",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 2,
+      "instructions": "Escribe un seguimiento breve con una única pregunta concreta."
+    },
+    {
+      "key": "propose",
+      "kind": "propose",
+      "title": "Proponer reunión",
+      "channel": "email",
+      "autonomy": "send_with_approval",
+      "maxAttempts": 1,
+      "instructions": "Propón dos franjas horarias concretas para una reunión de diagnóstico."
+    },
+    {
+      "key": "handoff",
+      "kind": "handoff",
+      "title": "Pasar a una persona",
+      "channel": "internal",
+      "autonomy": "draft_only",
+      "maxAttempts": 1,
+      "instructions": "Entrega el resumen de la conversación y la cualificación a una persona del equipo comercial."
+    }
+  ]
+}
