@@ -13,6 +13,10 @@ export const LPC_CHARACTER_VERSION = "lpc-v1" as const;
 export const LPC_FRAME_SIZE = 64;
 /** Per-animation LPC sheets: one row per direction, one column per frame. */
 export const LPC_DOWN_ROW = 2;
+export const LPC_DIRECTIONS = ["up", "left", "down", "right"] as const;
+export type LpcDirection = typeof LPC_DIRECTIONS[number];
+/** Row of a direction inside every per-animation LPC sheet (LPC order: up, left, down, right). */
+export const lpcDirectionRow = (direction: LpcDirection): number => LPC_DIRECTIONS.indexOf(direction);
 
 /** Presentation-only backdrops drawn by the UI behind the live character (CSS, no server rendering). */
 export const LPC_SCENES = ["none", "meadow", "sunset", "night", "ocean", "desert", "space"] as const;
@@ -113,6 +117,19 @@ export const LPC_POSES: Record<CharacterState, LpcPose> = {
 /** Composite sheet served at `sheet.png`: one row per character state, frames across. */
 export const LPC_SHEET_ROWS = CHARACTER_STATES;
 export const LPC_SHEET_COLUMNS = Math.max(...Object.values(LPC_POSES).map(pose => pose.frames.length));
+
+/**
+ * World sheet served at `world.png` for the pixel-art office: 9 columns x 8 rows of native 64px frames.
+ * Rows 0-3 (up, left, down, right): column 0 = idle frame 0, columns 1-8 = walk frames 1-8.
+ * Rows 4-7 (same direction order): column 0 = sit frame 0, the rest empty.
+ */
+export const LPC_WORLD_SHEET = {
+  columns: 9,
+  rows: 8,
+  directions: LPC_DIRECTIONS,
+  moveRow: (direction: LpcDirection): number => LPC_DIRECTIONS.indexOf(direction),
+  sitRow: (direction: LpcDirection): number => 4 + LPC_DIRECTIONS.indexOf(direction),
+} as const;
 
 export type LpcMaterial = "body" | "eye" | "hair" | "cloth";
 export interface LpcLayer {

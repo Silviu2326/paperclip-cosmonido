@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import sharp, { type OverlayOptions, type Sharp } from "sharp";
 import {
-  CHARACTER_STATES, LPC_DOWN_ROW, LPC_FRAME_SIZE, LPC_POSES, LPC_SHEET_COLUMNS, PAPERCLIP_DARK_AVATAR_BACKGROUND, lpcLayers,
+  CHARACTER_STATES, LPC_DIRECTIONS, LPC_DOWN_ROW, LPC_FRAME_SIZE, LPC_POSES, LPC_SHEET_COLUMNS, LPC_WORLD_SHEET, PAPERCLIP_DARK_AVATAR_BACKGROUND, lpcLayers,
   type AgentAvatarBackground, type AgentAvatarSize, type CharacterState, type LpcAnimation, type LpcCharacter, type LpcMaterial,
 } from "@paperclipai/shared";
 
@@ -60,16 +60,17 @@ function recolor(image: RawImage, pairs: ColorPair[]): RawImage {
 /** Decoded, un-recoloured down-facing rows. Bounded: workers are short-lived and sheets are small. */
 const rowCache = new Map<string, Promise<RawImage>>();
 const ROW_CACHE_LIMIT = 128;
-function downRow(path: string, animation: LpcAnimation): Promise<RawImage> {
-  const key = `${path}${animation}`;
+/** One direction row (LPC order: up, left, down, right) of an animation sheet, default down-facing. */
+function downRow(path: string, animation: LpcAnimation, row: number = LPC_DOWN_ROW): Promise<RawImage> {
+  const key = `${path}${animation}:${row}`;
   let pending = rowCache.get(key);
   if (!pending) {
     pending = (async () => {
       const file = new URL(`spritesheets/${path}${animation}.png`, LPC_ASSET_ROOT);
       const { data, info } = await sharp(await readFile(file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      if (info.height < (LPC_DOWN_ROW + 1) * FRAME || info.width % FRAME !== 0) throw new Error(`Unexpected LPC sheet geometry for ${path}${animation}`);
+      if (info.height < (row + 1) * FRAME || info.width % FRAME !== 0) throw new Error(`Unexpected LPC sheet geometry for ${path}${animation}`);
       const stride = info.width * CHANNELS;
-      return { data: Buffer.from(data.subarray(LPC_DOWN_ROW * FRAME * stride, (LPC_DOWN_ROW + 1) * FRAME * stride)), width: info.width, height: FRAME };
+      return { data: Buffer.from(data.subarray(row * FRAME * stride, (row + 1) * FRAME * stride)), width: info.width, height: FRAME };
     })();
     pending.catch(() => rowCache.delete(key));
     rowCache.set(key, pending);
@@ -89,9 +90,9 @@ function cropRaw(image: RawImage, left: number, top: number, width: number, heig
   return { data, width, height };
 }
 
-/** The down-facing strip (frames across) of one animation for a complete character. */
-export async function composeLpcStrip(character: LpcCharacter, animation: LpcAnimation): Promise<RawImage> {
-  const layers = await Promise.all(lpcLayers(character).map(async layer => recolor(await downRow(layer.path, animation), await colorPairs(layer.recolors))));
+/** The strip (frames across) of one animation and direction row for a complete character; down-facing by default. */
+export async function composeLpcStrip(character: LpcCharacter, animation: LpcAnimation, row: number = LPC_DOWN_ROW): Promise<RawImage> {
+  const layers = await Promise.all(lpcLayers(character).map(async layer => recolor(await downRow(layer.path, animation, row), await colorPairs(layer.recolors))));
   const width = Math.max(...layers.map(layer => layer.width));
   const composed = await sharp({ create: { width, height: FRAME, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
     .composite(layers.map(layer => ({ input: layer.data, raw: { width: layer.width, height: layer.height, channels: 4 }, left: 0, top: 0 })))
@@ -154,5 +155,30 @@ export async function renderLpcSheet(character: LpcCharacter, muted = false): Pr
     });
   }
   const image = sharp({ create: { width: LPC_SHEET_COLUMNS * FRAME, height: CHARACTER_STATES.length * FRAME, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(tiles);
+  return finish(image, muted, undefined);
+}
+
+/**
+ * World sheet for the pixel-art office (LPC_WORLD_SHEET, 9 columns x 8 rows of 64px frames).
+ * Rows 0-3 (up, left, down, right): column 0 = idle frame 0, columns 1-8 = walk frames 1-8.
+ * Rows 4-7: column 0 = sit frame 0 for the same direction, the rest transparent.
+ */
+export async function renderLpcWorldSheet(character: LpcCharacter, muted = false): Promise<Buffer> {
+  const walkStrips = new Map<number, Promise<RawImage>>();
+  const walk = (row: number) => { let s = walkStrips.get(row); if (!s) { s = composeLpcStrip(character, "walk", row); walkStrips.set(row, s); } return s; };
+  const tiles: OverlayOptions[] = [];
+  const put = (frame: RawImage, column: number, row: number) => {
+    tiles.push({ input: frame.data, raw: { width: FRAME, height: FRAME, channels: 4 }, left: column * FRAME, top: row * FRAME });
+  };
+  for (const direction of LPC_DIRECTIONS) {
+    const row = LPC_WORLD_SHEET.moveRow(direction);
+    const idle = await composeLpcStrip(character, "idle", row);
+    put(frameOf(idle, 0), 0, row);
+    const walking = await walk(row);
+    for (let frame = 1; frame < LPC_WORLD_SHEET.columns; frame++) put(frameOf(walking, frame), frame, row);
+    const sitting = await composeLpcStrip(character, "sit", row);
+    put(frameOf(sitting, 0), 0, LPC_WORLD_SHEET.sitRow(direction));
+  }
+  const image = sharp({ create: { width: LPC_WORLD_SHEET.columns * FRAME, height: LPC_WORLD_SHEET.rows * FRAME, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(tiles);
   return finish(image, muted, undefined);
 }

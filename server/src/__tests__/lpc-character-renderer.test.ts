@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import type { Server } from "node:http";
 import sharp from "sharp";
-import { CHARACTER_STATES, LPC_ANIMATIONS, LPC_FRAME_SIZE, LPC_SHEET_COLUMNS, appearanceForLpc, encodeLpcSpec, lpcAssetFolders, type LpcCharacter } from "@paperclipai/shared";
-import { LPC_ASSET_ROOT, composeLpcStrip, renderLpcFrame, renderLpcSheet } from "../services/lpc-character-renderer.js";
+import { CHARACTER_STATES, LPC_ANIMATIONS, LPC_FRAME_SIZE, LPC_SHEET_COLUMNS, LPC_WORLD_SHEET, appearanceForLpc, encodeLpcSpec, lpcAssetFolders, lpcDirectionRow, type LpcCharacter } from "@paperclipai/shared";
+import { LPC_ASSET_ROOT, composeLpcStrip, renderLpcFrame, renderLpcSheet, renderLpcWorldSheet } from "../services/lpc-character-renderer.js";
 import { avatarCacheKey, createAgentAvatarService, type AgentAvatarRequest } from "../services/agent-avatars.js";
 import { createAgentAvatarPool } from "../services/agent-avatar-pool.js";
 import { agentAvatarRoutes } from "../routes/agent-avatars.js";
@@ -120,8 +120,62 @@ describe("lpc-v1 character renderer", () => {
     expect((await fetch(`${base}/${spec.replace("olive", "mauve")}/idle.png`)).status).toBe(400);
     expect((await fetch(`${base}/${spec}/idle.png?background=red`)).status).toBe(400);
     expect((await fetch(`${base}/credits`)).headers.get("content-type")).toContain("text/csv");
-    const request: AgentAvatarRequest = { appearance: appearanceForLpc(character), muted: true, pose: "rest", size: 512, scale: 1, sheet: true };
+    const request: AgentAvatarRequest = { appearance: appearanceForLpc(character), muted: true, pose: "rest", size: 512, scale: 1, sheet: "states" };
     expect(avatarCacheKey(request)).toBe(`generated-agent-avatars/lpc-v1/${spec}/sheet-muted.png`);
-    expect(avatarCacheKey({ ...request, sheet: false, pose: "idle", size: 32, scale: 2 })).toBe(`generated-agent-avatars/lpc-v1/${spec}/idle-32-2-muted.png`);
+    expect(avatarCacheKey({ ...request, sheet: undefined, muted: false, pose: "idle", size: 32, scale: 2 })).toBe(`generated-agent-avatars/lpc-v1/${spec}/idle-32-2.png`);
+  });
+  it("composes a strip for any direction row, defaulting to the down-facing row", async () => {
+    const defaultRow = await composeLpcStrip(character, "walk");
+    const downRow = await composeLpcStrip(character, "walk", lpcDirectionRow("down"));
+    expect(defaultRow.data.equals(downRow.data)).toBe(true);
+    const leftRow = await composeLpcStrip(character, "walk", lpcDirectionRow("left"));
+    expect(leftRow.data.equals(downRow.data)).toBe(false);
+  });
+  it("lays out the office world sheet as 9 columns by 8 directional rows", async () => {
+    const sheet = await renderLpcWorldSheet(character);
+    const meta = await sharp(sheet).metadata();
+    expect([meta.width, meta.height]).toEqual([576, 512]);
+    expect([meta.width, meta.height]).toEqual([LPC_WORLD_SHEET.columns * LPC_FRAME_SIZE, LPC_WORLD_SHEET.rows * LPC_FRAME_SIZE]);
+    const { data, info } = await sharp(sheet).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const opaqueInTile = (column: number, row: number) => {
+      let count = 0;
+      for (let y = row * LPC_FRAME_SIZE; y < (row + 1) * LPC_FRAME_SIZE; y++) for (let x = column * LPC_FRAME_SIZE; x < (column + 1) * LPC_FRAME_SIZE; x++) {
+        if (data[(y * info.width + x) * 4 + 3]! > 0) count++;
+      }
+      return count;
+    };
+    // Left-facing walk row: column 1 (walk frame 1) is drawn, column 0 is the idle frame.
+    const left = lpcDirectionRow("left");
+    expect(opaqueInTile(1, left)).toBeGreaterThan(0);
+    expect(opaqueInTile(0, left)).toBeGreaterThan(0);
+    // Sit row for "down": column 0 is the sit frame, the rest of the row stays empty.
+    const sitDown = LPC_WORLD_SHEET.sitRow("down");
+    expect(opaqueInTile(0, sitDown)).toBeGreaterThan(0);
+    expect(opaqueInTile(1, sitDown)).toBe(0);
+    expect(avatarCacheKey({ appearance: appearanceForLpc(character), muted: true, pose: "rest", size: 512, scale: 1, sheet: "world" }))
+      .toBe(`generated-agent-avatars/lpc-v1/${encodeLpcSpec(character)}/world-muted.png`);
+  });
+  it("serves world.png through the public avatar route with the 9x8 geometry", async () => {
+    const pool = createAgentAvatarPool(1);
+    cleanups.push(() => pool.close());
+    const stored = new Map<string, Buffer>();
+    const service = createAgentAvatarService({
+      async headObject({ objectKey }) { const body = stored.get(objectKey); return body ? { exists: true, contentLength: body.length } : { exists: false }; },
+      async getObject({ objectKey }) { const { Readable } = await import("node:stream"); return { stream: Readable.from([stored.get(objectKey)!]) }; },
+      async putObject({ objectKey, body }) { stored.set(objectKey, Buffer.from(body as Buffer)); },
+      async deleteObject({ objectKey }) { stored.delete(objectKey); },
+    } as never, pool.render);
+    const app = express(); app.use("/api", agentAvatarRoutes(service).router);
+    const server = await new Promise<Server>(resolve => { const running = app.listen(0, "127.0.0.1", () => resolve(running)); });
+    cleanups.push(() => new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/agent-avatars/lpc-v1`;
+    const spec = encodeLpcSpec(character);
+    const world = await fetch(`${base}/${spec}/world.png?muted=1`);
+    expect(world.status).toBe(200);
+    expect(world.headers.get("content-type")).toContain("image/png");
+    const meta = await sharp(Buffer.from(await world.arrayBuffer())).metadata();
+    expect([meta.width, meta.height]).toEqual([576, 512]);
+    expect((await fetch(`${base}/${spec}/world.png?size=64`)).status).toBe(400);
+    expect((await fetch(`${base}/${spec}/world.png?background=paperclip-dark`)).status).toBe(400);
   });
 });
