@@ -11398,5 +11398,83 @@
       "send": "The message could not be sent.",
       "draft": "The draft could not be saved."
     }
+  },
+  "channels": {
+    "title": "Customer channels",
+    "description": "Connect the WhatsApp, Messenger, Instagram, Telegram and SMS accounts that customers write to. Only secret names are stored here; values stay in company secrets.",
+    "selectCompany": "Select a company to manage its customer channels.",
+    "add": "Add account",
+    "empty": "No customer channel accounts yet.",
+    "loadError": "Could not load channel accounts",
+    "cancel": "Cancel",
+    "save": "Save account",
+    "saving": "Saving...",
+    "test": "Test connection",
+    "testing": "Testing...",
+    "testOk": "Connected",
+    "testFailed": "Not connected",
+    "enable": "Enable",
+    "disable": "Disable",
+    "lastTested": "Last test: {{date}}",
+    "provider": {
+      "meta": "Meta (WhatsApp, Messenger, Instagram)",
+      "telegram": "Telegram",
+      "twilio": "Twilio (SMS)"
+    },
+    "kind": {
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "sms": "SMS"
+    },
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "disabled": "Disabled"
+    },
+    "fields": {
+      "provider": "Provider",
+      "kind": "Channel",
+      "label": "Name",
+      "externalAccountId": "Account, number or page ID",
+      "providerAccountSid": "Twilio account SID",
+      "verifySecretName": "Verification secret name",
+      "challengeSecretName": "Webhook verify token secret name",
+      "tokenSecretName": "Send token secret name",
+      "approvedTemplates": "Approved templates"
+    },
+    "hints": {
+      "externalAccountId": "WhatsApp phone number ID, Messenger page ID, Instagram account ID, Telegram bot ID, or the Twilio number in E.164 format.",
+      "secretNames": "Enter the name of a company secret. The value is never shown here.",
+      "templates": "One per line as name|language, for example reengage|es. Used outside the 24-hour WhatsApp window."
+    },
+    "errors": {
+      "templateFormat": "Each template line must look like name|language."
+    }
+  },
+  "webchat": {
+    "title": "Web chat",
+    "description": "Let visitors start a conversation from your website. Messages arrive in the inbox like any other channel.",
+    "selectCompany": "Select a company to configure web chat.",
+    "enabled": "Enable web chat",
+    "enabledHelp": "When off, the widget is not shown and new sessions are refused.",
+    "greeting": "Greeting",
+    "greetingPlaceholder": "Hi! How can we help you today?",
+    "greetingHelp": "Shown at the top of the chat. Up to 300 characters.",
+    "brandColor": "Brand color",
+    "brandColorPlaceholder": "#2563eb (default)",
+    "brandColorHelp": "Used for the launcher and the visitor's messages. Leave empty for the default.",
+    "brandColorInvalid": "Use a 6-digit hex color, for example #2563eb, or leave it empty.",
+    "discard": "Discard changes",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "copyFailed": "Could not copy. Select the code and copy it manually.",
+    "snippetTitle": "Install on your website",
+    "snippetHelp": "Paste this line before the closing body tag of every page where the chat should appear.",
+    "inactive": "Web chat is off. Turn it on to make the widget work on your site."
   }
 }

@@ -9,6 +9,12 @@ Hecho por el integrador: exports de `lead_forms`, `calendar` y `customer_memory`
 
 Pendiente para la integración S1→S2→S3: registrar las herramientas `crm_*`, `lead_*`, `conversation_*`, `message_*`, `calendar_*`, `customer_memory_*` en el catálogo del runner (`packages/paperclip-runner/src/protocol-actions/`, mismo mecanismo que el S3) y en `paperclip-runner-tool-authority.ts`; `approveExternalAction` desde la ruta de aprobaciones; invocador real de Google Calendar en `calendarRoutes(db, { calendar })`; `projects.customerId`; etiqueta `nav.conversations` en el sidebar; mapas `maps/` y `check-maps`; crear oportunidad desde la UI; índice único para idempotencia por `external_ref` si se confirma que no colisiona entre fuentes.
 
+## Estado de integración fase C (2026-10-22)
+
+Hecho por el integrador: exports de `customer_channels` y `webchat_settings`; migración única regenerada `0358_colorful_dracula.sql` (18 tablas); `registerChannelTransports(db)` y `registerWebchatTransport()` en `app.ts`; `customerChannelRoutes` y `webchatRoutes` montadas y exportadas; rutas `channels-settings` y `webchat-settings` en `App.tsx`; copia de `src/public` al build del servidor; `.gitignore` permite `server/src/public/**/*.js`. Verificado: db typecheck, servidor y UI sin errores propios, locales 7/7, token gates sin violaciones en archivos S2, Vitest 16 archivos / 136 tests. Los puentes SQL `create table if not exists` de los tests de D/E y F se dejan: son inocuos con la migración aplicada.
+
+Sprint 2 cerrado en esta rama. Pendiente solo lo listado en "Pendiente para la integración S1→S2→S3" más: enlaces de sidebar a canales y chat web, `express.json({ limit })` previo para el chat público, `TRUST_PROXY` para firmas de Twilio, configuración externa de webhooks (Meta verify token y App Secret, Twilio StatusCallback, Telegram setWebhook).
+
 ## A1 Clientes, contactos e identidad
 
 ## A2 Oportunidades, actividades, compromisos, tools
@@ -102,4 +108,72 @@ Desviaciones respecto al contrato (decididas por K):
 
 ## D/E Canales
 
+Estado: hecho en `paperclip-s2` (sin commit). Transportes Meta (WhatsApp, Messenger, Instagram), Telegram y Twilio con `fetch`; webhooks firmados; cuentas de canal (esquema, servicio, rutas privadas); página de ajustes y cliente API; claves `channels.*` en los 40 locales (es en español, resto en inglés). Verificado: 16 tests en verde (`channels.test.ts`), `locale-validation` 7/7, typecheck servidor solo con `instrumentation.ts(483)` preexistente, typecheck UI solo con los 3 errores de Artefactos, token gates sin violaciones en mis archivos.
+
+Archivos propios: `packages/db/src/schema/customer_channels.ts`; `server/src/services/customer-channels/accounts.ts`; `server/src/services/conversations/transports/{meta,telegram,twilio,register,delivery-status,shared}.ts` (sustituyen los stubs `*TransportService`, que no tenían importadores); `server/src/routes/channels-inbound.ts` (stub, ya montado en `app.ts` bajo `/api`); `server/src/routes/customer-channels.ts`; `server/src/services/conversations/transports/channels.test.ts`; `ui/src/api/channels.ts`; `ui/src/pages/ChannelsSettings.tsx`; `ui/src/i18n/locales/*.json` (solo inserción del objeto `channels`).
+
+Pendiente de integración (archivos de un solo propietario, no tocados):
+- `packages/db/src/schema/index.ts`: añadir `export * from "./customer_channels.js";`. Después `pnpm db:generate` para que la migración del contrato incluya `customer_channel_accounts` (columnas: `provider`, `kind`, `label`, `external_account_id`, `provider_account_sid`, `verify_secret_name`, `challenge_secret_name`, `token_secret_name`, `status`, `approved_templates` jsonb, `last_tested_at`, `last_test_error`, timestamps; único `(company_id, provider, external_account_id)`; checks de proveedor, tipo y estado). Tabla nueva y aditiva, sin columnas tocadas en el contrato.
+- Al tener la migración, quitar en `channels.test.ts` el puente SQL del `beforeAll` (`create table if not exists customer_channel_accounts` y su índice). Ese test no corre sin la migración o el puente.
+- Importaciones: los servicios y rutas usan la ruta profunda `@paperclipai/db/schema/customer_channels`, el mismo patrón que `services/crm/memory.ts` (pista K). Si se exporta desde el índice, puede cambiarse a la importación raíz.
+- `server/src/app.ts`:
+  - Tras crear `db`: `import { registerChannelTransports } from "./services/conversations/transports/register.js"; registerChannelTransports(db);` una sola vez. Sin esta llamada, los envíos por WhatsApp, Messenger, Instagram, Telegram y SMS responden "No hay transporte activo".
+  - Montar `customerChannelRoutes(db)` junto a `conversationRoutes`: `api.use(customerChannelRoutes(db));`. Importar desde `./routes/customer-channels.js`.
+  - `channelInboundRoutes(db)` ya está montado (línea ~879). Las rutas quedan en `/api/webhooks/meta/:companyId` (GET reto y POST), `/api/webhooks/twilio/:companyId` y `/api/webhooks/telegram/:companyId` (esta última no estaba en el contrato).
+- `server/src/routes/index.ts` (opcional): exportar `customerChannelRoutes` y `channelInboundRoutes`.
+- `ui/src/App.tsx` y navegación: `ChannelsSettings` no está enrutada. Falta decidir la entrada (por ejemplo, un apartado de ajustes). `ui/src/api/channels.ts` no expone `remove`; la ruta `DELETE /customer-channels/:id` existe, pero la UI no la usa.
+- Configuración externa (no es código): Meta necesita la URL del webhook `https://<host>/api/webhooks/meta/<companyId>` con el token de verificación (secreto de `challengeSecretName`) y el App Secret (secreto de `verifySecretName`). Twilio: webhook entrante y de estado apuntando a `/api/webhooks/twilio/<companyId>`; el envío no pasa `StatusCallback`, así que el callback de estado depende de la configuración del número o servicio en Twilio. Telegram: `setWebhook` con `secret_token` igual al valor de `verifySecretName` y URL `/api/webhooks/telegram/<companyId>`.
+- Logs HTTP: `middleware/http-log-policy.ts` solo trata como privadas las rutas `/api/chat-webhooks`, `/api/voice-webhooks` y `/api/routine-triggers/public`. Decidir si `/api/webhooks` entra en esa lista. Los cuerpos no se registran; la URL contiene solo el id de empresa.
+- Mapas: las rutas nuevas (`/api/webhooks/*`, `/companies/:companyId/customer-channels`, `/customer-channels/:id`, `/customer-channels/:id/test`) deben reflejarse en `maps/agent-access-map` según AGENTS.md (son solo de board o públicas firmadas). Después `node scripts/check-maps.mjs`.
+- Herramientas de agente: no hay tools de canal en el runner; el envío sigue el camino de `conversationMessageService`, como el resto de canales.
+
+Desviaciones del contrato (decididas por D/E):
+- Messenger e Instagram fuera de la ventana de 24 h se rechazan con `TransportRejectedError`. Las plantillas aprobadas solo se usan para WhatsApp. Meta tiene reglas de etiquetas de mensaje distintas que no implementé.
+- Plantillas de WhatsApp: se envía la primera aprobada de la cuenta, sin variables. Un selector de plantilla y variables queda para más adelante.
+- Telegram: implementación mínima propia sobre la Bot API, no reutiliza `chat-channels/telegram`, porque ese código está acoplado a conversaciones de agente, incidencias y publicaciones.
+- Cuenta de Twilio: el identificador externo es el número E.164 (clave de enrutado del entrante); el SID va en `provider_account_sid`. Columna adicional, nullable, dentro de la tabla propia.
+- `customer_channel_accounts` tiene dos columnas más que el contrato pedía de forma implícita: `challenge_secret_name` (token de verificación de Meta, distinto del App Secret) y `last_tested_at` / `last_test_error`.
+- Los estados de entrega de Meta solo llegan por callbacks; la lectura de Messenger/Instagram (`read`) no se mapea porque el evento trae un watermark, no un id de mensaje.
+- Los webhooks responden 401 sin detalle a cualquier fallo de firma, también en el reto GET de Meta (no 403).
+
+Riesgos y puntos a revisar:
+- El parseo JSON de Meta y Telegram lo hace el middleware global de `app.ts` antes de la verificación. La firma se comprueba sobre los bytes crudos (`req.rawBody`) antes de usar cualquier campo. Twilio parsea el formulario en la ruta; la firma se comprueba antes de usar ningún valor.
+- Twilio construye la URL firmada con `req.protocol` y `Host`. Detrás de un proxy, `TRUST_PROXY` debe estar configurado; si no, la firma no coincide.
+- Varios secretos por cuenta: el webhook de Meta prueba la firma con cada cuenta activa de la empresa; cuentas que comparten App Secret se distinguen por el id de número, página o cuenta. Dos cuentas activas del mismo tipo: el envío usa la más antigua.
+- Envíos inciertos (5xx, timeout): quedan `uncertain` y no se reenvían. Solo un usuario de board puede resolverlos a mano (`reconcile` con `resolution`), mediante el `resolveManually` de cada transporte.
+
+
 ## F Chat web
+
+Estado: hecho en `paperclip-s2` (sin commit). Sesiones anónimas firmadas (24 h), identificación opcional que crea lead y contacto una sola vez, mensajes entrantes con `recordInboundMessage`, respuestas salientes visibles para el widget solo cuando están enviadas, handoff a persona, widget embebible sin dependencias, ajustes en la UI. Verificado: 11 tests de ruta en verde (`routes/public/chat.test.ts`), `locale-validation` 7/7, typecheck servidor solo con `instrumentation.ts(483)` preexistente, typecheck UI solo con los 3 errores de Artefactos, token gates sin violaciones en mis archivos. Prueba de humo del widget en jsdom (22 comprobaciones, fuera del repo): en verde.
+
+Archivos propios: `server/src/services/conversations/transports/webchat.ts` (sustituye el stub `webchatTransportService`), `transports/register-webchat.ts`, `services/conversations/webchat-constants.ts`, `services/conversations/webchat-settings.ts`, `services/conversations/webchat-tools.ts`, `server/src/routes/public/chat.ts` (sustituye el stub), `server/src/routes/public/chat.test.ts`, `server/src/routes/webchat.ts`, `server/src/public/widget.js`, `packages/db/src/schema/webchat_settings.ts`, `ui/src/pages/WebchatSettings.tsx`, `ui/src/api/webchat.ts`, bloque `webchat` en los 40 locales (solo inserción).
+
+Pendiente de integración (archivos de un solo propietario, no tocados):
+- `packages/db/src/schema/index.ts`: `export * from "./webchat_settings.js";` y `pnpm db:generate` (tabla `webchat_settings`: `company_id` único, `active`, `greeting`, `brand_color`, timestamps). Después de migrar, quitar en `routes/public/chat.test.ts` el puente `create table if not exists webchat_settings`. El servicio de ajustes usa SQL crudo hasta entonces; se puede cambiar a Drizzle al exportar.
+- `server/src/app.ts`:
+  - Importar una vez `./services/conversations/transports/register-webchat.js` (registra el transporte `webchat` al cargar el módulo). Sin esto, responder a una conversación de chat web da "No hay transporte activo".
+  - Montar `webchatRoutes(db)` de `./routes/webchat.js`: ajustes (`GET/PUT /companies/:companyId/webchat/settings`) y handoff (`POST /conversations/:conversationId/webchat-handoff`).
+  - Límite de 4 KB: el middleware JSON global de `app.ts` (`DEFAULT_JSON_BODY_LIMIT`, 10 MB) lee el cuerpo antes que las rutas de chat. Las rutas rechazan con 413 cuando el cuerpo pasa de 4096 bytes, pero no antes de parsearlo. Para cortar antes, montar `express.json({ limit: "4kb" })` sobre `/api/p/:companySlug/chat` antes del parser global.
+- `server/src/routes/index.ts` (opcional): exportar `webchatRoutes`.
+- `server/package.json` (script `build`): copiar `src/public/` a `dist/public/` (`cp -R src/public/. dist/public/`). La ruta `GET /p/:companySlug/widget.js` lee `public/widget.js` relativo a `routes/public/chat.js` compilado. Sin la copia, responde 500.
+- Herramienta de agente `webchat_handoff`: `webchatToolDefinitions()` y `callWebchatTool({ name, arguments, apiUrl, token })` en `services/conversations/webchat-tools.ts`, siguiendo `project-tools.ts`. Registrar en el catálogo del runner y en `paperclip-runner-tool-authority.ts`, como el resto de pistas. Llama a `POST /api/conversations/:id/webchat-handoff`.
+- `ui/src/App.tsx`: ruta `webchat-settings` → `WebchatSettings` de `./pages/WebchatSettings`. Enlace en el sidebar si se quiere (no lo añadí).
+- Mapas: las rutas nuevas (`/api/p/:companySlug/chat/*`, `/api/p/:companySlug/widget.js`, `/companies/:companyId/webchat/settings`, `/conversations/:id/webchat-handoff`) deben reflejarse en `maps/agent-access-map` según AGENTS.md. Después `node scripts/check-maps.mjs`.
+- Dirección de la URL pública: la página de ajustes muestra `<script src="{origen actual}/api/p/{companyId}/widget.js">`. Si el sitio público vive en otro host, ajustar esa URL.
+- Contrato: `doc/plans/2026-10-21-sprint-2-contrato.md` dice `/p/:companySlug/chat`. Implementé las rutas de la petición de la pista: `/api/p/:companySlug/chat/session`, `/chat/:sessionId/identify`, `/chat/:sessionId/messages` (GET y POST), `/chat/config`, `/chat/logo` y `/widget.js`. Alinear el contrato.
+
+Desviaciones del brief y del contrato (decididas por F):
+- `after` es un desplazamiento (offset) sobre los mensajes visibles, ordenados por `created_at, id`, no un número de secuencia. Un borrador enviado después puede desplazar posiciones; el widget descarta duplicados por id, así que no se pierde ningún mensaje.
+- `seq` (contador del widget por sesión) forma el id externo `${sessionId}:${seq}`. Un reintento con el mismo `seq` devuelve 200 y no guarda nada nuevo. Sin esto, una recarga reiniciaría el contador y un mensaje nuevo se descartaría como duplicado.
+- La identificación responde 200 `{ ok: true }` siempre, con o sin lead nuevo, para no revelar si ya existía.
+- El handoff es una ruta nueva `routes/webchat.ts` y no una ruta de `routes/conversations.ts` (archivo de C).
+- Color y saludo viven en `webchat_settings`: `companies` no tiene color de marca. El logotipo sale de `company_logos` y solo se sirve (`/chat/logo`) cuando el chat está activo, y solo para PNG, JPEG, WebP y GIF (SVG excluido).
+- Token de sesión: firmado sin estado, caduca a las 24 h, no se revoca. Si se filtra, da acceso a esa sesión anónima y nada más.
+- Contacto: si el primer mensaje ya creó el lead sin contacto, la identificación completa el lead con su contacto (busca por identidad o crea uno). Así el contacto se crea una sola vez aunque el orden sea mensaje primero.
+- Salientes: el transporte no envía nada fuera del proceso. `messageService.send` guarda la respuesta y pasa por `gateExternalAction` como cualquier canal, y el widget la ve cuando está en `sent`; al descargarla pasa a `delivered`.
+- Límite por sesión (30 mensajes/min) y por IP en sesiones (20/min) en memoria del proceso, igual que el resto de la superficie pública.
+- Actividad registrada: `webchat.settings_updated` (ajustes), `conversation.webchat_handoff` (handoff, además del `conversation.state_changed` de `setState`).
+- Widget: DOM en shadow root; texto solo con `textContent`; color validado con regex antes de usarlo; sondeo cada 3 s solo con el panel abierto; teclado (Escape cierra, foco al lanzador, `aria-live` en el registro); textos en español si el idioma de la página es `es`, en inglés en el resto.
+- No probado en navegador real: la prueba de humo fue jsdom con `fetch` simulado. Revisar la apariencia y el comportamiento en un sitio de prueba antes de producción.
+- El agente que responde automáticamente queda fuera (depende del contexto de negocio del S1).

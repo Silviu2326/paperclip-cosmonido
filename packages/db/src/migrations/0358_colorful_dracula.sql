@@ -198,6 +198,28 @@ CREATE TABLE "crm_activities" (
 	CONSTRAINT "crm_activities_kind_check" CHECK ("crm_activities"."kind" in ('note', 'call', 'email', 'message', 'meeting', 'stage_change', 'status_change', 'task', 'system'))
 );
 --> statement-breakpoint
+CREATE TABLE "customer_channel_accounts" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"company_id" uuid NOT NULL,
+	"provider" text NOT NULL,
+	"kind" text NOT NULL,
+	"label" text NOT NULL,
+	"external_account_id" text NOT NULL,
+	"provider_account_sid" text,
+	"verify_secret_name" text NOT NULL,
+	"challenge_secret_name" text,
+	"token_secret_name" text NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"approved_templates" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"last_tested_at" timestamp with time zone,
+	"last_test_error" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "customer_channel_accounts_provider_check" CHECK ("customer_channel_accounts"."provider" in ('meta', 'telegram', 'twilio')),
+	CONSTRAINT "customer_channel_accounts_kind_check" CHECK ("customer_channel_accounts"."kind" in ('whatsapp', 'messenger', 'instagram', 'telegram', 'sms')),
+	CONSTRAINT "customer_channel_accounts_status_check" CHECK ("customer_channel_accounts"."status" in ('pending', 'active', 'disabled'))
+);
+--> statement-breakpoint
 CREATE TABLE "customer_memory_notes" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"company_id" uuid NOT NULL,
@@ -321,6 +343,16 @@ CREATE TABLE "lead_forms" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "webchat_settings" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"company_id" uuid NOT NULL,
+	"active" boolean DEFAULT false NOT NULL,
+	"greeting" text,
+	"brand_color" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "company_files" ADD COLUMN "audience_kind" text DEFAULT 'company' NOT NULL;--> statement-breakpoint
 ALTER TABLE "company_files" ADD COLUMN "audience_id" uuid;--> statement-breakpoint
 ALTER TABLE "company_files" ADD COLUMN "valid_until" timestamp with time zone;--> statement-breakpoint
@@ -359,6 +391,7 @@ ALTER TABLE "conversations" ADD CONSTRAINT "conversations_lead_id_leads_id_fk" F
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_assigned_agent_id_agents_id_fk" FOREIGN KEY ("assigned_agent_id") REFERENCES "public"."agents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "crm_activities" ADD CONSTRAINT "crm_activities_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "crm_activities" ADD CONSTRAINT "crm_activities_actor_agent_id_agents_id_fk" FOREIGN KEY ("actor_agent_id") REFERENCES "public"."agents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "customer_channel_accounts" ADD CONSTRAINT "customer_channel_accounts_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "customer_memory_notes" ADD CONSTRAINT "customer_memory_notes_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "customer_memory_notes" ADD CONSTRAINT "customer_memory_notes_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "customer_memory_notes" ADD CONSTRAINT "customer_memory_notes_agent_id_agents_id_fk" FOREIGN KEY ("agent_id") REFERENCES "public"."agents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -378,6 +411,7 @@ ALTER TABLE "opportunities" ADD CONSTRAINT "opportunities_pipeline_id_pipelines_
 ALTER TABLE "opportunities" ADD CONSTRAINT "opportunities_stage_id_pipeline_stages_id_fk" FOREIGN KEY ("stage_id") REFERENCES "public"."pipeline_stages"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "opportunities" ADD CONSTRAINT "opportunities_owner_agent_id_agents_id_fk" FOREIGN KEY ("owner_agent_id") REFERENCES "public"."agents"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lead_forms" ADD CONSTRAINT "lead_forms_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "webchat_settings" ADD CONSTRAINT "webchat_settings_company_id_companies_id_fk" FOREIGN KEY ("company_id") REFERENCES "public"."companies"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "autonomy_policies_company_agent_action_revoked_idx" ON "autonomy_policies" USING btree ("company_id","agent_id","action_type","revoked_at");--> statement-breakpoint
 CREATE INDEX "booking_types_company_updated_idx" ON "booking_types" USING btree ("company_id","updated_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "booking_types_company_slug_uq" ON "booking_types" USING btree ("company_id","slug");--> statement-breakpoint
@@ -404,6 +438,8 @@ CREATE INDEX "conversations_company_contact_idx" ON "conversations" USING btree 
 CREATE UNIQUE INDEX "conversations_company_channel_thread_uq" ON "conversations" USING btree ("company_id","channel","external_thread_id") WHERE "conversations"."external_thread_id" is not null;--> statement-breakpoint
 CREATE INDEX "crm_activities_company_updated_idx" ON "crm_activities" USING btree ("company_id","updated_at");--> statement-breakpoint
 CREATE INDEX "crm_activities_company_subject_occurred_idx" ON "crm_activities" USING btree ("company_id","subject_kind","subject_id","occurred_at");--> statement-breakpoint
+CREATE INDEX "customer_channel_accounts_company_updated_idx" ON "customer_channel_accounts" USING btree ("company_id","updated_at");--> statement-breakpoint
+CREATE UNIQUE INDEX "customer_channel_accounts_company_provider_identifier_uq" ON "customer_channel_accounts" USING btree ("company_id","provider","external_account_id");--> statement-breakpoint
 CREATE INDEX "customer_memory_notes_company_updated_idx" ON "customer_memory_notes" USING btree ("company_id","updated_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "customer_memory_notes_company_idempotency_uq" ON "customer_memory_notes" USING btree ("company_id","idempotency_key") WHERE "customer_memory_notes"."idempotency_key" is not null;--> statement-breakpoint
 CREATE INDEX "customer_memory_notes_customer_key_idx" ON "customer_memory_notes" USING btree ("customer_id","key","created_at");--> statement-breakpoint
@@ -422,4 +458,5 @@ CREATE INDEX "opportunities_company_customer_idx" ON "opportunities" USING btree
 CREATE INDEX "opportunities_company_next_action_idx" ON "opportunities" USING btree ("company_id","next_action_at");--> statement-breakpoint
 CREATE INDEX "lead_forms_company_updated_idx" ON "lead_forms" USING btree ("company_id","updated_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "lead_forms_company_slug_uq" ON "lead_forms" USING btree ("company_id","slug");--> statement-breakpoint
+CREATE UNIQUE INDEX "webchat_settings_company_uq" ON "webchat_settings" USING btree ("company_id");--> statement-breakpoint
 CREATE INDEX "company_files_company_audience_idx" ON "company_files" USING btree ("company_id","audience_kind","audience_id");

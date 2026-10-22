@@ -54,6 +54,8 @@ import { CustomerDetail } from "./pages/crm/CustomerDetail";
 import { Contacts } from "./pages/crm/Contacts";
 import { Opportunities } from "./pages/crm/Opportunities";
 import { Leads } from "./pages/crm/Leads";
+import { ChannelsSettings } from "./pages/ChannelsSettings";
+import { WebchatSettings } from "./pages/WebchatSettings";
 import { LeadDetail } from "./pages/crm/LeadDetail";
 import { ConversationInbox } from "./pages/ConversationInbox";
 import { ConversationDetail } from "./pages/ConversationDetail";
@@ -416,6 +418,8 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
       <Route path="customers/:customerId" element={<CustomerDetail />} />
       <Route path="contacts" element={<Contacts />} />
       <Route path="leads" element={<Leads />} />
+      <Route path="channels-settings" element={<ChannelsSettings />} />
+      <Route path="webchat-settings" element={<WebchatSettings />} />
       <Route path="leads/:leadId" element={<LeadDetail />} />
       <Route path="opportunities" element={<Opportunities />} />
       <Route path="conversations" element={<ConversationInbox />} />

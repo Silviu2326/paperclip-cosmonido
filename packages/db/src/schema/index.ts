@@ -270,3 +270,5 @@ export * from "./external_actions.js";
 export * from "./lead_forms.js";
 export * from "./calendar.js";
 export * from "./customer_memory.js";
+export * from "./customer_channels.js";
+export * from "./webchat_settings.js";

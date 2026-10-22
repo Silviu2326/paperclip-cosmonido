@@ -46,6 +46,8 @@ server/src/**/*.js
 server/src/**/*.js.map
 server/src/**/*.d.ts
 server/src/**/*.d.ts.map
+# Hand-written browser script shipped as-is (web chat widget, pista F)
+!server/src/public/**/*.js
 tmp/
 feedback-export-*
 diagnostics/

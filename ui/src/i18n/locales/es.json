@@ -11398,5 +11398,83 @@
       "send": "No se pudo enviar el mensaje.",
       "draft": "No se pudo guardar el borrador."
     }
+  },
+  "channels": {
+    "title": "Canales de cliente",
+    "description": "Conecta las cuentas de WhatsApp, Messenger, Instagram, Telegram y SMS por las que escriben los clientes. Aquí solo se guardan nombres de secretos; los valores quedan en los secretos de la empresa.",
+    "selectCompany": "Selecciona una empresa para gestionar sus canales de cliente.",
+    "add": "Añadir cuenta",
+    "empty": "Todavía no hay cuentas de canal de cliente.",
+    "loadError": "No se pudieron cargar las cuentas de canal",
+    "cancel": "Cancelar",
+    "save": "Guardar cuenta",
+    "saving": "Guardando...",
+    "test": "Probar conexión",
+    "testing": "Probando...",
+    "testOk": "Conectado",
+    "testFailed": "No conectado",
+    "enable": "Activar",
+    "disable": "Desactivar",
+    "lastTested": "Última prueba: {{date}}",
+    "provider": {
+      "meta": "Meta (WhatsApp, Messenger, Instagram)",
+      "telegram": "Telegram",
+      "twilio": "Twilio (SMS)"
+    },
+    "kind": {
+      "whatsapp": "WhatsApp",
+      "messenger": "Messenger",
+      "instagram": "Instagram",
+      "telegram": "Telegram",
+      "sms": "SMS"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "active": "Activa",
+      "disabled": "Desactivada"
+    },
+    "fields": {
+      "provider": "Proveedor",
+      "kind": "Canal",
+      "label": "Nombre",
+      "externalAccountId": "ID de cuenta, número o página",
+      "providerAccountSid": "SID de la cuenta de Twilio",
+      "verifySecretName": "Nombre del secreto de verificación",
+      "challengeSecretName": "Nombre del secreto del token de verificación del webhook",
+      "tokenSecretName": "Nombre del secreto del token de envío",
+      "approvedTemplates": "Plantillas aprobadas"
+    },
+    "hints": {
+      "externalAccountId": "ID del número de WhatsApp, ID de la página de Messenger, ID de la cuenta de Instagram, ID del bot de Telegram o el número de Twilio en formato E.164.",
+      "secretNames": "Escribe el nombre de un secreto de la empresa. El valor nunca se muestra aquí.",
+      "templates": "Una por línea como nombre|idioma, por ejemplo reactivar|es. Se usan fuera de la ventana de 24 h de WhatsApp."
+    },
+    "errors": {
+      "templateFormat": "Cada línea de plantilla debe tener el formato nombre|idioma."
+    }
+  },
+  "webchat": {
+    "title": "Chat web",
+    "description": "Permite que los visitantes inicien una conversación desde tu sitio. Los mensajes llegan a la bandeja como cualquier otro canal.",
+    "selectCompany": "Selecciona una empresa para configurar el chat web.",
+    "enabled": "Activar chat web",
+    "enabledHelp": "Si está desactivado, el widget no se muestra y no se abren sesiones nuevas.",
+    "greeting": "Saludo",
+    "greetingPlaceholder": "¡Hola! ¿En qué podemos ayudarte hoy?",
+    "greetingHelp": "Se muestra al inicio del chat. Hasta 300 caracteres.",
+    "brandColor": "Color de marca",
+    "brandColorPlaceholder": "#2563eb (por defecto)",
+    "brandColorHelp": "Se usa en el botón y en los mensajes del visitante. Déjalo vacío para el valor por defecto.",
+    "brandColorInvalid": "Usa un color hexadecimal de 6 dígitos, por ejemplo #2563eb, o déjalo vacío.",
+    "discard": "Descartar cambios",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "saved": "Guardado",
+    "copy": "Copiar código",
+    "copied": "Copiado",
+    "copyFailed": "No se pudo copiar. Selecciona el código y cópialo a mano.",
+    "snippetTitle": "Instalar en tu sitio web",
+    "snippetHelp": "Pega esta línea antes de la etiqueta de cierre del body en cada página donde debe aparecer el chat.",
+    "inactive": "El chat web está desactivado. Actívalo para que el widget funcione en tu sitio."
   }
 }

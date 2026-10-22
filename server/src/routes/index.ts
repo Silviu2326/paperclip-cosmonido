@@ -50,3 +50,5 @@ export { channelInboundRoutes } from "./channels-inbound.js";
 export { calendarRoutes } from "./calendar.js";
 export { publicSurfaceRoutes } from "./public-surface.js";
 export { crmMemoryRoutes } from "./crm-memory.js";
+export { customerChannelRoutes } from "./customer-channels.js";
+export { webchatRoutes } from "./webchat.js";
