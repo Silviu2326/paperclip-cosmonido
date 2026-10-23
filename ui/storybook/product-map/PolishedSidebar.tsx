@@ -54,13 +54,25 @@ function useMotionTokens() {
 }
 
 /** Mock counts so the proposal shows how badges sit; the real app reads them from the API. */
-const DEMO_BADGES: Record<string, number> = { decisions: 3, tasks: 12, conversations: 2 };
+const DEMO_BADGES: Record<string, { count: number; attention?: boolean }> = {
+  decisions: { count: 3, attention: true },
+  tasks: { count: 12 },
+  conversations: { count: 2 },
+};
+const ATTENTION = "var(--agent-10a)";
+const NEUTRAL_ACCENT = "var(--muted-foreground)";
 
-function NavItem({ id, index }: { id: string; index: number }) {
+/** Mixes an accent into the current surface so tints read in light and dark themes. */
+const tint = (color: string, percent: number) => `color-mix(in oklab, ${color} ${percent}%, transparent)`;
+/** Dark ink tinted with the accent, readable on the light brand accents. */
+const ink = (color: string) => `color-mix(in oklab, ${color} 25%, black)`;
+
+function NavItem({ id, index, accent }: { id: string; index: number; accent: string }) {
   const tokens = useMotionTokens();
   const page = pageById(id);
   const Icon = iconFor(page.icon);
   const badge = DEMO_BADGES[id];
+  const badgeColor = badge?.attention ? ATTENTION : accent;
   return (
     <motion.div
       initial={{ opacity: 0, x: -6 }}
@@ -70,7 +82,7 @@ function NavItem({ id, index }: { id: string; index: number }) {
       <NavLink
         to={page.route}
         className={({ isActive }) => cn(
-          "group relative flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm outline-none",
+          "group relative flex items-center gap-2.5 rounded-lg px-1.5 py-1 text-sm outline-none",
           "transition-colors duration-(--motion-duration-fast) ease-(--motion-ease-standard)",
           "focus-visible:ring-2 focus-visible:ring-ring",
           isActive ? "text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
@@ -82,25 +94,38 @@ function NavItem({ id, index }: { id: string; index: number }) {
               <motion.span
                 layoutId="polished-sidebar-active"
                 aria-hidden="true"
-                className="absolute inset-0 rounded-lg bg-accent shadow-sm"
+                className="absolute inset-0 rounded-lg shadow-sm"
+                style={{ background: `linear-gradient(90deg, ${tint(accent, 22)}, ${tint(accent, 6)})` }}
                 transition={{ duration: tokens.base, ease: tokens.easeOut }}
               >
-                <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary" />
+                <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full" style={{ background: accent }} />
               </motion.span>
             ) : null}
-            <Icon
+            <span
               aria-hidden="true"
               className={cn(
-                "relative h-4 w-4 shrink-0 transition-transform duration-(--motion-duration-fast) ease-(--motion-ease-out-expo)",
-                "group-hover:scale-110",
-                isActive && "text-primary",
+                "relative flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+                "transition-[transform,background-color] duration-(--motion-duration-fast) ease-(--motion-ease-out-expo)",
+                "group-hover:scale-110 group-hover:-rotate-3",
               )}
-            />
+              style={isActive
+                ? { background: `linear-gradient(135deg, ${accent}, ${tint(accent, 70)})`, color: ink(accent) }
+                : { background: tint(accent, 16), color: `color-mix(in oklab, ${accent} 65%, var(--foreground))` }}
+            >
+              <Icon className="h-3.5 w-3.5" />
+            </span>
             <span className={cn("relative min-w-0 flex-1 truncate", isActive && "font-medium")}>{page.name}</span>
             {badge ? (
-              <span className="relative rounded-full bg-primary/15 px-1.5 text-xs font-medium tabular-nums text-primary">
-                {badge}
-              </span>
+              <motion.span
+                key={badge.count}
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: tokens.base, ease: tokens.easeOut, delay: 0.15 + index * tokens.stagger }}
+                className="relative rounded-full px-1.5 text-xs font-semibold tabular-nums"
+                style={{ background: tint(badgeColor, badge.attention ? 85 : 22), color: badge.attention ? ink(badgeColor) : undefined }}
+              >
+                {badge.count}
+              </motion.span>
             ) : null}
           </>
         )}
@@ -112,9 +137,10 @@ function NavItem({ id, index }: { id: string; index: number }) {
 function Section({ section, offset }: { section: SidebarProposalSection; offset: number }) {
   const tokens = useMotionTokens();
   const [open, setOpen] = useState(!section.collapsed);
+  const accent = section.accent ? `var(${section.accent})` : NEUTRAL_ACCENT;
   const body = section.items.map((id, index) => id === AGENT_LIST_ITEM
     ? <SidebarAgents key={id} streamlined />
-    : <NavItem key={id} id={id} index={offset + index} />);
+    : <NavItem key={id} id={id} index={offset + index} accent={accent} />);
   if (!section.label) return <div className="flex flex-col gap-0.5">{body}</div>;
   return (
     <div className="flex flex-col gap-0.5">
@@ -127,6 +153,7 @@ function Section({ section, offset }: { section: SidebarProposalSection; offset:
           "text-muted-foreground/80 transition-colors duration-(--motion-duration-fast) hover:text-foreground",
         )}
       >
+        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: accent }} />
         <span className="flex-1">{section.label}</span>
         <motion.span
           aria-hidden="true"

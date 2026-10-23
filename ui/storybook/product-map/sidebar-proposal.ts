@@ -11,6 +11,8 @@ export interface SidebarProposalSection {
   label: string;
   /** Collapsed by default, like the current admin group. */
   collapsed?: boolean;
+  /** Accent colour token for the section (brand agent palette, same in light and dark). */
+  accent?: string;
   items: string[];
 }
 
@@ -18,10 +20,10 @@ export interface SidebarProposalSection {
 export const AGENT_LIST_ITEM = "@agent-list";
 
 export const SIDEBAR_PROPOSAL: SidebarProposalSection[] = [
-  { label: "", items: ["home", "decisions"] },
-  { label: "Trabajo", items: ["chat", "tasks", "projects", "files"] },
-  { label: "Negocio", items: ["customers", "sales", "conversations"] },
+  { label: "", accent: "--agent-6a", items: ["home", "decisions"] },
+  { label: "Trabajo", accent: "--agent-7a", items: ["chat", "tasks", "projects", "files"] },
+  { label: "Negocio", accent: "--agent-8a", items: ["customers", "sales", "conversations"] },
   // The agent list brings its own "Agentes" heading.
   { label: "", items: [AGENT_LIST_ITEM] },
-  { label: "Administración", collapsed: true, items: ["apps", "activity", "settings"] },
+  { label: "Administración", accent: "--agent-2a", collapsed: true, items: ["apps", "activity", "settings"] },
 ];
