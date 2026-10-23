@@ -49,14 +49,16 @@ jobs:
         run: |
           if [ "$REQUESTED" != auto ]; then echo "mode=$REQUESTED" >> "$GITHUB_OUTPUT"; exit 0; fi
           running=$(ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$VPS" \
-            "docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' docker-paperclip-1 | sed -n 's/^PAPERCLIP_BUILD_COMMIT=//p'")
+            "docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' docker-paperclip-1 | sed -n 's/^PAPERCLIP_BUILD_COMMIT=//p' | grep . | tail -n 1")
           echo "Server running: $running"
           if [ -z "$running" ] || ! git cat-file -e "$running^{commit}" 2>/dev/null; then
             echo "mode=full" >> "$GITHUB_OUTPUT"; exit 0
           fi
           changed=$(git diff --name-only "$running" HEAD)
-          if [ -z "$changed" ]; then mode=none
-          elif ! printf '%s\n' "$changed" | grep -qvE '^ui/' && ! printf '%s\n' "$changed" | grep -qE '^ui/package\.json$'; then mode=ui
+          # Deploy tooling and docs never reach the running app.
+          app_changed=$(printf '%s\n' "$changed" | grep -vE '^(scripts/cosmonido/|\.github/|doc/|maps/)' || true)
+          if [ -z "$app_changed" ]; then mode=none
+          elif ! printf '%s\n' "$app_changed" | grep -qvE '^ui/' && ! printf '%s\n' "$app_changed" | grep -qE '^ui/package\.json$'; then mode=ui
           else mode=full; fi
           echo "Changed since server commit:"; printf '%s\n' "$changed" | head -n 40
           echo "mode=$mode" >> "$GITHUB_OUTPUT"

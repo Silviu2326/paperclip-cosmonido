@@ -22,9 +22,11 @@ take_lock() {
   flock -n 9 || { log "Another deploy holds $LOCK_FILE"; exit 1; }
 }
 
+# The image also declares PAPERCLIP_BUILD_COMMIT (empty); the value passed with
+# `docker run -e` comes last and is the one that counts.
 running_commit() {
   docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' "$CONTAINER" 2>/dev/null \
-    | sed -n 's/^PAPERCLIP_BUILD_COMMIT=//p'
+    | sed -n 's/^PAPERCLIP_BUILD_COMMIT=//p' | grep . | tail -n 1
 }
 
 run_container() { # image commit
