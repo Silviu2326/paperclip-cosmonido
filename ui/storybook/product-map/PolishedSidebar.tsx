@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import * as Icons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { NavLink } from "@/lib/router";
 import { SidebarAgents } from "@/components/SidebarAgents";
 import { SidebarCompanyMenu } from "@/components/SidebarCompanyMenu";
 import { cn } from "@/lib/utils";
+import { ink, readable, tint, useMotionTokens } from "./motion";
 import { pageById } from "./pages";
 import { AGENT_LIST_ITEM, type SidebarProposalSection } from "./sidebar-proposal";
 
@@ -20,39 +21,6 @@ function iconFor(name: string): LucideIcon {
   return (Icons as unknown as Record<string, LucideIcon | undefined>)[name] ?? Icons.Circle;
 }
 
-function readToken(name: string): string {
-  if (typeof window === "undefined") return "";
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-function seconds(name: string, fallbackMs: number): number {
-  const raw = readToken(name);
-  const value = raw.endsWith("ms") ? Number.parseFloat(raw) : raw.endsWith("s") ? Number.parseFloat(raw) * 1000 : Number.NaN;
-  return (Number.isFinite(value) ? value : fallbackMs) / 1000;
-}
-
-function bezier(name: string): [number, number, number, number] {
-  const match = readToken(name).match(/cubic-bezier\(([^)]+)\)/);
-  const parts = match?.[1]?.split(",").map((part) => Number.parseFloat(part));
-  return parts && parts.length === 4 && parts.every(Number.isFinite)
-    ? (parts as [number, number, number, number])
-    : [0.16, 1, 0.3, 1];
-}
-
-function useMotionTokens() {
-  const reduced = useReducedMotion();
-  return useMemo(() => {
-    const zero = reduced === true;
-    return {
-      fast: zero ? 0 : seconds("--motion-duration-fast", 160),
-      base: zero ? 0 : seconds("--motion-duration-base", 240),
-      stagger: zero ? 0 : seconds("--motion-plan-entry-stagger", 40),
-      easeOut: bezier("--motion-ease-out-expo"),
-      standard: bezier("--motion-ease-standard"),
-    };
-  }, [reduced]);
-}
-
 /** Mock counts so the proposal shows how badges sit; the real app reads them from the API. */
 const DEMO_BADGES: Record<string, { count: number; attention?: boolean }> = {
   decisions: { count: 3, attention: true },
@@ -61,11 +29,6 @@ const DEMO_BADGES: Record<string, { count: number; attention?: boolean }> = {
 };
 const ATTENTION = "var(--agent-10a)";
 const NEUTRAL_ACCENT = "var(--muted-foreground)";
-
-/** Mixes an accent into the current surface so tints read in light and dark themes. */
-const tint = (color: string, percent: number) => `color-mix(in oklab, ${color} ${percent}%, transparent)`;
-/** Dark ink tinted with the accent, readable on the light brand accents. */
-const ink = (color: string) => `color-mix(in oklab, ${color} 25%, black)`;
 
 function NavItem({ id, index, accent }: { id: string; index: number; accent: string }) {
   const tokens = useMotionTokens();
@@ -110,7 +73,7 @@ function NavItem({ id, index, accent }: { id: string; index: number; accent: str
               )}
               style={isActive
                 ? { background: `linear-gradient(135deg, ${accent}, ${tint(accent, 70)})`, color: ink(accent) }
-                : { background: tint(accent, 16), color: `color-mix(in oklab, ${accent} 65%, var(--foreground))` }}
+                : { background: tint(accent, 16), color: readable(accent) }}
             >
               <Icon className="h-3.5 w-3.5" />
             </span>
