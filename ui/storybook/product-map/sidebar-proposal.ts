@@ -20,7 +20,7 @@ export interface SidebarProposalSection {
 export const AGENT_LIST_ITEM = "@agent-list";
 
 export const SIDEBAR_PROPOSAL: SidebarProposalSection[] = [
-  { label: "", accent: "--agent-6a", items: ["home", "decisions"] },
+  { label: "", accent: "--agent-10b", items: ["home", "decisions"] },
   { label: "Trabajo", accent: "--agent-7a", items: ["chat", "tasks", "projects", "files"] },
   { label: "Negocio", accent: "--agent-8a", items: ["customers", "sales", "conversations"] },
   // The agent list brings its own "Agentes" heading.
