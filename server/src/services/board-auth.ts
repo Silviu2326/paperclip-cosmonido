@@ -148,6 +148,10 @@ export function boardAuthService(db: Db) {
   }
 
   async function findBoardApiKeyByToken(token: string) {
+    // Product API credentials are backed by board_api_keys for ownership and
+    // revocation, but are capability-scoped and must never become ambient board
+    // actors through the generic bearer middleware.
+    if (token.startsWith("pcp_public_")) return null;
     const tokenHash = hashBearerToken(token);
     const now = new Date();
     return db

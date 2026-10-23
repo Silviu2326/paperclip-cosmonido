@@ -175,12 +175,19 @@ async function requirePassingBench(
     eq(autonomyBenchRuns.actionType, actionType),
   ));
   const threshold = run?.threshold ?? DEFAULT_AUTONOMY_BENCH_THRESHOLD;
-  if (!run || run.status !== "done" || run.score == null || run.score < threshold) {
+  const requiredThreshold = Math.max(threshold, DEFAULT_AUTONOMY_BENCH_THRESHOLD);
+  const hasRealJudge = Boolean(run?.judgeModel?.trim()) && run?.judgeModel !== "heuristic-v1";
+  const hasEnoughCases = (run?.casesEvaluated ?? 0) >= 20;
+  if (!run || run.status !== "done" || !hasRealJudge || !hasEnoughCases || run.score == null || run.score < requiredThreshold) {
     throw conflict(
-      run && run.status === "done"
-        ? `The bench scored ${run.score ?? "n/a"}, below the threshold ${threshold}. Improve the agent and run the bench again.`
-        : `No passing bench for this agent and action type. ${hint}.`,
-      { code: "autonomy_bench_required", benchRunId },
+      run && run.status === "done" && !hasRealJudge
+        ? `This bench used no real judge and cannot qualify an autonomy grant. ${hint}.`
+        : run && run.status === "done" && !hasEnoughCases
+          ? `This bench evaluated ${run.casesEvaluated} cases; at least 20 are required to raise autonomy. ${hint}.`
+          : run && run.status === "done" && run.score != null && run.score < requiredThreshold
+            ? `The bench scored ${run.score}, below the minimum threshold ${requiredThreshold}. Improve the agent and run the bench again.`
+            : `No valid passing bench for this agent and action type. ${hint}.`,
+      { code: "autonomy_bench_required", benchRunId, requiredCases: 20, requiredThreshold },
     );
   }
 }

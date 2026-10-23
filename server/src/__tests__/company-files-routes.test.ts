@@ -269,6 +269,17 @@ describe("company files routes", () => {
     expect(after.body.files.map((f: { id: string }) => f.id)).toContain(created.body.id);
   });
 
+  it("keeps a retention-purged tombstone permanently unrestorable and unreadable", async () => {
+    const created = await upload("retention-tombstone.txt", "expired bytes");
+    expect((await request(app).delete(`/api/company-files/${created.body.id}`)).status).toBe(200);
+    const markerAt = new Date();
+    await db.update(companyFiles).set({ retentionPurgeStartedAt: markerAt, retentionPurgedAt: markerAt, currentVersionId: null, byteSize: 0 })
+      .where(eq(companyFiles.id, created.body.id));
+
+    expect((await request(app).post(`/api/company-files/${created.body.id}/restore`)).status).toBe(409);
+    expect((await request(app).get(`/api/company-files/${created.body.id}/content`)).status).toBe(404);
+  });
+
   it("content GET returns the bytes with inline/attachment and nosniff headers, and honours Range", async () => {
     const created = await upload("doc.txt", "hello world");
     const inline = await request(app)

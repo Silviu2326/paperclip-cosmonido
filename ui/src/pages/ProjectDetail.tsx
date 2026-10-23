@@ -813,6 +813,19 @@ export function ProjectDetail() {
         description={t("projectDetail.summaryDescription")}
       />
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/issues?projectId=${encodeURIComponent(project.id)}&review=pending`}>
+            {t("uxProject.pendingReviews", { defaultValue: "Pending reviews" })}
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link to={`/artifacts/context?projectId=${encodeURIComponent(project.id)}`}>
+            {t("uxProject.projectContext", { defaultValue: "Project context" })}
+          </Link>
+        </Button>
+      </div>
+
       <PluginSlotOutlet
         slotTypes={["toolbarButton", "contextMenuItem"]}
         entityType="project"

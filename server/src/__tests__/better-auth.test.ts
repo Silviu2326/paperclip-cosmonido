@@ -8,6 +8,7 @@ import {
   deriveAuthTrustedOrigins,
   shouldDisableSecureAuthCookies,
 } from "../auth/better-auth.js";
+import { authProviderAvailability } from "../services/auth-email.js";
 
 const ORIGINAL_INSTANCE_ID = process.env.PAPERCLIP_INSTANCE_ID;
 const ORIGINAL_PUBLIC_URL = process.env.PAPERCLIP_PUBLIC_URL;
@@ -240,5 +241,24 @@ describe("Better Auth cookie scoping", () => {
     ]));
     expect(trustedOrigins).not.toContain("https://board.example.test:3100");
     expect(trustedOrigins).not.toContain("http://board.example.test:3100");
+  });
+});
+
+describe("configurable authentication delivery", () => {
+  it("requires a complete explicit Resend config before requiring verification and enables Google only with both credentials", () => {
+    expect(authProviderAvailability({
+      PAPERCLIP_AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
+      RESEND_API_KEY: "key",
+      GOOGLE_CLIENT_ID: "client",
+    })).toEqual({ emailDeliveryConfigured: false, emailVerificationRequired: false, googleEnabled: false });
+
+    expect(authProviderAvailability({
+      PAPERCLIP_AUTH_EMAIL_PROVIDER: "resend",
+      PAPERCLIP_AUTH_REQUIRE_EMAIL_VERIFICATION: "true",
+      RESEND_API_KEY: "key",
+      PAPERCLIP_AUTH_EMAIL_FROM: "Paperclip <verify@example.test>",
+      GOOGLE_CLIENT_ID: "client",
+      GOOGLE_CLIENT_SECRET: "secret",
+    })).toEqual({ emailDeliveryConfigured: true, emailVerificationRequired: true, googleEnabled: true });
   });
 });

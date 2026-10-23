@@ -1,5 +1,18 @@
 export type MediaJobKind = "transcribe" | "render" | "dub" | "stop_motion" | "dub_multivoice" | "voiceover";
 export type MediaJobStatus = "queued" | "running" | "done" | "failed";
+export type MediaQueueCursor = { priority: number; createdAt: string; id: string };
+export type MediaQueueJob = {
+  id: string;
+  companyId: string;
+  projectId: string;
+  kind: MediaJobKind;
+  status: "queued" | "running";
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  startedAt: string | null;
+};
+export type MediaQueuePage = { running: MediaQueueJob[]; jobs: MediaQueueJob[]; nextCursor: string | null };
 export type MediaProjectStatus = "draft" | "processing" | "ready" | "failed";
 export type MediaCameraMotion = "pan" | "zoom" | "none";
 export type MediaOperation =

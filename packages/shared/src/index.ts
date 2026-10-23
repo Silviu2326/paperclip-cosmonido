@@ -1258,6 +1258,8 @@ export type {
   LegacyPlanDocument,
   IssueAttachment,
   IssueCreationSource,
+  IssueListParams,
+  IssueReviewFilter,
   IssueLabel,
   IssueTreeControlPreview,
   IssueTreeHold,
@@ -2007,6 +2009,7 @@ export {
   issueBlockedInboxReasonSchema,
   issueBlockedInboxSeveritySchema,
   issueBlockedInboxStateSchema,
+  issueReviewFilterSchema,
   updateIssueSchema,
   stalledReviewDecisionSchema,
   issueExecutionPolicySchema,
@@ -2984,3 +2987,5 @@ export * from "./constants/crm.js";
 export * from "./types/crm.js";
 export * from "./validators/crm.js";
 export * from "./crm-tools.js";
+export * from "./productization/crm-phone.js";
+export * from "./validators/lead-form.js";

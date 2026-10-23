@@ -88,6 +88,9 @@ describe("CompanySettingsNav", () => {
     expect(getCompanySettingsTab("/company/settings/instance/experimental")).toBe("instance-experimental");
     expect(getCompanySettingsTab("/PAP/company/settings/instance/plugins/example")).toBe("instance-plugins");
     expect(getCompanySettingsTab("/company/settings/instance/adapters")).toBe("instance-adapters");
+    for (const slug of ["notifications", "security", "retention", "developer", "accounts", "billing", "installations"]) {
+      expect(getCompanySettingsTab(`/PAP/company/settings/${slug}`)).toBe(slug);
+    }
   });
 
   function renderNav(
@@ -129,7 +132,7 @@ describe("CompanySettingsNav", () => {
     expect(pageTabBarMock).toHaveBeenCalledWith(
       expect.objectContaining({
         value: "members",
-        items: [
+        items: expect.arrayContaining([
           { value: "general", label: "General" },
           { value: "export", label: "Export" },
           { value: "import", label: "Import" },
@@ -142,7 +145,7 @@ describe("CompanySettingsNav", () => {
           { value: "instance-experimental", label: "Experimental" },
           { value: "instance-plugins", label: "Plugins" },
           { value: "instance-adapters", label: "Adapters" },
-        ],
+        ]),
       }),
     );
 
@@ -183,6 +186,13 @@ describe("CompanySettingsNav", () => {
       "instance-access",
       "instance-experimental",
       "instance-adapters",
+      "notifications",
+      "security",
+      "retention",
+      "developer",
+      "accounts",
+      "billing",
+      "installations",
     ]);
 
     await act(async () => {

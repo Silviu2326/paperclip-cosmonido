@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { companyFilesApi } from "@/api/company-files";
+import { companyFilesApi, type CompanyFile } from "@/api/company-files";
 import { queryKeys } from "@/lib/queryKeys";
 
 export type CompanyFileUploadStatus = "pending" | "uploading" | "done" | "error";
@@ -23,8 +23,15 @@ export interface CompanyFileUploadEntry {
  * list as `done` until dismissed or cleared, and every success invalidates the
  * company's files queries so the list and tree refresh.
  */
-export function useCompanyFileUploads(companyId: string, folderId: string | null = null) {
+export function useCompanyFileUploads(
+  companyId: string,
+  folderId: string | null = null,
+  /** Runs after each upload, before it counts as done (e.g. to set context properties). */
+  afterUpload?: (file: CompanyFile) => Promise<unknown>,
+) {
   const client = useQueryClient();
+  const afterUploadRef = useRef(afterUpload);
+  afterUploadRef.current = afterUpload;
   const [entries, setEntries] = useState<CompanyFileUploadEntry[]>([]);
   const [announcement, setAnnouncement] = useState("");
   const files = useRef(new Map<string, File>());
@@ -45,13 +52,26 @@ export function useCompanyFileUploads(companyId: string, folderId: string | null
       for (const { id, file } of batch) {
         patchEntry(id, { status: "uploading", progress: 0, error: undefined });
         try {
-          await companyFilesApi.upload(companyId, file, {
+          const created = await companyFilesApi.upload(companyId, file, {
             folderId,
             onProgress: ({ loaded, total }) => {
               if (total > 0) patchEntry(id, { progress: loaded / total });
             },
           });
+          // The bytes are stored from here on: a retry would upload a duplicate.
           files.current.delete(id);
+          if (afterUploadRef.current) {
+            try {
+              await afterUploadRef.current(created);
+            } catch (error) {
+              void client.invalidateQueries({ queryKey: queryKeys.companyFiles.all(companyId) });
+              patchEntry(id, {
+                status: "error",
+                error: error instanceof Error ? error.message : "Uploaded, but its properties could not be applied.",
+              });
+              continue;
+            }
+          }
           patchEntry(id, { status: "done", progress: 1 });
           void client.invalidateQueries({ queryKey: queryKeys.companyFiles.all(companyId) });
           setAnnouncement(`${file.name} added to Entrada.`);

@@ -24,6 +24,7 @@ const window = {
   spendCents: 100, eventCount: 1, assignmentCents: 100, unattributedCents: 0, coveragePercent: 100,
   pricingComplete: true, from: "2026-10-19T00:00:00.000Z", to: "2026-10-21T12:00:00.000Z",
 };
+const testActor = { type: "board" as const, source: "local_implicit" as const };
 
 describe("latestReviewStates", () => {
   it("lets the newest review of a target supersede older verdicts", () => {
@@ -54,7 +55,7 @@ describe("assignmentDashboardService.sections", () => {
 
   it("returns every section when nothing fails", async () => {
     coverage.mockResolvedValue(window);
-    const sections = await assignmentDashboardService(emptyDb as never).sections("company-1", new Date("2026-10-21T12:00:00.000Z"));
+    const sections = await assignmentDashboardService(emptyDb as never).sections("company-1", testActor, new Date("2026-10-21T12:00:00.000Z"));
     expect(sections.activeAssignments).toEqual({ items: [] });
     expect(sections.needsYou).toEqual({ items: [], counts: { approvals: 0, decisions: 0, deliverableReviews: 0 } });
     expect(sections.costsToday).toEqual(window);
@@ -65,7 +66,7 @@ describe("assignmentDashboardService.sections", () => {
     coverage
       .mockResolvedValueOnce(window)
       .mockRejectedValueOnce(new Error("snapshot too old"));
-    const sections = await assignmentDashboardService(emptyDb as never).sections("company-1", new Date("2026-10-21T12:00:00.000Z"));
+    const sections = await assignmentDashboardService(emptyDb as never).sections("company-1", testActor, new Date("2026-10-21T12:00:00.000Z"));
     expect(sections.costsToday).toEqual(window);
     expect(sections.costsThisWeek).toEqual({ error: "Section unavailable" });
     expect(sections.activeAssignments).toEqual({ items: [] });
@@ -74,7 +75,7 @@ describe("assignmentDashboardService.sections", () => {
 
   it("marks only the database-backed sections when the database reads fail, without leaking details", async () => {
     coverage.mockResolvedValue(window);
-    const sections = await assignmentDashboardService(brokenDb as never).sections("company-1", new Date("2026-10-21T12:00:00.000Z"));
+    const sections = await assignmentDashboardService(brokenDb as never).sections("company-1", testActor, new Date("2026-10-21T12:00:00.000Z"));
     expect(sections.activeAssignments).toEqual({ error: "Section unavailable" });
     expect(sections.needsYou).toEqual({ error: "Section unavailable" });
     expect(sections.costsToday).toEqual(window);

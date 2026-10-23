@@ -245,7 +245,7 @@ export function costRoutes(
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
     if (!(await assertCompanyCostReadAllowed(req, res, companyId))) return;
-    res.json(await assignmentCosts.byGoal(companyId, parseCostDateRange(req.query)));
+    res.json(await assignmentCosts.byGoal(companyId, parseCostDateRange(req.query), req.actor));
   });
 
   router.get("/goals/:id/cost-summary", async (req, res) => {
@@ -253,8 +253,15 @@ export function costRoutes(
     if (!goalId.success) throw badRequest("Invalid goal ID");
     const goal = await getAccessibleResource(req, res, assignmentCosts.findGoal(goalId.data), "Goal not found");
     if (!goal) return;
+    assertCompanyAccess(req, goal.companyId);
     if (!(await assertCompanyCostReadAllowed(req, res, goal.companyId))) return;
-    res.json(await assignmentCosts.goalSummary(goal.companyId, goal.id));
+    // Private goal roots are indistinguishable from missing goals on this route.
+    const authorizedGoal = await assignmentCosts.goalSummary(goal.companyId, goal.id, req.actor).catch((error: unknown) => {
+      if (error && typeof error === "object" && "status" in error && error.status === 404) return null;
+      throw error;
+    });
+    if (!authorizedGoal) { res.status(404).json({ error: "Goal not found" }); return; }
+    res.json(authorizedGoal);
   });
 
   router.get("/companies/:companyId/costs/by-user", async (req, res) => {

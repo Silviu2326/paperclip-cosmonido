@@ -34,6 +34,7 @@ import {
   UserPlus,
   Handshake,
   CalendarDays,
+  PhoneCall,
   Briefcase,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -65,18 +66,21 @@ import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { SidebarCompanyMenu } from "./SidebarCompanyMenu";
 import { primarySidebarStyles } from "./primary-sidebar-styles";
 import { useTranslation } from "@/i18n";
+import { useBusinessNavigation } from "@/hooks/useBusinessNavigation";
 
 // Routes that live in the streamlined Administration group.
 const ADMIN_ROUTE_PATTERN = /^\/(?:[^/]+\/)?(skills|apps|activity|audit)(?:\/|$)/;
 
 export function Sidebar({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
+  const { preferences } = useBusinessNavigation();
   const location = useLocation();
   const { openNewIssue } = useDialogActions();
   const { enabled: agentChatEnabled } = useAgentChatEnabled();
   // Every labeled section is collapsible (session-scoped, default open) —
   // one policy across static nav groups and the data-driven sections.
   const [workOpen, setWorkOpen] = useState(true);
+  const [businessOpen, setBusinessOpen] = useState(true);
   const [organizationOpen, setOrganizationOpen] = useState(true);
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { collapsed, peeking, isMobile, setSidebarOpen } = useSidebar();
@@ -288,11 +292,8 @@ export function Sidebar({ children }: { children?: ReactNode }) {
                 <SidebarStarredProjects />
               </>
             ) : null}
+            <SidebarNavItem to="/artifacts" label={t("uxNav.files", { defaultValue: "Archivos" })} icon={FolderOpen} />
             <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
-            <SidebarNavItem to="/assignments" label={t("nav.assignments", { defaultValue: "Encargos" })} icon={Target} />
-            <SidebarNavItem to="/context" label={t("nav.context", { defaultValue: "Contexto" })} icon={FolderOpen} />
-            <SidebarNavItem to="/artifacts" label={t("nav.artifacts")} icon={Package} />
-            <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />
             {showCases ? (
               <SidebarNavItem to="/cases" label={t("nav.cases")} icon={Layers} textBadge="beta" />
             ) : null}
@@ -328,25 +329,25 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             />
           </SidebarSection>
 
-          <SidebarSection label={t("nav.business")} divider>
-            <SidebarNavItem to="/customers" label={t("nav.customers")} icon={Users} />
-            <SidebarNavItem to="/contacts" label={t("nav.contacts")} icon={UserRound} />
-            <SidebarNavItem to="/leads" label={t("nav.leads")} icon={UserPlus} />
-            <SidebarNavItem to="/opportunities" label={t("nav.opportunities")} icon={Handshake} />
-            <SidebarNavItem to="/conversations" label={t("nav.conversations")} icon={Inbox} />
-            <SidebarNavItem to="/schedule" label={t("nav.schedule")} icon={CalendarDays} />
-            <SidebarNavItem to="/playbooks" label={t("nav.playbooks", { defaultValue: "Playbooks" })} icon={BookOpen} />
-            <SidebarNavItem to="/proposals" label={t("nav.proposals", { defaultValue: "Propuestas" })} icon={FileSignature} />
-            <SidebarNavItem to="/service-agreements" label={t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" })} icon={RefreshCw} />
-            <SidebarNavItem to="/autonomy" label={t("nav.autonomy", { defaultValue: "Autonomía" })} icon={ShieldCheck} />
-            <SidebarNavItem to="/channels-settings" label={t("nav.channels")} icon={Radio} />
-            <SidebarNavItem to="/webchat-settings" label={t("nav.webchat")} icon={Globe} />
-          </SidebarSection>
+          {(preferences.business || preferences.agenda) && <SidebarSection
+            label={t("nav.business")}
+            divider
+            collapsible={{ open: businessOpen, onOpenChange: setBusinessOpen }}
+          >
+            {preferences.business && <>
+              <SidebarNavItem to="/customers" label={t("nav.customers")} icon={Users} />
+              <SidebarNavItem to="/sales" label={t("uxNav.sales", { defaultValue: "Ventas" })} icon={Handshake} />
+              <SidebarNavItem to="/conversations" label={t("nav.conversations")} icon={MessagesSquare} />
+            </>}
+            {preferences.agenda && <SidebarNavItem to="/schedule" label={t("nav.schedule")} icon={CalendarDays} />}
+          </SidebarSection>}
 
           {streamlinedUiEnabled ? (
             <SidebarSection label={t("sidebarNew.groupTeam")} divider>
+              <SidebarNavItem to="/agents/all" label={t("uxNav.team", { defaultValue: "Ver equipo" })} icon={Users} />
               {/* Agents: one expandable group; each agent is listed once, inside it. */}
               {children ?? <SidebarAgents streamlined />}
+              {preferences.office && <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />}
             </SidebarSection>
           ) : (
             children ?? null
@@ -378,7 +379,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               divider
               collapsible={{ open: adminOpen, onOpenChange: setAdminOpen }}
             >
-              <SidebarNavItem to="/skills" label={t("nav.skills")} icon={Boxes} />
+              <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
               <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
               <SidebarNavItem to="/activity" label={t("nav.audit")} icon={History} />
             </SidebarSection>

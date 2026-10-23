@@ -11,6 +11,8 @@ export const HTTP_LOG_REDACT_PATHS = [
   'req.headers["x-csrf-token"]',
   'req.headers["x-xsrf-token"]',
   'req.headers["x-api-key"]',
+  'req.headers["x-paperclip-customer-portal"]',
+  'req.headers["x-paperclip-review-token"]',
   // Cloud proxy credentials and signed assertions authorize tenant access.
   'req.headers["x-paperclip-cloud-tenant-token"]',
   'req.headers["x-paperclip-cloud-session-id"]',

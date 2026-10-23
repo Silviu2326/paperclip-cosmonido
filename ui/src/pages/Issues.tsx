@@ -18,6 +18,7 @@ import { EmptyState } from "../components/EmptyState";
 import { IssuesList } from "../components/IssuesList";
 import { TaskViewsMenu } from "../components/TaskViewsMenu";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleDot, Plus } from "lucide-react";
 import type { Issue } from "@paperclipai/shared";
 import { useStreamlinedUiEnabled } from "../hooks/useStreamlinedUiEnabled";
@@ -101,7 +102,8 @@ export function Issues() {
 
 function StreamlinedTasks() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { selectedCompanyId } = useCompany();
   const { openNewIssue } = useDialogActions();
   const inboxBadge = useInboxBadge(selectedCompanyId);
@@ -121,12 +123,10 @@ function StreamlinedTasks() {
   // (an inbox view carrying an organization filter opens All tasks).
   useEffect(() => {
     if (normalizeTaskViewKey(requestedView) === view) return;
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set(TASK_VIEW_PARAM, view);
-      return next;
-    }, { replace: true });
-  }, [requestedView, view, setSearchParams]);
+    const next = new URLSearchParams(location.search);
+    next.set(TASK_VIEW_PARAM, view);
+    navigate(`/issues?${next}${location.hash}`, { replace: true, state: location.state });
+  }, [requestedView, view, navigate, location.search, location.hash, location.state]);
 
   const selectView = useCallback((next: TaskViewKey) => {
     saveLastTaskView(next);
@@ -171,6 +171,7 @@ function OrganizationIssues({
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const fetchNextPageInFlightRef = useRef(false);
@@ -187,6 +188,9 @@ function OrganizationIssues({
   const participantAgentId = searchParams.get("participantAgentId") ?? undefined;
   const initialWorkspaces = searchParams.getAll("workspace").filter((workspaceId) => workspaceId.length > 0);
   const workspaceIdFilter = initialWorkspaces.length === 1 ? initialWorkspaces[0] : undefined;
+  const rawReviewFilter = searchParams.get("review");
+  const reviewFilter = rawReviewFilter === "required" || rawReviewFilter === "pending" ? rawReviewFilter : undefined;
+  const projectIdFilter = searchParams.get("projectId") || undefined;
   const handleSearchChange = useCallback((search: string) => {
     const nextUrl = buildIssuesSearchUrl(window.location.href, search);
     if (!nextUrl) {
@@ -257,6 +261,10 @@ function OrganizationIssues({
       participantAgentId ?? "__all__",
       "workspace",
       workspaceIdFilter ?? "__all__",
+      "review",
+      reviewFilter ?? "__all__",
+      "project",
+      projectIdFilter ?? "__all__",
       "compact",
       "with-routine-executions",
       showAgentCreatedTasks,
@@ -268,6 +276,8 @@ function OrganizationIssues({
       workspaceId: workspaceIdFilter,
       includeRoutineExecutions: true,
       includeAgentCreatedTasks: showAgentCreatedTasks,
+      review: reviewFilter,
+      projectId: projectIdFilter,
       limit: issuePageSize,
       offset: pageParam,
       sortField: "updated",
@@ -327,7 +337,23 @@ function OrganizationIssues({
       initialAssignees={searchParams.get("assignee") ? [searchParams.get("assignee")!] : undefined}
       initialWorkspaces={initialWorkspaces.length > 0 ? initialWorkspaces : undefined}
       initialStatuses={initialStatuses}
-      toolbarContext={toolbarContext}
+      projectId={projectIdFilter}
+      toolbarContext={<>
+        {toolbarContext}
+        <Select value={reviewFilter ?? "all"} onValueChange={(value) => {
+          const next = new URL(window.location.href);
+          if (value === "all") next.searchParams.delete("review");
+          else next.searchParams.set("review", value);
+          navigate(`${next.pathname}${next.search}${next.hash}`);
+        }}>
+          <SelectTrigger className="w-auto"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("uxWork.allTasks", { defaultValue: "Todas las tareas" })}</SelectItem>
+            <SelectItem value="required">{t("uxWork.reviewRequired", { defaultValue: "Con resultado y revisión" })}</SelectItem>
+            <SelectItem value="pending">{t("uxWork.pendingReview", { defaultValue: "Pendientes de revisión" })}</SelectItem>
+          </SelectContent>
+        </Select>
+      </>}
       initialSearch={syncedSearch}
       onSearchChange={handleSearchChange}
       enableAgentCreatedVisibilityFilter

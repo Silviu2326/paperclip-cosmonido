@@ -13,6 +13,13 @@ export function formatOpportunityAmount(amountCents: number | null, currency: st
   }
 }
 
+/** An open opportunity whose next action date has passed. */
+export function isNextActionOverdue(opportunity: Opportunity, now: number = Date.now()) {
+  if (opportunity.status !== "open" || !opportunity.nextActionAt) return false;
+  const due = new Date(opportunity.nextActionAt).getTime();
+  return !Number.isNaN(due) && due < now;
+}
+
 interface BoardProps {
   items: Opportunity[];
   disabled?: boolean;
@@ -103,6 +110,7 @@ function OpportunityCard({
   });
   const amount = formatOpportunityAmount(opportunity.amountCents, opportunity.currency);
   const owner = opportunity.ownerUserId ?? opportunity.ownerAgentId;
+  const overdue = isNextActionOverdue(opportunity);
   return (
     <article
       ref={setNodeRef}
@@ -118,10 +126,11 @@ function OpportunityCard({
       >
         <span className="text-sm font-medium">{opportunity.title}</span>
         {amount && <span className="text-sm">{amount}</span>}
-        <span className="text-xs text-muted-foreground">
+        <span className={cn("text-xs", overdue ? "text-destructive" : "text-muted-foreground")}>
           {opportunity.nextAction
             ? `${t("crm.opportunities.nextAction")}: ${opportunity.nextAction}`
             : t("crm.opportunities.noNextAction")}
+          {overdue && ` · ${t("crm.opportunities.overdue", { defaultValue: "Overdue" })}`}
         </span>
         <span className="text-xs text-muted-foreground">
           {owner ? `${t("crm.opportunities.owner")}: ${owner}` : t("crm.opportunities.noOwner")}

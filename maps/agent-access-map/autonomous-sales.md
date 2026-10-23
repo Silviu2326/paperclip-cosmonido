@@ -30,9 +30,9 @@ Policy: Active run identity, company authorization and work mode remain required
 
 Evidence: `source-only` - [routes](../../server/src/routes/autonomy.ts).
 
-Verification: `not-run` - grant without bench must return 409; revoke must disable queued triggers.
+Verification: `not-run` - grant without bench must return 409; heuristic/unnamed judge or fewer than 20 cases must also be rejected. Bench without configured replay and model judge must return 422 before creating a run. Revoke must disable queued triggers.
 
-Gaps: Queued Sprint 2 messages are cancelled through an injected hook that is not wired yet. The bench fixtures cover only email, message and proposal, so a bench for booking, stage change, publication, call or review link has no cases.
+Gaps: The current route mount provides no replay or model-judge adapters, so the bench is blocked explicitly; no runtime evaluation is proved. Queued Sprint 2 messages are cancelled through an injected hook that is not wired yet. The bench fixtures cover only email, message and proposal, so a bench for booking, stage change, publication, call or review link has no cases.
 
 ## `commercial-decisions`
 

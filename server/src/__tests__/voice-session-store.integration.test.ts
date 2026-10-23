@@ -11,7 +11,7 @@ import { VOICE_RESULT_NOTIFICATION } from "@paperclipai/shared";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { chatActions, instanceUserRoles, principalPermissionGrants, environments, chatVoiceInboundCalls, chatVoicePhoneLines, chatVoiceReports, heartbeatRuns, toolProfileBindings, chatVoiceCallbacks, agentWakeupRequests, issueThreadInteractions, issueQuestionResponseDeliveries, issueComments, agents, chatConversations, chatDeliveries, chatEndpoints, chatPublications, chatVoiceReplies, chatVoiceSessions, chatVoiceToolCalls, companies, companyMemberships, companySecrets, connectionGrants, connectionGrantMembers, createDb, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, issues, toolApplications, toolConnections, toolConnectionInstalls } from "@paperclipai/db";
+import { chatActions, instanceUserRoles, principalPermissionGrants, environments, chatVoiceInboundCalls, chatVoicePhoneLines, chatVoiceReports, heartbeatRuns, toolProfileBindings, chatVoiceCallbacks, crmPhoneCallbacks, contacts, agentWakeupRequests, issueThreadInteractions, issueQuestionResponseDeliveries, issueComments, agents, chatConversations, chatDeliveries, chatEndpoints, chatPublications, chatVoiceReplies, chatVoiceSessions, chatVoiceToolCalls, companies, companyMemberships, companySecrets, connectionGrants, connectionGrantMembers, createDb, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, issues, toolApplications, toolConnections, toolConnectionInstalls } from "@paperclipai/db";
 import { configureSpekoSessionTools } from "../services/voice/speko-tool-setup.js";
 import { instanceSettingsService } from "../services/instance-settings.js";
 import { chatChannelService } from "../services/chat-channels.js";
@@ -28,6 +28,7 @@ import { buildPaperclipRuntimeMcpServers } from "../services/heartbeat.js";
 import { createToolGatewayService } from "../services/tool-gateway.js";
 import { initializeRunIdentity } from "../services/run-identity.js";
 import { syncSpekoVoiceTools, spekoToolsForSession, executeSpekoVoiceTool } from "../services/voice/speko-agent-tools.js";
+import { crmPhoneService } from "../services/crm-phone.js";
 const support = await getEmbeddedPostgresTestSupport();
 (support.supported ? describe : describe.skip)("durable Speko voice sessions", () => {
   let db: ReturnType<typeof createDb>;
@@ -84,6 +85,45 @@ const support = await getEmbeddedPostgresTestSupport();
     await expect(f.store.reserve({ ...f.request, requestFingerprint: "different" })).rejects.toMatchObject({ status: 409 });
     expect(JSON.stringify(serializeVoiceSession(f.reserved.session))).not.toContain(f.reserved.token);
     expect(serializeVoiceSession(f.reserved.session)).not.toHaveProperty("toolTokenHash");
+  });
+  it("keeps CRM callback authority tied to its live lease and assigned voice destination", async () => {
+    const f = await fixture();
+    const contactId = randomUUID(), callbackId = randomUUID(), claimToken = randomUUID();
+    await db.insert(contacts).values({ id: contactId, companyId: f.companyId, displayName: "Callback test", primaryPhone: "+12015550123" });
+    await db.insert(chatVoicePhoneLines).values({ companyId: f.companyId, endpointId: f.endpointId, providerNumberId: randomUUID(), phoneNumber: "+12015550123", enabled: true });
+    await db.insert(crmPhoneCallbacks).values({
+      id: callbackId, companyId: f.companyId, contactId, endpointId: f.endpointId, assigneeAgentId: f.agentId,
+      issueId: f.issueId, phoneE164: "+12015550123", scheduledFor: new Date(), timezone: "UTC", reason: "Test callback",
+      status: "dialing", consentBasis: "caller_requested_verified", gateLevel: "send_direct",
+      claimToken, claimExpiresAt: new Date(Date.now() + 60_000), idempotencyKey: randomUUID(), requestFingerprint: "fixture",
+    });
+    const caller = { id: `crm_callback:${callbackId}`, authority: "crm_callback" as const, callbackId, claimToken };
+    const reserved = await f.store.reserve({ ...f.request, caller, idempotencyKey: randomUUID(), requestFingerprint: "crm-callback-test", mode: "outbound_phone" });
+    await db.update(chatVoiceSessions).set({ state: "creating" }).where(eq(chatVoiceSessions.id, reserved.session.id));
+
+    await db.transaction(tx => f.store.authorizeCrmCallbackSession(tx, f.companyId, reserved.session.id, caller, ["creating"]));
+    await db.update(crmPhoneCallbacks).set({ endpointId: randomUUID() }).where(eq(crmPhoneCallbacks.id, callbackId));
+    await expect(db.transaction(tx => f.store.authorizeCrmCallbackSession(tx, f.companyId, reserved.session.id, caller, ["creating"])))
+      .rejects.toMatchObject({ status: 403 });
+    await expect(db.transaction(tx => f.store.authorizeCaller(tx, f.companyId, { ...caller, claimToken: "stale-lease" })))
+      .rejects.toMatchObject({ status: 403 });
+  });
+  it("rejects a fabricated CRM callback provider receipt without changing callback state", async () => {
+    const f = await fixture();
+    const contactId = randomUUID(), callbackId = randomUUID(), claimToken = randomUUID();
+    await db.insert(contacts).values({ id: contactId, companyId: f.companyId, displayName: "Receipt test", primaryPhone: "+12015550123" });
+    await db.insert(crmPhoneCallbacks).values({
+      id: callbackId, companyId: f.companyId, contactId, endpointId: f.endpointId, assigneeAgentId: f.agentId,
+      issueId: f.issueId, phoneE164: "+12015550123", scheduledFor: new Date(), timezone: "UTC", reason: "Test callback",
+      status: "dialing", consentBasis: "caller_requested_verified", gateLevel: "send_direct",
+      claimToken, claimExpiresAt: new Date(Date.now() + 60_000), networkStartedAt: new Date(),
+      idempotencyKey: randomUUID(), requestFingerprint: "fixture",
+    });
+    const service = crmPhoneService(db);
+    await expect(service.recordExecutedReceipt(f.companyId, callbackId, claimToken, randomUUID())).rejects.toMatchObject({ status: 409 });
+    await expect(service.recordExecutedReceipt(f.companyId, callbackId, "unowned-lease", randomUUID())).rejects.toMatchObject({ status: 409 });
+    const [unchanged] = await db.select().from(crmPhoneCallbacks).where(eq(crmPhoneCallbacks.id, callbackId));
+    expect(unchanged).toMatchObject({ status: "dialing", claimToken, dialSessionId: null, providerReceiptId: null });
   });
 
   it("accepts one durable delivery across concurrent tool retries and survives store restart", async () => {

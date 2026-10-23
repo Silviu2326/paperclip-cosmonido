@@ -24,7 +24,7 @@ Review: `baseline`.
 
 API: `present` - POST /api/companies/{companyId}/deliverable-reviews; GET /api/goals/{id}/deliverable-reviews; GET /api/issues/{id}/deliverable-reviews; POST /api/deliverable-reviews/{id}/resolve.
 
-Agent access: `restricted` - submit_deliverable_for_review submits an exact target/version in Standard mode. Resolution is human board only and stale work-product timestamps fail.
+Agent access: `restricted` - submit_deliverable_for_review submits an exact target/version in Standard mode. Resolution is human board only; stale work-product timestamps and changed review revisions fail. Deleted/purging files and missing immutable target versions cannot be resolved. An accepted immutable version grants no acceptance to newer content.
 
 Policy: Active run identity, current assignment, company/resource authorization, work mode and existing approvals/budgets remain required where applicable.
 

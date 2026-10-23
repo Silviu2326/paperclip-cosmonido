@@ -1,4 +1,4 @@
-import { DeliverableReviewPanel } from "../components/DeliverableReviewPanel";
+import { TaskOutcomePanel, TaskStandaloneReviewPanel } from "../components/TaskOutcomePanel";
 import { t, useTranslation } from "@/i18n";
 import { grokBotApi } from "@/api/grokBot";
 import { WorkspaceBaseRefRecoveryProvider } from "../components/WorkspaceBaseRefRecovery";
@@ -8020,6 +8020,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             <Separator className={shellSectionClass} />
           )}
 
+          <TaskOutcomePanel issueId={issue.id} />
+
           <Tabs
             value={resolvedDetailTab}
             onValueChange={setDetailTab}
@@ -8358,7 +8360,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             </TabsContent>
 
             <TabsContent value="activity" className={shellSectionClass}>
-              <DeliverableReviewPanel issueId={issue.id} />
+              <TaskStandaloneReviewPanel issueId={issue.id} />
               {detailTab === "activity" ? (
                 <IssueDetailActivityTab
                   issue={issue}

@@ -1,12 +1,12 @@
 import { Router, type Request } from "express";
+import { z } from "zod";
 import type { Db } from "@paperclipai/db";
-import type { z } from "zod";
 import {
   createServiceAgreementSchema,
   updateServiceAgreementSchema,
   upsellSuggestSchema,
 } from "@paperclipai/shared";
-import { unprocessable } from "../errors.js";
+import { forbidden, unprocessable } from "../errors.js";
 import { logActivity } from "../services/activity-log.js";
 import { serviceAgreementService } from "../services/service-agreements.js";
 import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
@@ -16,6 +16,8 @@ function parseBody<T extends z.ZodTypeAny>(schema: T, body: unknown): z.infer<T>
   if (!parsed.success) throw unprocessable("Invalid request body", parsed.error.issues);
   return parsed.data;
 }
+
+const renewalRequestSchema = z.object({ proposalId: z.string().uuid(), decisionId: z.string().uuid() }).strict();
 
 /** Sprint 3 WP10: recurring service agreements, periods and renewals. Creating and changing agreements is board work. */
 export function serviceAgreementRoutes(db: Db) {
@@ -93,6 +95,23 @@ export function serviceAgreementRoutes(db: Db) {
     const agreement = await getAccessibleResource(req, res, svc.getById(id), "Service agreement not found");
     if (!agreement) return;
     res.json(await svc.listPeriods(id));
+  });
+
+  router.post("/service-agreements/:id/periods/:periodId/renewal-request", async (req, res) => {
+    const id = req.params.id as string;
+    const agreement = await getAccessibleResource(req, res, svc.getById(id), "Service agreement not found");
+    if (!agreement) return;
+    const actor = getActorInfo(req);
+    if (actor.actorType !== "agent" || !actor.agentId || !actor.runId) {
+      throw forbidden("Renewal references must be recorded by the assigned agent's active issue run");
+    }
+    res.json(await svc.recordRenewalRequest(
+      agreement.companyId,
+      agreement.id,
+      req.params.periodId as string,
+      parseBody(renewalRequestSchema, req.body),
+      { agentId: actor.agentId, runId: actor.runId },
+    ));
   });
 
   router.post("/companies/:companyId/service-agreements/tick", async (req, res) => {

@@ -17,6 +17,10 @@ import type {
   UpdateOpportunity,
   CrmSubjectKind,
 } from "@paperclipai/shared";
+import {
+  opportunityForecastSchema,
+  type OpportunityForecastQuery,
+} from "@paperclipai/shared/productization/opportunity-forecast";
 import { api } from "./client";
 
 export interface CrmPage<T> {
@@ -126,6 +130,16 @@ export const crmApi = {
       api.post<StageChangeResponse>(`/opportunities/${id}/close`, data),
     setNextAction: (id: string, data: { nextAction: string; nextActionAt?: string | null; expectedVersion?: number }) =>
       api.post<Opportunity>(`/opportunities/${id}/next-action`, data),
+    /** Weighted open-pipeline ESTIMATE (never revenue); the response is validated against the shared schema. */
+    forecast: async (companyId: string, query?: Partial<OpportunityForecastQuery>, signal?: AbortSignal) => {
+      const response = await api.get<unknown>(
+        withQuery(`/companies/${encodeURIComponent(companyId)}/opportunities/forecast`, query),
+        { signal },
+      );
+      const parsed = opportunityForecastSchema.safeParse(response);
+      if (!parsed.success) throw new Error("Unexpected forecast response");
+      return parsed.data;
+    },
   },
   activities: {
     list: (companyId: string, query: { subjectKind: CrmSubjectKind; subjectId: string; cursor?: string; limit?: number }) =>

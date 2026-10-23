@@ -23,6 +23,7 @@ export const CRM_SPRINT2_TOOL_NAMES = [
   "crm_log_activity",
   "commitment_create",
   "commitment_resolve",
+  "crm_sync_status",
 ] as const;
 export const LEAD_SPRINT2_TOOL_NAMES = ["lead_get", "lead_list", "lead_triage", "lead_convert"] as const;
 export const CONVERSATION_SPRINT2_TOOL_NAMES = [
@@ -36,6 +37,8 @@ export const CONVERSATION_SPRINT2_TOOL_NAMES = [
 export const CALENDAR_SPRINT2_TOOL_NAMES = ["calendar_availability", "calendar_book", "calendar_reschedule", "calendar_cancel"] as const;
 export const MEMORY_SPRINT2_TOOL_NAMES = ["customer_memory_get", "customer_memory_append"] as const;
 export const WEBCHAT_SPRINT2_TOOL_NAMES = ["webchat_handoff"] as const;
+export const REVIEW_SPRINT2_TOOL_NAMES = ["review_link_create", "review_status_get"] as const;
+export const PHONE_SPRINT2_TOOL_NAMES = ["call_summary_get", "call_schedule"] as const;
 
 export const SPRINT2_TOOL_NAMES: readonly string[] = [
   ...CRM_SPRINT2_TOOL_NAMES,
@@ -44,6 +47,8 @@ export const SPRINT2_TOOL_NAMES: readonly string[] = [
   ...CALENDAR_SPRINT2_TOOL_NAMES,
   ...MEMORY_SPRINT2_TOOL_NAMES,
   ...WEBCHAT_SPRINT2_TOOL_NAMES,
+  ...REVIEW_SPRINT2_TOOL_NAMES,
+  ...PHONE_SPRINT2_TOOL_NAMES,
 ];
 
 export interface Sprint2ToolCall {
@@ -147,6 +152,15 @@ async function callCalendarTool(input: Sprint2ToolCall): Promise<unknown> {
 
 /** Runs one Sprint 2 tool call through the authenticated API; throws for names outside SPRINT2_TOOL_NAMES. */
 export async function callSprint2Tool(input: Sprint2ToolCall): Promise<unknown> {
+  if (has(REVIEW_SPRINT2_TOOL_NAMES, input.name)) {
+    const { callReviewTool } = await import("./public-surface/review-tools.js");
+    return callReviewTool(input);
+  }
+  if (has(PHONE_SPRINT2_TOOL_NAMES, input.name)) {
+    const { crmPhoneCallScheduleInputSchema, crmPhoneCallSummaryGetInputSchema } = await import("@paperclipai/shared/productization/crm-phone");
+    const body = (input.name === "call_schedule" ? crmPhoneCallScheduleInputSchema : crmPhoneCallSummaryGetInputSchema).parse(input.arguments);
+    return api(input, "POST", `/companies/${input.companyId}/crm-phone/tools/${input.name}`, body);
+  }
   if (has(CRM_SPRINT2_TOOL_NAMES, input.name)) {
     const { callCrmTool } = await import("./crm/crm-tools.js");
     return callCrmTool(input);

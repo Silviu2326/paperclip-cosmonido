@@ -9,6 +9,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { trackRecentAssignee, trackRecentAssigneeUser } from "../lib/recent-assignees";
 import { getLastProjectId, trackRecentProject } from "../lib/recent-projects";
 import { rememberComposerEffort } from "../lib/recent-composer-effort";
+import { i18n } from "../i18n";
 import { NewIssueDialog } from "./NewIssueDialog";
 
 const primaryState = vi.hoisted(() => ({ primaryAgentId: null as string | null, loading: false }));
@@ -59,6 +60,8 @@ const mockIssuesApi = vi.hoisted(() => ({
   uploadAttachment: vi.fn(),
 }));
 
+const mockAssignmentsApi = vi.hoisted(() => ({ create: vi.fn() }));
+
 const mockExecutionWorkspacesApi = vi.hoisted(() => ({
   list: vi.fn(),
   listSummaries: vi.fn(),
@@ -108,6 +111,8 @@ vi.mock("../lib/router", async (importOriginal) => ({
 vi.mock("../api/issues", () => ({
   issuesApi: mockIssuesApi,
 }));
+
+vi.mock("../api/assignments", () => ({ assignmentsApi: mockAssignmentsApi }));
 
 vi.mock("../api/execution-workspaces", () => ({
   executionWorkspacesApi: mockExecutionWorkspacesApi,
@@ -353,7 +358,8 @@ describe("NewIssueDialog", () => {
   let originalVisualViewportDescriptor: PropertyDescriptor | undefined;
   let originalInnerHeightDescriptor: PropertyDescriptor | undefined;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("es");
     primaryState.primaryAgentId = null;
     primaryState.loading = false;
     vi.useRealTimers();
@@ -375,6 +381,7 @@ describe("NewIssueDialog", () => {
     toastState.pushToast.mockReset();
     navigateMock.mockReset();
     mockIssuesApi.create.mockReset();
+    mockAssignmentsApi.create.mockReset();
     mockIssuesApi.list.mockReset().mockResolvedValue([]);
     mockIssuesApi.upsertDocument.mockReset();
     mockIssuesApi.uploadAttachment.mockReset();
@@ -403,6 +410,11 @@ describe("NewIssueDialog", () => {
       companyId: "company-1",
       identifier: "PAP-2",
     });
+    mockAssignmentsApi.create.mockResolvedValue({
+      id: "assignment-1",
+      rootIssueId: "issue-root-1",
+      rootIssue: { id: "issue-root-1", companyId: "company-1", identifier: "PAP-77", assigneeAgentId: "worker", projectId: null },
+    });
   });
 
   afterEach(() => {
@@ -427,8 +439,9 @@ describe("NewIssueDialog", () => {
 
   it.each([
     { remembered: "project-1", expected: "project-1" },
-    { remembered: "", expected: "Proyecto" },
-    { remembered: "deleted", expected: "Proyecto" },
+    // The empty picker value is intentionally a hard-coded compact English label.
+    { remembered: "", expected: "Project" },
+    { remembered: "deleted", expected: "Project" },
   ])("restores the last available project ($remembered)", async ({ remembered, expected }) => {
     trackRecentProject(remembered, "company-1");
     const { root } = renderDialog(container);
@@ -450,7 +463,7 @@ describe("NewIssueDialog", () => {
     dialogState.newIssueDefaults = {};
     const next = renderDialog(container);
     await flush();
-    expect(container.querySelector('[data-slot="new-issue-compact-control"]')?.textContent).toContain("Proyecto");
+    expect(container.querySelector('[data-slot="new-issue-compact-control"]')?.textContent).toContain("Project");
     act(() => next.root.unmount());
   });
 
@@ -463,6 +476,60 @@ describe("NewIssueDialog", () => {
     const next = renderDialog(container);
     await waitForAssertion(() => expect(container.querySelector('[data-slot="new-issue-compact-control"]')?.textContent).toContain("project-1"));
     act(() => next.root.unmount());
+  });
+
+  it("creates one assignment-backed task with valid criteria and a zero budget, then opens its root task", async () => {
+    dialogState.newIssueDefaults = { title: "Prepare reviewable result", assigneeAgentId: "worker", navigateOnCreate: true };
+    mockAgentsApi.list.mockResolvedValue(defaultAgents);
+    const { root } = renderDialog(container);
+    await flush();
+    act(() => { container.querySelector("details summary")!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await typeTextareaValue(container.querySelector<HTMLTextAreaElement>("#new-task-acceptance-criteria")!, "Includes a verified source");
+    expect(container.querySelector<HTMLInputElement>("#new-task-budget")?.value).toBe("0");
+
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Crear tarea"]')!.click());
+    await waitForAssertion(() => expect(dialogState.closeNewIssue).toHaveBeenCalledTimes(1));
+
+    expect(mockAssignmentsApi.create).toHaveBeenCalledExactlyOnceWith("company-1", expect.objectContaining({
+      title: "Prepare reviewable result",
+      acceptanceCriteria: "Includes a verified source",
+      budgetCents: 0,
+      assigneeAgentId: "worker",
+      idempotencyKey: expect.any(String),
+    }));
+    expect(mockIssuesApi.create).not.toHaveBeenCalled();
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith("/PAP/issues/PAP-77");
+    act(() => root.unmount());
+  });
+
+  it("reuses the same assignment idempotency key after an uncertain network failure", async () => {
+    dialogState.newIssueDefaults = { title: "Retry reviewable result", assigneeAgentId: "worker", navigateOnCreate: true };
+    mockAgentsApi.list.mockResolvedValue(defaultAgents);
+    mockAssignmentsApi.create
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce({
+        id: "assignment-1",
+        rootIssueId: "issue-root-1",
+        rootIssue: { id: "issue-root-1", companyId: "company-1", identifier: "PAP-77", assigneeAgentId: "worker", projectId: null },
+      });
+    const { root } = renderDialog(container);
+    await flush();
+    act(() => { container.querySelector("details summary")!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    await typeTextareaValue(container.querySelector<HTMLTextAreaElement>("#new-task-acceptance-criteria")!, "Has a reproducible check");
+    const submit = () => container.querySelector<HTMLButtonElement>('[aria-label="Crear tarea"]')!;
+
+    await act(async () => { submit().click(); await flush(); });
+    await waitForAssertion(() => expect(mockAssignmentsApi.create).toHaveBeenCalledTimes(1));
+    expect(dialogState.closeNewIssue).not.toHaveBeenCalled();
+    const firstKey = mockAssignmentsApi.create.mock.calls[0][1].idempotencyKey;
+
+    await act(async () => { submit().click(); await flush(); });
+    await waitForAssertion(() => expect(dialogState.closeNewIssue).toHaveBeenCalledTimes(1));
+    expect(mockAssignmentsApi.create).toHaveBeenCalledTimes(2);
+    expect(mockAssignmentsApi.create.mock.calls[1][1].idempotencyKey).toBe(firstKey);
+    expect(mockIssuesApi.create).not.toHaveBeenCalled();
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith("/PAP/issues/PAP-77");
+    act(() => root.unmount());
   });
 
   it("shows No project first and lets a selected project be cleared", async () => {
@@ -1445,9 +1512,9 @@ describe("NewIssueDialog", () => {
       idempotencyKey: expect.any(String),
     });
     expect(toastState.pushToast).toHaveBeenCalledWith({
-      title: "Created PAP-2",
+      title: "Se creó PAP-2",
       tone: "success",
-      action: { label: "Open PAP-2", href: "/PAP/issues/PAP-2" },
+      action: { label: "Abrir PAP-2", href: "/PAP/issues/PAP-2" },
     });
 
     dialogState.newIssueOpen = false;

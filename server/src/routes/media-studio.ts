@@ -3,7 +3,7 @@ import { z } from "zod";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { assets, companyFileVersions } from "@paperclipai/db";
-import { mediaProjectCreateSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema } from "@paperclipai/shared";
+import { mediaProjectCreateSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema, mediaQueueQuerySchema, mediaPriorityUpdateSchema } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import { logActivity } from "../services/activity-log.js";
 import { mediaStudioService } from "../services/media-studio.js";
@@ -12,7 +12,7 @@ import { projectToolContext } from "../services/project-tool-context.js";
 import { companyFilesService } from "../services/company-files.js";
 import { getStorageService } from "../storage/index.js";
 import { canActorReadAssetContent } from "../services/asset-content-access.js";
-import { assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
+import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
 
 export function mediaStudioRoutes(db: Db) {
   const router = Router(); const service = mediaStudioService(db);
@@ -80,6 +80,46 @@ export function mediaStudioRoutes(db: Db) {
       issueId=context.issue.id;
     }
     res.json({jobs:await service.getJobsForGoal(companyId,parsed.data,{issueId})});
+  });
+  router.get("/companies/:companyId/media-queue", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertBoard(req);
+    assertCompanyAccess(req, companyId);
+    const query = mediaQueueQuerySchema.safeParse(req.query);
+    if (!query.success) { res.status(400).json({ error: "Invalid media queue cursor or page size" }); return; }
+    let cursor: { priority: number; createdAt: string; id: string } | undefined;
+    if (query.data.cursor) {
+      try {
+        const decoded = JSON.parse(Buffer.from(query.data.cursor, "base64url").toString("utf8")) as { priority?: unknown; createdAt?: unknown; id?: unknown };
+        if (typeof decoded.priority !== "number" || !Number.isInteger(decoded.priority) || decoded.priority < 0 || decoded.priority > 100
+          || typeof decoded.createdAt !== "string" || Number.isNaN(Date.parse(decoded.createdAt))
+          || typeof decoded.id !== "string" || !z.string().uuid().safeParse(decoded.id).success) throw new Error("bad cursor");
+        cursor = { priority: decoded.priority, createdAt: decoded.createdAt, id: decoded.id };
+      } catch { res.status(400).json({ error: "Invalid media queue cursor" }); return; }
+    }
+    const result = await service.listQueue(companyId, { limit: query.data.limit, cursor });
+    const last = result.jobs.at(-1);
+    const nextCursor = result.hasMore && last
+      ? Buffer.from(JSON.stringify({ priority: last.priority, createdAt: last.createdAt, id: last.id })).toString("base64url")
+      : null;
+    res.json({ running: result.running, jobs: result.jobs, nextCursor });
+  });
+  router.patch("/companies/:companyId/media-jobs/:jobId/priority", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertBoard(req);
+    assertCompanyAccess(req, companyId);
+    const parsed = mediaPriorityUpdateSchema.safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ error: "Provide a priority from 0 to 100 and the job version" }); return; }
+    const jobId = req.params.jobId as string;
+    const [updated] = await service.reprioritizeQueuedJob(companyId, jobId, parsed.data.priority, parsed.data.expectedUpdatedAt);
+    if (!updated) {
+      const current = await service.getJob(jobId);
+      if (!current || current.companyId !== companyId) { res.status(404).json({ error: "Queued media job not found" }); return; }
+      res.status(409).json({ error: current.status === "queued" ? "Media job changed; reload the queue before retrying" : "Only queued media jobs can be reprioritized", current });
+      return;
+    }
+    await audit(req, companyId, "media.job_priority_changed", "media_job", updated.id, { priority: updated.priority });
+    res.json(updated);
   });
   router.post("/media-projects/:id/transcribe", validate(mediaTranscribeSchema), async (req,res) => {
     const project=await getProject(req,res,req.params.id as string,true); if(!project) return;

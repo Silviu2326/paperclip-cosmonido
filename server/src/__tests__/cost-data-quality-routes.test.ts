@@ -5,7 +5,8 @@ import type { Db } from "@paperclipai/db";
 import { costRoutes } from "../routes/costs.js";
 import { errorHandler } from "../middleware/error-handler.js";
 
-const mocks = vi.hoisted(() => ({ report: vi.fn(), retry: vi.fn(), decide: vi.fn(), canManage: vi.fn() }));
+const mocks = vi.hoisted(() => ({ report: vi.fn(), retry: vi.fn(), decide: vi.fn(), canManage: vi.fn(), findGoal: vi.fn(), goalSummary: vi.fn() }));
+vi.mock("../services/assignment-costs.js", () => ({ assignmentCostService: () => ({ findGoal: mocks.findGoal, goalSummary: mocks.goalSummary }) }));
 vi.mock("../services/cost-data-quality.js", () => ({ costDataQualityReport: mocks.report }));
 vi.mock("../routes/ai-connections.js", () => ({ canManageAiConnections: mocks.canManage }));
 vi.mock("../services/index.js", () => ({
@@ -27,9 +28,31 @@ function app(type: "board" | "agent" = "board", role = "member") {
 }
 beforeEach(() => {
   vi.clearAllMocks(); mocks.decide.mockResolvedValue({ allowed: true });
+  mocks.findGoal.mockReset(); mocks.goalSummary.mockReset();
   mocks.report.mockResolvedValue({ events: [], runs: [] }); mocks.retry.mockResolvedValue({ accounted: false });
 });
 describe("cost details and accounting retry authorization", () => {
+  it("does not distinguish a missing goal from a goal in another company", async () => {
+    mocks.findGoal.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: runId, companyId: "foreign" });
+    const missing = await request(app()).get(`/api/goals/${runId}/cost-summary`);
+    const foreign = await request(app()).get(`/api/goals/${runId}/cost-summary`);
+    expect(missing.status).toBe(404);
+    expect(foreign.status).toBe(404);
+    expect(foreign.body).toEqual(missing.body);
+    expect(mocks.goalSummary).not.toHaveBeenCalled();
+  });
+
+  it("passes the authenticated reader to goal costs and hides a private root as 404", async () => {
+    mocks.findGoal.mockResolvedValue({ id: runId, companyId });
+    mocks.goalSummary.mockRejectedValueOnce(Object.assign(new Error("Goal not found"), { status: 404 }));
+    expect((await request(app()).get(`/api/goals/${runId}/cost-summary`)).status).toBe(404);
+    expect(mocks.goalSummary).toHaveBeenCalledWith(companyId, runId, expect.objectContaining({ type: "board", userId: "alice" }));
+    mocks.goalSummary.mockResolvedValueOnce({ goalId: runId, title: "Visible result" });
+    const visible = await request(app()).get(`/api/goals/${runId}/cost-summary`);
+    expect(visible.status).toBe(200);
+    expect(visible.body.title).toBe("Visible result");
+  });
+
   it("allows cost readers, makes viewers read-only, and does not query connection-management permissions", async () => {
     expect((await request(app()).get(`${path}/data-quality?period=all`)).status).toBe(200);
     expect(mocks.report).toHaveBeenLastCalledWith(expect.anything(), companyId, true, { allTime: true });

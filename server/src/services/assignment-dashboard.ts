@@ -1,9 +1,10 @@
 import { deriveAssignmentStatus as deriveProductAssignmentStatus } from "./assignment-status.js";
-import { and, asc, desc, eq, gt, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";
 import type { DashboardActiveAssignment, DashboardAssignmentSections, DashboardNeedsYouItem, DashboardSection } from "@paperclipai/shared";
 import { activityLog, agents, approvals, decisions, deliverableReviews, goals, issues, type Db } from "@paperclipai/db";
 import { logger } from "../middleware/logger.js";
 import { assignmentCostService } from "./assignment-costs.js";
+import { issueReadSqlCondition, type AuthorizationActor } from "./authorization.js";
 
 const ACTIVE_ASSIGNMENT_LIMIT = 10;
 const NEEDS_YOU_LIMIT = 10;
@@ -68,7 +69,8 @@ export function utcWeekStart(now: Date) {
 export function assignmentDashboardService(db: Db) {
   const costs = assignmentCostService(db);
 
-  async function activeAssignments(companyId: string) {
+  async function activeAssignments(companyId: string, actor: AuthorizationActor) {
+    const issueReadCondition = await issueReadSqlCondition(db, actor);
     const goalRows = await db
       .select({
         id: goals.id, title: goals.title, status: goals.status, budgetCents: goals.budgetCents,
@@ -80,6 +82,7 @@ export function assignmentDashboardService(db: Db) {
       .leftJoin(issues, and(eq(issues.id, goals.rootIssueId), eq(issues.companyId, companyId)))
       .where(and(eq(goals.companyId, companyId), eq(goals.kind, "assignment"), ne(goals.status, "cancelled"),
         sql`coalesce(${issues.status}, '') <> 'cancelled'`,
+        or(sql`${goals.rootIssueId} is null`, issueReadCondition),
         sql`not (coalesce(${issues.status}, '') = 'done'
           and exists (select 1 from deliverable_reviews r where r.company_id = ${companyId} and r.goal_id = ${goals.id})
           and not exists (select 1 from (
@@ -116,7 +119,7 @@ export function assignmentDashboardService(db: Db) {
         const row = value as { entityId: string; createdAt: Date | string };
         return { entityId: row.entityId, createdAt: new Date(row.createdAt) };
       })),
-      costs.byGoal(companyId, { allTime: true }),
+      costs.byGoal(companyId, { allTime: true }, actor),
     ]);
 
     const reviewsByGoal = new Map<string, typeof reviewRows>();
@@ -147,7 +150,15 @@ export function assignmentDashboardService(db: Db) {
     return { items };
   }
 
-  async function needsYou(companyId: string) {
+  async function needsYou(companyId: string, actor: AuthorizationActor) {
+    const issueReadCondition = await issueReadSqlCondition(db, actor);
+    const reviewReadCondition = and(
+      or(sql`${deliverableReviews.issueId} is null`, issueReadCondition),
+      or(sql`${goals.rootIssueId} is null`, sql<boolean>`exists (
+        select 1 from ${issues} where ${issues.id} = ${goals.rootIssueId}
+        and ${issues.companyId} = ${companyId} and ${issueReadCondition}
+      )`),
+    );
     const now = new Date();
     const [approvalRows, decisionRows, reviewRows, approvalCount, decisionCount, reviewCount] = await Promise.all([
       db.select({ id: approvals.id, type: approvals.type, createdAt: approvals.createdAt }).from(approvals)
@@ -163,14 +174,18 @@ export function assignmentDashboardService(db: Db) {
       }).from(deliverableReviews)
         .leftJoin(goals, and(eq(goals.id, deliverableReviews.goalId), eq(goals.companyId, companyId)))
         .leftJoin(issues, and(eq(issues.id, deliverableReviews.issueId), eq(issues.companyId, companyId)))
-        .where(and(eq(deliverableReviews.companyId, companyId), eq(deliverableReviews.state, "pending")))
+        .where(and(eq(deliverableReviews.companyId, companyId), eq(deliverableReviews.state, "pending"),
+          reviewReadCondition))
         .orderBy(asc(deliverableReviews.createdAt)).limit(NEEDS_YOU_LIMIT),
       db.select({ count: sql<number>`count(*)::int` }).from(approvals)
         .where(and(eq(approvals.companyId, companyId), eq(approvals.status, "pending"))),
       db.select({ count: sql<number>`count(*)::int` }).from(decisions)
         .where(and(eq(decisions.companyId, companyId), eq(decisions.status, "open"), gt(decisions.expiresAt, now))),
       db.select({ count: sql<number>`count(*)::int` }).from(deliverableReviews)
-        .where(and(eq(deliverableReviews.companyId, companyId), eq(deliverableReviews.state, "pending"))),
+        .leftJoin(goals, and(eq(goals.id, deliverableReviews.goalId), eq(goals.companyId, companyId)))
+        .leftJoin(issues, and(eq(issues.id, deliverableReviews.issueId), eq(issues.companyId, companyId)))
+        .where(and(eq(deliverableReviews.companyId, companyId), eq(deliverableReviews.state, "pending"),
+          reviewReadCondition)),
     ]);
 
     const items: DashboardNeedsYouItem[] = [
@@ -202,10 +217,10 @@ export function assignmentDashboardService(db: Db) {
     activeAssignments,
     needsYou,
     /** Every section is built independently; a failure only marks its own key. */
-    sections: async (companyId: string, now = new Date()): Promise<DashboardAssignmentSections> => {
+    sections: async (companyId: string, actor: AuthorizationActor, now = new Date()): Promise<DashboardAssignmentSections> => {
       const [activeAssignmentsSection, needsYouSection, costsToday, costsThisWeek] = await Promise.all([
-        section("activeAssignments", () => activeAssignments(companyId)),
-        section("needsYou", () => needsYou(companyId)),
+        section("activeAssignments", () => activeAssignments(companyId, actor)),
+        section("needsYou", () => needsYou(companyId, actor)),
         section("costsToday", () => costs.coverage(companyId, utcDayStart(now), now)),
         section("costsThisWeek", () => costs.coverage(companyId, utcWeekStart(now), now)),
       ]);

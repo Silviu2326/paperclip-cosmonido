@@ -12,6 +12,8 @@ import {
 } from "@paperclipai/shared";
 import { autonomyService } from "../services/autonomy.js";
 import { autonomyBench } from "../services/autonomy-bench.js";
+import { autonomyBenchNativeJudgeDeps } from "../services/autonomy-bench-native.js";
+import type { BudgetServiceHooks } from "../services/budgets.js";
 import { logActivity } from "../services/activity-log.js";
 import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
 import { forbidden, unprocessable } from "../errors.js";
@@ -41,10 +43,10 @@ function scopedAgentId(req: Request, requested: string | undefined): string | nu
   return own;
 }
 
-export function autonomyRoutes(db: Db) {
+export function autonomyRoutes(db: Db, options: { budgetHooks?: BudgetServiceHooks } = {}) {
   const router = Router();
   const svc = autonomyService(db);
-  const bench = autonomyBench(db);
+  const bench = autonomyBench(db, autonomyBenchNativeJudgeDeps(db, options.budgetHooks));
 
   router.get("/companies/:companyId/autonomy", async (req, res) => {
     const companyId = req.params.companyId as string;

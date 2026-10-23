@@ -35,7 +35,7 @@
     "dev": "tsx src/index.ts",
     "dev:watch": "cross-env PAPERCLIP_MIGRATION_PROMPT=never PAPERCLIP_MIGRATION_AUTO_APPLY=true tsx ./scripts/dev-watch.ts",
     "prepare:ui-dist": "bash ../scripts/prepare-server-ui-dist.sh",
-    "build": "pnpm run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc && mkdir -p dist/onboarding-assets dist/lpc-assets dist/built-ins dist/services/scripts dist/services/fixtures dist/vendor/paperclip-runner && cp -R src/services/fixtures/. dist/services/fixtures/ && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/lpc-assets/. dist/lpc-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && mkdir -p dist/public && cp -R src/public/. dist/public/ && cp -Rf ../packages/paperclip-runner/dist/. dist/vendor/paperclip-runner/ && node scripts/write-build-stamp.mjs",
+    "build": "pnpm run prepare:runner-vendor && node scripts/verify-runner-vendor-dependencies.mjs && tsc --checkers 1 && mkdir -p dist/onboarding-assets dist/lpc-assets dist/built-ins dist/services/scripts dist/services/fixtures dist/vendor/paperclip-runner && cp -R src/services/fixtures/. dist/services/fixtures/ && cp -R src/onboarding-assets/. dist/onboarding-assets/ && cp -R src/lpc-assets/. dist/lpc-assets/ && cp -R src/built-ins/. dist/built-ins/ && cp -R src/services/scripts/. dist/services/scripts/ && mkdir -p dist/public && cp -R src/public/. dist/public/ && cp -Rf ../packages/paperclip-runner/dist/. dist/vendor/paperclip-runner/ && node scripts/write-build-stamp.mjs",
     "prepack": "pnpm run prepare:ui-dist && pnpm run build",
     "postpack": "rm -rf ui-dist",
     "clean": "rm -rf dist",
@@ -75,6 +75,7 @@
     "@paperclipai/adapter-utils": "workspace:*",
     "@paperclipai/db": "workspace:*",
     "@paperclipai/hermes-paperclip-adapter": "workspace:*",
+    "@paperclipai/media-studio": "workspace:*",
     "@paperclipai/plugin-sdk": "workspace:*",
     "@paperclipai/shared": "workspace:*",
     "@paperclipai/skills-catalog": "workspace:*",
@@ -111,9 +112,9 @@
     "smol-toml": "^1.9.1",
     "ssh2": "^1.17.0",
     "svix": "1.76.1",
+    "web-push": "3.6.7",
     "ws": "^8.22.0",
-    "zod": "^4.4.3",
-    "@paperclipai/media-studio": "workspace:*"
+    "zod": "^4.4.3"
   },
   "bundleDependencies": [
     "@agentclientprotocol/claude-agent-acp",
@@ -139,6 +140,7 @@
     "@types/node": "^24.0.0",
     "@types/sharp": "^0.32.0",
     "@types/supertest": "^7.2.1",
+    "@types/web-push": "3.6.4",
     "@types/ws": "^8.18.2",
     "cross-env": "^10.1.0",
     "supertest": "^7.0.0",

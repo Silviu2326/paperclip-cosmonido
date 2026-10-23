@@ -9,6 +9,8 @@ Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.
 
+The Apps navigation consolidation leaves the recorded setup policy intact. This companion does not review any new app or notification API/binding from the integration; provider-specific live access remains unverified.
+
 ## `catalog`
 
 Review: `baseline`.

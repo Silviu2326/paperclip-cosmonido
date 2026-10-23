@@ -1,5 +1,6 @@
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { useCombinedInboxTasksEnabled } from "@/hooks/useCombinedInboxTasksEnabled";
+import { useBusinessNavigation } from "@/hooks/useBusinessNavigation";
 import { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
@@ -30,6 +31,13 @@ import {
   Inbox,
   DollarSign,
   History,
+  FolderOpen,
+  Repeat,
+  Users,
+  Handshake,
+  MessagesSquare,
+  Unplug,
+  Settings,
   SquarePen,
   FileCode2,
   Plus,
@@ -107,6 +115,7 @@ export function CommandPalette() {
     retry: false,
   });
   const { enabled: combinedInboxTasksEnabled } = useCombinedInboxTasksEnabled();
+  const businessNavigation = useBusinessNavigation();
   const fileViewerEnabled = experimentalSettings?.enableExperimentalFileViewer === true;
 
   useEffect(() => {
@@ -374,6 +383,30 @@ export function CommandPalette() {
             <Hexagon className="mr-2 h-4 w-4" />
             {t("commandPalette.projects")}
           </CommandItem>
+          <CommandItem onSelect={() => go("/artifacts")}>
+            <FolderOpen className="mr-2 h-4 w-4" />
+            {t("uxNav.files", { defaultValue: "Archivos" })}
+          </CommandItem>
+          <CommandItem onSelect={() => go("/routines")}>
+            <Repeat className="mr-2 h-4 w-4" />
+            {t("nav.routines")}
+          </CommandItem>
+          {businessNavigation.preferences.business && (
+            <>
+              <CommandItem onSelect={() => go("/customers")}>
+                <Users className="mr-2 h-4 w-4" />
+                {t("nav.customers")}
+              </CommandItem>
+              <CommandItem onSelect={() => go("/sales")}>
+                <Handshake className="mr-2 h-4 w-4" />
+                {t("uxNav.sales", { defaultValue: "Ventas" })}
+              </CommandItem>
+              <CommandItem onSelect={() => go("/conversations")}>
+                <MessagesSquare className="mr-2 h-4 w-4" />
+                {t("nav.conversations")}
+              </CommandItem>
+            </>
+          )}
           <CommandItem onSelect={() => go("/goals")}>
             <Target className="mr-2 h-4 w-4" />
             {t("commandPalette.goals")}
@@ -389,6 +422,14 @@ export function CommandPalette() {
           <CommandItem onSelect={() => go("/activity")}>
             <History className="mr-2 h-4 w-4" />
             {t("commandPalette.activity")}
+          </CommandItem>
+          <CommandItem onSelect={() => go("/apps")}>
+            <Unplug className="mr-2 h-4 w-4" />
+            {t("nav.connectors")}
+          </CommandItem>
+          <CommandItem onSelect={() => go("/company/settings")}>
+            <Settings className="mr-2 h-4 w-4" />
+            {t("nav.settings")}
           </CommandItem>
         </CommandGroup>
 

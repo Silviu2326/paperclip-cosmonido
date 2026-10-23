@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { Link, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
@@ -18,6 +18,11 @@ import { CustomerOpportunitiesTab } from "../../components/crm/CustomerOpportuni
 import { ActivityTimeline } from "../../components/crm/ActivityTimeline";
 import { LinkedConversations } from "../../components/crm/LinkedConversations";
 import { useCompany } from "../../context/CompanyContext";
+import { CustomerPortalSettings } from "../CustomerPortalSettings";
+import { ExternalReview } from "../ExternalReview";
+import { externalReviewApi } from "../../api/external-review";
+import { useAccountIdentity } from "../../api/companies-query";
+import { ServiceAgreements } from "../ServiceAgreements";
 
 export function CustomerDetail() {
   const { customerId = "" } = useParams<{ customerId: string }>();
@@ -25,6 +30,7 @@ export function CustomerDetail() {
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
+  const identity = useAccountIdentity();
   const [tab, setTab] = useState("summary");
 
   const customerQuery = useQuery({
@@ -33,6 +39,14 @@ export function CustomerDetail() {
     enabled: !!customerId,
   });
   const customer = customerQuery.data;
+  const reviewDeliverables = useInfiniteQuery({
+    queryKey: ["external-review-deliverables", customer?.companyId ?? "", customer?.id ?? customerId, identity.userId ?? "anonymous"],
+    queryFn: ({ pageParam }) => externalReviewApi.deliverables(customer!.companyId, customer!.id, pageParam),
+    initialPageParam: null as string | null,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+    enabled: Boolean(customer && selectedCompanyId === customer.companyId && identity.userId),
+  });
+  const deliverables = reviewDeliverables.data?.pages.flatMap((page) => page.items) ?? [];
 
   useEffect(() => {
     setBreadcrumbs([
@@ -82,6 +96,9 @@ export function CustomerDetail() {
           <Link to="/customers" className="text-sm text-muted-foreground hover:underline">
             {t("crm.customers.allCustomers")}
           </Link>
+          <Link to={`/sales/proposals?customerId=${encodeURIComponent(customer.id)}`} className="text-sm text-muted-foreground hover:underline">
+            {t("uxCrm.customerProposals", { defaultValue: "Proposals" })}
+          </Link>
         </div>
       </div>
       {archive.error && <p className="text-sm text-destructive">{t("crm.customers.updateError")}</p>}
@@ -93,7 +110,10 @@ export function CustomerDetail() {
           <TabsTrigger value="opportunities">{t("crm.customers.opportunitiesTab")}</TabsTrigger>
           <TabsTrigger value="activity">{t("crm.customers.activityTab")}</TabsTrigger>
           <TabsTrigger value="conversations">{t("crm.customers.conversationsTab")}</TabsTrigger>
+          <TabsTrigger value="services">{t("uxCrm.services", { defaultValue: "Services" })}</TabsTrigger>
           <TabsTrigger value="memory">{t("crm.customers.memoryTab")}</TabsTrigger>
+          <TabsTrigger value="portal">{t("crm.customers.portalTab", { defaultValue: "Portal de cliente" })}</TabsTrigger>
+          <TabsTrigger value="review">{t("externalReview.title", { defaultValue: "Revisión por el cliente" })}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="summary" className="pt-4">
@@ -116,8 +136,29 @@ export function CustomerDetail() {
           <LinkedConversations companyId={customer.companyId} filter={{ customerId: customer.id }} />
         </TabsContent>
 
+        <TabsContent value="services" className="pt-4">
+          <ServiceAgreements customerId={customer.id} />
+        </TabsContent>
+
         <TabsContent value="memory" className="pt-4">
           <CustomerMemory customerId={customer.id} />
+        </TabsContent>
+        <TabsContent value="portal" className="pt-4">
+          {customer.companyId === selectedCompanyId && <CustomerPortalSettings companyId={customer.companyId} customerId={customer.id} />}
+        </TabsContent>
+        <TabsContent value="review" className="pt-4">
+          {customer.companyId === selectedCompanyId ? (
+            <ExternalReview
+                key={`${customer.companyId}:${customer.id}:${identity.userId ?? "anonymous"}`}
+              companyId={customer.companyId}
+              customerId={customer.id}
+              deliverables={deliverables}
+              onLoadMore={() => reviewDeliverables.fetchNextPage()}
+              hasMore={reviewDeliverables.hasNextPage}
+              loadingMore={reviewDeliverables.isFetchingNextPage}
+              deliverablesError={reviewDeliverables.error instanceof Error ? reviewDeliverables.error.message : null}
+            />
+          ) : null}
         </TabsContent>
       </Tabs>
     </div>

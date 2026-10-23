@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { NativeVoiceConversation, type NativeVoiceConversationProps } from "./NativeVoiceConversation";
+import type { NativeVoiceConversationProps } from "./NativeVoiceConversation";
+import { RobotLoading } from "../RobotLoading";
+const NativeVoiceConversation = lazy(() => import("./NativeVoiceConversation").then((module) => ({ default: module.NativeVoiceConversation })));
 import { voiceCallJournal } from "@/lib/voice-call-attempt";
 import { VoiceCallContext } from "./VoiceCallContext";
 
@@ -22,7 +24,9 @@ export function VoiceCallProvider({ children, companyId, userId }: {
   return <VoiceCallContext.Provider value={value}>
     {children}
     {current && <aside aria-label="Current voice call" className="fixed inset-x-4 bottom-4 z-50 max-h-(--sz-calc-18) overflow-y-auto rounded-lg border border-border bg-background p-4 shadow-lg sm:left-auto sm:w-96">
+      <Suspense fallback={<RobotLoading />}>
       <NativeVoiceConversation {...current.props} key={current.id} managed autoStart onEndedChange={setEnded} />
+      </Suspense>
       {ended && <Button variant="ghost" size="sm" onClick={() => { setCall(null); requestAnimationFrame(() => { if (returnFocus.current?.isConnected) returnFocus.current.focus(); }); }}>Close voice panel</Button>}
     </aside>}
   </VoiceCallContext.Provider>;

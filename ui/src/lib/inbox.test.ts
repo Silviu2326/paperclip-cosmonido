@@ -1605,3 +1605,14 @@ describe("inbox helpers", () => {
     expect(shouldResetInboxWorkspaceGrouping("none", false, true)).toBe(false);
   });
 });
+
+describe("parseInboxApprovalPreset", () => {
+  it("only activates on show=approvals and normalizes the status filter", async () => {
+    const { parseInboxApprovalPreset } = await import("./inbox");
+    expect(parseInboxApprovalPreset("")).toBeNull();
+    expect(parseInboxApprovalPreset("?show=issues")).toBeNull();
+    expect(parseInboxApprovalPreset("?show=approvals&approvals=actionable")).toEqual({ approval: "actionable" });
+    expect(parseInboxApprovalPreset("?show=approvals&approvals=resolved")).toEqual({ approval: "resolved" });
+    expect(parseInboxApprovalPreset("?show=approvals&approvals=bogus")).toEqual({ approval: "all" });
+  });
+});

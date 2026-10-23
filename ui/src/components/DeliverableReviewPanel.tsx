@@ -3,20 +3,29 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { Link } from "@/lib/router";
 import { deliverableReviewsApi } from "@/api/deliverable-reviews";
+import { requestResponse } from "@/api/client";
+import { readApiJson } from "@/api/response";
+import type { DeliverableReview } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-export function DeliverableReviewPanel({ goalId, issueId, companyId, targetId }: { goalId?: string; issueId?: string; companyId?: string; targetId?: string }) {
+export function DeliverableReviewPanel({ goalId, issueId, companyId, targetId, reviewId, cacheScope }: { goalId?: string; issueId?: string; companyId?: string; targetId?: string; reviewId?: string; cacheScope?: string }) {
   const { t } = useTranslation(); const queryClient = useQueryClient(); const id = goalId ?? issueId ?? companyId ?? "";
   const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null); const [reason, setReason] = useState("");
   const scope = goalId ? "goal" : issueId ? "issue" : "company";
-  const queryKey = ["deliverable-reviews", scope, id];
-  const query = useQuery({ queryKey, queryFn: () => goalId ? deliverableReviewsApi.listByGoal(goalId) : issueId ? deliverableReviewsApi.listByIssue(issueId) : deliverableReviewsApi.listPending(companyId!), enabled: !!id });
-  const resolve = useMutation({ mutationFn: ({ reviewId, state, reason }: { reviewId: string; state: "accepted" | "changes_requested"; reason?: string }) => deliverableReviewsApi.resolve(reviewId, { state, reason }), onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey }), queryClient.invalidateQueries({ queryKey: ["assignments"] }), queryClient.invalidateQueries({ queryKey: ["assignment"] }), queryClient.invalidateQueries({ queryKey: ["dashboard"] }), queryClient.invalidateQueries({ queryKey: ["issues", "work-products"] }), queryClient.invalidateQueries({ queryKey: ["assignment-costs-by-goal"] })]); setSelectedReviewId(null); setReason(""); }, onError: async () => { await queryClient.invalidateQueries({ queryKey }); } });
-  const reviews = query.data?.filter((review) => !targetId || review.targetId === targetId) ?? [];
+  const queryKey = ["deliverable-reviews", scope, id, ...(cacheScope ? ["principal", cacheScope] : [])];
+  const query = useQuery({ queryKey, queryFn: async () => {
+    if (cacheScope) {
+      const path = goalId ? `/goals/${goalId}/deliverable-reviews` : issueId ? `/issues/${issueId}/deliverable-reviews` : `/companies/${companyId}/deliverable-reviews?state=pending`;
+      return readApiJson<DeliverableReview[]>(await requestResponse(path, { cache: "no-store" }));
+    }
+    return goalId ? deliverableReviewsApi.listByGoal(goalId) : issueId ? deliverableReviewsApi.listByIssue(issueId) : deliverableReviewsApi.listPending(companyId!);
+  }, enabled: !!id, staleTime: cacheScope ? 0 : undefined, refetchOnMount: cacheScope ? "always" : undefined });
+  const resolve = useMutation({ mutationFn: ({ reviewId, state, reason }: { reviewId: string; state: "accepted" | "changes_requested"; reason?: string }) => { const review = query.data?.find(item => item.id === reviewId); if (!review) throw new Error("Reload the review before resolving it"); return deliverableReviewsApi.resolve(reviewId, { state, reason, expectedRevision: new Date(review.updatedAt).toISOString() }); }, onSuccess: async () => { await Promise.all([queryClient.invalidateQueries({ queryKey }), queryClient.invalidateQueries({ queryKey: ["assignments"] }), queryClient.invalidateQueries({ queryKey: ["assignment"] }), queryClient.invalidateQueries({ queryKey: ["dashboard"] }), queryClient.invalidateQueries({ queryKey: ["issues", "work-products"] }), queryClient.invalidateQueries({ queryKey: ["assignment-costs-by-goal"] })]); setSelectedReviewId(null); setReason(""); }, onError: async () => { await queryClient.invalidateQueries({ queryKey }); } });
+  const reviews = query.data?.filter((review) => (!targetId || review.targetId === targetId) && (!reviewId || review.id === reviewId)) ?? [];
   const selectedReview = reviews.find((review) => review.id === selectedReviewId);
   if (query.isLoading) return <p className="text-sm text-muted-foreground">{t("common.loading", { defaultValue: "Cargando…" })}</p>;
   if (query.error) return <p className="text-sm text-destructive">{query.error.message}</p>;

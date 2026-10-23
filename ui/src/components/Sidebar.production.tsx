@@ -20,7 +20,13 @@ import {
   MessagesSquare,
   GanttChartSquare,
   LayoutGrid,
+  Users,
+  Handshake,
+  CalendarDays,
+  Armchair,
 } from "lucide-react";
+import { useBusinessNavigation } from "@/hooks/useBusinessNavigation";
+import { useTranslation } from "@/i18n";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarSection } from "./SidebarSection";
@@ -45,6 +51,8 @@ import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { SidebarCompanyMenu } from "./SidebarCompanyMenu.production";
 
 export function Sidebar() {
+  const { t } = useTranslation();
+  const { preferences } = useBusinessNavigation();
   const { openNewIssue } = useDialogActions();
   // Every labeled section is collapsible (session-scoped, default open) —
   // one policy across static nav groups and the data-driven sections.
@@ -197,7 +205,7 @@ export function Sidebar() {
               aria-hidden="true"
             />
           ) : null}
-          <SidebarNavItem to="/artifacts" label="Artifacts" icon={Package} />
+          <SidebarNavItem to="/artifacts" label={t("uxNav.files", { defaultValue: "Archivos" })} icon={Package} />
           <SidebarNavItem to="/skills" label="Skills" icon={Boxes} />
           {showWorkspacesLink ? (
             <SidebarNavItem to="/workspaces" label="Workspaces" icon={GitBranch} />
@@ -228,7 +236,17 @@ export function Sidebar() {
         {/* Classic mode restores the per-project collapsible below Work. */}
         {streamlined ? null : <SidebarProjects />}
 
+        {(preferences.business || preferences.agenda) && <SidebarSection label={t("nav.business")}>
+          {preferences.business && <>
+            <SidebarNavItem to="/customers" label={t("nav.customers")} icon={Users} />
+            <SidebarNavItem to="/sales" label={t("uxNav.sales", { defaultValue: "Ventas" })} icon={Handshake} />
+            <SidebarNavItem to="/conversations" label={t("nav.conversations")} icon={MessagesSquare} />
+          </>}
+          {preferences.agenda && <SidebarNavItem to="/schedule" label={t("nav.schedule")} icon={CalendarDays} />}
+        </SidebarSection>}
+        <SidebarNavItem to="/agents/all" label={t("uxNav.team", { defaultValue: "Ver equipo" })} icon={Users} />
         <SidebarAgents streamlined={streamlined} />
+        {preferences.office && <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />}
 
         <SidebarSection label="Company" collapsible={{ open: companyOpen, onOpenChange: setCompanyOpen }}>
           <SidebarNavItem to="/org" label="Org" icon={Network} />

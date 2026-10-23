@@ -22,6 +22,9 @@ export const playbooks = pgTable(
     steps: jsonb("steps").$type<PlaybookStep[]>().notNull().default([]),
     createdByAgentId: uuid("created_by_agent_id").references(() => agents.id, { onDelete: "set null" }),
     createdByUserId: text("created_by_user_id"),
+    /** Set only by the package installer; proves which receipt item created this draft. */
+    installationItemId: uuid("installation_item_id"),
+    installationSourceContentHash: text("installation_source_content_hash"),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -29,6 +32,7 @@ export const playbooks = pgTable(
   },
   (table) => ({
     companyKeyVersionUq: uniqueIndex("playbooks_company_key_version_uq").on(table.companyId, table.key, table.version),
+    installationItemUq: uniqueIndex("playbooks_installation_item_uq").on(table.installationItemId).where(sql`${table.installationItemId} IS NOT NULL`),
     companyStatusIdx: index("playbooks_company_status_idx").on(table.companyId, table.status),
     companyScopeIdx: index("playbooks_company_scope_idx").on(table.companyId, table.scopeKind, table.scopeValue),
   }),

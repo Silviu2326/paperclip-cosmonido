@@ -3,6 +3,7 @@ import { updateFastResponseSchema } from "@paperclipai/shared";
 import { putOfficeLayoutSchema, officeDesignChatSchema, officeLayoutResponseSchema, officeDesignChatResponseSchema } from "@paperclipai/shared";
 import { slackTestMessageSchema, slackTestMessageResultSchema, slackManagerAuthorizationSchema, slackSetupOptionsSchema, slackManagedProvisionSchema, slackManagedResultSchema, slackRegistrationSchema, slackSetupActionSchema, slackInstallAuthorizationSchema, slackRegistrationStateSchema, slackAppConfigurationSchema, slackAvatarStateSchema, slackAccountStateSchema } from "@paperclipai/shared";
 import { experimentalApiMetadata } from "./experimental-api-metadata.js";
+import { productizationOpenApiAuthByOperation, productizationOpenApiRoutes } from "./productization-openapi.js";
 import {
   experimentalApiPaths,
   experimentalApiQueries,
@@ -1276,8 +1277,13 @@ function registerCurrentRoute(input: {
   path: string;
   tags: string[];
   summary: string;
+  description?: string;
   query?: z.ZodTypeAny;
   body?: z.ZodTypeAny;
+  bodyContentTypes?: string[];
+  response?: z.ZodTypeAny;
+  status?: number;
+  noContent?: boolean;
   responses?: Record<string, OpenApiResponse>;
 }) {
   const params = paramsSchemaFromPath(input.path);
@@ -1286,7 +1292,10 @@ function registerCurrentRoute(input: {
       ? {
           ...(params ? { params } : {}),
           ...(input.query ? { query: input.query } : {}),
-          ...(input.body ? { body: jsonBody(input.body) } : {}),
+          ...(input.body ? { body: input.bodyContentTypes?.length ? {
+            required: true as const,
+            content: Object.fromEntries(input.bodyContentTypes.map((contentType) => [contentType, { schema: input.body! }])),
+          } : jsonBody(input.body) } : {}),
         }
       : undefined;
   registry.registerPath({
@@ -1294,18 +1303,26 @@ function registerCurrentRoute(input: {
     path: input.path,
     tags: input.tags,
     summary: input.summary,
+    ...(input.description ? { description: input.description } : {}),
     ...(request ? { request } : {}),
     responses: input.responses ?? {
-      200: r.ok(),
+      [input.status ?? 200]: input.noContent ? r.noContent : r.ok(input.response),
       400: r.badRequest,
       401: r.unauthorized,
+      403: r.forbidden,
       404: r.notFound,
+      409: r.conflict,
+      422: r.unprocessable,
     },
   });
 }
 
 type OpenApiAuthLevel =
   | "public"
+  | "customer_portal"
+  | "external_review"
+  | "scoped_api"
+  | "stripe_webhook"
   | "agent_run"
   | "agent_heartbeat"
   | "runtime_tools"
@@ -1371,6 +1388,12 @@ const PUBLIC_OPERATIONS = new Set([
 ]);
 
 const BOARD_ONLY_PREFIXES = [
+  "/api/companies/{companyId}/productization/onboarding",
+  "/api/companies/{companyId}/productization/",
+  "/api/companies/{companyId}/product-notifications",
+  "/api/productization/accounts",
+  "/api/productization/public-api/keys",
+  "/api/productization/public-api/webhooks",
   "/api/companies/{companyId}/accounting/",
   "/api/announcements/",
   "/api/auth/",
@@ -1754,6 +1777,8 @@ function resolveOperationAuthLevel(
   path: string,
 ): OpenApiAuthLevel {
   const key = operationKey(method, path);
+  const productizationAuth = productizationOpenApiAuthByOperation.get(key);
+  if (productizationAuth) return productizationAuth;
   if (key === "GET /api/mcp/requests/{id}" || key === "GET /api/mcp/device"
       || key === "POST /api/mcp/requests/{id}/dot-pairing"
       || key === "POST /api/mcp/requests/{id}/dot-pairing/preview"
@@ -1825,6 +1850,28 @@ function applyDocumentFixups(document: any): any {
       bearerFormat: "Task-bound agent JWT",
       description: "Paperclip-issued JWT bound to an active task run. Agent API keys, board sessions, and connection-only tokens are rejected.",
     },
+    CustomerPortalToken: {
+      type: "apiKey",
+      in: "header",
+      name: "X-Paperclip-Customer-Portal",
+      description: "Expiring and revocable customer portal token. Send only over HTTPS; it is not a board, agent, or Public API key.",
+    },
+    ExternalReviewToken: {
+      type: "apiKey", in: "header", name: "X-Paperclip-Review-Token",
+      description: "Expiring, revocable signed token for one deliverable version. Never a board or agent identity; never send it in a path or query.",
+    },
+    ScopedPublicApiBearer: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "Scoped pcp_public_ key",
+      description: "Read-only Public API key scoped to one company and explicit resource scopes; does not use ambient board or agent authentication.",
+    },
+    StripeWebhookSignature: {
+      type: "apiKey",
+      in: "header",
+      name: "stripe-signature",
+      description: "Stripe-signed webhook header verified against the raw request body.",
+    },
   };
   document.security = AUTHENTICATED_SECURITY;
 
@@ -1841,6 +1888,14 @@ function applyDocumentFixups(document: any): any {
         operation.security = [securityRequirement(AGENT_BEARER_AUTH_SCHEME)];
       } else if (authLevel === "runtime_tools") {
         operation.security = RUNTIME_TOOLS_SECURITY;
+      } else if (authLevel === "customer_portal") {
+        operation.security = [securityRequirement("CustomerPortalToken")];
+      } else if (authLevel === "external_review") {
+        operation.security = [securityRequirement("ExternalReviewToken")];
+      } else if (authLevel === "scoped_api") {
+        operation.security = [securityRequirement("ScopedPublicApiBearer")];
+      } else if (authLevel === "stripe_webhook") {
+        operation.security = [securityRequirement("StripeWebhookSignature")];
       } else if (authLevel === "authenticated") {
         operation.security = AUTHENTICATED_SECURITY;
       } else {
@@ -1858,6 +1913,14 @@ function applyDocumentFixups(document: any): any {
               ? { actor: "agent", heartbeatBound: true }
             : authLevel === "runtime_tools"
               ? { actor: "runtime_tools", heartbeatBound: true }
+            : authLevel === "customer_portal"
+              ? { actor: "portal_token_holder", tokenHeader: "X-Paperclip-Customer-Portal" }
+            : authLevel === "external_review"
+              ? { actor: "review_token_holder", tokenHeader: "X-Paperclip-Review-Token", versionBound: true }
+            : authLevel === "scoped_api"
+              ? { actor: "scoped_public_api_key", companyBound: true, scopesRequired: true, readOnly: true }
+            : authLevel === "stripe_webhook"
+              ? { actor: "stripe_webhook", signatureRequired: true, rawBodyRequired: true }
               : authLevel === "authenticated"
                 ? { actor: "board_or_agent" }
                 : { actor: "public" };
@@ -12605,6 +12668,17 @@ registerCurrentRoute({
     cursor: z.string().optional(),
   }),
 });
+
+// Productization routes are documented in a separate declarative inventory. The
+// runtime routes remain the authority; actor labels below are reconciled to their
+// board, scoped-key, portal-token and Stripe-signature checks.
+for (const route of productizationOpenApiRoutes) {
+  registerCurrentRoute({
+    method: route.method, path: route.path, summary: route.summary, description: route.description,
+    body: route.body, bodyContentTypes: route.bodyContentTypes, query: route.query, response: route.response, status: route.status, noContent: route.noContent,
+    tags: ["Productization"],
+  });
+}
 
 // Every experimental REST route remains discoverable while its runtime feature
 // flag and actor checks stay authoritative. Shared validators prevent drift.

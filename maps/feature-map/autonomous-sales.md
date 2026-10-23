@@ -28,7 +28,7 @@ Open `/playbooks` to create a draft, edit its steps and publish it; `/playbooks/
 Preconditions: disposable company with one active agent, embedded PGlite, Stripe in test mode or no key (payment link then reports unavailable).
 
 1. Create and publish a playbook, start a run with an agent, advance with a stale `expectedStepIndex` and verify 409; publish version 2 and verify the run stays pinned to version 1.
-2. Grant autonomy above `draft_only` without a bench and verify 409; run the bench, raise, revoke and verify pending playbook triggers are disabled.
+2. Grant autonomy above `draft_only` without a valid bench and verify 409. The current mount has no replay/judge adapters, so requesting a bench must return actionable 422 without creating a run. After real adapters are wired, use at least 20 cases and a non-heuristic judge before raising; revoke and verify pending playbook triggers are disabled. This updated recipe has not been run.
 3. Create a proposal, send it, revise it (revision 2), accept revision 1 publicly and verify 409; accept revision 2 and inspect the stored evidence.
 4. Hand off the accepted proposal twice and verify one project and one assignment; inject a failing brief step and retry.
 5. Resolve a commercial decision twice and verify a single effect application; use an expired remote token and verify 410.
@@ -39,6 +39,6 @@ Targeted evidence: [playbooks](../../server/src/__tests__/playbooks-services.int
 ## Gotchas
 
 - The Sprint 2 tables (leads, opportunities, conversations, commitments, customers) exist in the integrated branch, but sprint 3 tables store their ids without foreign keys; each subject still needs its own company check, and the companion records what is verified.
-- The default bench candidate echoes the reference answer, so an unconfigured bench scores 1.0; inject a real candidate and judge before trusting the raise button.
+- An unconfigured bench returns 422 before creating a run; it cannot echo the reference to produce a passing score. Autonomy promotion rejects heuristic/unnamed judges and fewer than 20 cases. The current server mount still lacks real replay and judge adapters (source-only, not run).
 - Commercial decisions can only originate from an agent run bound to an issue, because `decisions` requires an origin run.
 - Acceptance and payment of a proposal are separate facts; a paid deposit never implies acceptance.

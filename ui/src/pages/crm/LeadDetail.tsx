@@ -1,3 +1,4 @@
+import { buildLeadConversion } from "@/lib/lead-conversion";
 import { useEffect, useState, type FormEvent } from "react";
 import { UserPlus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,7 +56,7 @@ export function LeadDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: t("crm.leads.title"), href: "/leads" },
+      { label: t("uxCrm.leads", { defaultValue: "Leads" }), href: "/sales/leads" },
       { label: lead ? leadTitle(lead) : t("crm.leads.title") },
     ]);
   }, [setBreadcrumbs, t, lead]);
@@ -81,11 +82,7 @@ export function LeadDetail() {
 
   const convertMutation = useMutation({
     mutationFn: () =>
-      leadsApi.convert(leadId, {
-        createOpportunity,
-        opportunityTitle: createOpportunity && opportunityTitle.trim() ? opportunityTitle.trim() : undefined,
-        idempotencyKey: conversionKey,
-      }),
+      leadsApi.convert(leadId, buildLeadConversion({ createOpportunity, opportunityTitle, idempotencyKey: conversionKey })),
     onSuccess: refresh,
   });
 
@@ -255,7 +252,7 @@ function LinkedRecords({ lead }: { lead: Lead }) {
   const rows: Array<[string, string | null, string | null]> = [
     [t("crm.leads.detail.contact"), lead.contactId, null],
     [t("crm.leads.detail.customer"), lead.customerId, lead.customerId ? `/customers/${lead.customerId}` : null],
-    [t("crm.leads.detail.opportunity"), lead.opportunityId, "/opportunities"],
+    [t("crm.leads.detail.opportunity"), lead.opportunityId, "/sales/opportunities"],
   ];
   return (
     <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">

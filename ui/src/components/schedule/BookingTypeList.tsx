@@ -6,10 +6,12 @@ import { publicBookingPath, type BookingType } from "../../api/calendar";
 interface BookingTypeListProps {
   companyId: string;
   types: BookingType[];
+  onRevoke: (type: { id: string; delegatedAt: string }) => void;
+  revokingId: string | null;
 }
 
 /** Booking types with their public link. The link works without a session. */
-export function BookingTypeList({ companyId, types }: BookingTypeListProps) {
+export function BookingTypeList({ companyId, types, onRevoke, revokingId }: BookingTypeListProps) {
   const { t } = useTranslation();
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [copyFailed, setCopyFailed] = useState(false);
@@ -40,11 +42,20 @@ export function BookingTypeList({ companyId, types }: BookingTypeListProps) {
               </p>
               {!type.connectionId ? (
                 <p className="text-xs text-muted-foreground">{t("schedule.noConnection")}</p>
-              ) : null}
+              ) : type.publicExecutionEnabled ? (
+                <p className="text-xs text-muted-foreground">{t("schedule.publicExecutionEnabled")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("schedule.publicExecutionDisabled")}</p>
+              )}
             </div>
             <Button variant="outline" size="sm" onClick={() => copy(type.slug)}>
               {copiedSlug === type.slug ? t("schedule.linkCopied") : t("schedule.copyLink")}
             </Button>
+            {type.publicExecutionEnabled && type.delegatedAt ? (
+              <Button variant="outline" size="sm" disabled={revokingId === type.id} onClick={() => onRevoke({ id: type.id, delegatedAt: type.delegatedAt! })}>
+                {revokingId === type.id ? t("schedule.revokingPublicExecution") : t("schedule.revokePublicExecution")}
+              </Button>
+            ) : null}
           </li>
         ))}
       </ul>

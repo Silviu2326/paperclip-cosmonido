@@ -7,7 +7,11 @@ import { useCompany } from "../../context/CompanyContext";
 import { useBreadcrumbs } from "../../context/BreadcrumbContext";
 import { EmptyState } from "../../components/EmptyState";
 import { PageSkeleton } from "../../components/PageSkeleton";
-import { OpportunityBoard, formatOpportunityAmount } from "../../components/crm/OpportunityBoard";
+import { OpportunityBoard, formatOpportunityAmount, isNextActionOverdue } from "../../components/crm/OpportunityBoard";
+import { OpportunityForecastPanel } from "../../components/crm/OpportunityForecastPanel";
+import { OpportunityNeedsMe } from "../../components/crm/OpportunityNeedsMe";
+import { authApi } from "../../api/auth";
+import { NativeSelect } from "@/components/ui/select";
 import { ActivityTimeline } from "../../components/crm/ActivityTimeline";
 import { CommitmentsList } from "../../components/crm/CommitmentsList";
 import { OpportunityCreateDialog } from "../../components/crm/OpportunityCreateDialog";
@@ -35,11 +39,35 @@ export function Opportunities() {
 
   const companyId = selectedCompanyId ?? "";
   const listKey = queryKeys.opportunities.list(companyId);
-  const { data, isLoading, error } = useQuery({
-    queryKey: listKey,
-    queryFn: () => crmApi.opportunities.list(companyId, { limit: 100 }),
+
+  const session = useQuery({ queryKey: queryKeys.auth.session, queryFn: () => authApi.getSession() });
+  const userId = session.data?.user?.id ?? session.data?.session?.userId ?? null;
+
+  // Owner filter is company-scoped state: it is dropped when the company changes.
+  const [ownerId, setOwnerId] = useState("");
+  const [knownOwners, setKnownOwners] = useState<string[]>([]);
+  useEffect(() => {
+    setOwnerId("");
+    setKnownOwners([]);
+    setSelected(null);
+  }, [companyId]);
+
+  // Key keeps the ["opportunities", companyId] prefix so existing invalidations still refresh it.
+  const { data, isLoading, error, refetch, isFetching } = useQuery({
+    queryKey: [...listKey, "board", ownerId] as const,
+    queryFn: () => crmApi.opportunities.list(companyId, { limit: 100, ownerId: ownerId || undefined }),
     enabled: Boolean(companyId),
   });
+
+  const items = data?.items ?? [];
+  useEffect(() => {
+    const found = items.map((item) => item.ownerUserId ?? item.ownerAgentId).filter((owner): owner is string => Boolean(owner));
+    if (found.length === 0) return;
+    setKnownOwners((current) => {
+      const next = Array.from(new Set([...current, ...found])).sort();
+      return next.length === current.length ? current : next;
+    });
+  }, [items]);
 
   const move = useMutation({
     mutationFn: ({ opportunity, stageKey }: { opportunity: Opportunity; stageKey: SalesStageKey }) =>
@@ -57,30 +85,73 @@ export function Opportunities() {
     return <EmptyState icon={Handshake} message={t("crm.opportunities.selectCompany")} />;
   }
   if (isLoading) return <PageSkeleton variant="list" />;
-  if (error) return <p className="text-sm text-destructive">{t("crm.opportunities.loadError")}</p>;
-
-  const items = data?.items ?? [];
+  if (error) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 text-sm text-destructive" role="alert">
+        <span>{t("crm.opportunities.loadError")}</span>
+        <Button size="sm" variant="outline" disabled={isFetching} onClick={() => void refetch()}>
+          {t("crm.opportunities.forecast.retry", { defaultValue: "Try again" })}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant={view === "board" ? "default" : "outline"} onClick={() => setView("board")}>
             {t("crm.opportunities.board")}
           </Button>
           <Button size="sm" variant={view === "list" ? "default" : "outline"} onClick={() => setView("list")}>
             {t("crm.opportunities.list")}
           </Button>
+          <label className="flex items-center gap-1 text-xs text-muted-foreground">
+            {t("crm.opportunities.owner")}
+            <NativeSelect value={ownerId} onChange={(event) => setOwnerId(event.target.value)}>
+              <option value="">{t("crm.opportunities.ownerAll", { defaultValue: "Everyone" })}</option>
+              {userId && <option value={userId}>{t("crm.opportunities.ownerMine", { defaultValue: "Mine" })}</option>}
+              {knownOwners
+                .filter((owner) => owner !== userId)
+                .map((owner) => (
+                  <option key={owner} value={owner}>
+                    {owner}
+                  </option>
+                ))}
+            </NativeSelect>
+          </label>
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           {t("crm.opportunities.create.title")}
         </Button>
       </div>
 
-      {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
+      {notice && (
+        <p className="text-sm text-muted-foreground" role="status">
+          {notice}
+        </p>
+      )}
+
+      <OpportunityForecastPanel companyId={companyId} ownerId={ownerId || undefined} />
+
+      {userId && <OpportunityNeedsMe companyId={companyId} userId={userId} items={items} onOpen={setSelected} />}
 
       {items.length === 0 ? (
-        <EmptyState icon={Handshake} message={t("crm.opportunities.empty")} />
+        <div className="flex flex-col items-center gap-3">
+          <EmptyState
+            icon={Handshake}
+            message={ownerId ? t("crm.opportunities.emptyOwner", { defaultValue: "This owner has no opportunities." }) : t("crm.opportunities.empty")}
+          />
+          {ownerId ? (
+            <Button size="sm" variant="outline" onClick={() => setOwnerId("")}>
+              {t("crm.opportunities.clearOwner", { defaultValue: "Show everyone" })}
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => setCreateOpen(true)}>
+              {t("crm.opportunities.create.title")}
+            </Button>
+          )}
+        </div>
       ) : view === "board" ? (
         <OpportunityBoard
           items={items}
@@ -106,7 +177,10 @@ export function Opportunities() {
                   <td className="p-2">{item.title}</td>
                   <td className="p-2">{item.stageKey ? t(`crm.opportunities.stages.${item.stageKey}`) : "-"}</td>
                   <td className="p-2">{formatOpportunityAmount(item.amountCents, item.currency) ?? "-"}</td>
-                  <td className="p-2">{item.nextAction ?? t("crm.opportunities.noNextAction")}</td>
+                  <td className={isNextActionOverdue(item) ? "p-2 text-destructive" : "p-2"}>
+                    {item.nextAction ?? t("crm.opportunities.noNextAction")}
+                    {isNextActionOverdue(item) && ` · ${t("crm.opportunities.overdue", { defaultValue: "Overdue" })}`}
+                  </td>
                   <td className="p-2">{item.ownerUserId ?? item.ownerAgentId ?? t("crm.opportunities.noOwner")}</td>
                 </tr>
               ))}

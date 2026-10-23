@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { COMPANY_IMPORT_TRANSFERS_ROUTE_PATH } from "@paperclipai/shared/company-import-transfer";
+import { LPC_CHARACTER_VERSION } from "@paperclipai/shared";
 import { errorHandler } from "../middleware/index.js";
 import { buildOpenApiSpec, openApiRoutes } from "../routes/openapi.js";
 
@@ -37,6 +38,50 @@ const apiPrefixes: Record<string, string> = {
   "slack-tools.ts": "/api",
   "email.ts": "/api",
   "cloud.ts": "/api/cloud",
+  "agent-explain.ts": "/api",
+  "assignments.ts": "/api",
+  "autonomy.ts": "/api",
+  "calendar.ts": "/api",
+  "channels-inbound.ts": "/api",
+  "commercial-decisions.ts": "/api",
+  "commitments.ts": "/api",
+  "conversations.ts": "/api",
+  "crm-memory.ts": "/api",
+  "crm-phone.ts": "/api",
+  "crm-sync.ts": "/api",
+  "crm.ts": "/api",
+  "customer-channels.ts": "/api",
+  "daily-brief.ts": "/api",
+  "deliverable-reviews.ts": "/api",
+  "external-action-recovery.ts": "/api",
+  "handoff.ts": "/api",
+  "lead-forms.ts": "/api",
+  "lead-qualification.ts": "/api",
+  "leads.ts": "/api",
+  "media-studio.ts": "/api",
+  "office.ts": "/api",
+  "playbooks.ts": "/api",
+  "productization-agency.ts": "/api",
+  "productization-builder.ts": "/api",
+  "productization-catalog.ts": "/api",
+  "productization-contact-import.ts": "/api",
+  "productization-customer-portal.ts": "/api",
+  "productization-media-presets.ts": "/api",
+  "productization-metrics.ts": "/api",
+  "productization-notifications.ts": "/api",
+  "productization-onboarding.ts": "/api",
+  "productization-public-catalog.ts": "/api",
+  "productization-security.ts": "/api",
+  "proposals.ts": "/api",
+  "s95-signup.ts": "/api",
+  "service-agreements.ts": "/api",
+  "webchat.ts": "/api",
+  "productization-public-api.ts": "/api",
+  "productization-accounts.ts": "/api",
+  "public/review.ts": "/api",
+  "public/booking.ts": "/api/p",
+  "public/leads.ts": "/api/p",
+  "public/chat.ts": "/api/p",
   "customer-success.ts": "/api/customer-success/v1",
   "companies.ts": "/api/companies",
   "company-skills.ts": "/api",
@@ -89,10 +134,17 @@ const apiPrefixes: Record<string, string> = {
   "user-profiles.ts": "/api",
 };
 
-const ROUTE_LITERAL_PATTERN =
-  /router\.(get|head|post|put|patch|delete)\(\s*["'`]([^"'`]+)["'`]/g;
-const ROUTE_ARRAY_PATTERN = /router\.(get|head|post|put|patch|delete)\(\s*\[([^\]]+)\]/g;
-const ROUTER_METHOD_PATTERN = /router\.(get|head|post|put|patch|delete)\(/;
+const ROUTER_BINDING_PATTERN = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:express\.)?Router\s*\(/g;
+function routerPatterns(source: string) {
+  const names = new Set(["router", ...[...source.matchAll(ROUTER_BINDING_PATTERN)].map((match) => match[1]!)]);
+  const receiver = [...names].map((name) => name.replace(/[$]/g, "\\$")).join("|");
+  const quote = String.fromCharCode(96);
+  return {
+    literal: new RegExp("\\b(?:" + receiver + ")\\.(get|head|post|put|patch|delete)\\(\\s*[\"'" + quote + "]([^\"'" + quote + "]+)[\"'" + quote + "]", "g"),
+    array: new RegExp(`\\b(?:${receiver})\\.(get|head|post|put|patch|delete)\\(\\s*\\[([^\\]]+)\\]`, "g"),
+    method: new RegExp(`\\b(?:${receiver})\\.(get|head|post|put|patch|delete)\\(`),
+  };
+}
 const HTTP_METHODS = new Set([
   "get",
   "put",
@@ -153,6 +205,7 @@ function createApp() {
 // literals; substitute the constants' values before normalizing.
 const routePathConstantSubstitutions: Record<string, string> = {
   "${COMPANY_IMPORT_TRANSFERS_ROUTE_PATH}": COMPANY_IMPORT_TRANSFERS_ROUTE_PATH,
+  "${LPC_CHARACTER_VERSION}": LPC_CHARACTER_VERSION,
 };
 
 function normalizeExpressPath(routePath: string) {
@@ -169,6 +222,18 @@ function normalizeExpressPath(routePath: string) {
 }
 
 function resolveMountedPath(file: string, prefix: string, routePath: string) {
+  if (file === "public/review.ts" && routePath.startsWith("/:companySlug/")) {
+    return `/api/p${routePath}`;
+  }
+  if (file === "productization-public-api.ts" && /^\/(customers|leads|assignments|proposals|results|conversations)(\/|$)/.test(routePath)) {
+    return `/api/v1${routePath}`;
+  }
+  if ((file === "commercial-decisions.ts" || file === "proposals.ts") && routePath.startsWith("/api/")) {
+    return routePath;
+  }
+  if (file === "productization-catalog.ts") {
+    routePath = routePath.replace("${base}", "/companies/:companyId/productization/catalog");
+  }
   if (file === "public-mcp.ts" && (routePath.startsWith("/mcp/oauth/") || routePath.startsWith("/.well-known/"))) return routePath;
   if (
     (file === "chat-channels.ts" || file === "email.ts") &&
@@ -203,31 +268,40 @@ function loadActualRoutes() {
   const excludedRoutes = new Set<string>();
   const unknownRouteFiles: string[] = [];
 
-  for (const file of fs
-    .readdirSync(ROUTES_DIR)
-    .filter((entry) => entry.endsWith(".ts"))) {
+  const routeFiles = fs.readdirSync(ROUTES_DIR)
+    .filter((entry) => entry.endsWith(".ts"))
+    .concat(fs.readdirSync(path.join(ROUTES_DIR, "public"))
+      .filter((entry) => entry.endsWith(".ts") && !entry.endsWith(".test.ts"))
+      .map((entry) => `public/${entry}`));
+  for (const file of routeFiles) {
     if (explicitOpenApiCoverageExclusions.has(file)) continue;
     const prefix = apiPrefixes[file];
     const source = fs.readFileSync(path.join(ROUTES_DIR, file), "utf8");
+    const patterns = routerPatterns(source);
     if (!prefix) {
-      if (ROUTER_METHOD_PATTERN.test(source)) {
+      if (patterns.method.test(source)) {
         unknownRouteFiles.push(file);
       }
       continue;
     }
 
-    for (const match of source.matchAll(ROUTE_LITERAL_PATTERN)) {
+    for (const match of source.matchAll(patterns.literal)) {
       const method = match[1].toUpperCase();
-      const routePath = match[2];
-      const operation = `${method} ${normalizeExpressPath(resolveMountedPath(file, prefix, routePath))}`;
-      if (explicitOpenApiOperationCoverageExclusions.has(operation)) {
-        excludedRoutes.add(operation);
-      } else {
-        routes.add(operation);
+      const rawPath = match[2];
+      const routePaths = file === "lead-forms.ts" && rawPath.includes("${action}")
+        ? ["publish", "unpublish", "archive", "restore"].map((action) => rawPath.replace("${action}", action))
+        : [rawPath];
+      for (const routePath of routePaths) {
+        const operation = `${method} ${normalizeExpressPath(resolveMountedPath(file, prefix, routePath))}`;
+        if (explicitOpenApiOperationCoverageExclusions.has(operation)) {
+          excludedRoutes.add(operation);
+        } else {
+          routes.add(operation);
+        }
       }
     }
 
-    for (const match of source.matchAll(ROUTE_ARRAY_PATTERN)) {
+    for (const match of source.matchAll(patterns.array)) {
       for (const literal of match[2].matchAll(/["'`]([^"'`]+)["'`]/g)) {
         const operation = `${match[1].toUpperCase()} ${normalizeExpressPath(resolveMountedPath(file, prefix, literal[1]))}`;
         if (explicitOpenApiOperationCoverageExclusions.has(operation)) excludedRoutes.add(operation);

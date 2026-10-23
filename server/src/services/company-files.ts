@@ -925,12 +925,20 @@ export function companyFilesService(db: Db, storage: StorageService) {
   async function restore(companyId: string, fileId: string, ctx: CompanyFileWriteContext = {}): Promise<CompanyFile> {
     const row = await getRow(fileId);
     if (!row || row.companyId !== companyId) throw notFound("File not found");
+    if (row.retentionPurgeStartedAt || row.retentionPurgedAt) {
+      throw conflict("This file cannot be restored because retention purge has started.", { code: "company_file_retention_purge_started" });
+    }
     if (!row.deletedAt) return (await getById(fileId))!;
     await assertNameFree(companyId, row.folderId ?? null, row.slug, fileId);
-    await db
+    const [restored] = await db
       .update(companyFiles)
       .set({ deletedAt: null, updatedByUserId: ctx.userId ?? null, updatedAt: new Date() })
-      .where(eq(companyFiles.id, fileId));
+      .where(and(
+        eq(companyFiles.id, fileId), eq(companyFiles.companyId, companyId), isNotNull(companyFiles.deletedAt),
+        isNull(companyFiles.retentionPurgeStartedAt), isNull(companyFiles.retentionPurgedAt),
+      ))
+      .returning({ id: companyFiles.id });
+    if (!restored) throw conflict("This file entered retention purge and can no longer be restored.", { code: "company_file_retention_purge_started" });
     return (await getById(fileId))!;
   }
 

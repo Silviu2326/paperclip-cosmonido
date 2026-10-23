@@ -732,7 +732,7 @@ export function Costs({
               {!hideBudgetsTab ? <TabsTrigger value="budgets">{t("costs.tabBudgets")}</TabsTrigger> : null}
               <TabsTrigger value="providers">{t("costs.tabProviders")}</TabsTrigger>
               <TabsTrigger value="billers">{t("costs.tabBillers")}</TabsTrigger>
-              <TabsTrigger value="assignments">{t("costs.tabAssignments", { defaultValue: "By assignment" })}</TabsTrigger>
+              <TabsTrigger value="assignments">{t("uxNav.taskResultCosts", { defaultValue: "Por tarea" })}</TabsTrigger>
               <TabsTrigger value="finance">{t("costs.tabFinance")}</TabsTrigger>
               <TabsTrigger value="decisions">{t("costs.tabDecisions")}</TabsTrigger>
               <TabsTrigger value="fast-responses">{t("costs.tabFastResponses")}</TabsTrigger>

@@ -146,7 +146,29 @@ export interface CallCrmToolInput {
   fetchImpl?: typeof fetch;
 }
 
+// Pista L. Read-only and kept apart from CRM_A2_TOOL_NAMES (that list is the closed set of ten A2
+// tools). The answer is the server's real sync state: configuration, connection, links by status,
+// the last jobs and what blocks a sync. It never reports success that did not happen.
+export const CRM_SYNC_TOOL_NAMES = ["crm_sync_status"] as const;
+export type CrmSyncToolName = (typeof CRM_SYNC_TOOL_NAMES)[number];
+
+export function isCrmSyncToolName(name: string): name is CrmSyncToolName {
+  return (CRM_SYNC_TOOL_NAMES as readonly string[]).includes(name);
+}
+
+const crmSyncStatusInput = z.object({ provider: z.enum(["hubspot", "pipedrive"]).optional() }).strict();
+
+export function crmSyncToolDefinitions() {
+  return CRM_SYNC_TOOL_NAMES.map((name) => ({
+    name,
+    description:
+      "Read the real status of the external CRM sync (HubSpot, Pipedrive): configuration, connection, conflicts, unconfirmed writes, the last jobs and what is blocking a sync.",
+    inputSchema: z.toJSONSchema(crmSyncStatusInput),
+  }));
+}
+
 export async function callCrmTool(input: CallCrmToolInput): Promise<unknown> {
+  if (isCrmSyncToolName(input.name)) return callCrmSyncStatus(input);
   if (!isCrmA2ToolName(input.name)) throw badRequest(`Unknown CRM tool: ${input.name}`);
   const spec = TOOL_SPECS[input.name];
   const args = spec.input.parse(input.arguments ?? {}) as Record<string, unknown>;
@@ -169,4 +191,20 @@ export async function callCrmTool(input: CallCrmToolInput): Promise<unknown> {
   };
 
   return spec.run(args, { companyId: input.companyId, call });
+}
+
+async function callCrmSyncStatus(input: CallCrmToolInput): Promise<unknown> {
+  const args = crmSyncStatusInput.parse(input.arguments ?? {});
+  const base = `${input.apiUrl.replace(/\/+$/, "").replace(/\/api$/, "")}/api`;
+  const query = args.provider ? `?provider=${args.provider}` : "";
+  const response = await (input.fetchImpl ?? fetch)(`${base}/companies/${input.companyId}/crm/sync/status${query}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${input.token}` },
+    signal: AbortSignal.timeout(60_000),
+  });
+  const result = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!response.ok) {
+    throw new Error(typeof result.error === "string" ? result.error : `CRM sync status failed (${response.status})`);
+  }
+  return result;
 }

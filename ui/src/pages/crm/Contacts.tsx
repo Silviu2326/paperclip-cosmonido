@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Plus, UserRound } from "lucide-react";
+import { Plus, Upload, UserRound } from "lucide-react";
+import { Link } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
 import { ApiError } from "../../api/client";
@@ -77,7 +78,13 @@ export function Contacts() {
           <option value="archived">{t("crm.contacts.statusArchived")}</option>
           <option value="all">{t("crm.contacts.statusAll")}</option>
         </NativeSelect>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <Button asChild size="sm" variant="outline">
+            <Link to="/customers/contacts/import">
+              <Upload className="h-3.5 w-3.5 mr-1.5" />
+              {t("uxCrm.importContacts", { defaultValue: "Import contacts" })}
+            </Link>
+          </Button>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             {t("crm.contacts.newContact")}

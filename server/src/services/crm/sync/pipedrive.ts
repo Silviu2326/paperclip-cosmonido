@@ -1,8 +1,2 @@
-import type { Db } from "@paperclipai/db";
-
-export function pipedriveSyncService(db: Db) {
-  void db;
-  return {
-    // TODO pista L: sincronización externa con Pipedrive (personas, organizaciones y oportunidades), vía gateExternalAction cuando escriba.
-  };
-}
+// The sync lives in services/crm-sync/ (pista L); this path only keeps the old entry point.
+export { crmSyncService as pipedriveSyncService } from "../../crm-sync/crm-sync.js";

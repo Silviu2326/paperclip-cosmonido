@@ -101,6 +101,20 @@ describe("ProfileSettings", () => {
     await act(async () => root.unmount());
   });
 
+  it("hosts the language selector and the collapsed company shortcuts instead of separate pages", async () => {
+    const root = createRoot(container);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    await act(async () => {
+      root.render(<QueryClientProvider client={queryClient}><ProfileSettings /></QueryClientProvider>);
+    });
+    await flushReact();
+    expect(container.querySelector("#language-settings-locale")).not.toBeNull();
+    const shortcuts = container.querySelector("details");
+    expect(shortcuts?.open).toBe(false);
+    expect(shortcuts?.querySelector("#nav-business")).not.toBeNull();
+    await act(async () => root.unmount());
+  });
+
   it("uploads a clicked avatar into Paperclip storage and persists the returned asset path", async () => {
     const root = createRoot(container);
     const queryClient = new QueryClient({

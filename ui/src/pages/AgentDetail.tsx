@@ -151,6 +151,7 @@ import {
   type AgentDetailView,
 } from "./agent-detail-navigation";
 import { t, useTranslation } from "@/i18n";
+import { AgentAutonomyLink } from "../components/team-workspace/TeamWorkspaceLinks";
 
 const runStatusIcons: Record<string, { icon: typeof CheckCircle2; color: string }> = {
   succeeded: { icon: CheckCircle2, color: "text-green-600 dark:text-green-400" },
@@ -1478,7 +1479,7 @@ export function AgentDetail() {
       )}
 
       {activeView === "permissions" && (
-        <div>
+        <div className="space-y-6">
           <ConfigurationTab
             agent={agent}
             companyId={resolvedCompanyId ?? undefined}
@@ -1489,6 +1490,7 @@ export function AgentDetail() {
             updatePermissions={updatePermissions}
             content="permissions"
           />
+          <AgentAutonomyLink agentId={agent.id} />
         </div>
       )}
 

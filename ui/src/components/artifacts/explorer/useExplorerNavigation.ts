@@ -5,6 +5,7 @@ import { companyFilesApi, type CompanyFileFolderNode, type ListCompanyFilesParam
 import { t } from "@/i18n";
 import { useLocation, useNavigate, useSearchParams } from "@/lib/router";
 import { queryKeys } from "@/lib/queryKeys";
+import { contextFilterParams, parseContextFilter, type ContextFilter } from "./context-properties";
 import {
   EXPLORER_SORT_KEYS,
   type ExplorerBox,
@@ -352,6 +353,8 @@ export function useExplorerNavigation(companyId: string) {
   const groupKey = params.get("groupKey");
   const sort = parseSort(params.get("sort"));
   const dir: ExplorerSortDir = params.get("dir") === "desc" ? "desc" : "asc";
+  // Context view (Entrada only): `?context=1` plus role/validity/audience/projectId.
+  const contextFilter = route.box === "in" && route.folderId === null && route.quick === null ? parseContextFilter(params) : null;
 
   const viewParam = params.get("view");
   const view: ExplorerView =
@@ -458,6 +461,15 @@ export function useExplorerNavigation(companyId: string) {
 
   const selectItem = useCallback((id: string | null) => patch({ sel: id }), [patch]);
 
+  /** Turns the context view on/off, or narrows it. Clears the selection: the listing changes. */
+  const setContextFilter = useCallback(
+    (filter: ContextFilter | null) => {
+      if (filter) patch({ ...contextFilterParams(filter), sel: null });
+      else patch({ context: null, role: null, validity: null, audience: null, projectId: null, sel: null }, false);
+    },
+    [patch],
+  );
+
   const setQuery = useCallback((text: string) => patch({ q: text.trim() || null, sel: null }), [patch]);
 
   const toggleSort = useCallback(
@@ -493,6 +505,8 @@ export function useExplorerNavigation(companyId: string) {
     groupKey,
     sel,
     q,
+    contextFilter,
+    setContextFilter,
     sort,
     dir,
     view,

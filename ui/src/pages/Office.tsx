@@ -14,6 +14,7 @@ import { loadOfficeAtlases, loadOfficeCatalog, OFFICE_CREDITS_URL, type OfficeAt
 import { OfficeCanvas } from "../office/OfficeCanvas";
 import { OfficeChat } from "../office/OfficeChat";
 import { useOfficeLayout } from "../office/useOfficeLayout";
+import { BackToTeamLink } from "../components/team-workspace/TeamWorkspaceLinks";
 
 /** Pixel-art office for the selected company (contract 7). */
 export function Office() {
@@ -71,6 +72,7 @@ export function Office() {
           <p className="text-sm text-muted-foreground">{t("office.presentCount", { count: present })}</p>
         </div>
         <div className="flex items-center gap-2">
+          <BackToTeamLink />
           <a href={OFFICE_CREDITS_URL} target="_blank" rel="noreferrer" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
             {t("office.credits")}
           </a>

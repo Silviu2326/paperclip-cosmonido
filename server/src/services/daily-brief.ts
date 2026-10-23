@@ -1,6 +1,6 @@
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { commitments, costEvents, crmActivities, dailyBriefPreferences, decisions, issues } from "@paperclipai/db";
+import { agents, commitments, companyMemberships, costEvents, crmActivities, dailyBriefPreferences, decisions, issues } from "@paperclipai/db";
 import type { DailyBrief, DailyBriefChannel, DailyBriefItem, DailyBriefPreference } from "@paperclipai/shared";
 import type { UpdateDailyBriefPreferenceInput } from "@paperclipai/shared";
 import { unprocessable } from "../errors.js";
@@ -21,14 +21,17 @@ const DEFAULT_TIMEZONE = "Europe/Madrid";
 export type DailyBriefSendInput = {
   companyId: string;
   userId: string;
+  deliveryAgentId: string | null;
   channel: "email" | "whatsapp";
   subject: string;
   markdown: string;
 };
-export type DailyBriefSendResult = { delivered: boolean; reason?: string };
+export type DailyBriefSendResult = { delivered: boolean; reason?: string; handoffTaskId?: string; retryable?: boolean };
 
 export interface DailyBriefDeps {
   send?: (input: DailyBriefSendInput) => Promise<DailyBriefSendResult>;
+  /** Creates idempotent, assigned agent work to deliver through the existing message_send gate. */
+  requestDeliveryTask?: (input: DailyBriefSendInput & { idempotencyKey: string }) => Promise<{ taskId: string } | null>;
   /** Supplied by WP5 once decisions are answerable remotely. */
   remoteDecisionUrl?: (companyId: string, decisionId: string) => Promise<string | null>;
   /** Overrides the default query (open commitments due within 48 h, or overdue). */
@@ -226,6 +229,8 @@ function defaultPreference(companyId: string, userId: string): DailyBriefPrefere
     id: "",
     companyId,
     userId,
+    deliveryAgentId: null,
+    pendingTaskId: null,
     enabled: false,
     channel: "email",
     hourLocal: 8,
@@ -241,6 +246,8 @@ function toPreference(row: typeof dailyBriefPreferences.$inferSelect): DailyBrie
     id: row.id,
     companyId: row.companyId,
     userId: row.userId,
+    deliveryAgentId: row.deliveryAgentId,
+    pendingTaskId: row.pendingTaskId,
     enabled: row.enabled,
     channel: row.channel as DailyBriefChannel,
     hourLocal: row.hourLocal,
@@ -380,6 +387,17 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
   ): Promise<DailyBriefPreference> {
     const changes: Partial<typeof dailyBriefPreferences.$inferInsert> = {};
     if (patch.enabled !== undefined) changes.enabled = patch.enabled;
+    if (patch.deliveryAgentId !== undefined) {
+      if (patch.deliveryAgentId !== null) {
+        const [agent] = await db.select({ id: agents.id }).from(agents).where(and(
+          eq(agents.id, patch.deliveryAgentId),
+          eq(agents.companyId, companyId),
+          inArray(agents.status, ["active", "idle", "running"]),
+        )).limit(1);
+        if (!agent) throw unprocessable("El agente de entrega debe estar activo y pertenecer a la empresa");
+      }
+      changes.deliveryAgentId = patch.deliveryAgentId;
+    }
     if (patch.channel !== undefined) changes.channel = patch.channel;
     if (patch.hourLocal !== undefined) changes.hourLocal = patch.hourLocal;
     if (patch.timezone !== undefined) {
@@ -405,16 +423,29 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
   ): Promise<DailyBriefSendResult> {
     const channel = row.channel as DailyBriefChannel;
     if (channel === "none") return { delivered: false, reason: "channel disabled" };
-    if (!deps.send) return { delivered: false, reason: "no delivery channel configured" };
     try {
       const brief = await compose(row.companyId, row.userId, { date: localDate, timezone: row.timezone });
-      return await deps.send({
+      const input = {
         companyId: row.companyId,
         userId: row.userId,
+        deliveryAgentId: row.deliveryAgentId,
         channel,
         subject: `Resumen de ${localDate}`,
         markdown: brief.markdown,
-      });
+      } as const;
+      if (deps.send) return await deps.send(input);
+      if (deps.requestDeliveryTask && row.deliveryAgentId) {
+        let handoff: { taskId: string } | null;
+        try {
+          handoff = await deps.requestDeliveryTask({ ...input, idempotencyKey: `daily-brief:${row.userId}:${localDate}` });
+        } catch (err) {
+          return { delivered: false, reason: err instanceof Error ? err.message : "delivery task request failed", retryable: true };
+        }
+        return handoff
+          ? { delivered: false, handoffTaskId: handoff.taskId, reason: "delivery delegated to an assigned agent; provider receipt is pending" }
+          : { delivered: false, reason: "delivery task was not accepted", retryable: true };
+      }
+      return { delivered: false, reason: row.deliveryAgentId ? "no authorized delivery channel or assigned delivery task configured" : "delivery agent not configured", retryable: true };
     } catch (err) {
       return { delivered: false, reason: err instanceof Error ? err.message : "send failed" };
     }
@@ -475,10 +506,10 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
 
   /**
    * Called every ~10 minutes by the scheduler. Sends at most one brief per
-   * preference per local day: lastSentOn is claimed before sending, so a
-   * failed attempt is not retried the same day.
+   * preference per local day: lastSentOn is claimed before the delivery attempt.
+   * A task handoff is recorded as pending work and is never counted as delivery.
    */
-  async function tick(at: Date = now()): Promise<{ attempted: number; delivered: number }> {
+  async function tick(at: Date = now()): Promise<{ attempted: number; delivered: number; handoffsCreated: number }> {
     for (const companyId of await companiesWithOverdueCommitments(db, at)) {
       try {
         await alertOverdueCommitments(companyId, at);
@@ -499,7 +530,15 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
 
     let attempted = 0;
     let delivered = 0;
+    let handoffsCreated = 0;
     for (const row of rows) {
+      const [ownerMembership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(
+        eq(companyMemberships.companyId, row.companyId),
+        eq(companyMemberships.principalType, "user"),
+        eq(companyMemberships.principalId, row.userId),
+        eq(companyMemberships.status, "active"),
+      )).limit(1);
+      if (!ownerMembership) continue;
       let localDate: string;
       let hour: number;
       try {
@@ -528,23 +567,37 @@ export function dailyBriefService(db: Db, deps: DailyBriefDeps = {}) {
       attempted += 1;
       const result = await sendBrief(row, localDate);
       if (result.delivered) delivered += 1;
+      if (result.handoffTaskId) handoffsCreated += 1;
+      if (result.delivered || result.handoffTaskId) {
+        await db.update(dailyBriefPreferences).set({
+          pendingTaskId: result.delivered ? null : result.handoffTaskId!,
+          updatedAt: at,
+        }).where(eq(dailyBriefPreferences.id, row.id));
+      }
+      if (result.retryable) {
+        // Task creation has a stable assignment idempotency key, so releasing the daily
+        // claim safely retries failures without duplicating work.
+        await db.update(dailyBriefPreferences).set({ lastSentOn: row.lastSentOn, updatedAt: at })
+          .where(and(eq(dailyBriefPreferences.id, row.id), eq(dailyBriefPreferences.lastSentOn, localDate)));
+      }
 
       await logActivity(db, {
         companyId: row.companyId,
         actorType: "system",
         actorId: "daily-brief",
-        action: result.delivered ? "daily_brief.sent" : "daily_brief.skipped",
+        action: result.delivered ? "daily_brief.sent" : result.handoffTaskId ? "daily_brief.delivery_task_created" : "daily_brief.skipped",
         entityType: "daily_brief_preference",
         entityId: row.id,
         details: {
           userId: row.userId,
           date: localDate,
           channel: row.channel,
+          ...(result.handoffTaskId ? { taskId: result.handoffTaskId } : {}),
           ...(result.reason ? { reason: result.reason } : {}),
         },
       });
     }
-    return { attempted, delivered };
+    return { attempted, delivered, handoffsCreated };
   }
 
   return { compose, getPreference, updatePreference, tick, alertOverdueCommitments };

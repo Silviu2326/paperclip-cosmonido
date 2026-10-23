@@ -9,7 +9,7 @@ import {
   type AutonomyBenchRun,
   type AutonomyBenchStatus,
 } from "@paperclipai/shared";
-import { conflict, notFound } from "../errors.js";
+import { conflict, notFound, unprocessable } from "../errors.js";
 import { costService } from "./costs.js";
 import { DEFAULT_AUTONOMY_BENCH_THRESHOLD } from "./autonomy.js";
 
@@ -26,9 +26,18 @@ export interface AutonomyBenchJudgement {
   model: string;
 }
 
+/** Candidate-visible replay context. Keep reference answers and labels outside this type. */
+export interface AutonomyBenchCandidateInput {
+  caseId: string;
+  actionType: AutonomyActionType;
+  transcript: ReadonlyArray<Readonly<{ role: "contact" | "us" | "system"; text: string; at?: string | null }>>;
+}
+
 export interface AutonomyBenchDeps {
-  judge?: (c: AutonomyBenchCase, candidate: string) => Promise<AutonomyBenchJudgement>;
-  candidate?: (c: AutonomyBenchCase) => Promise<string>;
+  judge?: (c: AutonomyBenchCase, candidate: string, context: { companyId: string; agentId: string }) => Promise<AutonomyBenchJudgement>;
+  candidate?: (c: AutonomyBenchCandidateInput) => Promise<string>;
+  /** The judge's own invocation ledger is authoritative; avoid a second aggregate charge. */
+  judgeAccountsCost?: boolean;
   loadCases?: (companyId: string, actionType: AutonomyActionType, sampleSize: number) => Promise<AutonomyBenchCase[]>;
   defaultThreshold?: number;
 }
@@ -90,23 +99,17 @@ export function tokenOverlapScore(candidate: string, reference: string) {
   return (2 * precision * recall) / (precision + recall);
 }
 
-const defaultCandidate = async (c: AutonomyBenchCase) => c.reference.text;
-
-const defaultJudge = async (c: AutonomyBenchCase, candidate: string): Promise<AutonomyBenchJudgement> => {
-  const score = tokenOverlapScore(candidate, c.reference.text);
-  return {
-    scores: { appropriateness: score, tone: score, facts: score, proposed_action: score },
-    costCents: 0,
-    model: AUTONOMY_BENCH_HEURISTIC_MODEL,
-  };
-};
-
 function excerpt(text: string) {
   return text.length > EXCERPT_LENGTH ? `${text.slice(0, EXCERPT_LENGTH - 1)}…` : text;
 }
 
 function textOf(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
+}
+
+/** Candidate-side contract deliberately excludes reference material and source provenance. */
+export function buildAutonomyBenchCandidateInput(item: AutonomyBenchCase): AutonomyBenchCandidateInput {
+  return { caseId: item.caseId, actionType: item.actionType, transcript: item.transcript };
 }
 
 /**
@@ -139,8 +142,8 @@ function caseFromTrainingExample(
 }
 
 export function autonomyBench(db: Db, deps: AutonomyBenchDeps = {}) {
-  const candidateOf = deps.candidate ?? defaultCandidate;
-  const judgeOf = deps.judge ?? defaultJudge;
+  const candidateOf = deps.candidate;
+  const judgeOf = deps.judge;
   const loadCases = deps.loadCases ?? (async (companyId: string, actionType: AutonomyActionType, sampleSize: number) => {
     // Closed conversations (Sprint 2) are not available yet, so decision training snapshots are used when
     // they match the action type. Otherwise the deterministic fixtures for that action type are used.
@@ -164,8 +167,16 @@ export function autonomyBench(db: Db, deps: AutonomyBenchDeps = {}) {
     let costCents = 0;
     let judgeModel: string = AUTONOMY_BENCH_HEURISTIC_MODEL;
     for (const item of cases) {
-      const candidate = await candidateOf(item);
-      const judgement = await judgeOf(item, candidate);
+      // These callbacks must come from a runtime adapter. Falling back to the
+      // expected answer or token overlap would produce a passing score without
+      // evaluating the agent.
+      // Do not let the candidate adapter observe the reference, source, or row
+      // identity. Only the pre-answer context is part of replay input.
+      const candidate = await candidateOf!(buildAutonomyBenchCandidateInput(item));
+      const judgement = await judgeOf!(item, candidate, { companyId, agentId });
+      if (!judgement.model?.trim() || judgement.model === AUTONOMY_BENCH_HEURISTIC_MODEL) {
+        throw new Error("The configured autonomy judge must identify a real model; heuristic scores cannot qualify an autonomy grant.");
+      }
       judgeModel = judgement.model;
       costCents += judgement.costCents;
       const scores = AUTONOMY_BENCH_DIMENSIONS.map((dimension) => clampScore(judgement.scores[dimension]));
@@ -187,16 +198,18 @@ export function autonomyBench(db: Db, deps: AutonomyBenchDeps = {}) {
     const score = round3(caseScores.reduce((sum, value) => sum + value, 0) / caseScores.length);
     const totalCostCents = round3(costCents);
 
-    await costService(db).createEvent(companyId, {
-      agentId,
-      usageKind: "autonomy_bench",
-      provider: "paperclip",
-      biller: "paperclip",
-      model: judgeModel,
-      costCents: totalCostCents,
-      occurredAt: new Date(),
-      idempotencyKey: `autonomy-bench:${run.id}`,
-    });
+    if (!deps.judgeAccountsCost) {
+      await costService(db).createEvent(companyId, {
+        agentId,
+        usageKind: "autonomy_bench",
+        provider: "paperclip",
+        biller: "paperclip",
+        model: judgeModel,
+        costCents: totalCostCents,
+        occurredAt: new Date(),
+        idempotencyKey: `autonomy-bench:${run.id}`,
+      });
+    }
 
     const [finished] = await db.update(autonomyBenchRuns).set({
       status: "done",
@@ -214,6 +227,12 @@ export function autonomyBench(db: Db, deps: AutonomyBenchDeps = {}) {
 
   return {
     async run(companyId: string, agentId: string, actionType: AutonomyActionType, options: AutonomyBenchRunOptions, actor: AutonomyBenchActor): Promise<AutonomyBenchRun> {
+      if (!candidateOf || !judgeOf) {
+        throw unprocessable(
+          "The autonomy bench is unavailable until a real agent replay adapter and model judge are configured. No bench run was created.",
+          { code: "autonomy_bench_evaluator_unconfigured" },
+        );
+      }
       const [agent] = await db.select({ id: agents.id }).from(agents).where(and(eq(agents.id, agentId), eq(agents.companyId, companyId)));
       if (!agent) throw notFound("Agent not found");
       const sampleSize = options.sampleSize ?? 20;

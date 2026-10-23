@@ -35,6 +35,10 @@ export const companyFiles = pgTable(
     createdByUserId: text("created_by_user_id"),
     updatedByUserId: text("updated_by_user_id"),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    // Retention sets startedAt before external storage I/O. Restore stays blocked
+    // across partial storage failures; purgedAt is set only after bytes are gone.
+    retentionPurgeStartedAt: timestamp("retention_purge_started_at", { withTimezone: true }),
+    retentionPurgedAt: timestamp("retention_purged_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

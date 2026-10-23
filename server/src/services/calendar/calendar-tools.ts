@@ -99,7 +99,7 @@ export function calendarAgentTools(
     async call(
       name: string,
       rawArguments: unknown,
-      context: { companyId: string; agentId: string },
+      context: { companyId: string; agentId: string; runId: string; issueId?: string | null },
     ): Promise<unknown> {
       if (!(CALENDAR_TOOL_NAMES as readonly string[]).includes(name)) {
         throw badRequest(`Unknown calendar tool: ${name}`);
@@ -107,6 +107,12 @@ export function calendarAgentTools(
       const parsed = argumentSchemas[name as CalendarToolName].safeParse(rawArguments ?? {});
       if (!parsed.success) throw badRequest(parsed.error.issues[0]?.message ?? "Invalid arguments");
       const actor = { agentId: context.agentId };
+      const authority = {
+        kind: "agent_real_run" as const,
+        agentId: context.agentId,
+        runId: context.runId,
+        issueId: context.issueId ?? null,
+      };
 
       switch (name as CalendarToolName) {
         case "calendar_availability": {
@@ -116,6 +122,7 @@ export function calendarAgentTools(
             ref: { slug: args.slug },
             from: new Date(args.from),
             to: new Date(args.to),
+            authority,
           });
         }
         case "calendar_book": {
@@ -126,6 +133,7 @@ export function calendarAgentTools(
             startsAt: new Date(args.startsAt),
             attendee: args.attendee,
             actor,
+            authority,
           });
           return {
             eventId: outcome.event.id,
@@ -144,12 +152,13 @@ export function calendarAgentTools(
             eventId: args.eventId,
             startsAt: new Date(args.startsAt),
             actor,
+            authority,
           });
           return { eventId: outcome.event.id, status: outcome.event.status, mode: outcome.mode, actionStatus: outcome.actionStatus };
         }
         case "calendar_cancel": {
           const args = parsed.data as z.infer<typeof argumentSchemas.calendar_cancel>;
-          const outcome = await booking.cancel({ companyId: context.companyId, eventId: args.eventId, actor });
+          const outcome = await booking.cancel({ companyId: context.companyId, eventId: args.eventId, actor, authority });
           return { eventId: outcome.event.id, status: outcome.event.status, mode: outcome.mode, actionStatus: outcome.actionStatus };
         }
       }

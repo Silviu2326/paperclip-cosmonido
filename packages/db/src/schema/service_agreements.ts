@@ -43,6 +43,8 @@ export const agreementPeriods = pgTable(
     assignmentGoalId: uuid("assignment_goal_id").references(() => goals.id, { onDelete: "set null" }),
     renewalProposalId: uuid("renewal_proposal_id").references(() => proposals.id, { onDelete: "set null" }),
     renewalDecisionId: uuid("renewal_decision_id"),
+    // A scheduler-created assignment is the durable handoff to an authorized agent run.
+    renewalTaskId: uuid("renewal_task_id").references(() => goals.id, { onDelete: "set null" }),
     status: text("status").notNull().default("planned"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

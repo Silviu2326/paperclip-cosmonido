@@ -11,6 +11,7 @@ import type {
   FeedbackTrace,
   FeedbackVote,
   Issue,
+  IssueListParams,
   IssueAccessGrant,
   IssueAccessGrantSubjectType,
   IssueVisibility,
@@ -115,10 +116,11 @@ export type IssueListFilters = {
   sortField?: "updated" | "id";
   afterId?: string;
   sortDir?: "asc" | "desc";
-};
+} & IssueListParams;
 
 function issueListSearchParams(filters?: IssueListFilters) {
   const params = new URLSearchParams();
+  if (filters?.review) params.set("review", filters.review);
   if (filters?.attention) params.set("attention", filters.attention);
   if (filters?.status) params.set("status", filters.status);
   if (filters?.projectId) params.set("projectId", filters.projectId);

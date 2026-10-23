@@ -33,6 +33,7 @@ export const createBookingTypeSchema = z.object({
   hostAgentId: z.string().uuid().nullable().optional(),
   hostUserId: z.string().min(1).max(200).nullable().optional(),
   connectionId: z.string().uuid().nullable().optional(),
+  publicExecutionEnabled: z.boolean().default(false),
 });
 
 export const availabilityQuerySchema = z.object({

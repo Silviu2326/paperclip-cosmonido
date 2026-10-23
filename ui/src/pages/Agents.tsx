@@ -23,6 +23,7 @@ import { BuiltInLifecycleChip } from "../components/BuiltInAgentBadges";
 import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { OrgChart } from "./OrgChart";
+import { AddTeamButton, TeamQuickLinks } from "../components/team-workspace/TeamWorkspaceLinks";
 import { relativeTime, cn, agentRouteRef, agentUrl } from "../lib/utils";
 import { PageTabBar } from "../components/PageTabBar";
 import { Tabs } from "@/components/ui/tabs";
@@ -47,7 +48,8 @@ const ConfigureBuiltInAgentModal = lazy(() =>
   })),
 );
 
-export const AGENT_FILTER_TABS = ["all", "active", "paused", "error", "builtin"] as const;
+import { AGENT_FILTER_TABS } from "../lib/agent-filter-tabs";
+export { AGENT_FILTER_TABS } from "../lib/agent-filter-tabs";
 type FilterTab = (typeof AGENT_FILTER_TABS)[number];
 
 const AGENT_FILTER_TAB_ITEMS: { value: FilterTab; label: string }[] = [
@@ -68,17 +70,21 @@ interface EnvironmentDescriptor {
   title: string;
 }
 
-const localEnvironmentDescriptor: EnvironmentDescriptor = {
+function localEnvironmentDescriptor(): EnvironmentDescriptor {
+  return {
   label: t("agents.envLocal"),
   detail: t("agents.envPaperclipHost"),
   title: t("agents.envLocalTitle"),
 };
+}
 
-const loadingEnvironmentDescriptor: EnvironmentDescriptor = {
+function loadingEnvironmentDescriptor(): EnvironmentDescriptor {
+  return {
   label: "—",
   detail: t("agents.envLoading"),
   title: t("agents.envLoading"),
 };
+}
 
 // Agents in these states never appear in the agents list — `terminated` is
 // hidden like an archived company, and `pending_approval` is a hiring gate that
@@ -161,7 +167,7 @@ function resolveAgentEnvironment(
   capabilities?: EnvironmentCapabilities | null,
 ): EnvironmentDescriptor {
   const environmentId = agent.defaultEnvironmentId ?? instanceDefaultEnvironmentId;
-  if (!environmentId) return localEnvironmentDescriptor;
+  if (!environmentId) return localEnvironmentDescriptor();
   const environment = environmentsById.get(environmentId);
   return environment
     ? describeEnvironment(environment, capabilities)
@@ -346,8 +352,8 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
   const showEnvironmentColumn = environmentsEnabled && (environments === undefined || environments.length > 1);
   const resolveRenderedEnvironment = (agentId: string) => (
     environmentDataLoading
-      ? loadingEnvironmentDescriptor
-      : environmentByAgentId.get(agentId) ?? localEnvironmentDescriptor
+      ? loadingEnvironmentDescriptor()
+      : environmentByAgentId.get(agentId) ?? localEnvironmentDescriptor()
   );
 
   const renderAgentRow = (agent: Agent) => {
@@ -482,6 +488,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
                 <Network className="h-3.5 w-3.5" />
               </Button>
           </div> : null}
+          <AddTeamButton />
           <Button size="sm" variant="outline" onClick={openNewAgent}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
             {t("agents.newAgent")}
@@ -489,9 +496,12 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         </div>
       </div>
 
-      {filtered.length > 0 && (
-        <p className="text-xs text-muted-foreground">{t("agents.count", { count: filtered.length })}</p>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-xs text-muted-foreground">
+          {filtered.length > 0 ? t("agents.count", { count: filtered.length }) : null}
+        </p>
+        <TeamQuickLinks />
+      </div>
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
@@ -499,6 +509,9 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
         <EmptyState
           icon={Bot}
           message={t("agents.createFirst")}
+          description={t("uxTeam.agents.emptyHint", {
+            defaultValue: "También puedes añadir un equipo completo desde las plantillas disponibles.",
+          })}
           action={t("agents.newAgent")}
           onAction={openNewAgent}
         />
@@ -650,8 +663,8 @@ function OrgTreeNode({
                   agent={agent}
                   environment={
                     environmentDataLoading
-                      ? loadingEnvironmentDescriptor
-                      : environmentByAgentId.get(agent.id) ?? localEnvironmentDescriptor
+                      ? loadingEnvironmentDescriptor()
+                      : environmentByAgentId.get(agent.id) ?? localEnvironmentDescriptor()
                   }
                   showEnvironment={showEnvironment}
                 />

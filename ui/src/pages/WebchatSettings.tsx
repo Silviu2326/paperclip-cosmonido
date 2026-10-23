@@ -12,13 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
+import { useAccountIdentity } from "@/api/companies-query";
+import { SettingsScopeHeader } from "@/components/product-settings/SettingsScopeHeader";
+import { ConversationDispatchSettings } from "@/features/productization/ConversationDispatchSettings";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const EMPTY_SETTINGS: WebchatSettingsData = { active: false, greeting: null, brandColor: null };
 
 export function WebchatSettings() {
   const { t } = useTranslation();
-  const { selectedCompanyId } = useCompany();
+  const { selectedCompanyId, selectedCompany } = useCompany();
+  const identity = useAccountIdentity();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const companyId = selectedCompanyId ?? "";
@@ -102,6 +106,13 @@ export function WebchatSettings() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      <SettingsScopeHeader
+        scope="apps"
+        scopeName={selectedCompany?.name}
+        backTarget="apps"
+        description={t("uxSettings.webchat.scope", { defaultValue: "The web chat widget is how visitors of your website talk to this company. Its appearance, automatic replies and embed code are set here; other customer channels are in Channels." })}
+        links={[{ to: "/apps/channels", label: t("uxSettings.webchat.channelsLink", { defaultValue: "Customer channels" }) }]}
+      />
       <p className="text-sm text-muted-foreground">{t("webchat.description")}</p>
       {loadError && <p className="text-sm text-destructive">{loadError}</p>}
 
@@ -166,6 +177,8 @@ export function WebchatSettings() {
           </Button>
         </div>
       </div>
+
+      {identity.settled && identity.userId ? <ConversationDispatchSettings key={`${selectedCompanyId}:${identity.userId}`} companyId={selectedCompanyId} userId={identity.userId} webchatActive={draft.active} /> : <p role={identity.settled ? "alert" : "status"} className="text-sm text-muted-foreground">{identity.settled ? t("webchat.dispatchUserRequired", { defaultValue: "Sign in as a company user to configure automatic replies." }) : t("webchat.dispatchLoadingIdentity", { defaultValue: "Checking company user..." })}</p>}
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium">{t("webchat.snippetTitle")}</h2>

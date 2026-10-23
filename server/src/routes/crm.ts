@@ -29,6 +29,8 @@ import {
 import { gateExternalAction } from "../services/external-action-gate.js";
 import { logActivity } from "../services/activity-log.js";
 import { opportunityService, closeOpportunitySchema, setNextActionSchema } from "../services/crm/opportunities.js";
+import { opportunityForecastService } from "../services/crm/opportunity-forecast.js";
+import { opportunityForecastQuerySchema } from "@paperclipai/shared/productization/opportunity-forecast";
 import { crmActivityService } from "../services/crm/activities.js";
 import { commitmentService } from "../services/crm/commitments.js";
 // A2 imports end
@@ -39,6 +41,7 @@ import { commitmentService } from "../services/crm/commitments.js";
 //   GET/POST  /companies/:companyId/contacts
 //   GET/PATCH /contacts/:id
 //   GET/POST  /companies/:companyId/opportunities
+//   GET       /companies/:companyId/opportunities/forecast   (S3 WP11, estimate only)
 //   GET/PATCH /opportunities/:id
 //   POST      /opportunities/:id/stage
 //   GET/POST  /companies/:companyId/crm/activities
@@ -232,6 +235,7 @@ export function crmRoutes(db: Db) {
 
   // A2 begin
   const opps = opportunityService(db);
+  const oppForecast = opportunityForecastService(db);
   const acts = crmActivityService(db);
   const commits = commitmentService(db);
 
@@ -325,6 +329,14 @@ export function crmRoutes(db: Db) {
     assertCompanyAccess(req, companyId);
     const query = opportunityListQuerySchema.parse(req.query);
     res.json(await opps.list(companyId, query));
+  });
+
+  // Registered before any `/:id` opportunity route so "forecast" is never read as an id.
+  router.get("/companies/:companyId/opportunities/forecast", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const query = opportunityForecastQuerySchema.parse(req.query);
+    res.json(await oppForecast.forecast(companyId, query));
   });
 
   router.post("/companies/:companyId/opportunities", validate(createOpportunitySchema), async (req, res) => {

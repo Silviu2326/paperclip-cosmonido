@@ -8,7 +8,7 @@ import {
   type UpdateContact,
 } from "@paperclipai/shared";
 import { badRequest, conflict, notFound, unprocessable } from "../../errors.js";
-import { logActivity } from "../activity-log.js";
+import { logActivity, type ActivityPublication } from "../activity-log.js";
 import {
   CrmDuplicateError,
   decodeCursor,
@@ -156,7 +156,7 @@ export function contactService(db: Db) {
     create: async (
       companyId: string,
       input: CreateContact,
-      options: { actor: CrmActor; force?: boolean },
+      options: { actor: CrmActor; force?: boolean; publications?: ActivityPublication[] },
     ): Promise<{ contact: ContactRow; created: boolean }> => {
       const { primaryEmail, primaryPhone } = normalizeContactFields({
         primaryEmail: input.primaryEmail ?? null,
@@ -251,7 +251,7 @@ export function contactService(db: Db) {
             ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
             ...(skippedIdentities.length > 0 ? { identitiesOwnedElsewhere: skippedIdentities } : {}),
           },
-        });
+        }, options.publications);
 
         if (input.customerId) {
           await linkWithin(txDb, companyId, input.customerId, row!.id, { role: null, isPrimary: false }, options.actor);

@@ -25,6 +25,8 @@ export interface BookingType {
   connectionId: string | null;
   hostAgentId: string | null;
   hostUserId: string | null;
+  publicExecutionEnabled: boolean;
+  delegatedAt: string | null;
 }
 
 export type CalendarEventStatus = "proposed" | "confirmed" | "cancelled";
@@ -55,6 +57,9 @@ export interface CreateBookingTypeBody {
   timezone: string;
   weeklyHours: BookingWeeklyHour[];
   connectionId?: string | null;
+  hostAgentId?: string | null;
+  hostUserId?: string | null;
+  publicExecutionEnabled?: boolean;
 }
 
 export interface BookingOutcome {
@@ -69,6 +74,11 @@ export const calendarApi = {
     api.get<BookingType[]>(`/companies/${companyId}/calendar/booking-types`),
   createBookingType: (companyId: string, body: CreateBookingTypeBody) =>
     api.post<BookingType>(`/companies/${companyId}/calendar/booking-types`, body),
+  revokePublicExecution: (companyId: string, bookingTypeId: string, expectedDelegatedAt: string) =>
+    api.post<{ bookingTypeId: string; publicExecutionEnabled: false }>(
+      `/companies/${companyId}/calendar/booking-types/${bookingTypeId}/public-execution/revoke`,
+      { expectedDelegatedAt },
+    ),
   availability: (companyId: string, params: { bookingTypeId: string; from: string; to: string }) => {
     const qs = new URLSearchParams({ bookingTypeId: params.bookingTypeId, from: params.from, to: params.to });
     return api.get<{ bookingType: { id: string; slug: string; name: string }; slots: CalendarSlot[] }>(

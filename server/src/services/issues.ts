@@ -1813,6 +1813,7 @@ export function parseStatusFilter(
 
 export interface IssueFilters {
   attention?: "blocked";
+  review?: "required" | "pending";
   status?: string | readonly string[];
   /**
    * Filter by assignee agent ID.
@@ -1859,6 +1860,42 @@ export interface IssueFilters {
   sortDir?: "asc" | "desc";
   /** ISO 8601 timestamp — only return issues with updatedAt strictly after this value. */
   updatedSince?: string;
+}
+
+function latestAssignmentReviewExists(companyId: string, goalId: SQL, state?: "pending" | "accepted" | "changes_requested") {
+  const stateFilter = state ? sql`AND current_review.state = ${state}` : sql``;
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM deliverable_reviews current_review
+    WHERE current_review.company_id = ${companyId}
+      AND current_review.goal_id = ${goalId}
+      ${stateFilter}
+      AND NOT EXISTS (
+        SELECT 1 FROM deliverable_reviews newer_review
+        WHERE newer_review.company_id = current_review.company_id
+          AND newer_review.goal_id = current_review.goal_id
+          AND newer_review.target_kind = current_review.target_kind
+          AND newer_review.target_id = current_review.target_id
+          AND (newer_review.created_at > current_review.created_at
+            OR (newer_review.created_at = current_review.created_at AND newer_review.id > current_review.id))
+      )
+  )`;
+}
+
+function assignmentTaskReviewCondition(companyId: string, filter: "required" | "pending") {
+  return sql<boolean>`EXISTS (
+    SELECT 1 FROM goals assignment_goal
+    WHERE assignment_goal.company_id = ${companyId}
+      AND assignment_goal.kind = 'assignment'
+      AND assignment_goal.root_issue_id = ${issues.id}
+      ${filter === "required" ? sql`` : sql`AND assignment_goal.status <> 'cancelled'
+        AND ${issues.status} <> 'cancelled'
+        AND NOT ${latestAssignmentReviewExists(companyId, sql`assignment_goal.id`, "changes_requested")}
+        AND (
+          ${latestAssignmentReviewExists(companyId, sql`assignment_goal.id`, "pending")}
+          OR ${issues.status} = 'in_review'
+          OR (${issues.status} = 'done' AND NOT ${latestAssignmentReviewExists(companyId, sql`assignment_goal.id`)})
+        )`}
+  )`;
 }
 
 type IssueRow = typeof issues.$inferSelect & { externalConversationState?: "active" | "waiting" | null };
@@ -7988,6 +8025,7 @@ export function issueService(db: Db) {
         eq(issues.companyId, companyId),
         visibleIssueCondition(),
       ];
+      if (filters?.review) conditions.push(assignmentTaskReviewCondition(companyId, filters.review));
       if (!filters?.q?.trim()) {
         conditions.push(isNull(issues.conversationAgentId));
         if (!filters?.touchedByUserId && !filters?.unreadForUserId && !filters?.inboxArchivedByUserId) {
@@ -11218,6 +11256,27 @@ export function issueService(db: Db) {
           .returning()
           .then((rows: Array<typeof issues.$inferSelect>) => rows[0] ?? null);
         if (!updated) return null;
+        // Assignment goals mirror their root task. Keep the goal-side details
+        // in the same transaction as edits made from the canonical task surface.
+        // Completion remains a review decision and is intentionally not copied
+        // into goal.status. Cancellation and reopening do mirror the task so a
+        // reopened assignment is not left permanently cancelled.
+        const assignmentPatch: Partial<typeof goals.$inferInsert> = { updatedAt: new Date() };
+        if (issueData.title !== undefined) assignmentPatch.title = updated.title;
+        if (issueData.description !== undefined) assignmentPatch.description = updated.description;
+        if (issueData.projectId !== undefined) assignmentPatch.projectId = updated.projectId;
+        if (issueData.assigneeAgentId !== undefined || issueData.assigneeUserId !== undefined) {
+          assignmentPatch.assigneeAgentId = updated.assigneeAgentId;
+        }
+        if (updated.status === "cancelled") assignmentPatch.status = "cancelled";
+        else if (receiptExisting.status === "cancelled") assignmentPatch.status = "active";
+        if (Object.keys(assignmentPatch).length > 1) {
+          await tx.update(goals).set(assignmentPatch).where(and(
+            eq(goals.companyId, updated.companyId),
+            eq(goals.rootIssueId, updated.id),
+            eq(goals.kind, "assignment"),
+          ));
+        }
         if (workspaceSelectionActor && updated.workspaceBindingRevision !== receiptExisting.workspaceBindingRevision) {
           await executionWorkspaceService(db).assertTaskWorkspaceUpdateAccess({
             task: updated, actor: workspaceSelectionActor,

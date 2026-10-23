@@ -24,6 +24,8 @@ export const mediaDubSchema = z.object({
   if (totalChars > 100_000) ctx.addIssue({ code: "custom", path: ["translatedSegments"], message: "Dubbing text must not exceed 100,000 characters" });
 });
 export const mediaTranscribeSchema = z.object({ idempotencyKey: z.string().min(1).max(200) });
+export const mediaQueueQuerySchema = z.object({ limit: z.coerce.number().int().min(1).max(100).default(25), cursor: z.string().max(500).optional() });
+export const mediaPriorityUpdateSchema = z.object({ priority: z.number().int().min(0).max(100), expectedUpdatedAt: z.string().min(20).max(40).refine(value => !Number.isNaN(Date.parse(value))) });
 
 const frameAssetIdsSchema = z.array(id).min(1).max(200);
 const dubVoiceIdSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);

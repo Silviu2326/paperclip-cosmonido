@@ -22,7 +22,8 @@ import {
   emailTransportService,
   projectEmailConversations,
 } from "../services/conversations/transports/email.js";
-import { assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
+import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo } from "./authz.js";
+import { conversationAgentDispatchService } from "../services/conversations/agent-dispatch.js";
 import type { Request } from "express";
 
 // Sprint 2 pista C (Bandeja). Endpoints:
@@ -62,6 +63,12 @@ const reconcileSchema = z
   })
   .strict();
 
+const agentDispatchSettingsSchema = z.object({
+  enabled: z.boolean(),
+  agentId: uuid,
+  responsibleUserId: z.string().trim().min(1).max(200),
+}).strict();
+
 function actorOf(req: Request): ConversationActor {
   const info = getActorInfo(req);
   if (info.actorType === "agent") return { agentId: info.agentId ?? info.actorId };
@@ -72,7 +79,23 @@ export function conversationRoutes(db: Db, email?: EmailChannelService) {
   const router = Router();
   const convs = conversationService(db);
   const msgs = conversationMessageService(db);
+  const agentDispatch = conversationAgentDispatchService(db);
   if (email) registerConversationTransport(emailTransportService(db, email));
+
+  router.get("/companies/:companyId/conversation-agent-dispatch", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    res.json(await agentDispatch.getSettings(companyId));
+  });
+
+  router.put("/companies/:companyId/conversation-agent-dispatch", validate(agentDispatchSettingsSchema), async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertBoard(req);
+    assertCompanyAccess(req, companyId);
+    const actor = getActorInfo(req);
+    if (actor.actorType !== "user") throw badRequest("Only an authenticated company user can configure automatic replies");
+    res.json(await agentDispatch.configure(companyId, actor.actorId, req.body));
+  });
 
   router.get("/companies/:companyId/conversations", async (req, res) => {
     const companyId = req.params.companyId as string;

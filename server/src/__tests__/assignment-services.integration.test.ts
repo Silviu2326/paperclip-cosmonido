@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { agents, companies, createDb, deliverableReviews, documentRevisions, documents, goals, issueComments, issueDocuments, issueWorkProducts, issues } from "@paperclipai/db";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { assignmentService } from "../services/assignments.js";
@@ -33,6 +33,51 @@ describePg("assignment and deliverable review services", () => {
     const own = await company("Own"); const other = await company("Other"); const foreign = await agent(other.id, "Foreign");
     await expect(createAssignment(own.id, foreign.id, randomUUID())).rejects.toMatchObject({ status: 404 });
     expect(await db.select().from(goals).where(eq(goals.companyId, own.id))).toHaveLength(0);
+  });
+
+  it("keeps task edits and cancellation synchronized without deriving acceptance from completion", async () => {
+    const c = await company("Task-side edits"); const a = await agent(c.id, "Worker");
+    const assignment = await createAssignment(c.id, a.id, randomUUID());
+    const [product] = await db.insert(issueWorkProducts).values({ companyId: c.id, issueId: assignment.rootIssueId!, type: "artifact", provider: "paperclip", title: "Pending result", status: "ready_for_review" }).returning();
+    await deliverableReviewService(db).submit(c.id, { goalId: assignment.id, issueId: assignment.rootIssueId, targetKind: "work_product", targetId: product.id, targetVersion: product.updatedAt.toISOString(), summary: "Needs review" }, { agentId: a.id });
+    await issueService(db).update(assignment.rootIssueId!, { title: "Updated task title", description: "Updated task context", assigneeAgentId: null, companyGuard: c.id });
+    const edited = await assignmentService(db).getById(assignment.id);
+    expect(edited?.title).toBe("Updated task title");
+    expect(edited?.description).toBe("Updated task context");
+    expect(edited?.assigneeAgentId).toBeNull();
+    expect(edited?.assignmentStatus).toBe("awaiting_review");
+
+    await issueService(db).update(assignment.rootIssueId!, { status: "cancelled", companyGuard: c.id });
+    const cancelled = await assignmentService(db).getById(assignment.id);
+    expect(cancelled?.status).toBe("cancelled");
+    expect(cancelled?.assignmentStatus).toBe("cancelled");
+    expect(cancelled?.rootIssue?.status).toBe("cancelled");
+
+    await issueService(db).update(assignment.rootIssueId!, { status: "todo", companyGuard: c.id });
+    const reopened = await assignmentService(db).getById(assignment.id);
+    expect(reopened?.status).toBe("active");
+    expect(reopened?.rootIssue?.status).toBe("todo");
+    expect(reopened?.assignmentStatus).toBe("awaiting_review");
+  });
+
+  it("filters the task collection by the latest review per target before pagination", async () => {
+    const c = await company("Review task filter"); const a = await agent(c.id, "Worker");
+    const assignment = await createAssignment(c.id, a.id, randomUUID());
+    const plainTask = await issueService(db).create(c.id, { title: "Plain task", status: "todo", idempotencyKey: randomUUID() });
+    const [product] = await db.insert(issueWorkProducts).values({ companyId: c.id, issueId: assignment.rootIssueId!, type: "artifact", provider: "paperclip", title: "Filtered result", status: "ready_for_review" }).returning();
+    const reviews = deliverableReviewService(db);
+    const first = await reviews.submit(c.id, { goalId: assignment.id, issueId: assignment.rootIssueId, targetKind: "work_product", targetId: product.id, targetVersion: product.updatedAt.toISOString(), summary: "Ready" }, { agentId: a.id });
+    expect((await issueService(db).list(c.id, { review: "required", limit: 1 })).map((task) => task.id)).toContain(assignment.rootIssueId);
+    expect((await issueService(db).list(c.id, {
+      review: "required",
+      limit: 1,
+      readCondition: sql`${issues.id} = ${assignment.rootIssueId}`,
+    })).map((task) => task.id)).toEqual([assignment.rootIssueId]);
+    expect((await issueService(db).list(c.id, { review: "pending" })).map((task) => task.id)).toEqual([assignment.rootIssueId]);
+    await reviews.resolve(first.id, { state: "accepted" }, { userId: "board-user" });
+    expect((await issueService(db).list(c.id, { review: "pending" })).map((task) => task.id)).not.toContain(assignment.rootIssueId);
+    expect((await issueService(db).list(c.id, { review: "required" })).map((task) => task.id)).toContain(assignment.rootIssueId);
+    expect((await issueService(db).list(c.id, { review: "pending" })).map((task) => task.id)).not.toContain(plainTask.id);
   });
 
   it("deduplicates review submission and leaves stale versions pending on resolve conflict", async () => {

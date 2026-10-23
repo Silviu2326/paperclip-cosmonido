@@ -22,6 +22,20 @@ export interface SignOutResult {
   redirectTo?: string;
 }
 
+export type AuthSessionDevice = {
+  id: string;
+  token: string;
+  userId: string;
+  expiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+};
+
+export type TwoFactorSignInResult = { twoFactorRedirect?: boolean; twoFactorMethods?: string[] };
+export type AuthProviderAvailability = { emailDeliveryConfigured: boolean; emailVerificationRequired: boolean; googleEnabled: boolean };
+
 export class AuthApiError extends Error {
   status: number;
   code: string | null;
@@ -108,7 +122,7 @@ function logAuthHttpError(method: string, path: string, status: number, statusTe
     requestUrl: resolveAuthUrl(path),
     status,
     statusText,
-    body,
+    body: "[auth response omitted]",
   });
 }
 
@@ -171,12 +185,47 @@ export const authApi = {
     return nested;
   },
 
-  signInEmail: async (input: { email: string; password: string }) => {
-    await authPost("/sign-in/email", input);
+  getTwoFactorEnabled: async (): Promise<boolean> => {
+    const res = await fetch("/api/auth/get-session", { credentials: "include", headers: { Accept: "application/json" }, cache: "no-store" });
+    const payload = await readApiJson(res);
+    if (!res.ok) throw extractAuthError(payload as AuthErrorBody, res.status);
+    if (!payload || typeof payload !== "object") return false;
+    const root = payload as Record<string, unknown>;
+    const value = root.user && typeof root.user === "object" ? root.user as Record<string, unknown>
+      : root.data && typeof root.data === "object" && (root.data as Record<string, unknown>).user && typeof (root.data as Record<string, unknown>).user === "object"
+        ? (root.data as Record<string, unknown>).user as Record<string, unknown> : null;
+    return value?.twoFactorEnabled === true;
   },
 
-  signUpEmail: async (input: { name: string; email: string; password: string }) => {
+  signInEmail: async (input: { email: string; password: string }): Promise<TwoFactorSignInResult> => {
+    return await authPost("/sign-in/email", input) as TwoFactorSignInResult;
+  },
+
+  signUpEmail: async (input: { name: string; email: string; password: string; callbackURL?: string }): Promise<void> => {
     await authPost("/sign-up/email", input);
+  },
+
+  getProviderAvailability: async (): Promise<AuthProviderAvailability> => {
+    const res = await fetch("/api/auth/provider-availability", { credentials: "include", headers: { Accept: "application/json" }, cache: "no-store" });
+    const payload = await readApiJson(res);
+    if (!res.ok || !payload || typeof payload !== "object") throw new Error("Could not load sign-in options.");
+    const value = payload as Record<string, unknown>;
+    return {
+      emailDeliveryConfigured: value.emailDeliveryConfigured === true,
+      emailVerificationRequired: value.emailVerificationRequired === true,
+      googleEnabled: value.googleEnabled === true,
+    };
+  },
+
+  sendVerificationEmail: async (input: { email: string; callbackURL: string }) => {
+    await authPost("/send-verification-email", input);
+  },
+
+  signInGoogle: async (callbackURL: string): Promise<{ url: string }> => {
+    const payload = await authPost("/sign-in/social", { provider: "google", callbackURL });
+    const value = payload && typeof payload === "object" ? payload as Record<string, unknown> : null;
+    if (!value || typeof value.url !== "string") throw new Error("Google sign-in did not return a redirect URL.");
+    return { url: value.url };
   },
 
   getProfile: async (): Promise<CurrentUserProfile> => {
@@ -206,4 +255,17 @@ export const authApi = {
       ...(typeof result.redirectTo === "string" ? { redirectTo: result.redirectTo } : {}),
     };
   },
+
+  verifyTotp: async (code: string) => authPost("/two-factor/verify-totp", { code, trustDevice: false }),
+  verifyBackupCode: async (code: string) => authPost("/two-factor/verify-backup-code", { code, trustDevice: false }),
+  enableTotp: async (password: string) => authPost("/two-factor/enable", { password, method: "totp" }),
+  disableTwoFactor: async (password: string) => authPost("/two-factor/disable", { password }),
+  generateBackupCodes: async (password: string) => authPost("/two-factor/generate-backup-codes", { password }),
+  listSessions: async (): Promise<AuthSessionDevice[]> => {
+    const res = await fetch("/api/auth/list-sessions", { credentials: "include", headers: { Accept: "application/json" }, cache: "no-store" });
+    const payload = await readApiJson(res);
+    if (!res.ok) throw extractAuthError(payload as AuthErrorBody, res.status);
+    return Array.isArray(payload) ? payload as AuthSessionDevice[] : [];
+  },
+  revokeSession: async (token: string) => authPost("/revoke-session", { token }),
 };

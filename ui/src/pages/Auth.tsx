@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useSearchParams } from "@/lib/router";
+import { useLocation, useNavigate, useSearchParams } from "@/lib/router";
 import { authApi } from "../api/auth";
 import { healthApi } from "../api/health";
 import { CloudSignIn } from "@/components/CloudSignIn";
@@ -14,6 +14,7 @@ import { RobotLoading } from "@/components/RobotLoading";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PaperclipLockup } from "../components/PaperclipLockup";
 import { useTranslation } from "@/i18n";
+import { LoginSecondFactor } from "./LoginSecondFactor";
 
 type AuthMode = "sign_in" | "sign_up";
 
@@ -21,27 +22,52 @@ export function AuthPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<AuthMode>("sign_in");
+  const [mode, setMode] = useState<AuthMode>(() => location.pathname === "/signup" ? "sign_up" : "sign_in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [verificationPending, setVerificationPending] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [twoFactorMethods, setTwoFactorMethods] = useState<string[] | null>(null);
   const errorId = "auth-error";
 
   const nextPath = useMemo(
-    () => tenantSignInReturnPath(searchParams.get("next") || getRememberedInvitePath() || "/"),
+    () => {
+      const planId = searchParams.get("planId") || searchParams.get("plan");
+      const planContinuation = planId ? `/billing?planId=${encodeURIComponent(planId)}` : null;
+      return tenantSignInReturnPath(searchParams.get("next") || planContinuation || getRememberedInvitePath() || "/");
+    },
     [searchParams],
   );
+  const planIntent = searchParams.get("planId") || searchParams.get("plan");
   const healthQuery = useQuery({
     queryKey: queryKeys.health,
     queryFn: () => healthApi.get(),
     retry: false,
   });
+  const providerAvailability = useQuery({ queryKey: ["auth", "provider-availability"], queryFn: authApi.getProviderAvailability, retry: false, staleTime: 60_000 });
   const { data: session, isLoading: isSessionLoading, error: sessionError } = useQuery({
     queryKey: queryKeys.auth.session,
     queryFn: () => authApi.getSession(),
     retry: false,
+  });
+
+  const resendVerification = useMutation({
+    mutationFn: () => authApi.sendVerificationEmail({
+      email: email.trim(),
+      callbackURL: new URL(nextPath, window.location.origin).toString(),
+    }),
+    onSuccess: () => { setError(null); setVerificationSent(true); },
+    onError: (err) => { setError(err instanceof Error ? err.message : t("auth.verificationResendError", { defaultValue: "Could not resend the verification email." })); },
+  });
+
+  const googleSignIn = useMutation({
+    mutationFn: () => authApi.signInGoogle(new URL(nextPath, window.location.origin).toString()),
+    onSuccess: ({ url }) => { window.location.assign(url); },
+    onError: (err) => { setError(err instanceof Error ? err.message : t("auth.googleSignInError", { defaultValue: "Google sign-in could not be started." })); },
   });
 
   useEffect(() => {
@@ -54,17 +80,33 @@ export function AuthPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (mode === "sign_in") {
-        await authApi.signInEmail({ email: email.trim(), password });
-        return;
+        return await authApi.signInEmail({ email: email.trim(), password });
       }
       await authApi.signUpEmail({
         name: name.trim(),
         email: email.trim(),
         password,
+        callbackURL: new URL(nextPath, window.location.origin).toString(),
       });
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      if (result?.twoFactorRedirect) {
+        setTwoFactorMethods(result.twoFactorMethods ?? []);
+        return;
+      }
       setError(null);
+      setVerificationSent(false);
+      if (mode === "sign_up") {
+        const [currentSession, availability] = await Promise.all([
+          authApi.getSession(),
+          providerAvailability.data ? Promise.resolve(providerAvailability.data) : authApi.getProviderAvailability().catch(() => null),
+        ]);
+        if (!currentSession && availability?.emailVerificationRequired) {
+          setVerificationPending(true);
+          return;
+        }
+      }
+      setVerificationPending(false);
       await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
       await queryClient.invalidateQueries({ queryKey: queryKeys.health });
       // Reset rather than invalidate: the `["companies"]` entry is shared app-wide and
@@ -76,6 +118,7 @@ export function AuthPage() {
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : t("auth.authFailed"));
+      if (mode === "sign_up" && providerAvailability.data?.emailVerificationRequired) setVerificationPending(true);
     },
   });
 
@@ -101,6 +144,20 @@ export function AuthPage() {
     return <CloudSignIn cloud={healthQuery.data.cloud} returnTo={nextPath} />;
   }
 
+  if (twoFactorMethods) {
+    return <LoginSecondFactor
+      methods={twoFactorMethods}
+      onBack={() => { setTwoFactorMethods(null); setPassword(""); }}
+      onVerified={async () => {
+        setTwoFactorMethods(null);
+        await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.health });
+        await queryClient.resetQueries({ queryKey: queryKeys.companies.all });
+        navigate(nextPath, { replace: true });
+      }}
+    />;
+  }
+
   return (
     <div className="fixed inset-0 flex bg-background">
       <div className="absolute top-4 right-4 z-10">
@@ -121,6 +178,8 @@ export function AuthPage() {
               ? t("auth.signInDescription")
               : t("auth.createDescription")}
           </p>
+          {mode === "sign_up" && planIntent && <p className="mt-3 text-sm text-muted-foreground">{t("productBilling.signupPlanSelected", { defaultValue: "Your selected plan will be prepared after you create your account." })}</p>}
+          {mode === "sign_up" && <p className="mt-2 text-xs text-muted-foreground">{t("productBilling.verificationNote", { defaultValue: "Trials require a verified email. If verification delivery is not configured for this instance, you can still sign up, but the trial waits until the account is verified." })}</p>}
 
           <form
             className="mt-6 space-y-4"
@@ -162,7 +221,7 @@ export function AuthPage() {
                 className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => { setEmail(event.target.value); setVerificationPending(false); setVerificationSent(false); }}
                 autoComplete="username"
                 required
                 aria-required="true"
@@ -206,6 +265,20 @@ export function AuthPage() {
             </Button>
           </form>
 
+          {verificationPending && <div className="mt-4 grid gap-2 rounded-md border p-3" aria-live="polite">
+            <p className="text-sm text-muted-foreground">{t("auth.verificationPending", { defaultValue: "This instance requires email verification before sign-in. Request a fresh verification link if needed." })}</p>
+            {verificationSent && <p role="status" className="text-sm">{t("auth.verificationSent", { defaultValue: "If this address is eligible, a verification link has been sent." })}</p>}
+            <Button type="button" variant="outline" disabled={resendVerification.isPending || !email.trim()} onClick={() => { setVerificationSent(false); resendVerification.mutate(); }}>
+              {resendVerification.isPending ? t("auth.working") : t("auth.resendVerification", { defaultValue: "Resend verification email" })}
+            </Button>
+          </div>}
+
+          {providerAvailability.data?.googleEnabled && <div className="mt-4">
+            <Button type="button" variant="outline" className="w-full" disabled={googleSignIn.isPending} onClick={() => googleSignIn.mutate()}>
+              {googleSignIn.isPending ? t("auth.working") : t("auth.continueWithGoogle", { defaultValue: "Continue with Google" })}
+            </Button>
+          </div>}
+
           <div className="mt-5 text-sm text-muted-foreground">
             {mode === "sign_in" ? t("auth.needAccount") : t("auth.haveAccount")}{" "}
             <button
@@ -213,6 +286,8 @@ export function AuthPage() {
               className="font-medium text-foreground underline underline-offset-2"
               onClick={() => {
                 setError(null);
+                setVerificationPending(false);
+                setVerificationSent(false);
                 setMode(mode === "sign_in" ? "sign_up" : "sign_in");
               }}
             >

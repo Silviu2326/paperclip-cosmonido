@@ -54,8 +54,8 @@ With combined Inbox/Tasks enabled, open the corresponding Tasks view instead.
 
 ### `board-approval`
 
-Open Approvals → Pending or All (`/approvals/pending`, `/approvals/all`). Use the
-card action or open `/approvals/:approvalId` for details, comments, revision
+Open the Inbox approvals filter (`/approvals/pending` and `/approvals/all` redirect to it, or to the Tasks "Everything"
+view with combined Inbox/Tasks). Use the row action or open `/approvals/:approvalId` for details, comments, revision
 request, and resubmission. These are formal approvals, not ordinary questions.
 
 ### `app-review`

@@ -1,0 +1,5 @@
+-- S95 WP4 autonomy bench: no schema changes in this slice.
+-- Added an isolated native Runner replay transport primitive; it is explicitly
+-- non-qualified and is not wired into production bench composition. No company
+-- candidate provenance, budget receipts, or run states were added, so do not
+-- generate or apply a migration for this fragment.

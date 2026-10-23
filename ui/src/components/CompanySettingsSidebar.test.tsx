@@ -140,8 +140,6 @@ describe("CompanySettingsSidebar", () => {
     });
     await flushReact();
 
-    expect(container.textContent).not.toContain("Paperclip");
-    expect(container.textContent).not.toContain("Ajustes");
     expect(container.querySelector('[aria-label="Back from Settings"]')).toBeNull();
     const settingsSurface = container.querySelector('[data-contextual-sidebar="settings"]');
     expect(settingsSurface?.classList).toContain("primary-sidebar-surface");
@@ -149,6 +147,8 @@ describe("CompanySettingsSidebar", () => {
       primarySidebarStyles.nav,
     );
     const settingsHeader = container.querySelector('[data-slot="settings-sidebar-header"]');
+    expect(settingsHeader?.textContent).not.toContain("Paperclip");
+    expect(settingsHeader?.textContent).not.toContain("Ajustes");
     expect(settingsHeader?.classList).toContain("h-(--sz-60px)");
     expect(settingsHeader?.classList).toContain("items-center");
     expect(settingsHeader?.textContent).toContain("Volver a la aplicación");

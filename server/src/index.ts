@@ -86,7 +86,6 @@ import {
   bootstrapExecutionPolicyFromEnv,
   environmentCustomImageService,
   decisionService,
-  dailyBriefService,
   playbookService,
   autonomyService,
   decisionRetentionService,
@@ -106,6 +105,7 @@ import {
   workspaceOperationService,
 } from "./services/index.js";
 import { questionResponseDeliveryService } from "./services/question-response-delivery.js";
+import { commercialAutomation } from "./services/commercial-automation.js";
 import { deliverNativeQuestionResponse } from "./services/native-runtime/native-question-bridge.js";
 import { queueIssueAssignmentWakeup } from "./services/issue-assignment-wakeup.js";
 import { createSecretProposalsService } from "./services/secret-proposals.js";
@@ -1428,7 +1428,7 @@ async function startServerWithDatabaseTeardown(
   if (heartbeat) {
     const secretProposals = createSecretProposalsService(db as any);
     const decisionExecutor = decisionService(db as any, decisionServiceOptions);
-    const dailyBrief = dailyBriefService(db as any);
+    const commercialMaintenance = commercialAutomation(db as any);
     const sprint3Playbooks = playbookService(db as any);
     let lastDailyBriefTickAt = 0;
     const retentionExecutor = decisionRetentionService(db as any, {
@@ -1775,12 +1775,12 @@ async function startServerWithDatabaseTeardown(
         trackHeartbeatSchedulerWork(runRetentionSweep().catch((err: unknown) => {
           logger.error({ err }, "decision retention sweep failed");
         }));
-        // Sprint 3 WP13: the daily owner brief checks every ten minutes which users are due at their local hour.
+        // One durable owner for commercial triggers, renewals and daily briefs.
         if (Date.now() - lastDailyBriefTickAt >= 10 * 60 * 1000) {
           lastDailyBriefTickAt = Date.now();
-          trackHeartbeatSchedulerWork(dailyBrief.tick()
-            .then((result) => { if (result.attempted > 0) logger.info({ ...result }, "daily brief tick"); })
-            .catch((err: unknown) => { logger.error({ err }, "daily brief tick failed"); }));
+          trackHeartbeatSchedulerWork(commercialMaintenance.tick()
+            .then((result) => { logger.info({ ...result }, "commercial maintenance tick"); })
+            .catch((err: unknown) => { logger.error({ err }, "commercial maintenance tick failed"); }));
         }
         const sweptRuntimeStatuses = heartbeat.sweepExpiredRuntimeStatuses();
         if (sweptRuntimeStatuses > 0) {

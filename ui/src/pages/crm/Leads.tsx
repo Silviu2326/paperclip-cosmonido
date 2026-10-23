@@ -1,3 +1,4 @@
+import { buildLeadConversion } from "@/lib/lead-conversion";
 import { useEffect, useState, type FormEvent } from "react";
 import { UserPlus, Upload } from "lucide-react";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -84,7 +85,7 @@ export function Leads() {
 
   const convertMutation = useMutation({
     // A fresh key per click; the button stays disabled while the request is pending.
-    mutationFn: (lead: Lead) => leadsApi.convert(lead.id, { createOpportunity: false, idempotencyKey: crypto.randomUUID() }),
+    mutationFn: (lead: Lead) => leadsApi.convert(lead.id, buildLeadConversion({ idempotencyKey: crypto.randomUUID() })),
     onSuccess: refresh,
   });
 
@@ -179,7 +180,7 @@ export function Leads() {
                 return (
                   <tr key={lead.id} className="border-t border-border">
                     <td className="px-3 py-2">
-                      <Link to={`/leads/${lead.id}`} className="font-medium hover:underline">{leadTitle(lead)}</Link>
+                      <Link to={`/sales/leads/${lead.id}`} className="font-medium hover:underline">{leadTitle(lead)}</Link>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{t(`crm.leads.source.${lead.source}`)}</td>
                     <td className="px-3 py-2"><Badge variant="outline">{t(`crm.leads.status.${lead.status}`)}</Badge></td>
@@ -190,7 +191,7 @@ export function Leads() {
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1.5">
                         <Button size="sm" variant="ghost" asChild>
-                          <Link to={`/leads/${lead.id}`}>{t("crm.leads.actions.open")}</Link>
+                          <Link to={`/sales/leads/${lead.id}`}>{t("crm.leads.actions.open")}</Link>
                         </Button>
                         {open && lead.status === "new" && (
                           <Button size="sm" variant="ghost" disabled={triageMutation.isPending} onClick={() => triageMutation.mutate(lead)}>
@@ -198,7 +199,7 @@ export function Leads() {
                           </Button>
                         )}
                         {open && (
-                          <Button size="sm" variant="ghost" disabled={convertMutation.isPending} onClick={() => convertMutation.mutate(lead)}>
+                          <Button size="sm" variant="ghost" disabled={convertMutation.isPending} title={t("crm.leads.convert.quickHint", { defaultValue: "Convierte sin crear oportunidad. Para crearla, abre el lead." })} onClick={() => convertMutation.mutate(lead)}>
                             {t("crm.leads.actions.convert")}
                           </Button>
                         )}

@@ -17,6 +17,7 @@ export interface WaitingPlaybookRun {
   id: string;
   currentStepKind: string;
   nextActionAt: string | null;
+  currentStepIndex?: number;
 }
 
 export interface CommercialTriggerDeps {
@@ -35,7 +36,7 @@ export interface CommercialTriggerResult {
 
 /** A contact reply is a `stage_changed` event whose payload says `reason: "contact_replied"`. */
 export function isContactReply(event: CommercialTriggerEvent): boolean {
-  return event.kind === "stage_changed" && event.payload?.reason === "contact_replied";
+  return event.payload?.reason === "contact_replied";
 }
 
 export function commercialTriggers(db: Db, deps: CommercialTriggerDeps) {
@@ -44,24 +45,26 @@ export function commercialTriggers(db: Db, deps: CommercialTriggerDeps) {
     const runs = await deps.findWaitingRuns(event.companyId, event.subjectKind, event.subjectId);
     if (runs.length === 0) return { advanced: 0, stopped: 0 };
 
-    if (deps.isUnsubscribed && (await deps.isUnsubscribed(event.companyId, event.subjectKind, event.subjectId))) {
-      for (const run of runs) await deps.stopSequence(run.id, "unsubscribed");
+    // An absent consent resolver means consent is unknown. Do not advance a sequence that
+    // could dispatch an external follow-up without checking the contact's current preference.
+    let consentDenied = !deps.isUnsubscribed;
+    if (deps.isUnsubscribed) {
+      try {
+        consentDenied = await deps.isUnsubscribed(event.companyId, event.subjectKind, event.subjectId);
+      } catch {
+        consentDenied = true;
+      }
+    }
+    if (consentDenied) {
+      for (const run of runs) await deps.stopSequence(run.id, "consent_unavailable_or_unsubscribed");
       return { advanced: 0, stopped: runs.length };
     }
 
     if (isContactReply(event)) {
-      let stopped = 0;
-      let advanced = 0;
       for (const run of runs) {
-        if (run.currentStepKind === "follow_up") {
-          await deps.stopSequence(run.id, "contact_replied");
-          stopped += 1;
-        } else {
-          await deps.advanceRun(run.id, "contact_replied");
-          advanced += 1;
-        }
+        await deps.stopSequence(run.id, "contact_replied");
       }
-      return { advanced, stopped };
+      return { advanced: 0, stopped: runs.length };
     }
 
     for (const run of runs) await deps.advanceRun(run.id, event.kind);

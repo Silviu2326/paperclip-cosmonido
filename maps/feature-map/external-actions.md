@@ -6,7 +6,7 @@ navigation: {"section":"Customers and sales","sectionOrder":25,"order":100}
 
 Every action that leaves the company (email, message, booking, stage change, proposal, publication, call, review link) passes one gate. A board user acts directly. An agent acts according to its autonomy level for that action type: draft only (nothing is sent), send with approval (an approval is requested), or send direct. A repeated request with the same key returns the first action.
 
-Implementation: [approvals](../../ui/src/pages/Approvals.tsx), [autonomy matrix](../../ui/src/pages/Autonomy.tsx), [gate service](../../server/src/services/external-action-gate.ts), [approval routes](../../server/src/routes/approvals.ts).
+Implementation: [approval detail](../../ui/src/pages/ApprovalDetail.tsx), [inbox approvals filter](../../ui/src/pages/Inbox.tsx), [autonomy matrix](../../ui/src/pages/Autonomy.tsx), [gate service](../../server/src/services/external-action-gate.ts), [approval routes](../../server/src/routes/approvals.ts).
 Agent access: [companion](../agent-access-map/external-actions.md).
 
 ## Sub-features

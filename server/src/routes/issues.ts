@@ -107,6 +107,7 @@ import {
   upsertIssueWatchdogSchema,
   linkIssueApprovalSchema,
   issueDocumentKeySchema,
+  issueReviewFilterSchema,
   ISSUE_CONTINUATION_SUMMARY_DOCUMENT_KEY,
   ISSUE_WATCHDOG_DISCOVERY_KINDS,
   TASK_WATCHDOG_PRODUCT_BUG_ORIGIN_KIND,
@@ -8306,6 +8307,12 @@ export function issueRoutes(
         ? Number.parseInt(rawOffset, 10)
         : null;
     const attention = req.query.attention as string | undefined;
+    const parsedReview = req.query.review === undefined ? null : issueReviewFilterSchema.safeParse(req.query.review);
+    if (parsedReview && !parsedReview.success) {
+      res.status(400).json({ error: "review must be required or pending" });
+      return;
+    }
+    const review = parsedReview?.success ? parsedReview.data : undefined;
     const sortField = req.query.sortField as string | undefined;
     const sortDir = req.query.sortDir as string | undefined;
     const view = req.query.view as string | undefined;
@@ -8460,6 +8467,7 @@ export function issueRoutes(
     const listFilters: IssueFilters = {
       readCondition: await issueReadSqlCondition(db, req.actor),
       attention: attention === "blocked" ? "blocked" : undefined,
+      review,
       status: req.query.status as string | string[] | undefined,
       assigneeAgentId,
       participantAgentId: req.query.participantAgentId as string | undefined,

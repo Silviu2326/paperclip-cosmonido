@@ -1,7 +1,7 @@
 export const VOICE_SESSION_STATES = ["reserved", "creating", "creation_unknown", "connecting", "active", "awaiting_approval", "ending", "ended", "failed", "expired"] as const;
 export type VoiceSessionState = typeof VOICE_SESSION_STATES[number];
 export type VoiceSessionMode = "browser" | "inbound_phone" | "outbound_phone";
-export type VoiceCallerAuthority = "member" | "instance_admin" | "local_board" | "guest_intake" | "pending_approval";
+export type VoiceCallerAuthority = "member" | "instance_admin" | "local_board" | "guest_intake" | "pending_approval" | "crm_callback";
 
 /** Safe board projection. No provider key, call token, signing key, or recordings. */
 export interface VoiceSession {

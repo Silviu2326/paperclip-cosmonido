@@ -2,6 +2,7 @@ import { DeliverableReviewPanel } from "@/components/DeliverableReviewPanel";
 import { MediaProjectPanel } from "@/components/MediaProjectPanel";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Film } from "lucide-react";
 import { companyArtifactsArchivePath, type CompanyArtifact } from "@/api/artifacts";
 import { useNavigate } from "@/lib/router";
 import { companyFilesApi, type CompanyFile, type CompanyFileFolderNode } from "@/api/company-files";
@@ -44,6 +45,9 @@ import {
   toPreviewTarget,
   type ExplorerItem,
 } from "@/components/artifacts/explorer/explorer-model";
+import { ContextFilterBar } from "@/components/artifacts/explorer/ContextFilterBar";
+import { FileContextProperties } from "@/components/artifacts/explorer/FileContextProperties";
+import { useContextMode } from "@/components/artifacts/explorer/useContextMode";
 import { useFolderAgentVisibility } from "@/components/artifacts/explorer/useFolderAgentVisibility";
 import { useInboxDialogs } from "@/components/artifacts/explorer/inbox/InboxDialogs";
 import {
@@ -59,7 +63,7 @@ import {
   type ExplorerTarget,
 } from "@/components/artifacts/explorer/useExplorerNavigation";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { t, useTranslation } from "@/i18n";
+import { useTranslation } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 
 const WIDE_QUERY = "(min-width: 768px)";
@@ -105,7 +109,13 @@ export function ArtifactsExplorer() {
   const navigate = useNavigate();
   const nav = useExplorerNavigation(companyId);
   const inbox = useInboxDialogs(companyId);
-  const uploads = useCompanyFileUploads(companyId, nav.box === "in" ? nav.folderId : null);
+  // Context view (?context=1): the Entrada narrowed to reference files; uploads from it get context properties.
+  const context = useContextMode(companyId, nav.contextFilter, nav.q);
+  const uploads = useCompanyFileUploads(
+    companyId,
+    nav.box === "in" ? nav.folderId : null,
+    context.active ? context.applyUploadDefaults : undefined,
+  );
   const isWide = useIsWide();
 
   const [versionPick, setVersionPick] = useState<{ fileId: string; versionNumber: number } | null>(null);
@@ -115,8 +125,8 @@ export function ArtifactsExplorer() {
   const noticeTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: t("artifacts.breadcrumb") }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: tr("uxFiles.files", { defaultValue: "Files" }) }]);
+  }, [setBreadcrumbs, tr]);
 
   useEffect(() => () => window.clearTimeout(noticeTimer.current), []);
 
@@ -181,7 +191,7 @@ export function ArtifactsExplorer() {
   const groupMode = !isIn && nav.groupBy !== null && !isOutFavorites;
 
   const entryTree = useEntryTree(companyId);
-  const entryList = useEntryList(companyId, isIn && !quick ? nav.folderId : null, isIn ? quick : null, nav.q, isIn);
+  const entryList = useEntryList(companyId, isIn && !quick ? nav.folderId : null, isIn ? quick : null, nav.q, isIn && !context.active);
   const outTree = useOutTreeNode(companyId, nav.node, !isIn && !isIssueNode && !groupMode && !isOutFavorites);
   const outStarred = useOutStarredArtifacts(companyId, isOutFavorites);
   const issueList = useOutIssueArtifacts(companyId, isIn ? null : issueId);
@@ -192,7 +202,9 @@ export function ArtifactsExplorer() {
     nav.groupKey,
   );
 
-  const activeQuery = isIn
+  const activeQuery = context.active
+    ? context.files
+    : isIn
     ? entryList
     : isOutFavorites
       ? outStarred
@@ -207,6 +219,7 @@ export function ArtifactsExplorer() {
   const failed = activeQuery.isError;
 
   const rawItems = useMemo<ExplorerItem[]>(() => {
+    if (context.active) return context.visibleFiles.map(entryFileItem);
     if (isIn) {
       const folders = quick ? [] : ((entryList.data?.folders ?? []) as CompanyFileFolderNode[]);
       return [...folders.map(entryFolderItem), ...(entryList.data?.files ?? []).map(entryFileItem)];
@@ -217,6 +230,8 @@ export function ArtifactsExplorer() {
     if (isIssueNode) return (issueList.data?.artifacts ?? []).map(outFileItem);
     return (outTree.data?.children ?? []).map(outNodeItem);
   }, [
+    context.active,
+    context.visibleFiles,
     isIn,
     quick,
     entryList.data,
@@ -430,9 +445,21 @@ export function ArtifactsExplorer() {
       onSelect: () => toggleFavorite(selected),
     };
     if (selected.box === "in") {
+      const createVideo: ArtifactPreviewAction[] = selectedFile
+        && selectedFile.audienceKind === "company"
+        && !selectedFile.validUntil
+        && selectedFile.contentType.startsWith("video/")
+        ? [{
+            id: "create-video",
+            label: tr("uxFiles.createVideoFromFile", { defaultValue: "Create video from this file" }),
+            icon: Film,
+            onSelect: () => navigate(`/artifacts/media/new?sourceFileId=${encodeURIComponent(selectedFile.id)}`),
+          }]
+        : [];
       return [
         open,
         download,
+        ...createVideo,
         { id: "replace", label: tr("artifacts.explorer.ctx.replace"), onSelect: () => menuActions.replaceVersion(selected) },
         { id: "move", label: tr("artifacts.explorer.ctx.move"), onSelect: () => menuActions.move(selected) },
         { id: "rename", label: tr("artifacts.explorer.ctx.rename"), onSelect: () => menuActions.rename(selected) },
@@ -449,9 +476,19 @@ export function ArtifactsExplorer() {
       copy,
       favorite,
     ];
-  }, [copyLink, menuActions, openFullscreen, previewTarget, selected, toggleFavorite, tr]);
+  }, [copyLink, menuActions, navigate, openFullscreen, previewTarget, selected, selectedFile, toggleFavorite, tr]);
 
-  const handleUpload = useCallback((files: File[]) => uploads.upload(files), [uploads]);
+  const uploadBlocker = context.active ? context.uploadBlocker : null;
+  const handleUpload = useCallback(
+    (files: File[]) => {
+      if (uploadBlocker) {
+        flash(tr("context.uploadBlocked", { defaultValue: "Elige un proyecto autorizado en las propiedades de subida antes de subir archivos." }));
+        return;
+      }
+      uploads.upload(files);
+    },
+    [flash, tr, uploadBlocker, uploads],
+  );
 
   // The upload list only shows work in progress or failures; finished rows are cleared by the hook.
   const visibleUploads = useMemo(
@@ -490,8 +527,12 @@ export function ArtifactsExplorer() {
 
   const closeMenu = useCallback(() => setMenu(null), []);
 
-  const emptyTitle = nav.q ? tr("artifacts.explorer.empty.noMatch", { q: nav.q }) : tr("artifacts.explorer.empty.folder");
-  const emptyHint = nav.q
+  const emptyTitle = nav.q
+    ? tr("artifacts.explorer.empty.noMatch", { q: nav.q })
+    : context.active
+      ? tr("context.empty", { defaultValue: "Todavía no hay archivos en esta sección." })
+      : tr("artifacts.explorer.empty.folder");
+  const emptyHint = nav.q || context.active
     ? null
     : isIn
       ? tr("artifacts.explorer.empty.folderHint")
@@ -547,6 +588,7 @@ export function ArtifactsExplorer() {
       folder={folderPanel}
       supplement={<>
         {selectedArtifact ? <DeliverableReviewPanel issueId={selectedArtifact.issue.id} targetId={selectedArtifact.reviewTargetId ?? selectedArtifact.id.replace(/^work_product:/, "")} /> : selectedFile?.currentVersionId ? <DeliverableReviewPanel companyId={companyId} targetId={selectedFile.currentVersionId} /> : null}
+        {selectedFile ? <FileContextProperties key={`${selectedFile.id}:${String(selectedFile.updatedAt)}`} companyId={companyId} file={selectedFile} /> : null}
         {(selectedArtifact?.mediaProjectId || selectedArtifact?.assetId && selectedArtifact.contentType?.startsWith("video/") || selectedFile?.contentType.startsWith("video/")) ? <MediaProjectPanel key={selectedArtifact?.id ?? selectedFile?.id} companyId={companyId} assetId={selectedArtifact?.assetId ?? undefined} projectId={selectedArtifact?.mediaProjectId ?? undefined} companyFileId={selectedFile?.id} /> : null}
       </>}
     />
@@ -574,6 +616,8 @@ export function ArtifactsExplorer() {
         onTogglePreview={() => nav.setPreviewOpen(!nav.previewOpen)}
         onUpload={handleUpload}
         onNewFolder={() => inbox.openNewFolder(nav.folderId)}
+        contextActive={context.active}
+        onToggleContext={() => nav.setContextFilter(nav.contextFilter ? null : { role: "any", validity: "all", audience: "any", projectId: null })}
         downloadEnabled={selected ? selected.kind === "file" : archivePath !== null}
         onDownload={() => {
           if (selected) {
@@ -583,6 +627,15 @@ export function ArtifactsExplorer() {
           if (archivePath) void downloadArchive(archivePath, archiveName);
         }}
       />
+
+      {nav.contextFilter ? (
+        <ContextFilterBar
+          filter={nav.contextFilter}
+          onFilter={nav.setContextFilter}
+          onClose={() => nav.setContextFilter(null)}
+          mode={context}
+        />
+      ) : null}
 
       <div className="flex min-h-0 flex-1">
         <div className="hidden lg:flex">

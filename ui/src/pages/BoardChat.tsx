@@ -1,4 +1,5 @@
 import { AgentAvatar } from "@/components/AgentAvatar";
+import { ConfigCopilotLauncher } from "@/features/productization/builder/ConfigCopilot";
 import {
   useEffect,
   useLayoutEffect,
@@ -685,6 +686,7 @@ export function BoardChat() {
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
+              {selectedCompanyId ? <ConfigCopilotLauncher companyId={selectedCompanyId} /> : null}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

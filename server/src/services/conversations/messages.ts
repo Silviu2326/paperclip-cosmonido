@@ -8,6 +8,7 @@ import type {
 } from "@paperclipai/shared";
 import { badRequest, conflict, forbidden, notFound } from "../../errors.js";
 import { logActivity } from "../activity-log.js";
+import { productizationEntitlementsService } from "../productization/entitlements.js";
 import {
   ExternalActionUncertainError,
   gateExternalAction,
@@ -58,6 +59,7 @@ type MessageRow = typeof conversationMessages.$inferSelect;
 
 export function conversationMessageService(db: Db) {
   const conv = conversationService(db);
+  const entitlements = productizationEntitlementsService(db);
 
   async function loadMessage(companyId: string, id: string): Promise<MessageRow> {
     const [row] = await db
@@ -128,22 +130,36 @@ export function conversationMessageService(db: Db) {
   };
 
   const deliver = async (): Promise<ExternalActionResult> => {
-    await setDelivery(msg.id, { deliveryStatus: "queued", provider: transport.provider });
+    const reservation = await entitlements.reserveForCompany({
+      companyId,
+      metric: "messages",
+      quantity: 1,
+      idempotencyKey: `conversation-message:${msg.id}`,
+      requestFingerprint: `${companyId}:${msg.id}:${parent.channel}`,
+    });
+    try { await setDelivery(msg.id, { deliveryStatus: "queued", provider: transport.provider }); }
+    catch(error) { await entitlements.releaseAfterConfirmedRollback(reservation); throw error; }
     let result;
     try {
       result = await transport.send(outbound);
     } catch (error) {
-      if (error instanceof ExternalActionUncertainError) {
-        await setDelivery(msg.id, { deliveryStatus: "uncertain", providerReceipt: { error: error.message } });
+      const uncertain = error instanceof ExternalActionUncertainError || !(error instanceof TransportRejectedError);
+      const message = error instanceof Error ? error.message : String(error);
+      if (uncertain) {
+        await entitlements.markUncertain(reservation);
+        await setDelivery(msg.id, { deliveryStatus: "uncertain", providerReceipt: { error: message } });
         throw error;
       }
-      const message = error instanceof Error ? error.message : String(error);
+      await entitlements.releaseAfterConfirmedRollback(reservation);
       await setDelivery(msg.id, {
         deliveryStatus: "failed",
-        providerReceipt: { error: message, rejected: error instanceof TransportRejectedError },
+        providerReceipt: { error: message, rejected: true },
       });
       throw error;
     }
+    // A transport response is the provider acknowledgement. Quota settlement
+    // follows it; an acknowledged queued delivery is still a sent operation.
+    await entitlements.commit(reservation);
     const sentAt = new Date();
     const status: TransportReconcileStatus = result.status === "sent" ? "sent" : "queued";
     await setDelivery(msg.id, {
@@ -357,6 +373,19 @@ export function conversationMessageService(db: Db) {
       }
 
       const sentLike = (SENT_STATUSES as readonly string[]).includes(next.status);
+      const reservation = await entitlements.reserveForCompany({
+        companyId,
+        metric: "messages",
+        quantity: 1,
+        idempotencyKey: `conversation-message:${msg.id}`,
+        requestFingerprint: `${companyId}:${msg.id}:${parent.channel}`,
+      });
+      // Reconciliation is the authoritative receipt path after an ambiguous
+      // send. Only accepted/sent outcomes commit; only confirmed no-effect
+      // failure releases. An unresolved provider result remains reserved.
+      if (sentLike || next.status === "queued") await entitlements.commit(reservation);
+      else if (next.status === "failed") await entitlements.releaseAfterConfirmedReconciliation(reservation);
+      else await entitlements.markUncertain(reservation);
       const sentAt = sentLike ? (msg.sentAt ?? new Date()) : msg.sentAt;
       await setDelivery(msg.id, {
         deliveryStatus: next.status,

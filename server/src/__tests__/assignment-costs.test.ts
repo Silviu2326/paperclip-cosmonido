@@ -7,6 +7,8 @@ import { deriveAssignmentStatus, utcDayStart, utcWeekStart } from "../services/a
 
 const embeddedPostgresSupport = await getEmbeddedPostgresTestSupport();
 const describeEmbeddedPostgres = embeddedPostgresSupport.supported ? describe : describe.skip;
+const testActor = { type: "board" as const, source: "local_implicit" as const };
+const restrictedActor = { type: "none" as const };
 
 if (!embeddedPostgresSupport.supported) {
   console.warn(
@@ -111,7 +113,7 @@ describeEmbeddedPostgres("assignment cost attribution", () => {
     ]);
 
     const service = assignmentCostService(db);
-    const report = await service.byGoal(companyId, { allTime: true });
+    const report = await service.byGoal(companyId, { allTime: true }, testActor);
     const row = report.rows.find((candidate) => candidate.goalId === goal.id);
     expect(row?.costCents).toBe(650);
     expect(row?.budgetCents).toBe(1000);
@@ -120,15 +122,15 @@ describeEmbeddedPostgres("assignment cost attribution", () => {
     expect(report.total.costCents).toBe(700);
     expect(report.rows.reduce((sum, candidate) => sum + candidate.costCents, 0) + report.unattributed.costCents).toBe(report.total.costCents);
 
-    const summary = await service.goalSummary(companyId, goal.id);
+    const summary = await service.goalSummary(companyId, goal.id, testActor);
     expect(summary.total.costCents).toBe(650);
     expect(summary.remainingBudgetCents).toBe(350);
     expect(summary.overBudget).toBe(false);
     expect(summary.byAgent).toHaveLength(1);
     expect(summary.byAgent[0]?.agentName).toBe("Editor");
 
-    await expect(service.goalSummary(otherCompanyId, goal.id)).rejects.toMatchObject({ status: 404 });
-    const otherReport = await service.byGoal(otherCompanyId, { allTime: true });
+    await expect(service.goalSummary(otherCompanyId, goal.id, testActor)).rejects.toMatchObject({ status: 404 });
+    const otherReport = await service.byGoal(otherCompanyId, { allTime: true }, testActor);
     expect(otherReport.rows).toHaveLength(0);
     expect(otherReport.total.costCents).toBe(9999);
   });
@@ -152,7 +154,7 @@ describeEmbeddedPostgres("assignment cost attribution", () => {
       event(companyId, agentId, { issueId: rootId, costCents: 30 }),
     ]);
 
-    const summary = await assignmentCostService(db).goalSummary(companyId, goal.id);
+    const summary = await assignmentCostService(db).goalSummary(companyId, goal.id, testActor);
     expect(summary.total.costCents).toBe(150);
     expect(summary.byDeliverable.reduce((sum, row) => sum + row.costCents, 0)).toBe(150);
     expect(summary.byDeliverable.find((row) => row.title === "Cut A")?.costCents).toBe(120);
@@ -176,12 +178,37 @@ describeEmbeddedPostgres("assignment cost attribution", () => {
       event(companyId, agentId, { issueId: outerRoot, costCents: 30 }),
     ]);
 
-    const report = await assignmentCostService(db).byGoal(companyId, { allTime: true });
+    const report = await assignmentCostService(db).byGoal(companyId, { allTime: true }, testActor);
     expect(report.rows.find((row) => row.goalId === inner.id)?.costCents).toBe(70);
     expect(report.rows.find((row) => row.goalId === outer.id)?.costCents).toBe(30);
     expect(report.total.costCents).toBe(100);
     expect(await resolveGoalIdForIssue(db, companyId, innerChild)).toBe(inner.id);
     expect(await resolveGoalIdForIssue(db, companyId, outerRoot)).toBe(outer.id);
+  });
+
+  it("hides private assignment rows and detail while retaining company-level financial totals", async () => {
+    const { companyId, agentId } = await seed();
+    const publicRoot = randomUUID();
+    const privateRoot = randomUUID();
+    await db.insert(issues).values([
+      { id: publicRoot, companyId, title: "Visible task" },
+      { id: privateRoot, companyId, title: "Secret task", visibility: "private" },
+    ]);
+    const visible = await assignment(companyId, "Visible assignment", publicRoot);
+    const hidden = await assignment(companyId, "Secret assignment", privateRoot);
+    await db.insert(costEvents).values([
+      event(companyId, agentId, { issueId: publicRoot, costCents: 100 }),
+      event(companyId, agentId, { issueId: privateRoot, costCents: 200 }),
+    ]);
+
+    const service = assignmentCostService(db);
+    const report = await service.byGoal(companyId, { allTime: true }, restrictedActor);
+    expect(report.rows.map(row => row.goalId)).toContain(visible.id);
+    expect(report.rows.map(row => row.goalId)).not.toContain(hidden.id);
+    expect(JSON.stringify(report)).not.toContain("Secret assignment");
+    expect(report.total.costCents).toBe(300);
+    expect(report.unattributed.costCents).toBe(200);
+    await expect(service.goalSummary(companyId, hidden.id, restrictedActor)).rejects.toMatchObject({ status: 404 });
   });
 
   it("keeps fractional-cent spend exact and flags a sub-cent overrun", async () => {
@@ -196,13 +223,13 @@ describeEmbeddedPostgres("assignment cost attribution", () => {
     ]);
 
     const service = assignmentCostService(db);
-    const summary = await service.goalSummary(companyId, goal.id);
+    const summary = await service.goalSummary(companyId, goal.id, testActor);
     expect(summary.total.costCentsExact).toBe("0.3000000");
     expect(summary.total.costCents).toBe(0.3);
     expect(summary.overBudget).toBe(true);
     expect(summary.remainingBudgetCents).toBe(0);
 
-    const report = await service.byGoal(companyId, { allTime: true });
+    const report = await service.byGoal(companyId, { allTime: true }, testActor);
     expect(report.unattributed.costCentsExact).toBe("0.0000001");
     expect(report.total.costCentsExact).toBe("0.3000001");
   });

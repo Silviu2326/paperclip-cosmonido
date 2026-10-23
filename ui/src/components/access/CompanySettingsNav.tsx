@@ -5,6 +5,7 @@ import { useHiddenSettings } from "@/hooks/useHiddenSettings";
 import { useFastResponsesEnabled } from "@/hooks/useFastResponsesEnabled";
 import { INSTANCE_SETTINGS_PATH_PREFIX } from "@/lib/instance-settings";
 import { useLocation, useNavigate } from "@/lib/router";
+import { useTranslation } from "@/i18n";
 
 const items = [
   { value: "general", label: "General", href: "/company/settings" },
@@ -19,6 +20,15 @@ const items = [
   { value: "instance-experimental", label: "Experimental", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/experimental` },
   { value: "instance-plugins", label: "Plugins", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/plugins` },
   { value: "instance-adapters", label: "Adapters", href: `${INSTANCE_SETTINGS_PATH_PREFIX}/adapters` },
+  // Product pages that the desktop settings sidebar lists through BusinessSettingsLinks; without a tab here
+  // they would render as "General" on mobile.
+  { value: "notifications", label: "Notifications", href: "/company/settings/notifications", i18nKey: "uxNav.notificationPreferences" },
+  { value: "security", label: "Security", href: "/company/settings/security", i18nKey: "uxNav.accessSessions" },
+  { value: "retention", label: "Retention", href: "/company/settings/retention", i18nKey: "uxNav.retention" },
+  { value: "developer", label: "API", href: "/company/settings/developer", i18nKey: "uxNav.developer" },
+  { value: "accounts", label: "Accounts", href: "/company/settings/accounts", i18nKey: "nav.productAccounts" },
+  { value: "billing", label: "Billing", href: "/company/settings/billing", i18nKey: "nav.productBilling" },
+  { value: "installations", label: "Installations", href: "/company/settings/installations", i18nKey: "uxNav.installations" },
 ] as const;
 
 type CompanySettingsTab = (typeof items)[number]["value"];
@@ -95,10 +105,15 @@ export function getCompanySettingsTab(pathname: string): CompanySettingsTab {
     return "secrets";
   }
 
+  for (const slug of ["notifications", "security", "retention", "developer", "accounts", "billing", "installations"] as const) {
+    if (pathname.includes(`/company/settings/${slug}`)) return slug;
+  }
+
   return "general";
 }
 
 export function CompanySettingsNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { hidden: hiddenSettings } = useHiddenSettings();
@@ -123,7 +138,7 @@ export function CompanySettingsNav() {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
       <PageTabBar
-        items={visibleItems.map(({ value, label }) => ({ value, label }))}
+        items={visibleItems.map((item) => ({ value: item.value, label: "i18nKey" in item ? t(item.i18nKey, { defaultValue: item.label }) : item.label }))}
         value={activeTab}
         onValueChange={handleTabChange}
         align="start"

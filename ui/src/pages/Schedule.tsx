@@ -8,6 +8,9 @@ import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
 import { calendarApi, type CalendarEvent, type CreateBookingTypeBody } from "../api/calendar";
+import { toolsApi } from "../api/tools";
+import { agentsApi } from "../api/agents";
+import { accessApi } from "../api/access";
 import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { BookingTypeForm } from "../components/schedule/BookingTypeForm";
@@ -41,6 +44,21 @@ export function Schedule() {
     queryFn: () => calendarApi.bookingTypes(companyId),
     enabled: !!companyId,
   });
+  const connectionsQuery = useQuery({
+    queryKey: ["calendar", companyId, "connections"],
+    queryFn: () => toolsApi.listConnections(companyId),
+    enabled: !!companyId,
+  });
+  const agentsQuery = useQuery({
+    queryKey: ["calendar", companyId, "agents"],
+    queryFn: () => agentsApi.list(companyId),
+    enabled: !!companyId,
+  });
+  const usersQuery = useQuery({
+    queryKey: ["calendar", companyId, "users"],
+    queryFn: () => accessApi.listUserDirectory(companyId),
+    enabled: !!companyId,
+  });
 
   const createType = useMutation({
     mutationFn: (body: CreateBookingTypeBody) => calendarApi.createBookingType(companyId, body),
@@ -48,6 +66,16 @@ export function Schedule() {
       setCreating(false);
       void queryClient.invalidateQueries({ queryKey: typesKey });
       pushToast({ title: t("schedule.typeCreated"), tone: "success" });
+    },
+    onError: (error: Error) => pushToast({ title: t("schedule.saveFailed"), body: error.message, tone: "error" }),
+  });
+
+  const revokePublicExecution = useMutation({
+    mutationFn: (type: { id: string; delegatedAt: string }) =>
+      calendarApi.revokePublicExecution(companyId, type.id, type.delegatedAt),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: typesKey });
+      pushToast({ title: t("schedule.publicExecutionRevoked"), tone: "success" });
     },
     onError: (error: Error) => pushToast({ title: t("schedule.saveFailed"), body: error.message, tone: "error" }),
   });
@@ -68,11 +96,11 @@ export function Schedule() {
     return <EmptyState icon={CalendarDays} message={t("schedule.selectCompany")} />;
   }
 
-  if (eventsQuery.isLoading || typesQuery.isLoading) {
+  if (eventsQuery.isLoading || typesQuery.isLoading || connectionsQuery.isLoading || agentsQuery.isLoading || usersQuery.isLoading) {
     return <PageSkeleton variant="list" />;
   }
 
-  if (eventsQuery.error || typesQuery.error) {
+  if (eventsQuery.error || typesQuery.error || connectionsQuery.error || agentsQuery.error || usersQuery.error) {
     return <p className="text-sm text-destructive">{t("schedule.loadFailed")}</p>;
   }
 
@@ -107,6 +135,9 @@ export function Schedule() {
         {creating ? (
           <BookingTypeForm
             pending={createType.isPending}
+            connections={connectionsQuery.data?.connections ?? []}
+            agents={agentsQuery.data ?? []}
+            users={usersQuery.data?.users ?? []}
             onSubmit={(body) => createType.mutate(body)}
             onCancel={() => setCreating(false)}
           />
@@ -114,7 +145,12 @@ export function Schedule() {
         {types.length === 0 && !creating ? (
           <EmptyState icon={CalendarDays} message={t("schedule.bookingTypesEmpty")} />
         ) : (
-          <BookingTypeList companyId={companyId} types={types} />
+          <BookingTypeList
+            companyId={companyId}
+            types={types}
+            onRevoke={(type) => revokePublicExecution.mutate(type)}
+            revokingId={revokePublicExecution.isPending ? revokePublicExecution.variables?.id ?? null : null}
+          />
         )}
       </section>
     </div>

@@ -35,11 +35,11 @@ export function nextPeriodEnd(agreement: Pick<ServiceAgreement, "startsAt" | "pe
   return end;
 }
 
-export function ServiceAgreements() {
+export function ServiceAgreements({ customerId }: { customerId?: string }) {
   const { selectedCompanyId } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
-  useEffect(() => { setBreadcrumbs([{ label: t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" }) }]); }, [setBreadcrumbs, t]);
+  useEffect(() => { setBreadcrumbs([{ label: t("uxCrm.services", { defaultValue: "Services" }), href: "/customers/services" }]); }, [setBreadcrumbs, t]);
   const query = useQuery({
     queryKey: ["service-agreements", selectedCompanyId],
     queryFn: () => serviceAgreementsApi.list(selectedCompanyId!),
@@ -48,18 +48,21 @@ export function ServiceAgreements() {
   if (!selectedCompanyId) return <EmptyState icon={Repeat} message={t("goals.selectOrg", { defaultValue: "Selecciona una empresa." })} />;
   if (query.isLoading) return <PageSkeleton variant="list" />;
   if (query.error) return <p role="alert" className="text-sm text-destructive">{query.error.message}</p>;
-  if (!query.data?.length) {
-    return <EmptyState icon={Repeat} message={t("serviceAgreements.empty", { defaultValue: "Aún no hay acuerdos de servicio." })} />;
+  const agreements = (query.data ?? []).filter((agreement) => !customerId || agreement.customerId === customerId);
+  if (!agreements.length) {
+    return <EmptyState icon={Repeat} message={customerId
+      ? t("uxCrm.noCustomerServices", { defaultValue: "This customer has no services yet." })
+      : t("serviceAgreements.empty", { defaultValue: "Aún no hay acuerdos de servicio." })} />;
   }
   return (
     <div className="flex flex-col gap-4">
-      {query.data.map((agreement) => {
+      {agreements.map((agreement) => {
         const next = nextPeriodEnd(agreement);
         return (
           <Card key={agreement.id}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between gap-4">
-                <Link to={`/service-agreements/${agreement.id}`}>{agreement.title}</Link>
+                <Link to={`/customers/services/${agreement.id}`}>{agreement.title}</Link>
                 <Badge variant="secondary">{t(`serviceAgreements.status.${agreement.status}`, { defaultValue: statusLabels[agreement.status] ?? agreement.status })}</Badge>
               </CardTitle>
             </CardHeader>
@@ -93,7 +96,7 @@ export function ServiceAgreementDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: t("nav.serviceAgreements", { defaultValue: "Acuerdos de servicio" }), href: "/service-agreements" },
+      { label: t("uxCrm.services", { defaultValue: "Services" }), href: "/customers/services" },
       { label: agreement.data?.title ?? "…" },
     ]);
   }, [setBreadcrumbs, t, agreement.data?.title]);
@@ -113,6 +116,13 @@ export function ServiceAgreementDetail() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {data.customerId && (
+            <p className="text-sm">
+              <Link className="text-primary underline" to={`/customers/${data.customerId}`}>
+                {t("uxCrm.openCustomer", { defaultValue: "Open customer" })}
+              </Link>
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => tick.mutate()} disabled={tick.isPending || !selectedCompanyId}>
               <RefreshCw data-icon="inline-start" />

@@ -158,7 +158,26 @@ function databaseConnectionStringFor(port: number): string {
   return `postgres://${EMBEDDED_POSTGRES_USER}:${EMBEDDED_POSTGRES_PASSWORD}@127.0.0.1:${port}/paperclip`;
 }
 
+function assertDisposableTestPath(target: string, allowMissing = false): void {
+  const tempRoot = fs.realpathSync(os.tmpdir());
+  const absoluteTarget = path.resolve(target);
+  const existing = fs.existsSync(absoluteTarget);
+  if (!existing && !allowMissing) throw new Error("Embedded Postgres test directory no longer exists");
+  if (existing && fs.lstatSync(absoluteTarget).isSymbolicLink()) {
+    throw new Error("Refusing to reclaim a linked embedded Postgres test directory");
+  }
+  const resolvedTarget = existing
+    ? fs.realpathSync(absoluteTarget)
+    : path.join(fs.realpathSync(path.dirname(absoluteTarget)), path.basename(absoluteTarget));
+  const relative = path.relative(tempRoot, resolvedTarget);
+  if (!relative || relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error("Embedded Postgres test directory must stay inside the temporary directory");
+  }
+}
+
 function cleanupEmbeddedPostgresTestDirs(dataDir: string) {
+  if (!fs.existsSync(dataDir)) return;
+  assertDisposableTestPath(dataDir);
   fs.rmSync(dataDir, { recursive: true, force: true });
 }
 
@@ -472,7 +491,10 @@ function pruneStaleTemplates(rootDir: string, keepDir: string): void {
     if (entryPath === keepDir || !entry.isDirectory()) continue;
     try {
       const age = now - fs.statSync(entryPath).mtimeMs;
-      if (age > TEMPLATE_PRUNE_AGE_MS) fs.rmSync(entryPath, { recursive: true, force: true });
+      if (age > TEMPLATE_PRUNE_AGE_MS) {
+        assertDisposableTestPath(entryPath);
+        fs.rmSync(entryPath, { recursive: true, force: true });
+      }
     } catch {
       // Another process may be using or removing it; leave it alone.
     }
@@ -512,6 +534,8 @@ async function buildEmbeddedPostgresTemplate(templateDir: string): Promise<boole
     const stopped = await stopForTemplatePublish(instance);
     if (!stopped || !isUsableTemplate(dataDir)) return false;
     try {
+      assertDisposableTestPath(dataDir);
+      assertDisposableTestPath(templateDir, true);
       fs.renameSync(dataDir, templateDir);
       published = true;
     } catch (error) {

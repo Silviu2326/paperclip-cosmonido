@@ -1,11 +1,11 @@
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { createWriteStream } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import type { Db } from "@paperclipai/db";
-import { assets, companyFiles, companyFileVersions, documentRevisions, documents, goals, issues, mediaJobs, mediaProjects } from "@paperclipai/db";
+import { assets, companyFiles, companyFileVersions, documentRevisions, documents, goals, issues, mediaJobs, mediaProjects, productAccounts, productAccountCompanyGrants, productPlans } from "@paperclipai/db";
 import type { MediaOperation } from "@paperclipai/shared";
 import { detectSilences as detectSilencesWithFfmpeg, dubMultivoice, findFillerRanges, probeDuration, removeFillers, renderMedia, stopMotion, voiceover } from "@paperclipai/media-studio";
 import { getStorageService } from "../storage/index.js";
@@ -15,6 +15,7 @@ import { costService } from "./costs.js";
 import { budgetService } from "./budgets.js";
 import { resolveGoalIdForIssue } from "./assignment-costs.js";
 import { mediaStudioProviders } from "./media-studio-providers.js";
+import { productizationEntitlementsService, type ProductReservationRef } from "./productization/entitlements.js";
 import { conflict, unprocessable } from "../errors.js";
 
 const activeCompanies = new WeakMap<object, Set<string>>();
@@ -34,6 +35,7 @@ export function mediaStudioService(db: Db): MediaStudioService {
 function createMediaStudioService(db: Db) {
   const runningCompanies = activeCompanies.get(db as object) ?? new Set<string>();
   const providers = mediaStudioProviders(db);
+  const entitlements = productizationEntitlementsService(db);
   function receiptPricing(value: { source: string; unit: string; units: number; centsPerUnit: number | null; estimatedCents: number | null; coverage: string } | undefined, status: "reported" | "estimated" | "unpriced") {
     if (!value) return undefined;
     return {
@@ -49,6 +51,19 @@ function createMediaStudioService(db: Db) {
       projectId = issue?.projectId ?? null;
     }
     return budgetService(db).getInvocationBlock(companyId, agentId, { issueId, projectId });
+  }
+  async function videoMinutesNeedMeasurement(companyId: string): Promise<boolean> {
+    const [binding] = await db.select({access:productAccounts.access,planId:productAccounts.planId})
+      .from(productAccountCompanyGrants).innerJoin(productAccounts,eq(productAccounts.id,productAccountCompanyGrants.accountId))
+      .where(eq(productAccountCompanyGrants.companyId,companyId)).limit(1);
+    if(!binding)return false;
+    if(binding.access!=="active"&&binding.access!=="trial_eligible") throw unprocessable("Paperclip product access is inactive.",{code:"plan_gate_account_inactive",metric:"video_minutes"});
+    const [plan]=await db.select({limits:productPlans.limits}).from(productPlans).where(eq(productPlans.id,binding.planId)).limit(1);
+    if(!plan||!plan.limits||typeof plan.limits!=="object"||!("video_minutes" in plan.limits)) throw unprocessable("Video quota data is incomplete.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
+    const limit=(plan.limits as Record<string,unknown>).video_minutes;
+    if(limit===null)return false;
+    if(typeof limit!=="number"||!Number.isFinite(limit)||limit<0) throw unprocessable("Video quota data is incomplete.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
+    return true;
   }
   /** Stop motion frames must be raster images that ffmpeg reads through the concat demuxer. */
   function imageExtension(contentType: string): string {
@@ -81,10 +96,14 @@ function createMediaStudioService(db: Db) {
     runningCompanies.add(companyId);
     try {
       for (;;) {
-        const [candidate] = await db.select().from(mediaJobs).where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"), sql`not exists (select 1 from media_jobs running where running.company_id = ${companyId} and running.status = 'running')`)).orderBy(asc(mediaJobs.createdAt)).limit(1);
+        const [candidate] = await db.select().from(mediaJobs).where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"), sql`not exists (select 1 from media_jobs running where running.company_id = ${companyId} and running.status = 'running')`)).orderBy(desc(mediaJobs.priority), asc(mediaJobs.createdAt), asc(mediaJobs.id)).limit(1);
         if (!candidate) return;
-        const [job] = await db.update(mediaJobs).set({ status: "running", startedAt: new Date(), updatedAt: new Date() }).where(and(eq(mediaJobs.id, candidate.id), eq(mediaJobs.status, "queued"))).returning();
+        // If a board reprioritizes after selection but before claim, retry against the new order.
+        const [job] = await db.update(mediaJobs).set({ status: "running", startedAt: new Date(), updatedAt: new Date() }).where(and(eq(mediaJobs.id, candidate.id), eq(mediaJobs.status, "queued"), eq(mediaJobs.priority, candidate.priority))).returning();
         if (!job) continue;
+        let videoReservation: ProductReservationRef | null = null;
+        let videoQuotaUncertain = false;
+        let videoQuotaSettled = false;
         try {
           const [project] = await db.select().from(mediaProjects).where(and(eq(mediaProjects.id, job.projectId), eq(mediaProjects.companyId, companyId))).limit(1);
           if (!project) throw new Error("Media project no longer exists");
@@ -94,10 +113,27 @@ function createMediaStudioService(db: Db) {
           try {
             const inputPath = join(folder, "input"), outputPath = join(folder, "render.mp4");
             await pipeline((await storage.getObject(companyId, source.objectKey)).stream, createWriteStream(inputPath));
+            if(await videoMinutesNeedMeasurement(companyId)) {
+              let durationSeconds:number;
+              if(job.kind==="stop_motion") {
+                const frameCount=Array.isArray(job.input.frameAssetIds)?job.input.frameAssetIds.length:0;
+                const frameDuration=job.input.frameDurationSeconds;
+                if(!Number.isSafeInteger(frameCount)||frameCount<1||typeof frameDuration!=="number"||!Number.isFinite(frameDuration)||frameDuration<=0) throw unprocessable("Video duration is unavailable for quota admission.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
+                durationSeconds=frameCount*frameDuration;
+              } else {
+                try { durationSeconds=await probeDuration(inputPath); }
+                catch { throw unprocessable("Video duration is unavailable for quota admission.",{code:"plan_gate_data_incomplete",metric:"video_minutes"}); }
+              }
+              if(!Number.isFinite(durationSeconds)||durationSeconds<=0) throw unprocessable("Video duration is unavailable for quota admission.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
+              const minutes=durationSeconds/60;
+              videoReservation=await entitlements.reserveForCompany({companyId,metric:"video_minutes",quantity:minutes,idempotencyKey:`media-video-minutes:${job.id}`,requestFingerprint:`${companyId}:${job.id}:${minutes.toFixed(7)}`});
+            }
             if (job.kind === "transcribe") {
               const block = await budgetBlock(companyId, project.createdByAgentId, typeof job.input.issueId === "string" ? job.input.issueId : null);
               if (block) throw new Error(block.reason);
+              videoQuotaUncertain=Boolean(videoReservation?.accountId);
               const result = await providers.transcribe({ companyId, sourcePath: inputPath });
+              if(videoReservation){await entitlements.commit(videoReservation);videoQuotaSettled=true;videoQuotaUncertain=false;}
               await costService(db).createEvent(companyId, { agentId: project.createdByAgentId, responsibleUserId: project.createdByUserId, usageKind: "media", issueId: typeof job.input.issueId === "string" ? job.input.issueId : null, goalId: typeof job.input.goalId === "string" ? job.input.goalId : null, idempotencyKey: `media:${job.id}`, provider: result.provider, biller: "openai", billingType: "metered_api", costStatus: result.costStatus, pricingProvenance: receiptPricing(result.pricingProvenance, result.costStatus), model: "whisper-1", costCents: result.costCents, occurredAt: new Date() });
               const body = JSON.stringify({ text: result.text, language: result.language ?? null, duration: result.duration, words: result.words });
               const [doc] = await db.insert(documents).values({ companyId, title: `Transcript ${project.id}`, format: "json", latestBody: body, createdByAgentId: project.createdByAgentId, createdByUserId: project.createdByUserId }).returning();
@@ -134,6 +170,7 @@ function createMediaStudioService(db: Db) {
                 }
                 const landscape = job.input.aspect === "16:9";
                 await stopMotion({ framePaths, frameDurationSeconds: Number(job.input.frameDurationSeconds), cameraMotion: job.input.cameraMotion as "pan" | "zoom" | "none", outputPath, width: landscape ? 1920 : 1080, height: landscape ? 1080 : 1920 });
+                if(videoReservation){await entitlements.commit(videoReservation);videoQuotaSettled=true;}
                 await recordFfmpegCost(`media:${job.id}`);
               } else if (job.kind === "dub_multivoice") {
                 const segments = Array.isArray(job.input.segments) ? job.input.segments as Array<{ start: number; end: number; text: string; speaker: string; voiceId: string }> : [];
@@ -145,6 +182,7 @@ function createMediaStudioService(db: Db) {
                 const tracks: Array<{ start: number; end: number; speaker: string; audioPath: string }> = [];
                 for (const [index, [voiceId, group]] of [...groups.entries()].entries()) {
                   const audioPath = join(folder, `voice-${index}.mp3`);
+                  videoQuotaUncertain=Boolean(videoReservation?.accountId);
                   const dub = await providers.dub({ companyId, segments: group.map(({ start, end, text }) => ({ start, end, text })), language, voiceId, outputPath: audioPath });
                   await recordCost({ key: `media:${job.id}:voice:${index}`, provider: dub.provider, biller: "elevenlabs", billingType: "metered_api", costStatus: dub.costStatus, pricingProvenance: receiptPricing(dub.pricingProvenance, dub.costStatus) ?? { source: "unknown", evidence: "no pricing provenance" }, model: "eleven_multilingual_v2", costCents: dub.costCents });
                   providerCents += dub.costCents;
@@ -152,6 +190,7 @@ function createMediaStudioService(db: Db) {
                   tracks.push({ start: 0, end: Math.max(...group.map(segment => segment.end)), speaker: [...new Set(group.map(segment => segment.speaker))].join(", "), audioPath });
                 }
                 await dubMultivoice({ sourcePath: inputPath, segments: tracks, outputPath });
+                if(videoReservation){await entitlements.commit(videoReservation);videoQuotaSettled=true;videoQuotaUncertain=false;}
                 await recordFfmpegCost(`media:${job.id}:compose`);
               } else {
                 const duckingDb = typeof job.input.duckingDb === "number" ? job.input.duckingDb : -12;
@@ -159,6 +198,7 @@ function createMediaStudioService(db: Db) {
                 if (typeof job.input.script === "string") {
                   // A single segment covering the source video; the provider fits it to the video length.
                   const sourceSeconds = await probeDuration(inputPath);
+                  videoQuotaUncertain=Boolean(videoReservation?.accountId);
                   const dub = await providers.dub({ companyId, segments: [{ start: 0, end: sourceSeconds, text: job.input.script }], language: typeof job.input.language === "string" ? job.input.language : "es", voiceId: String(job.input.voiceId ?? ""), outputPath: voicePath });
                   await recordCost({ key: `media:${job.id}:tts`, provider: dub.provider, biller: "elevenlabs", billingType: "metered_api", costStatus: dub.costStatus, pricingProvenance: receiptPricing(dub.pricingProvenance, dub.costStatus) ?? { source: "unknown", evidence: "no pricing provenance" }, model: "eleven_multilingual_v2", costCents: dub.costCents });
                   providerCents += dub.costCents;
@@ -169,6 +209,7 @@ function createMediaStudioService(db: Db) {
                   await downloadAsset(companyId, voice.objectKey, voicePath);
                 }
                 await voiceover({ sourcePath: inputPath, voicePath, outputPath, duckingDb });
+                if(videoReservation&&!videoQuotaSettled){await entitlements.commit(videoReservation);videoQuotaSettled=true;videoQuotaUncertain=false;}
                 await recordFfmpegCost(`media:${job.id}:compose`);
               }
               const label = job.kind === "stop_motion" ? "Stop motion" : job.kind === "dub_multivoice" ? "Multivoice dubbed" : "Voiceover";
@@ -184,6 +225,7 @@ function createMediaStudioService(db: Db) {
               if (block) throw new Error(block.reason);
               const segments = Array.isArray(job.input.translatedSegments) ? job.input.translatedSegments as Array<{ start: number; end: number; text: string }> : [];
               dubAudioPath = join(folder, "dub.mp3");
+              videoQuotaUncertain=Boolean(videoReservation?.accountId);
               dubResult = await providers.dub({ companyId, segments, language: String(job.input.language ?? ""), voiceId: String(job.input.voiceId ?? ""), outputPath: dubAudioPath });
               await costService(db).createEvent(companyId, { agentId: project.createdByAgentId, responsibleUserId: project.createdByUserId, usageKind: "media", issueId: typeof job.input.issueId === "string" ? job.input.issueId : project.issueId, goalId: typeof job.input.goalId === "string" ? job.input.goalId : project.goalId, idempotencyKey: `media:${job.id}`, provider: dubResult.provider, biller: "elevenlabs", billingType: "metered_api", costStatus: dubResult.costStatus, pricingProvenance: receiptPricing(dubResult.pricingProvenance, dubResult.costStatus), model: "eleven_multilingual_v2", costCents: dubResult.costCents, occurredAt: new Date() });
             }
@@ -208,6 +250,7 @@ function createMediaStudioService(db: Db) {
               if(fillerCuts.length) operations.push({type:"cut_ranges",ranges:fillerCuts});
             }
             await renderMedia({ sourcePath: inputPath, operations }, outputPath,{resolveAsset:async assetId=>{if(assetId!=="dub-audio"||!dubAudioPath)throw new Error("Unknown replacement audio asset");return dubAudioPath;}});
+            if(videoReservation&&!videoQuotaSettled){await entitlements.commit(videoReservation);videoQuotaSettled=true;videoQuotaUncertain=false;}
             const bytes = await readFile(outputPath); const stored = await storage.putFile({ companyId, namespace: "media-studio", originalFilename: `render-${project.id}.mp4`, contentType: "video/mp4", body: bytes });
             const jobIssueId=typeof job.input.issueId==="string"?job.input.issueId:project.issueId;
             let attachment: Awaited<ReturnType<ReturnType<typeof issueService>["createAttachment"]>> | null = null;
@@ -230,6 +273,14 @@ function createMediaStudioService(db: Db) {
             await db.update(mediaProjects).set({status:"ready",updatedAt:new Date()}).where(and(eq(mediaProjects.id,project.id),eq(mediaProjects.companyId,companyId)));
           } finally { await rm(folder, { recursive: true, force: true }); }
         } catch (error) {
+          if(videoReservation&&!videoQuotaSettled) {
+            try {
+              if(videoQuotaUncertain) await entitlements.markUncertain(videoReservation);
+              else await entitlements.releaseAfterConfirmedRollback(videoReservation);
+            } catch (settlementError) {
+              console.error("Media video quota settlement failed", { companyId, jobId: job.id, settlementError });
+            }
+          }
           await db.update(mediaJobs).set({ status: "failed", error: error instanceof Error ? error.message : String(error), finishedAt: new Date(), updatedAt: new Date() }).where(eq(mediaJobs.id, job.id));
           await db.update(mediaProjects).set({status:"failed",updatedAt:new Date()}).where(and(eq(mediaProjects.id,job.projectId),eq(mediaProjects.companyId,companyId)));
         }
@@ -365,6 +416,31 @@ function createMediaStudioService(db: Db) {
         .where(and(...conditions, eq(mediaJobs.companyId, companyId)))
         .orderBy(asc(mediaJobs.createdAt));
       return rows.map(row => row.job);
+    },
+    async listQueue(companyId: string, input: { limit: number; cursor?: { priority: number; createdAt: string; id: string } }) {
+      const runningRows = await db.select({ job: mediaJobs, createdAtVersion: sql<string>`to_char(${mediaJobs.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`, updatedAtVersion: sql<string>`to_char(${mediaJobs.updatedAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` }).from(mediaJobs)
+        .where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "running")))
+        .orderBy(asc(mediaJobs.startedAt), asc(mediaJobs.id)).limit(1);
+      const running = runningRows.map(row => ({ ...row.job, createdAt: row.createdAtVersion, updatedAt: row.updatedAtVersion }));
+      const conditions = [eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued")];
+      if (input.cursor) {
+        const { priority, createdAt, id } = input.cursor;
+        conditions.push(or(
+          lt(mediaJobs.priority, priority),
+          and(eq(mediaJobs.priority, priority), sql`${mediaJobs.createdAt} > ${createdAt}::timestamptz`),
+          and(eq(mediaJobs.priority, priority), sql`${mediaJobs.createdAt} = ${createdAt}::timestamptz`, gt(mediaJobs.id, id)),
+        )!);
+      }
+      const rows = await db.select({ job: mediaJobs, createdAtVersion: sql<string>`to_char(${mediaJobs.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`, updatedAtVersion: sql<string>`to_char(${mediaJobs.updatedAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` }).from(mediaJobs).where(and(...conditions))
+        .orderBy(desc(mediaJobs.priority), asc(mediaJobs.createdAt), asc(mediaJobs.id)).limit(input.limit + 1);
+      const hasMore = rows.length > input.limit;
+      const jobs = (hasMore ? rows.slice(0, input.limit) : rows).map(row => ({ ...row.job, createdAt: row.createdAtVersion, updatedAt: row.updatedAtVersion }));
+      return { running, jobs, hasMore };
+    },
+    async reprioritizeQueuedJob(companyId: string, jobId: string, priority: number, expectedUpdatedAt: string) {
+      return db.update(mediaJobs).set({ priority, updatedAt: sql`greatest(clock_timestamp(), ${mediaJobs.updatedAt} + interval '1 microsecond')` })
+        .where(and(eq(mediaJobs.id, jobId), eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"), sql`${mediaJobs.updatedAt} = ${expectedUpdatedAt}::timestamptz`))
+        .returning();
     },
   };
   return service;

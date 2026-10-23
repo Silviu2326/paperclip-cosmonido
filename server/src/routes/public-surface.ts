@@ -8,6 +8,7 @@ import { registerPublicLeadRoutes } from "./public/leads.js";
 import { registerPublicChatRoutes } from "./public/chat.js";
 import { registerPublicBookingRoutes } from "./public/booking.js";
 import { registerPublicReviewRoutes } from "./public/review.js";
+import type { GoogleCalendarService } from "../services/calendar/google-calendar.js";
 
 // Public surface mounted at /api/p. No company session: every route here is
 // reached by anonymous visitors, so each one must scope itself to the company
@@ -146,7 +147,7 @@ export function publicRateLimit(options: { limit: number; windowMs: number }) {
 
 // ---------------------------------------------------------------- router
 
-export function publicSurfaceRoutes(db: Db) {
+export function publicSurfaceRoutes(db: Db, options: { calendar?: GoogleCalendarService } = {}) {
   const router = Router();
 
   router.use(publicRateLimit({ limit: 120, windowMs: 60_000 }));
@@ -164,7 +165,7 @@ export function publicSurfaceRoutes(db: Db) {
 
   registerPublicLeadRoutes(router, db);
   registerPublicChatRoutes(router, db);
-  registerPublicBookingRoutes(router, db);
+  registerPublicBookingRoutes(router, db, { calendar: options.calendar });
   registerPublicReviewRoutes(router, db);
 
   return router;

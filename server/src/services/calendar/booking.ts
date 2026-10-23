@@ -1,8 +1,11 @@
-import { and, asc, eq, gte, inArray, isNull, lt, ne } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt, ne, or } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
+  agents,
   bookingTypes,
   calendarEvents,
+  companyMemberships,
+  connectionGrants,
   crmActivities,
   customers,
   opportunities,
@@ -14,6 +17,7 @@ import { gateExternalAction, type ExternalActionActor, type ExternalActionResult
 import { resolveBookingContact, type BookingAttendee } from "./adapters.js";
 import {
   googleCalendarService,
+  type CalendarConnectorAuthority,
   type BusyInterval,
   type GoogleCalendarService,
   type ProviderEventOutcome,
@@ -139,6 +143,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
   async function busyFor(
     type: BookingTypeRow,
     range: TimeInterval,
+    authority: CalendarConnectorAuthority,
     exclude?: { eventId?: string; externalId?: string | null },
   ): Promise<BusyInterval[]> {
     const buffer = type.bufferMinutes * MINUTE_MS;
@@ -147,8 +152,10 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
     const remote = await calendar.freeBusy({
       companyId: type.companyId,
       connectionId,
+      bookingTypeId: type.id,
       from: widened.start,
       to: widened.end,
+      authority,
     });
     const local = await localBusy(type.companyId, type.id, widened, exclude?.eventId);
     const ownExternal = exclude?.externalId ?? null;
@@ -162,6 +169,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
   async function assertSlotBookable(
     type: BookingTypeRow,
     startMs: number,
+    authority: CalendarConnectorAuthority,
     exclude?: { eventId?: string; externalId?: string | null },
   ): Promise<void> {
     if (startMs < now()) throw unprocessable("Elige un hueco futuro");
@@ -176,7 +184,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
     if (!candidates.some((candidate) => candidate.start === startMs)) {
       throw conflict("Ese hueco no está en el horario de la reserva");
     }
-    const busy = await busyFor(type, interval, exclude);
+    const busy = await busyFor(type, interval, authority, exclude);
     if (!isSlotFree({ interval, busy, bufferMinutes: type.bufferMinutes, now: now() })) {
       throw conflict("Ese hueco ya no está disponible");
     }
@@ -217,18 +225,32 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
     // ---- booking types
 
     async listTypes(companyId: string) {
-      return db
+      const rows = await db
         .select()
         .from(bookingTypes)
         .where(and(eq(bookingTypes.companyId, companyId), isNull(bookingTypes.archivedAt)))
         .orderBy(asc(bookingTypes.name));
+      return rows.map(({ delegatedByUserId: _delegatedByUserId, ...type }) => type);
     },
 
     async getType(companyId: string, ref: BookingRef) {
       return loadType(companyId, ref);
     },
 
-    async createType(companyId: string, input: CreateBookingTypeInput): Promise<BookingTypeRow> {
+    async createType(
+      companyId: string,
+      input: CreateBookingTypeInput,
+      delegation?: { userId: string },
+    ): Promise<BookingTypeRow> {
+      if (input.hostAgentId && input.hostUserId) {
+        throw unprocessable("Elige un único anfitrión para el tipo de reserva.");
+      }
+      if (input.publicExecutionEnabled && (!input.connectionId || (!input.hostAgentId && !input.hostUserId))) {
+        throw unprocessable("Public execution needs a calendar connection and one configured host.");
+      }
+      if (input.publicExecutionEnabled && !delegation?.userId) {
+        throw unprocessable("A company administrator must explicitly authorize public calendar execution.");
+      }
       try {
         assertValidTimeZone(input.timezone);
       } catch (error) {
@@ -242,6 +264,37 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       }
       if (input.connectionId) {
         await calendar.assertCalendarConnection(companyId, input.connectionId);
+        const hostGrant = input.hostAgentId
+          ? or(
+              and(eq(connectionGrants.kind, "agent"), eq(connectionGrants.subjectAgentId, input.hostAgentId)),
+              and(eq(connectionGrants.kind, "organization"), isNull(connectionGrants.subjectAgentId), isNull(connectionGrants.subjectUserId)),
+            )
+          : input.hostUserId
+            ? or(
+                and(eq(connectionGrants.kind, "user"), eq(connectionGrants.subjectUserId, input.hostUserId)),
+                and(eq(connectionGrants.kind, "organization"), isNull(connectionGrants.subjectAgentId), isNull(connectionGrants.subjectUserId)),
+              )
+            : and(eq(connectionGrants.kind, "organization"), isNull(connectionGrants.subjectAgentId), isNull(connectionGrants.subjectUserId));
+        const [grant] = await db.select({ id: connectionGrants.id }).from(connectionGrants).where(and(
+          eq(connectionGrants.companyId, companyId),
+          eq(connectionGrants.connectionId, input.connectionId),
+          eq(connectionGrants.status, "active"),
+          hostGrant,
+        )).limit(1);
+        if (!grant) throw unprocessable("La conexión no tiene una autorización activa para el host de este tipo de reserva.");
+      }
+      if (input.hostAgentId) {
+        const [host] = await db.select({ id: agents.id }).from(agents).where(and(
+          eq(agents.id, input.hostAgentId), eq(agents.companyId, companyId),
+        )).limit(1);
+        if (!host) throw unprocessable("El agente anfitrión no pertenece a esta empresa.");
+      }
+      if (input.hostUserId) {
+        const [membership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(
+          eq(companyMemberships.companyId, companyId), eq(companyMemberships.principalType, "user"),
+          eq(companyMemberships.principalId, input.hostUserId), eq(companyMemberships.status, "active"),
+        )).limit(1);
+        if (!membership) throw unprocessable("El usuario anfitrión no tiene una membresía activa en esta empresa.");
       }
       try {
         const [row] = await db
@@ -257,6 +310,9 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
             hostAgentId: input.hostAgentId ?? null,
             hostUserId: input.hostUserId ?? null,
             connectionId: input.connectionId ?? null,
+            publicExecutionEnabled: input.publicExecutionEnabled,
+            delegatedByUserId: input.publicExecutionEnabled ? delegation!.userId : null,
+            delegatedAt: input.publicExecutionEnabled ? new Date() : null,
           })
           .returning();
         return row;
@@ -269,7 +325,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
     // ---- availability
 
     /** Free slots in [from, to): weekly hours, buffer, provider freeBusy and local holds. */
-    async availability(input: { companyId: string; ref: BookingRef; from: Date; to: Date }) {
+    async availability(input: { companyId: string; ref: BookingRef; from: Date; to: Date; authority?: CalendarConnectorAuthority }) {
       const type = await loadType(input.companyId, input.ref);
       const range = { start: input.from.getTime(), end: input.to.getTime() };
       const candidates = candidateSlots({
@@ -280,7 +336,8 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
         durationMinutes: type.durationMinutes,
       });
       if (candidates.length === 0) return { bookingType: bookingPublicView(type), slots: [] };
-      const busy = await busyFor(type, range);
+      const authority = input.authority ?? { kind: "public_booking_host" as const, bookingTypeId: type.id };
+      const busy = await busyFor(type, range, authority);
       const free = freeSlots({ candidates, busy, bufferMinutes: type.bufferMinutes, now: now() });
       return {
         bookingType: bookingPublicView(type),
@@ -302,6 +359,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       customerId?: string | null;
       opportunityId?: string | null;
       actor: ExternalActionActor;
+      authority?: CalendarConnectorAuthority;
     }): Promise<BookingOutcome> {
       const type = await loadType(input.companyId, input.ref);
       const connectionId = requireConnection(type.connectionId);
@@ -310,6 +368,12 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       const actor: ExternalActionActor = input.actor.agentId || input.actor.userId
         ? input.actor
         : { agentId: type.hostAgentId, userId: type.hostUserId };
+      const authority = input.authority ?? (
+        input.actor.agentId || input.actor.userId
+          ? null
+          : { kind: "public_booking_host" as const, bookingTypeId: type.id }
+      );
+      if (!authority) throw unprocessable("Calendar execution authority is unavailable for this request.");
       const email = normalizeEmail(input.attendee.email);
       if (!email) throw unprocessable("El correo del asistente no es válido");
       const phone = normalizePhoneE164(input.attendee.phone ?? null);
@@ -319,7 +383,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       if (existing) return { event: existing, created: false, mode: null, actionStatus: null };
 
       const startMs = input.startsAt.getTime();
-      await assertSlotBookable(type, startMs);
+      await assertSlotBookable(type, startMs, authority);
       const endsAt = new Date(startMs + type.durationMinutes * MINUTE_MS);
       const contactId = await resolveBookingContact(db, input.companyId, { ...input.attendee, email, phone }, activityActor(actor));
 
@@ -374,12 +438,14 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
           const outcome = await calendar.createEvent({
             companyId: input.companyId,
             connectionId,
+            bookingTypeId: type.id,
             title: event.title,
             description: `Reserva ${type.name} con ${input.attendee.name.trim()}`,
             startsAt: input.startsAt,
             endsAt,
             attendeeEmail: email,
             requestId: idempotencyKey,
+            authority,
           });
           await applyProviderOutcome(event.id, outcome);
           return { externalId: outcome.externalId, status: outcome.status };
@@ -421,15 +487,18 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       };
     },
 
-    async reschedule(input: { companyId: string; eventId: string; startsAt: Date; actor: ExternalActionActor }): Promise<BookingOutcome> {
+    async reschedule(input: { companyId: string; eventId: string; startsAt: Date; actor: ExternalActionActor; authority: CalendarConnectorAuthority }): Promise<BookingOutcome> {
       const event = await loadEventRow(input.companyId, input.eventId);
       if (event.status === "cancelled") throw conflict("La reserva está cancelada");
       if (!event.bookingTypeId) throw unprocessable("La reserva no pertenece a un tipo de reserva");
       const type = await loadType(input.companyId, { bookingTypeId: event.bookingTypeId }, { includeArchived: true });
       const connectionId = requireConnection(event.connectionId ?? type.connectionId);
+      if (event.connectionId && type.connectionId && event.connectionId !== type.connectionId) {
+        throw unprocessable("The booking's original calendar connection is no longer assigned to this booking type.");
+      }
 
       const startMs = input.startsAt.getTime();
-      await assertSlotBookable(type, startMs, { eventId: event.id, externalId: event.externalId });
+      await assertSlotBookable(type, startMs, input.authority, { eventId: event.id, externalId: event.externalId });
       const endsAt = new Date(startMs + type.durationMinutes * MINUTE_MS);
 
       const gated = await gateExternalAction(db, {
@@ -445,18 +514,22 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
             ? await calendar.updateEvent({
                 companyId: input.companyId,
                 connectionId,
+                bookingTypeId: type.id,
                 externalId: event.externalId,
                 startsAt: input.startsAt,
                 endsAt,
+                authority: input.authority,
               })
             : await calendar.createEvent({
                 companyId: input.companyId,
                 connectionId,
+                bookingTypeId: type.id,
                 title: event.title,
                 startsAt: input.startsAt,
                 endsAt,
                 attendeeEmail: event.attendeeEmail ?? "",
                 requestId: `reschedule:${event.id}:${input.startsAt.toISOString()}`,
+                authority: input.authority,
               });
           await applyProviderOutcome(event.id, outcome, { startsAt: input.startsAt, endsAt });
           return { externalId: outcome.externalId, status: outcome.status };
@@ -479,12 +552,17 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       };
     },
 
-    async cancel(input: { companyId: string; eventId: string; actor: ExternalActionActor }): Promise<BookingOutcome> {
+    async cancel(input: { companyId: string; eventId: string; actor: ExternalActionActor; authority: CalendarConnectorAuthority }): Promise<BookingOutcome> {
       const event = await loadEventRow(input.companyId, input.eventId);
       if (event.status === "cancelled") {
         return { event, created: false, mode: null, actionStatus: null };
       }
-      const connectionId = event.connectionId ?? null;
+      if (!event.bookingTypeId) throw unprocessable("The event has no authorized booking type.");
+      const type = await loadType(input.companyId, { bookingTypeId: event.bookingTypeId }, { includeArchived: true });
+      const connectionId = event.connectionId ?? type.connectionId;
+      if (event.connectionId && type.connectionId && event.connectionId !== type.connectionId) {
+        throw unprocessable("The booking's original calendar connection is no longer assigned to this booking type.");
+      }
 
       const gated = await gateExternalAction(db, {
         companyId: input.companyId,
@@ -506,7 +584,9 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
           const outcome = await calendar.cancelEvent({
             companyId: input.companyId,
             connectionId: requireConnection(connectionId),
+            bookingTypeId: type.id,
             externalId: event.externalId,
+            authority: input.authority,
           });
           const cancelled = outcome.status === "cancelled";
           await db
@@ -543,7 +623,7 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
      * Re-issues the provider create for a booking whose approved action lost its executor
      * (process restart). Same request id as the original, so the provider can deduplicate.
      */
-    async retryCreate(input: { companyId: string; eventId: string; requestId: string }): Promise<ExternalActionResult> {
+    async retryCreate(input: { companyId: string; eventId: string; requestId: string; authority?: CalendarConnectorAuthority }): Promise<ExternalActionResult> {
       const event = await loadEventRow(input.companyId, input.eventId);
       if (event.externalId) throw conflict("La reserva ya existe en Google Calendar");
       if (event.status === "cancelled") throw conflict("La reserva está cancelada");
@@ -554,11 +634,13 @@ export function bookingService(db: Db, options: { calendar?: GoogleCalendarServi
       const outcome = await calendar.createEvent({
         companyId: input.companyId,
         connectionId,
+        bookingTypeId: type?.id ?? event.bookingTypeId ?? "",
         title: event.title,
         startsAt: event.startsAt,
         endsAt: event.endsAt,
         attendeeEmail: event.attendeeEmail ?? "",
         requestId: input.requestId,
+        authority: input.authority ?? { kind: "public_booking_host", bookingTypeId: type?.id ?? event.bookingTypeId ?? "" },
       });
       await applyProviderOutcome(event.id, outcome);
       return { externalId: outcome.externalId, status: outcome.status };

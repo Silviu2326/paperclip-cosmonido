@@ -27,6 +27,7 @@
     "signingOut": "Cerrando sesión..."
   },
   "nav": {
+    "productization": "Puesta en marcha",
     "newTask": "Nueva tarea",
     "search": "Buscar",
     "dashboard": "Inicio",
@@ -60,7 +61,8 @@
     "business": "Negocio",
     "conversations": "Conversaciones",
     "channels": "Canales",
-    "webchat": "Chat web"
+    "webchat": "Chat web",
+    "assignments": "Tareas"
   },
   "dashboard": {
     "welcome": "Bienvenido a Paperclip. Configura tu primera organización y tu primer agente para empezar.",
@@ -3005,23 +3007,23 @@
     "updating": "Actualizando artefactos..."
   },
   "auth": {
-    "authFailed": "Error de autenticación",
-    "checkFailed": "No se pudo comprobar el inicio de sesión. Recarga la página e inténtalo de nuevo.",
+    "authFailed": "Error de autenticaci?n",
+    "checkFailed": "No se pudo comprobar el inicio de sesi?n. Recarga la p?gina e int?ntalo de nuevo.",
     "createButton": "Crear cuenta",
-    "createDescription": "Crea una cuenta para esta instancia. En la v1 no se requiere confirmar el correo.",
+    "createDescription": "Crea una cuenta para esta instancia. Es posible que tengas que verificar el correo antes de iniciar sesi?n.",
     "createOne": "Crear una",
     "createTitle": "Crea tu cuenta de Paperclip",
-    "email": "Correo electrónico",
+    "email": "Correo electr?nico",
     "fillRequired": "Rellena todos los campos obligatorios.",
-    "haveAccount": "¿Ya tienes cuenta?",
+    "haveAccount": "?Ya tienes cuenta?",
     "name": "Nombre",
-    "needAccount": "¿No tienes cuenta?",
-    "password": "Contraseña",
-    "signInButton": "Iniciar sesión",
-    "signInDescription": "Usa tu correo y tu contraseña para acceder a esta instancia.",
-    "signInLink": "Iniciar sesión",
-    "signInTitle": "Inicia sesión en Paperclip",
-    "working": "Procesando…"
+    "needAccount": "?Necesitas una cuenta?",
+    "password": "Contrase?a",
+    "signInButton": "Iniciar sesi?n",
+    "signInDescription": "Usa tu correo y contrase?a para acceder a esta instancia.",
+    "signInLink": "Iniciar sesi?n",
+    "signInTitle": "Inicia sesi?n en Paperclip",
+    "working": "Procesando?"
   },
   "boardChat": {
     "assistant": "Asistente",
@@ -11341,7 +11343,8 @@
       "slug": "Usa letras minúsculas, dígitos y guiones.",
       "duration": "La duración debe estar entre 5 y 480 minutos.",
       "buffer": "El margen debe estar entre 0 y 240 minutos.",
-      "hours": "Elige al menos un día y una hora de fin posterior al inicio."
+      "hours": "Elige al menos un día y una hora de fin posterior al inicio.",
+      "publicExecution": "Elige una conexión de Google Calendar y un anfitrión antes de habilitar la ejecución pública."
     },
     "weekday": {
       "0": "Dom",
@@ -11356,7 +11359,18 @@
       "proposed": "Propuesta",
       "confirmed": "Confirmada",
       "cancelled": "Cancelada"
-    }
+    },
+    "publicExecutionDelegation": "Permitir que esta página pública de reservas use la conexión de Google Calendar de este anfitrión. El acceso al calendario se delega solo para reservas de este tipo.",
+    "publicExecutionEnabled": "Acceso al calendario delegado para las reservas públicas de este tipo",
+    "publicExecutionDisabled": "Las reservas públicas no tienen autorización para acceder al calendario del proveedor",
+    "revokePublicExecution": "Revocar acceso al calendario",
+    "revokingPublicExecution": "Revocando…",
+    "publicExecutionRevoked": "Acceso delegado al calendario revocado",
+    "typeConnection": "Conexión de Google Calendar",
+    "typeHost": "Anfitrión de la reserva",
+    "companyHost": "Usar la autorización de conexión de la organización",
+    "agentHost": "Agente: {{name}}",
+    "userHost": "Persona: {{name}}"
   },
   "conversations": {
     "title": "Conversaciones",
@@ -11544,5 +11558,431 @@
     "snippetTitle": "Instalar en tu sitio web",
     "snippetHelp": "Pega esta línea antes de la etiqueta de cierre del body en cada página donde debe aparecer el chat.",
     "inactive": "El chat web está desactivado. Actívalo para que el widget funcione en tu sitio."
+  },
+  "uxNav": {
+    "businessFeatures": "Clientes, ventas y conversaciones",
+    "businessHelp": "Accesos para trabajar con clientes y atender oportunidades.",
+    "pinAgenda": "Fijar Agenda",
+    "agendaHelp": "Abrir tus reuniones directamente desde la navegación.",
+    "pinOffice": "Fijar Oficina",
+    "officeHelp": "Acceso directo a la vista visual de tu equipo.",
+    "preferences": "Navegación",
+    "scope": "Tus accesos para {{company}} en este navegador. Puedes cambiarlos cuando lo necesites.",
+    "saveError": "No se pudo guardar. Permite el almacenamiento del navegador y vuelve a intentarlo.",
+    "sales": "Ventas",
+    "personal": "Tus preferencias",
+    "accessSessions": "Acceso y sesiones",
+    "company": "Empresa",
+    "retention": "Datos y retención",
+    "account": "Cuenta comercial",
+    "installations": "Instalaciones gestionadas",
+    "accountDeletion": "Eliminar cuenta",
+    "files": "Archivos",
+    "customerChannels": "Atención a clientes",
+    "notificationsFeed": "Avisos",
+    "sessionError": "No se pudo cargar tu sesión. Recarga para volver a intentarlo.",
+    "sessionLoading": "Cargando tu sesión…",
+    "signIn": "Inicia sesión para gestionar tus avisos.",
+    "notificationPreferences": "Notificaciones",
+    "developer": "API y desarrolladores",
+    "team": "Ver equipo",
+    "taskResultCosts": "Por tarea",
+    "costsWithoutDetail": "Sin desglose por tarea",
+    "costsWithoutDetailHelp": "Incluye gasto sin tarea vinculada o cuyo detalle no puedes consultar."
+  },
+  "uxCrm": {
+    "customers": "Clientes",
+    "contacts": "Contactos",
+    "services": "Servicios recurrentes",
+    "leads": "Leads",
+    "opportunities": "Oportunidades",
+    "proposals": "Propuestas",
+    "forms": "Formularios",
+    "conversations": "Conversaciones",
+    "calls": "Llamadas",
+    "agenda": "Agenda",
+    "importContacts": "Importar contactos",
+    "customerProposals": "Propuestas",
+    "noCustomerProposals": "Este cliente todavía no tiene propuestas.",
+    "noCustomerServices": "Este cliente todavía no tiene servicios recurrentes.",
+    "openCustomer": "Abrir cliente"
+  },
+  "uxFiles": {
+    "files": "Archivos",
+    "context": "Contexto",
+    "createVideo": "Crear vídeo",
+    "production": "Producción",
+    "createVideoFromFile": "Crear vídeo a partir de este archivo",
+    "selectCompany": "Selecciona una empresa para ver sus trabajos de producción.",
+    "refreshQueue": "Actualizar cola",
+    "noEligibleVideo": "No hay vídeos de empresa disponibles para seleccionar. Revisa el acceso y la fecha de caducidad del archivo o sube un vídeo.",
+    "projectUnavailable": "Este proyecto no está disponible en la empresa seleccionada. Elige un proyecto autorizado antes de subir el archivo.",
+    "projectContextSelected": "El proyecto seleccionado se usará como audiencia del archivo."
+  },
+  "uxSettings": {
+    "scope": {
+      "user": "Tu usuario",
+      "company": "Empresa",
+      "account": "Cuenta comercial",
+      "apps": "Apps"
+    },
+    "back": {
+      "settings": "Volver a Ajustes",
+      "apps": "Volver a Apps"
+    },
+    "navLabel": "Ajustes relacionados",
+    "security": {
+      "links": {
+        "access": "Seguridad de acceso",
+        "retention": "Retención de datos de la empresa",
+        "account": "Eliminar cuenta comercial"
+      },
+      "access": {
+        "title": "Seguridad de acceso",
+        "scope": "La verificación en dos pasos y las sesiones afectan solo a tu propio acceso, en todas las empresas. La retención de datos de la empresa y la eliminación de la cuenta comercial están en apartados propios."
+      },
+      "retention": {
+        "title": "Retención de datos",
+        "scope": "Esta política se aplica a las conversaciones cerradas y los archivos de la empresa seleccionada. La seguridad de tu acceso se gestiona aparte."
+      },
+      "account": {
+        "title": "Eliminar cuenta comercial",
+        "scope": "Esto solo afecta a una cuenta comercial de la que eres propietario, no a tu usuario ni a una empresa concreta. Aquí solo aparecen las cuentas que posees."
+      }
+    },
+    "notifications": {
+      "categories": {
+        "decisions": {
+          "label": "Decisiones",
+          "description": "Decisiones abiertas que necesitan respuesta del consejo."
+        },
+        "reviews": {
+          "label": "Revisiones de entregables",
+          "description": "Revisiones pendientes asignadas a ti o al consejo."
+        },
+        "tasks": {
+          "label": "Tareas asignadas",
+          "description": "Tareas abiertas asignadas directamente a tu cuenta."
+        }
+      },
+      "permission": {
+        "granted": "permitido",
+        "denied": "bloqueado",
+        "default": "sin solicitar",
+        "unsupported": "no compatible"
+      },
+      "inbox": {
+        "title": "Notificaciones",
+        "selectCompany": "Selecciona una empresa para ver su bandeja de notificaciones.",
+        "preferencesLink": "Preferencias de notificaciones",
+        "liveHint": "La bandeja se actualiza según la sesión de la empresa activa.",
+        "noResolve": "Los avisos solo apuntan al trabajo: desde esta lista no se aprueba ni se resuelve nada. Abre un elemento para responder allí.",
+        "listLabel": "Bandeja de notificaciones",
+        "filterLabel": "Filtrar la bandeja de notificaciones",
+        "allShown": "Todas ({{shown}})",
+        "categoryShown": "{{label}} ({{shown}})",
+        "loading": "Cargando la bandeja de notificaciones…",
+        "emptyTitle": "Nada requiere tu atención",
+        "emptyDescription": "Aquí aparecerán las decisiones abiertas, las revisiones y tus tareas asignadas.",
+        "open": "Abrir"
+      },
+      "preferences": {
+        "title": "Preferencias de notificaciones",
+        "selectCompany": "Selecciona una empresa para gestionar sus preferencias de notificaciones.",
+        "scope": "Estos ajustes se aplican solo a tu cuenta en {{company}}. Los avisos en sí se listan en la bandeja de notificaciones.",
+        "inboxLink": "Abrir la bandeja de notificaciones",
+        "categoriesTitle": "Sobre qué quieres recibir avisos",
+        "categoriesDescription": "Elige qué tipos de trabajo abierto generan avisos para ti en {{company}}.",
+        "saved": "Preferencias guardadas",
+        "deviceTitle": "Este dispositivo",
+        "deviceDescription": "Elige si esta cuenta recibe avisos genéricos del sistema de {{company}}.",
+        "browserPermission": "Permiso del navegador: {{permission}}. Los avisos no incluyen texto de tareas ni de clientes.",
+        "browserEnabled": "Avisos del navegador activados",
+        "enableBrowser": "Activar avisos del navegador",
+        "disableBrowser": "Desactivar y borrar los avisos del navegador",
+        "pushTitle": "Web push remoto",
+        "pushBlocked": "Bloqueado hasta que el servidor tenga configuradas la clave pública VAPID, la clave privada y el asunto.",
+        "pushActive": "{{devices}} suscripción(es) de dispositivo activa(s) para esta empresa.",
+        "pushIdle": "Web Push usa la suscripción de este navegador aunque Paperclip esté cerrado. Los avisos siguen siendo genéricos.",
+        "pushDisable": "Desactivar web push para esta empresa",
+        "pushUnsupported": "Web Push no es compatible con este navegador",
+        "pushEnable": "Activar web push remoto",
+        "pushUnavailable": "La configuración de Web Push no está disponible",
+        "whatsapp": "WhatsApp seguirá sin estar disponible hasta que existan un canal autorizado y un flujo de consentimiento.",
+        "pushPermissionRequired": "Permite las notificaciones en tu navegador para activar web push.",
+        "pushIncomplete": "El navegador devolvió una suscripción push incompleta.",
+        "pushEnableError": "No se pudo activar web push.",
+        "pushDisableError": "No se pudo desactivar web push."
+      }
+    },
+    "accounts": {
+      "scope": "Las cuentas comerciales agrupan las empresas, los miembros y los límites del plan que pagas. Son independientes de tu perfil de usuario y de los ajustes de una sola empresa. La facturación de cada cuenta se gestiona en Facturación.",
+      "billingLink": "Facturación y plan",
+      "chooseCompany": "Elige una empresa para vincular",
+      "noLinkableCompanies": "No hay otras empresas disponibles para vincular",
+      "memberIdHelp": "Los miembros se añaden por ID de usuario: no hay una lista autorizada de usuarios entre la que elegir, así que pide su ID de usuario a la persona."
+    },
+    "billing": {
+      "scope": "La suscripción, las facturas y los límites pertenecen a cada cuenta comercial de la lista, no a tu usuario ni a una empresa. Gestiona quién pertenece a una cuenta y qué empresas cubre en Cuentas.",
+      "accountsLink": "Cuentas comerciales"
+    },
+    "developer": {
+      "scope": "Las claves de API y los webhooks se crean solo para esta empresa y usan el endpoint público /api/v1. No son conexiones de agentes ni de chat; esas se gestionan en Apps.",
+      "appsLink": "Apps",
+      "loadingSession": "Cargando sesión…",
+      "signIn": "Inicia sesión para gestionar el acceso a la API pública.",
+      "loadingCompany": "Cargando empresa…",
+      "selectCompany": "Selecciona una empresa disponible para gestionar su acceso a la API."
+    },
+    "channels": {
+      "scope": "Son las cuentas de cara al cliente (WhatsApp, Messenger, Instagram, Telegram, SMS) que esta empresa usa para hablar con sus clientes. No son las conexiones de chat de tus agentes, que se gestionan en Apps.",
+      "webchatLink": "Widget de chat web"
+    },
+    "webchat": {
+      "scope": "El widget de chat web es la forma en que los visitantes de tu sitio hablan con esta empresa. Aquí se configuran su aspecto, las respuestas automáticas y el código para incrustarlo; el resto de canales de clientes están en Canales.",
+      "channelsLink": "Canales de clientes"
+    },
+    "crmSync": {
+      "scope": "La sincronización con el CRM mantiene alineados los clientes y contactos de esta empresa con HubSpot o Pipedrive, usando las conexiones que creas en Apps. No es un canal de chat con clientes ni cambia las conexiones de chat de los agentes.",
+      "connectInApps": "Conecta {{provider}} en Apps y vuelve aquí.",
+      "openJob": "Trabajo {{status}} · {{id}}"
+    }
+  },
+  "uxWork": {
+    "acceptanceCriteria": "Criterios de aceptación",
+    "agentRequired": "Elige un agente para usar criterios de revisión.",
+    "allTasks": "Todas las tareas",
+    "budget": "Presupuesto",
+    "budgetUsd": "Presupuesto (USD)",
+    "contextUsed": "Contexto utilizado",
+    "expectedResult": "Resultado esperado",
+    "missingRootTask": "La tarea no se pudo abrir. Recarga y revisa el resultado antes de reintentar.",
+    "noContext": "Aún no se ha registrado contexto.",
+    "openTasks": "Abrir tareas",
+    "otherContext": "otro",
+    "outcomeReview": "Resultado y revisión (opcional)",
+    "pendingReview": "Pendientes de revisión",
+    "reviewRequired": "Con resultado y revisión",
+    "reviewStatus": "Revisión",
+    "status": {
+      "planned": "Planificado",
+      "in_progress": "En curso",
+      "awaiting_review": "Pendiente de revisión",
+      "changes_requested": "Cambios solicitados",
+      "accepted": "Aceptado",
+      "cancelled": "Cancelado"
+    },
+    "taskUnavailable": "La tarea asociada no está disponible",
+    "taskUnavailableHelp": "El registro de resultado se conserva para recuperación; no se creó otra tarea al abrir este enlace.",
+    "budgetInvalid": "Introduce un presupuesto válido de cero o más.",
+    "criteriaRequired": "Añade criterios de aceptación para guardar el resultado y el presupuesto.",
+    "newTask": "Nueva tarea",
+    "taskCostCoverage": "{{percent}}% en tareas con resultado · {{unattributed}} sin atribuir",
+    "taskCostsFailed": "No se pudieron cargar los costes de resultados de tareas. Recarga para intentarlo de nuevo.",
+    "costsByReviewedTask": "Costes por tarea con resultado",
+    "noTasksWithResults": "Todavía no hay tareas con resultado.",
+    "dashboardEmpty": "Aún no hay tareas en curso. Crea una tarea para empezar.",
+    "noActiveTasks": "No hay tareas activas ahora mismo.",
+    "taskOverBudget": "Esta tarea ha superado su presupuesto."
+  },
+  "uxTeam": {
+    "back": {
+      "team": "Equipo",
+      "routines": "Rutinas"
+    },
+    "nav": {
+      "label": "Crear y configurar equipo",
+      "team": "Equipo",
+      "create": "Crear equipo",
+      "private": "Plantillas privadas",
+      "shared": "Plantillas compartidas",
+      "builder": "Editor de configuración avanzada"
+    },
+    "agents": {
+      "addTeam": "Añadir equipo",
+      "relatedLabel": "Más sobre el equipo",
+      "skills": "Habilidades",
+      "autonomy": "Autonomía",
+      "office": "Oficina",
+      "emptyHint": "También puedes añadir un equipo completo desde las plantillas disponibles."
+    },
+    "agentDetail": {
+      "autonomyHint": "La autonomía por tipo de acción (correo, mensaje, reserva…) se gana con pruebas y se puede revocar en cualquier momento desde Autonomía.",
+      "autonomyLink": "Ver autonomía de este agente"
+    },
+    "autonomy": {
+      "filtered": "Mostrando solo {{name}}.",
+      "filterMissing": "Ese agente no tiene autonomía que mostrar. Se muestran todos los agentes.",
+      "showAll": "Ver todos los agentes"
+    },
+    "routines": {
+      "procedures": "Procedimientos",
+      "proceduresHint": "Secuencias reutilizables paso a paso. Cuándo se ejecuta cada rutina se sigue configurando aquí, en Rutinas."
+    },
+    "playbooks": {
+      "title": "Procedimientos",
+      "intro": "Secuencias comerciales reutilizables y versionadas que se ejecutan paso a paso. Cuándo se lanza cada trabajo se sigue configurando en Rutinas.",
+      "empty": "Aún no hay procedimientos.",
+      "new": "Nuevo procedimiento",
+      "create": "Crear procedimiento",
+      "notFound": "Procedimiento no encontrado"
+    },
+    "workbench": {
+      "title": "Crea tu equipo y prepara su primera tarea",
+      "description": "Elige una plantilla de equipo, revisa sus perfiles, contrata los que necesites y confirma el contexto del negocio.",
+      "resume": "Preparación en curso. Siguiente paso: {{step}}",
+      "resumeDone": "Preparación completada.",
+      "resumeAction": "Continuar preparación",
+      "tabTemplates": "Plantillas de equipo",
+      "tabHire": "Contratar",
+      "tabFirstTask": "Primera tarea",
+      "tabTeamTasks": "Equipo y tareas",
+      "chooseProfile": "Elige primero un perfil de una plantilla de equipo revisada.",
+      "browseTemplates": "Elegir plantilla",
+      "journeyUnavailableDescription": "Puedes revisar plantillas de equipo y perfiles mientras se completa la configuración de la cuenta.",
+      "openTeam": "Abrir Equipo",
+      "tasksTitle": "Tareas reales",
+      "tasksDescription": "Actividad existente. El recorrido solo se vincula a una tarea cuando el servidor confirma su inicio.",
+      "loadingTasks": "Cargando tareas…",
+      "noTasks": "Todavía no hay tareas para mostrar.",
+      "openTasks": "Abrir Tareas"
+    },
+    "productization": {
+      "chooseJourney": "Elegir un recorrido de puesta en marcha"
+    },
+    "onboarding": {
+      "title": "Prepara tu primera tarea",
+      "stepFirstTask": "Primera tarea",
+      "milestonesDescription": "Aquí verás cuándo el equipo esté instalado y empiece la primera tarea.",
+      "useNote": "Confirma que quieres usar estos agentes. Esto no inicia agentes ni ejecuta una tarea.",
+      "useConfirmed": "Equipo confirmado para usar. Crea una tarea real en Tareas para continuar.",
+      "firstTaskTitle": "Vincula una tarea ya iniciada",
+      "firstTaskDescription": "El servidor solo ofrece trabajos de esta empresa cuya tarea ya tiene un inicio real posterior a la confirmación del equipo.",
+      "firstTaskLinked": "El recorrido ya está vinculado a una tarea iniciada.",
+      "firstTaskOpen": "Abrir tarea",
+      "firstTaskNone": "No hay tareas iniciadas elegibles todavía.",
+      "openTasks": "Abrir Tareas",
+      "firstTaskTruncated": "Se muestran hasta 100 tareas iniciadas elegibles. La lista está limitada por el servidor.",
+      "firstTaskChoose": "Selecciona una tarea iniciada",
+      "firstTaskLink": "Vincular tarea",
+      "milestoneFirstTask": "Primera tarea iniciada",
+      "metricFirstTask": "Tiempo hasta la primera tarea: {{duration}}"
+    },
+    "builder": {
+      "title": "Editor de configuración avanzada",
+      "description": "Describe el trabajo y guarda borradores versionados de la configuración del equipo. Sin un proveedor de generación conectado, el texto y la configuración son aportados por ti.",
+      "notHiring": "Este editor solo guarda borradores: no crea agentes ni da permisos. Para elegir una plantilla y contratar, usa la preparación del equipo.",
+      "backToPreparation": "Volver a la preparación",
+      "reviewAndHire": "Elegir plantilla y contratar"
+    },
+    "catalog": {
+      "privateTitle": "Plantillas privadas del equipo",
+      "privateDescription": "Guarda equipos y configuraciones de esta empresa como plantillas versionadas. Describen contenido: no traen permisos, credenciales ni conexiones, y toda contratación sigue las aprobaciones de la empresa. Para usarlas, elige una plantilla desde Crear equipo.",
+      "sharedTitle": "Plantillas compartidas"
+    }
+  },
+  "uxAccounts": {
+    "memberFor": "Company member to add",
+    "selectCompany": "Select a company to find its members.",
+    "loadingMembers": "Loading company members…",
+    "chooseMember": "Choose a company member",
+    "addingMember": "Adding…",
+    "directoryError": "The company member list could not be loaded. You can still enter a user ID below.",
+    "directoryScope": "Select a company to choose from its active members.",
+    "externalMember": "Add someone by user ID",
+    "inviteLink": "Invite a company member",
+    "currentMembersError": "The account member list could not be loaded. Try again before adding someone."
+  },
+  "productization": {
+    "loadingJobs": "Cargando tareas…",
+    "workbench": {
+      "title": "Prepara tu equipo y primera tarea",
+      "onboarding": "primera tarea",
+      "team": "Equipo y tareas",
+      "jobsTitle": "Tareas reales",
+      "jobsDescription": "Actividad existente. El recorrido solo se vincula a una tarea cuando el servidor confirma su inicio.",
+      "noJobs": "Todavía no hay tareas para mostrar.",
+      "openJobs": "Abrir Tareas"
+    },
+    "hiring": {
+      "specialist": "Especialista por tarea",
+      "approvalPolicy": "La aprobación sigue la política de esta empresa. Esta pantalla no inicia una tarea.",
+      "lifecycleSetup": "Al confirmar, el endpoint existente crea el agente y puede programar la preparación de su lifecycle. No envía un heartbeat ni crea una tarea. Revisa los campos antes de confirmar.",
+      "specialist_profile_unsupported": "Los especialistas por tarea aún no se pueden contratar."
+    },
+    "catalog": {
+      "library": {
+        "templates": "Plantillas de tarea"
+      },
+      "install": {
+        "kindsTitle": "Agentes persistentes y especialistas por tarea",
+        "kindsBody": "Un agente persistente es un puesto contratado que permanece en la empresa y recibe tareas. Un especialista por tarea sería un perfil temporal creado para un tarea concreta: su ejecución todavía no está soportada, así que nunca se contrata ni se simula como agente persistente.",
+        "specialists": "Especialistas por tarea (no se instalan)"
+      }
+    }
+  },
+  "productOnboarding": {
+    "title": "Prepara tu primera tarea",
+    "steps": {
+      "first_job": "primera tarea"
+    },
+    "milestones": {
+      "description": "Aquí verás cuándo el equipo esté instalado y empiece el primera tarea.",
+      "firstJob": "primera tarea iniciado"
+    },
+    "team": {
+      "useNote": "Confirma que quieres usar estos agentes. Esto no inicia agentes ni ejecuta una tarea.",
+      "useConfirmed": "Equipo confirmado. Crea una tarea con Resultado y revisión e iníciala para continuar."
+    },
+    "firstJob": {
+      "chooseTitle": "Vincula un tarea ya iniciada",
+      "chooseDescription": "El servidor solo ofrece objetivos de esta empresa cuyo tarea ya tiene un inicio real posterior a la confirmación del equipo.",
+      "linked": "El recorrido ya está vinculado a un tarea iniciada.",
+      "open": "Abrir tarea",
+      "none": "No hay tareas iniciadas disponibles todavía.",
+      "openTasks": "Abrir Tareas",
+      "choose": "Selecciona un tarea iniciada",
+      "link": "Vincular tarea"
+    },
+    "jobs": {
+      "truncated": "Se muestran hasta 100 tareas iniciadas disponibles. La lista está limitada por el servidor."
+    },
+    "metrics": {
+      "firstJob": "Tiempo hasta el primera tarea: {{duration}}"
+    }
+  },
+  "productMetrics": {
+    "openAssignments": "Ver tareas",
+    "labels": {
+      "assignments": "Tareas creados",
+      "accepted": "Tareas aceptados"
+    }
+  },
+  "dailyBrief": {
+    "deliveryPending": "Entrega pendiente de confirmación por el agente. Tarea: {{taskId}}"
+  },
+  "businessHome": {
+    "customerCounts": "{{work}} tareas con revisión activas · {{reviews}} revisiones · {{overdue}} compromisos vencidos",
+    "costCoverage": "Coste USD atribuido directamente por proyecto o tarea con revisión. Excluye datos sin vínculo o precio; no representa margen ni facturación.",
+    "emptyPortfolio": "No hay clientes activos. Añade un cliente para organizar su trabajo."
+  },
+  "uxProject": {
+    "customer": "Cliente",
+    "selectCustomer": "Seleccionar cliente del proyecto",
+    "noCustomer": "Sin cliente vinculado",
+    "searchCustomers": "Buscar clientes por nombre o dominio",
+    "loadingCustomers": "Cargando clientes…",
+    "loadingCustomer": "Cargando el cliente vinculado…",
+    "unavailableCustomer": "Cliente vinculado",
+    "noCustomersFound": "No se encontraron clientes activos.",
+    "loadMoreCustomers": "Cargar más clientes",
+    "openCustomer": "Abrir cliente",
+    "removeCustomer": "Quitar",
+    "pendingReviews": "Revisiones pendientes",
+    "projectContext": "Contexto del proyecto"
+  },
+  "agencyPage": {
+    "title": "Instalaciones gestionadas",
+    "pageDescription": "Gestiona las empresas independientes que operas para clientes, sus paquetes y su identidad pública."
   }
 }

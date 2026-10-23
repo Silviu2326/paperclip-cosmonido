@@ -9,6 +9,9 @@ import { Sidebar } from "./Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { t } from "@/i18n";
 
+const mockBusinessNavigation = vi.hoisted(() => ({ business: true, agenda: false, office: false }));
+vi.mock("@/hooks/useBusinessNavigation", () => ({ useBusinessNavigation: () => ({ preferences: mockBusinessNavigation }) }));
+
 const mockHeartbeatsApi = vi.hoisted(() => ({
   liveRunsForCompany: vi.fn(),
 }));
@@ -165,6 +168,7 @@ describe("Sidebar", () => {
     mockSidebar.collapsed = false;
     mockSidebar.collapseLocked = false;
     mockSidebar.peeking = false;
+    Object.assign(mockBusinessNavigation, { business: true, agenda: false, office: false });
     mockInboxBadge.inbox = 0;
     mockInboxBadge.failedRuns = 0;
   });
@@ -199,6 +203,41 @@ describe("Sidebar", () => {
     flushSync(() => {
       root.unmount();
     });
+  });
+
+  it("lets the operator fold Business and reach the following navigation groups", async () => {
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableStreamlinedUi: true });
+    const root = await renderSidebar();
+    const toggle = (key: "collapseAria" | "expandAria") => {
+      const label = t(`sidebarSection.${key}`, { label: t("nav.business") });
+      const button = container.querySelector(`button[aria-label="${label}"]`);
+      expect(button).not.toBeNull();
+      flushSync(() => button!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    };
+    expect(container.querySelector('a[href="/customers"]')).not.toBeNull();
+    toggle("collapseAria");
+    await flushReact();
+    expect(container.querySelector('a[href="/customers"]')).toBeNull();
+    expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
+    toggle("expandAria");
+    await flushReact();
+    expect(container.querySelector('a[href="/customers"]')).not.toBeNull();
+    flushSync(() => root.unmount());
+  });
+
+  it("keeps business tools optional and Settings reachable from the admin group", async () => {
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableStreamlinedUi: true });
+    mockBusinessNavigation.business = false;
+    mockBusinessNavigation.agenda = true;
+    const root = await renderSidebar();
+    expect(container.querySelector('a[href="/customers"]')).toBeNull();
+    expect(container.querySelector('a[href="/sales"]')).toBeNull();
+    expect(container.querySelector('a[href="/schedule"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/issues"]')).not.toBeNull();
+    await openAdminGroup();
+    expect(container.querySelector('a[href="/company/settings"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/company/settings/navigation"]')).toBeNull();
+    flushSync(() => root.unmount());
   });
 
   it("shows Search as a nav item instead of a header icon", async () => {
@@ -535,9 +574,11 @@ describe("Sidebar", () => {
     const labels = (section: Element | undefined) => [...(section?.querySelectorAll("a") ?? [])]
       .map((anchor) => anchor.textContent?.trim());
 
-    expect(labels(workSection)).toEqual(["Tareas", "Proyectos", "Rutinas", "Artefactos"]);
+    expect(labels(workSection)).toEqual([
+      t("nav.tasks"), t("nav.projects"), t("uxNav.files"), t("nav.routines"),
+    ]);
     expect(teamSection?.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
-    expect(labels(orgSection)).toEqual(["Habilidades", "Conectores", "Auditoría"]);
+    expect(labels(orgSection)).toEqual([t("nav.settings"), "Conectores", "Auditoría"]);
     expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(teamSection!));
     expect(sections.indexOf(teamSection!)).toBeLessThan(sections.indexOf(orgSection!));
     expect(

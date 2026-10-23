@@ -1,10 +1,13 @@
-import { OnboardingWizard } from "./OnboardingWizard";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useDialogState } from "../context/DialogContext";
 
-/**
- * Default onboarding wizard. Conference-room chat is now the only surface left
- * behind `enableConferenceRoomChat`; onboarding stays available without that
- * experimental flag.
- */
+const OnboardingWizard = lazy(() => import("./OnboardingWizard").then((module) => ({ default: module.OnboardingWizard })));
+
+/** Load on first use, then keep the wizard mounted to preserve its draft state. */
 export function OnboardingWizardVariant() {
-  return <OnboardingWizard />;
+  const { onboardingOpen } = useDialogState();
+  const [activated, setActivated] = useState(onboardingOpen);
+  useEffect(() => { if (onboardingOpen) setActivated(true); }, [onboardingOpen]);
+  if (!onboardingOpen && !activated) return null;
+  return <Suspense fallback={null}><OnboardingWizard /></Suspense>;
 }

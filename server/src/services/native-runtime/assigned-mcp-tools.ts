@@ -223,4 +223,5 @@ export const PRODUCT_TOOL_NAMES = [
   "calendar_availability", "calendar_book", "calendar_reschedule", "calendar_cancel",
   "customer_memory_get", "customer_memory_append",
   "webchat_handoff",
+  "review_link_create", "review_status_get", "crm_sync_status", "call_summary_get", "call_schedule",
 ] as const;

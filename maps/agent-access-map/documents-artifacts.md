@@ -3,6 +3,8 @@
 Product map: [Documents, attachments, and work
 products](../feature-map/documents-artifacts.md).
 
+The UX integration note concerns presentation and navigation; it does not itself grant new file or artifact access. Any new media/context API or agent binding is not enumerated by the operation baselines below, which remain source-only.
+
 Review date: 2026-10-12. Source commit: `f981fa3cc10cb8663a87dec60345fbff46d54d0a`.
 
 This is a source-reviewed baseline of representative operations and known gaps.

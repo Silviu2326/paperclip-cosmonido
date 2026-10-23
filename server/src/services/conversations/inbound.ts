@@ -142,6 +142,30 @@ export async function recordInboundMessage(
       return { conversation: toConversation(conv), message: toConversationMessage(duplicate), created: false };
     }
 
+    // Web chat automation is an explicit company opt-in. Insert only a durable
+    // inbox work row here; the worker creates an assigned task after commit and
+    // the ordinary heartbeat/external-action gates own execution and delivery.
+    if (input.channel === "webchat") {
+      const policyRows = await t.execute(sql`
+        select d.agent_id, d.responsible_user_id
+        from conversation_agent_dispatch_settings d
+        inner join webchat_settings w on w.company_id = d.company_id and w.active = true
+        where d.company_id = ${companyId} and d.enabled = true
+        limit 1
+      `) as unknown as Array<{ agent_id: string; responsible_user_id: string }>;
+      const policy = policyRows[0];
+      if (policy?.agent_id && policy.responsible_user_id &&
+          conv.assignedUserId === null && (!conv.assignedAgentId || conv.assignedAgentId === policy.agent_id)) {
+        await t.execute(sql`
+          insert into conversation_agent_dispatches
+            (company_id, conversation_id, source_message_id, agent_id, responsible_user_id, status)
+          values
+            (${companyId}, ${conv.id}, ${inserted.id}, ${policy.agent_id}, ${policy.responsible_user_id}, 'pending')
+          on conflict (company_id, source_message_id) do nothing
+        `);
+      }
+    }
+
     // Contact and customer: resolved once per conversation, kept afterwards.
     const resolved = conv.contactId && conv.customerId
       ? null

@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
-import type { Db } from "@paperclipai/db";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { agents, commitments, conversations, type Db } from "@paperclipai/db";
 import type { CommitmentCandidate, CommitmentsExtractInput } from "@paperclipai/shared";
+import { conflict, notFound, unprocessable } from "../errors.js";
+import { logActivity } from "./activity-log.js";
+import { assignmentService } from "./assignments.js";
 
 export interface CommitmentActor {
   agentId?: string | null;
@@ -98,6 +102,8 @@ export function dueAlerts(
 }
 
 export function commitmentService(db: Db, deps: CommitmentServiceDeps = {}) {
+  const assignments = assignmentService(db);
+
   async function extract(companyId: string, input: CommitmentsExtractInput, actor: CommitmentActor) {
     const candidates = normalizeCandidates(input.conversationId, input);
     const persisted: CommitmentPersistResult = deps.persist
@@ -122,7 +128,72 @@ export function commitmentService(db: Db, deps: CommitmentServiceDeps = {}) {
     return ids;
   }
 
-  return { extract, alertDue };
+  /**
+   * Confirms a detected commitment. Confirming an internal promise creates exactly one
+   * assigned follow-up; replaying the confirmation uses the same assignment key. The
+   * confirming board user is the authority for this transition, while company agent
+   * membership is rechecked before assigning work.
+   */
+  async function confirm(companyId: string, commitmentId: string, actor: { userId: string }) {
+    let newlyConfirmed = false;
+    const commitment = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`commitment-confirm:${companyId}:${commitmentId}`}, 0))`);
+      const [current] = await tx.select().from(commitments)
+        .where(and(eq(commitments.id, commitmentId), eq(commitments.companyId, companyId)))
+        .for("update").limit(1);
+      if (!current) throw notFound("Commitment not found");
+      if (current.status === "proposed") {
+        const [updated] = await tx.update(commitments).set({ status: "open", updatedAt: new Date() })
+          .where(and(eq(commitments.id, current.id), eq(commitments.companyId, companyId), eq(commitments.status, "proposed")))
+          .returning();
+        if (!updated) throw conflict("Commitment changed while confirming", { code: "version_conflict" });
+        newlyConfirmed = true;
+        return updated;
+      }
+      if (current.status !== "open") throw conflict(`Commitment is already ${current.status}`, { code: "already_resolved" });
+      return current;
+    });
+
+    if (newlyConfirmed) {
+      await logActivity(db, {
+        companyId,
+        actorType: "user",
+        actorId: actor.userId,
+        action: "commitment.confirmed",
+        entityType: "commitment",
+        entityId: commitment.id,
+        details: { who: commitment.who },
+      });
+    }
+
+    if (commitment.who !== "us") return { commitment, assignment: null };
+
+    const [conversation] = commitment.conversationId
+      ? await db.select({ assignedAgentId: conversations.assignedAgentId }).from(conversations)
+        .where(and(eq(conversations.id, commitment.conversationId), eq(conversations.companyId, companyId))).limit(1)
+      : [];
+    const [agent] = conversation?.assignedAgentId
+      ? await db.select({ id: agents.id }).from(agents).where(and(
+        eq(agents.id, conversation.assignedAgentId),
+        eq(agents.companyId, companyId),
+        inArray(agents.status, ["active", "idle", "running"]),
+      )).limit(1)
+      : [];
+    if (!agent) throw unprocessable("El compromiso no tiene un agente responsable activo y autorizado en su conversación");
+    const assignment = await assignments.create(companyId, {
+      title: `Seguimiento: ${commitment.what}`.slice(0, 200),
+      description: `Seguimiento creado al confirmar el compromiso.\nCompromiso: ${commitment.what}${commitment.dueAt ? `\nVence: ${commitment.dueAt.toISOString()}` : ""}`,
+      acceptanceCriteria: `- Registrar el resultado del compromiso: ${commitment.what}`,
+      expectedDeliverable: null,
+      budgetCents: 0,
+      projectId: null,
+      assigneeAgentId: agent.id,
+      idempotencyKey: `confirmed-commitment:${commitment.id}`,
+    }, { userId: actor.userId });
+    return { commitment, assignment };
+  }
+
+  return { extract, alertDue, confirm };
 }
 
 export type CommitmentService = ReturnType<typeof commitmentService>;

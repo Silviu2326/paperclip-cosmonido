@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight, Download, FolderPlus, LayoutGrid, List, PanelRight, Search, Upload } from "lucide-react";
+import { BookMarked, ChevronLeft, ChevronRight, Download, FolderPlus, LayoutGrid, List, PanelRight, Search, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/i18n";
@@ -29,6 +29,9 @@ interface ExplorerToolbarProps {
   /** Entrada only. */
   onUpload: (files: File[]) => void;
   onNewFolder: () => void;
+  /** Entrada only: the context (reference files) view is on / toggles it. */
+  contextActive: boolean;
+  onToggleContext: () => void;
   /** Salida only. */
   downloadEnabled: boolean;
   onDownload: () => void;
@@ -192,6 +195,17 @@ export function ExplorerToolbar(props: ExplorerToolbarProps) {
           <Button type="button" size="sm" onClick={() => fileInput.current?.click()}>
             <Upload aria-hidden="true" />
             {t("artifacts.explorer.toolbar.upload")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-pressed={props.contextActive}
+            title={t("context.description", { defaultValue: "Archivos de referencia que los agentes pueden consultar durante su trabajo." })}
+            onClick={props.onToggleContext}
+          >
+            <BookMarked aria-hidden="true" />
+            {t("uxFiles.context", { defaultValue: "Context" })}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={onNewFolder}>
             <FolderPlus aria-hidden="true" />

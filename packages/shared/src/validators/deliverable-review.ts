@@ -11,6 +11,7 @@ export const createDeliverableReviewSchema = z.object({
   evidence: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 export const resolveDeliverableReviewSchema = z.object({
+  expectedRevision: z.string().datetime({ offset: true }).optional(),
   state: z.enum(["accepted", "changes_requested"]),
   reason: z.string().trim().max(20_000).optional(),
 }).superRefine((value, ctx) => {

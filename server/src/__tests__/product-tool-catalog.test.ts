@@ -22,18 +22,21 @@ describe("product tool authorization catalog", () => {
 });
 
 describe("Sprint 2 agent tool catalog", () => {
-  const READ_TOOLS = ["crm_search", "crm_get_customer", "lead_get", "lead_list", "conversation_list", "conversation_get", "calendar_availability", "customer_memory_get"];
+  const READ_TOOLS = ["crm_search", "crm_get_customer", "lead_get", "lead_list", "conversation_list", "conversation_get", "calendar_availability", "customer_memory_get", "review_status_get", "crm_sync_status", "call_summary_get"];
 
-  it("advertises all 27 Sprint 2 tools exactly once", () => {
-    expect(SPRINT2_TOOL_NAMES).toHaveLength(27);
+  it("advertises all 32 Sprint 2 tools exactly once", () => {
+    expect(SPRINT2_TOOL_NAMES).toHaveLength(32);
     for (const name of SPRINT2_TOOL_NAMES) {
       expect(CAPABILITY_SEMANTIC_TOOL_CATALOG.filter(tool => tool.operationId === name), name).toHaveLength(1);
       expect(PRODUCT_TOOL_NAMES as readonly string[], name).toContain(name);
     }
   });
 
-  it("does not register tools that are not implemented", () => {
-    for (const name of ["review_link_create", "review_status_get", "crm_sync_status"]) expect(CAPABILITY_SEMANTIC_TOOL_CATALOG.map(tool => tool.operationId)).not.toContain(name);
+  it("keeps review creation governed and phone scheduling separate from dialing", () => {
+    const review = CAPABILITY_SEMANTIC_TOOL_CATALOG.find(tool => tool.operationId === "review_link_create")!;
+    expect(review.effect).toBe("write");
+    expect(review.allowedModes).not.toContain("planning");
+    expect(CAPABILITY_SEMANTIC_TOOL_CATALOG.map(tool => tool.operationId)).not.toContain("call_dial");
   });
 
   it("makes reads available in every work mode and mutations only in standard", () => {
@@ -50,7 +53,7 @@ describe("Sprint 2 agent tool catalog", () => {
   });
 
   it("dispatches Sprint 2 names only", async () => {
-    await expect(callSprint2Tool({ name: "crm_sync_status", arguments: {}, apiUrl: "http://x", token: "t", companyId: "c", issueId: "i", agentId: "a" })).rejects.toThrow(/Unknown/);
+    await expect(callSprint2Tool({ name: "unsupported_product_tool", arguments: {}, apiUrl: "http://x", token: "t", companyId: "c", issueId: "i", agentId: "a" })).rejects.toThrow(/Unknown/);
   });
 
   describe("authenticated API routing", () => {

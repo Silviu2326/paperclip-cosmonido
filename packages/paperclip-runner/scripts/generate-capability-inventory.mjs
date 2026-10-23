@@ -2,6 +2,9 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import {
   buildInventories,
+  buildMcpInventory,
+  buildSkillInventory,
+  decodeInventory,
   encodeInventory,
   renderContractModule,
   renderDocumentation,
@@ -11,11 +14,15 @@ import {
 
 const packageRoot = resolve(import.meta.dirname, "..");
 const repoRoot = resolve(packageRoot, "../..");
+// Refresh repository source anchors without inventing evidence for a missing
+// private eval corpus. This mode preserves the checked-in eval inventory byte
+// for byte; use the default mode when the corpus itself has changed.
+const sourcesOnly = process.argv.includes("--sources-only");
 const evalCandidates = [
   resolve(repoRoot, "../paperclip-evals/paperclip-skill-optimization"),
   resolve(repoRoot, "../../../../paperclip-evals/paperclip-skill-optimization"),
 ];
-const evalRoot = process.env.PAPERCLIP_EVALS_ROOT
+const evalRoot = sourcesOnly ? null : process.env.PAPERCLIP_EVALS_ROOT
   ?? (await (async () => {
     for (const candidate of evalCandidates) {
       if (await access(candidate).then(() => true, () => false)) return candidate;
@@ -30,7 +37,13 @@ const outputPaths = {
   documentation: resolve(packageRoot, "docs/capability-contract.md"),
 };
 
-const inventories = await buildInventories({ repoRoot, evalRoot });
+const inventories = sourcesOnly
+  ? {
+    capabilities: await buildSkillInventory(repoRoot),
+    evaluations: decodeInventory(await readFile(outputPaths.evaluations, "utf8")),
+    legacyMcpAliases: await buildMcpInventory(repoRoot),
+  }
+  : await buildInventories({ repoRoot, evalRoot });
 const inventorySchema = JSON.parse(await readFile(resolve(packageRoot, "spec/capability/inventory.schema.json"), "utf8"));
 const errors = [
   ...validateInventorySchema(inventories, inventorySchema),
@@ -40,7 +53,7 @@ if (errors.length > 0) throw new Error(`Capability inventory generation failed:\
 
 const outputs = {
   [outputPaths.capabilities]: encodeInventory(inventories.capabilities),
-  [outputPaths.evaluations]: encodeInventory(inventories.evaluations),
+  ...(!sourcesOnly ? { [outputPaths.evaluations]: encodeInventory(inventories.evaluations) } : {}),
   [outputPaths.legacyMcpAliases]: encodeInventory(inventories.legacyMcpAliases),
   [outputPaths.contract]: renderContractModule(inventories),
   [outputPaths.documentation]: renderDocumentation(inventories),
@@ -52,11 +65,15 @@ if (process.argv.includes("--check")) {
     if (await readFile(path, "utf8").catch(() => "") !== content) stale.push(path);
   }
   if (stale.length > 0) throw new Error(`Capability generated outputs are stale:\n${stale.join("\n")}`);
-  process.stdout.write("Capability inventories and generated contract match the canonical baselines.\n");
+  process.stdout.write(sourcesOnly
+    ? "Repository capability inventories match source; stored eval traceability was preserved, not corpus-verified.\n"
+    : "Capability inventories and generated contract match the canonical baselines.\n");
 } else {
   await Promise.all(Object.entries(outputs).map(async ([path, content]) => {
     await mkdir(dirname(path), { recursive: true });
     await writeFile(path, content);
   }));
-  process.stdout.write("Generated Capability inventories, TypeScript contract, and documentation.\n");
+  process.stdout.write(sourcesOnly
+    ? "Generated repository capability inventories and contract; eval traceability preserved without corpus verification.\n"
+    : "Generated Capability inventories, TypeScript contract, and documentation.\n");
 }

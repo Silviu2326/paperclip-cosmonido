@@ -1,4 +1,5 @@
 import { validateAiApiKey } from "../services/ai-api-key-test.js";
+import { randomUUID } from "node:crypto";
 export { validateAiApiKey } from "../services/ai-api-key-test.js";
 import { supportsLocalAiLogin } from "../services/local-ai-login-policy.js";
 import { localAiLoginService } from "../services/local-ai-login.js";
@@ -32,6 +33,7 @@ import { accessService } from "../services/access.js";
 import { logActivity } from "../services/activity-log.js";
 import { aiConnectionRouterService } from "../services/ai-connection-router.js";
 import { aiConnectionService } from "../services/ai-connections.js";
+import { productizationEntitlementsService } from "../services/productization/entitlements.js";
 import { validate } from "../middleware/validate.js";
 
 /** Agent API calls inherit authenticated run identity, never the agent's own ID. */
@@ -143,6 +145,13 @@ export function aiConnectionRoutes(db: Db, options: Parameters<typeof supportsLo
   const router = Router();
   const service = aiConnectionService(db);
   const localLogin = localAiLoginService(db);
+  const entitlements = productizationEntitlementsService(db);
+  const reserveNewConnection = (req: Request, companyId: string, input: Pick<AiConnectionLoginIntent | z.infer<typeof createAiConnectionSchema>,"provider"|"method"|"ownership"|"allAgents"|"agentIds"|"connectionId">) => {
+    if(input.connectionId) return Promise.resolve(null);
+    const suppliedKey=req.get("Idempotency-Key")?.trim();
+    const key=suppliedKey&&suppliedKey.length<=200?suppliedKey:randomUUID();
+    return entitlements.reserveForCompany({companyId,metric:"connections",quantity:1,idempotencyKey:`ai-connection:${key}`,requestFingerprint:JSON.stringify({companyId,provider:input.provider,method:input.method,ownership:input.ownership,allAgents:input.allAgents,agentIds:input.agentIds})});
+  };
   const pools = aiConnectionRouterService(db);
   router.get("/companies/:companyId/ai-connection-pools", async (req, res) => {
     const companyId = req.params.companyId as string;
@@ -302,18 +311,19 @@ export function aiConnectionRoutes(db: Db, options: Parameters<typeof supportsLo
         throw unprocessable(
           "Use the existing provider sign-in flow to connect a subscription",
         );
-      const attemptStartedAt = new Date();
-      // Custom destinations are exercised in the selected execution environment,
-      // never fetched by the control plane (including localhost/private URLs).
-      if (!input.routing || input.routing.kind === "openrouter") await validateAiApiKey(input.provider, input.apiKey!);
-      const result = await service.save(
-        companyId,
-        userId,
-        input,
-        input.apiKey ?? "",
-        undefined,
-        attemptStartedAt,
-      );
+      const reservation=await reserveNewConnection(req,companyId,input);
+      let result;
+      try {
+        const attemptStartedAt = new Date();
+        // Custom destinations are exercised in the selected execution environment,
+        // never fetched by the control plane (including localhost/private URLs).
+        if (!input.routing || input.routing.kind === "openrouter") await validateAiApiKey(input.provider, input.apiKey!);
+        result = await service.save(companyId,userId,input,input.apiKey ?? "",undefined,attemptStartedAt);
+      } catch(error) {
+        if(reservation) await entitlements.releaseAfterConfirmedRollback(reservation);
+        throw error;
+      }
+      if(reservation) await entitlements.commit(reservation);
       res.status(201).json(result);
     },
   );
@@ -328,7 +338,12 @@ export function aiConnectionRoutes(db: Db, options: Parameters<typeof supportsLo
       if (!localSessionId) throw unprocessable(input.provider === "xai"
         ? "Start local sign-in for this connection before connecting."
         : "Start browser sign-in for this connection before connecting.");
-      res.status(201).json(await localLogin.complete(companyId, userId, localSessionId, input));
+      const reservation=await reserveNewConnection(req,companyId,input);
+      let result;
+      try { result=await localLogin.complete(companyId,userId,localSessionId,input); }
+      catch(error) { if(reservation) await entitlements.releaseAfterConfirmedRollback(reservation); throw error; }
+      if(reservation) await entitlements.commit(reservation);
+      res.status(201).json(result);
     },
   );
   router.put(

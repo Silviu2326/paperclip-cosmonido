@@ -106,3 +106,7 @@ own policy and access review.
 
 Gaps: A governance-policy decision is needed before delegating budget increases or
 incident resolution.
+
+## Result cost privacy (2026-10-22)
+
+Source-reviewed local integration, not live agent qualification: `GET /api/companies/{companyId}/costs/by-goal` omits rows for unreadable assignment roots. Their amounts remain in the company financial total and are folded into unattributed totals without private titles or IDs. `GET /api/goals/{id}/cost-summary` requires both existing company-cost access and root readability; missing, foreign and private resources use the same not-found response. The dashboard filters private task and review metadata before list/count limits. Company financial aggregates retain their existing cost-access policy. PostgreSQL integration evidence remains pending.

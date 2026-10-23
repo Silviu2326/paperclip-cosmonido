@@ -52,6 +52,8 @@ export const issueBlockedInboxStateSchema = z.enum([
   "missing_disposition",
 ]);
 
+export const issueReviewFilterSchema = z.enum(["required", "pending"]);
+
 export const issueBlockedInboxSeveritySchema = z.enum([
   "critical",
   "high",

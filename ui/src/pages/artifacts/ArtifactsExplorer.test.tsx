@@ -20,6 +20,8 @@ const companyFilesApiMock = vi.hoisted(() => ({
   updateFolder: vi.fn(),
 }));
 const artifactsApiMock = vi.hoisted(() => ({ tree: vi.fn(), list: vi.fn() }));
+const contextApiMock = vi.hoisted(() => ({ list: vi.fn() }));
+const projectsApiMock = vi.hoisted(() => ({ list: vi.fn() }));
 const membershipsApiMock = vi.hoisted(() => ({
   listMine: vi.fn(),
   updateCompanyFile: vi.fn(),
@@ -56,6 +58,8 @@ vi.mock("@/api/artifacts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/api/artifacts")>()),
   artifactsApi: artifactsApiMock,
 }));
+vi.mock("@/api/context", () => ({ contextApi: contextApiMock }));
+vi.mock("@/api/projects", () => ({ projectsApi: projectsApiMock }));
 vi.mock("@/api/resourceMemberships", () => ({ resourceMembershipsApi: membershipsApiMock }));
 vi.mock("@/context/ToastContext", () => ({ useToastActions: () => ({ pushToast: vi.fn() }) }));
 vi.mock("@/hooks/useCompanyFileUploads", () => ({ useCompanyFileUploads: () => uploadsMock }));
@@ -224,6 +228,8 @@ describe("ArtifactsExplorer", () => {
       return { node: treeNode({ id: node, label: node }), children: [] };
     });
     artifactsApiMock.list.mockReset().mockResolvedValue({ artifacts: [], groups: [], nextCursor: null });
+    contextApiMock.list.mockReset().mockResolvedValue({ folders: [], files: [], truncated: false });
+    projectsApiMock.list.mockReset().mockResolvedValue([{ id: "project-1", name: "Proyecto Uno" }]);
   });
 
   afterEach(() => {
@@ -612,6 +618,54 @@ describe("ArtifactsExplorer", () => {
         );
         expect(row(container, "file:file-1")?.querySelector("img")).toBeNull();
       });
+    });
+  });
+  describe("context view (?context=1)", () => {
+    const oferta = companyFile({ id: "ctx-offer", name: "oferta.md", contextRole: "offer" });
+    const marcaVieja = companyFile({ id: "ctx-brand", name: "marca-vieja.md", contextRole: "brand", validUntil: new Date("2020-01-01") });
+    const proyecto = companyFile({ id: "ctx-proj", name: "guion-proyecto.md", contextRole: "procedure", audienceKind: "project", audienceId: "project-1" });
+
+    beforeEach(() => {
+      companyFilesApiMock.list.mockReset().mockResolvedValue({ folder: null, folders: [], files: [guia, oferta, marcaVieja, proyecto] });
+    });
+
+    it("lists only files with a context role, across the whole Entrada, with expired ones marked by the filters", async () => {
+      root = renderExplorer(container, ["/artifacts?context=1"]);
+
+      await waitForAssertion(() => {
+        expect(companyFilesApiMock.list).toHaveBeenCalledWith("company-1", expect.objectContaining({ scope: "all" }));
+        expect(row(container, "file:ctx-offer")).not.toBeNull();
+        expect(row(container, "file:ctx-brand")).not.toBeNull();
+        expect(row(container, "file:ctx-proj")).not.toBeNull();
+      });
+      expect(row(container, "file:file-1")).toBeNull();
+      expect(row(container, "folder:f-marca")).toBeNull();
+    });
+
+    it("narrows to expired files and to a project audience from the URL", async () => {
+      root = renderExplorer(container, ["/artifacts?context=1&validity=expired"]);
+      await waitForAssertion(() => expect(row(container, "file:ctx-brand")).not.toBeNull());
+      expect(row(container, "file:ctx-offer")).toBeNull();
+      expect(contextApiMock.list).toHaveBeenCalledWith("company-1", undefined, true);
+
+      flushSync(() => root?.unmount());
+      root = renderExplorer(container, ["/artifacts?context=1&projectId=project-1"]);
+      await waitForAssertion(() => expect(row(container, "file:ctx-proj")).not.toBeNull());
+      expect(row(container, "file:ctx-offer")).toBeNull();
+    });
+
+    it("shows the agent-view truncation note", async () => {
+      contextApiMock.list.mockResolvedValue({ folders: [], files: [], truncated: true });
+      root = renderExplorer(container, ["/artifacts?context=1"]);
+      await waitForAssertion(() => expect(container.textContent).toContain("resultados limitados"));
+    });
+
+    it("is off by default and does not call the context endpoints", async () => {
+      companyFilesApiMock.list.mockResolvedValue({ folder: null, folders: [marca, precios], files: [guia] });
+      root = renderExplorer(container);
+      await waitForAssertion(() => expect(row(container, "folder:f-marca")).not.toBeNull());
+      expect(contextApiMock.list).not.toHaveBeenCalled();
+      expect(projectsApiMock.list).not.toHaveBeenCalled();
     });
   });
 });

@@ -29,6 +29,7 @@ import { PageTabBar } from "../components/PageTabBar";
 import { InlineEntitySelector, type InlineEntityOption } from "../components/InlineEntitySelector";
 import { MarkdownEditor, type MarkdownEditorRef, type MentionOption } from "../components/MarkdownEditor";
 import { RoutineListRow, nextRoutineStatus } from "../components/RoutineList";
+import { ProceduresLink } from "../components/team-workspace/TeamWorkspaceLinks";
 import {
   RoutineRunVariablesDialog,
   type RoutineRunDialogSubmitData,
@@ -867,6 +868,7 @@ export function Routines() {
               <Link to={auditSectionHref("runs", {})}>{t("routines.viewAllRuns")}</Link>
             </Button>
           ) : null}
+          <ProceduresLink />
           <Button onClick={openCreateRoutine}>
             <Plus className="mr-2 h-4 w-4" />
             {t("routines.createRoutine")}

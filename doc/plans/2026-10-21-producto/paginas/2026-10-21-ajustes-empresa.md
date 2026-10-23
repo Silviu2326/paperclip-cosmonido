@@ -6,6 +6,10 @@ Estado de superficie: Existente
 Fase de ampliación: F1
 Alcance: Regresión cuando cambie esta superficie
 
+## Estado de implementación (2026-10-22)
+
+La integración local reutiliza navegación contextual para ajustes y ofrece preferencias de notificación con ámbitos diferenciados. La interfaz debe conservar la separación entre preferencias de persona, empresa e instancia, y sus permisos. La configuración efectiva de canales o Web Push requiere comprobación aparte; véase el [registro de implementación](../../2026-10-22-implementacion-ux-simplificada.md).
+
 [Plan maestro](../../2026-10-21-plan-maestro-producto.md) · [Arquitectura global](../2026-10-21-arquitectura-global.md) · [Contratos](../2026-10-21-contratos-datos-acceso.md) · [Validación](../2026-10-21-validacion-lanzamiento.md)
 
 ## Punto de partida y rutas

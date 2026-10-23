@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import type { Proposal, ProposalScopeItem, ProposalStatus } from "@paperclipai/shared";
-import { Link, useParams } from "@/lib/router";
+import { Link, useLocation, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -55,8 +55,10 @@ export function Proposals() {
   const { selectedCompanyId } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const location = useLocation();
+  const customerId = new URLSearchParams(location.search).get("customerId");
   const [status, setStatus] = useState<ProposalStatus>();
-  useEffect(() => { setBreadcrumbs([{ label: t("nav.proposals", { defaultValue: "Propuestas" }) }]); }, [setBreadcrumbs, t]);
+  useEffect(() => { setBreadcrumbs([{ label: t("uxCrm.proposals", { defaultValue: "Proposals" }) }]); }, [setBreadcrumbs, t]);
   const query = useQuery({
     queryKey: ["proposals", selectedCompanyId, status],
     queryFn: () => proposalsApi.list(selectedCompanyId!, { status }),
@@ -65,6 +67,7 @@ export function Proposals() {
   if (!selectedCompanyId) return <EmptyState icon={FileText} message={t("goals.selectOrg")} />;
   if (query.isLoading) return <PageSkeleton variant="list" />;
   if (query.error) return <p role="alert" className="text-sm text-destructive">{query.error.message}</p>;
+  const proposals = (query.data ?? []).filter((proposal) => !customerId || proposal.customerId === customerId);
 
   return (
     <div className="flex flex-col gap-4">
@@ -81,15 +84,17 @@ export function Proposals() {
           </SelectContent>
         </Select>
       </div>
-      {!query.data?.length ? (
+      {!proposals.length ? (
         <EmptyState icon={FileText} message={status
           ? t("proposals.noStatusResults", { defaultValue: "No hay propuestas con este estado." })
-          : t("proposals.empty", { defaultValue: "Aún no hay propuestas." })} />
-      ) : query.data.map((proposal) => (
+          : customerId
+            ? t("uxCrm.noCustomerProposals", { defaultValue: "This customer has no proposals yet." })
+            : t("proposals.empty", { defaultValue: "Aún no hay propuestas." })} />
+      ) : proposals.map((proposal) => (
         <Card key={proposal.id}>
           <CardHeader>
             <CardTitle className="flex items-center justify-between gap-4">
-              <Link to={`/proposals/${proposal.id}`}>{proposal.title}</Link>
+              <Link to={`/sales/proposals/${proposal.id}`}>{proposal.title}</Link>
               <StatusBadge status={proposal.status} />
             </CardTitle>
           </CardHeader>
@@ -113,7 +118,7 @@ export function ProposalDetail() {
   const revisions = useQuery({ queryKey: ["proposal-revisions", id], queryFn: () => proposalsApi.revisions(id), enabled: !!id });
   useEffect(() => {
     setBreadcrumbs([
-      { label: t("nav.proposals", { defaultValue: "Propuestas" }), href: "/proposals" },
+      { label: t("uxCrm.proposals", { defaultValue: "Proposals" }), href: "/sales/proposals" },
       { label: query.data?.title ?? "…" },
     ]);
   }, [setBreadcrumbs, query.data?.title, t]);
@@ -173,7 +178,7 @@ export function ProposalDetail() {
                   {revision.id === proposal.id ? (
                     <span>{t("proposals.revisionNumber", { defaultValue: "Revisión {{n}}", n: revision.revision })}</span>
                   ) : (
-                    <Link to={`/proposals/${revision.id}`}>{t("proposals.revisionNumber", { defaultValue: "Revisión {{n}}", n: revision.revision })}</Link>
+                    <Link to={`/sales/proposals/${revision.id}`}>{t("proposals.revisionNumber", { defaultValue: "Revisión {{n}}", n: revision.revision })}</Link>
                   )}
                   <span className="flex items-center gap-2 text-muted-foreground">
                     {formatDate(revision.sentAt ?? revision.createdAt)} <StatusBadge status={revision.status} />
@@ -362,7 +367,7 @@ function ReviseDialog({ proposal }: { proposal: Proposal }) {
       await qc.invalidateQueries({ queryKey: ["proposals"] });
       await qc.invalidateQueries({ queryKey: ["proposal-revisions"] });
       setOpen(false);
-      window.location.assign(`/proposals/${next.id}`);
+      window.location.assign(`/sales/proposals/${next.id}`);
     },
   });
   return (

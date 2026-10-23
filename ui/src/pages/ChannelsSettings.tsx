@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SettingsScopeHeader } from "@/components/product-settings/SettingsScopeHeader";
 import {
   channelsApi,
   type ApprovedTemplate,
@@ -72,7 +73,7 @@ function errorText(error: unknown): string {
 }
 
 export function ChannelsSettings() {
-  const { selectedCompanyId } = useCompany();
+  const { selectedCompanyId, selectedCompany } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -158,6 +159,13 @@ export function ChannelsSettings() {
 
   return (
     <div className="space-y-6">
+      <SettingsScopeHeader
+        scope="apps"
+        scopeName={selectedCompany?.name}
+        backTarget="apps"
+        description={t("uxSettings.channels.scope", { defaultValue: "These are the customer-facing accounts (WhatsApp, Messenger, Instagram, Telegram, SMS) this company uses to talk to customers. They are not the chat connections of your agents, which are managed in Apps." })}
+        links={[{ to: "/apps/webchat", label: t("uxSettings.channels.webchatLink", { defaultValue: "Web chat widget" }) }]}
+      />
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">{t("channels.title")}</h1>

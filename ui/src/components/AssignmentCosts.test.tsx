@@ -2,9 +2,11 @@
 
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "../i18n";
 import type { AssignmentCostTotals, GoalCostReport, GoalCostSummary } from "@paperclipai/shared";
 import { AssignmentCostsReportView, AssignmentCostsView } from "./AssignmentCosts";
+beforeEach(async () => { await i18n.changeLanguage("en"); });
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children }: { to: string; children: ReactNode }) => <a href={to}>{children}</a>,
@@ -53,11 +55,11 @@ describe("AssignmentCostsView", () => {
 
   it("flags an overrun, including a zero budget, and caps the bar", () => {
     const over = renderToStaticMarkup(<AssignmentCostsView summary={{ ...summary, total: totals(1500), remainingBudgetCents: 0, overBudget: true }} />);
-    expect(over).toContain("spent more than its budget");
+    expect(over).toContain("exceeded its budget");
     expect(over).toContain('aria-valuenow="100"');
 
     const zero = renderToStaticMarkup(<AssignmentCostsView summary={{ ...summary, budgetCents: 0, remainingBudgetCents: 0, overBudget: true }} />);
-    expect(zero).toContain("spent more than its budget");
+    expect(zero).toContain("exceeded its budget");
     expect(zero).not.toContain("progressbar");
 
     const none = renderToStaticMarkup(<AssignmentCostsView summary={{ ...summary, budgetCents: null, remainingBudgetCents: null }} />);
@@ -78,6 +80,7 @@ describe("AssignmentCostsReportView", () => {
 
   it("links assignments, folds plain goals together and always shows unattributed", () => {
     const html = renderToStaticMarkup(<AssignmentCostsReportView report={report} />);
+    expect(html).toContain("Costs by task with a result");
     expect(html).toContain('href="/assignments/goal-1"');
     expect(html).not.toContain('href="/assignments/goal-2"');
     expect(html).toContain("Other goals");
@@ -87,10 +90,10 @@ describe("AssignmentCostsReportView", () => {
 
   it("shows the empty state only when there is nothing at all", () => {
     const empty = { ...report, rows: [], unattributed: totals(0, 0), total: totals(0, 0) };
-    expect(renderToStaticMarkup(<AssignmentCostsReportView report={empty} />)).toContain("No assignments yet.");
+    expect(renderToStaticMarkup(<AssignmentCostsReportView report={empty} />)).toContain("No tasks with results yet.");
     const onlyUnattributed = { ...empty, unattributed: totals(50) };
     const html = renderToStaticMarkup(<AssignmentCostsReportView report={onlyUnattributed} />);
-    expect(html).not.toContain("No assignments yet.");
+    expect(html).not.toContain("No tasks with results yet.");
     expect(html).toContain('data-testid="costs-unattributed"');
   });
 });

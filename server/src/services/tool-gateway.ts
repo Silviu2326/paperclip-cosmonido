@@ -8,6 +8,7 @@ import { browserUseService } from "./browser-use.js";
 import { isBrowserUseConnection } from "./browser-use-client.js";
 import { COGNEE_STDIO_TEMPLATE, cogneeCloudUrl, callCogneeCloud } from "./cognee-connection.js";
 import { HttpError } from "../errors.js";
+import { accessService } from "./access.js";
 import { claimSlackRateLimitRetry } from "./connectors/slack-retry.js";
 import { resolveSlackTaskAuthority } from "./connectors/slack-authority.js";
 import { SLACK_TOOLS } from "@paperclipai/shared";
@@ -42,8 +43,15 @@ import type { Db } from "@paperclipai/db";
 import {
   agents,
   approvals,
+  bookingTypes,
+  calendarEvents,
   companies,
   companyMemberships,
+  crmSyncConfigs,
+  crmSyncJobs,
+  crmSyncLinks,
+  contacts,
+  customers,
   companySecrets,
   connectionGrantMembers,
   connectionGrantDelegations,
@@ -74,6 +82,8 @@ import {
   toolStdioCommandTemplates,
 } from "@paperclipai/db";
 import type { ToolRunContext } from "@paperclipai/plugin-sdk";
+import type { CalendarConnectorAuthority } from "./calendar/google-calendar.js";
+import type { CrmConnectorCall } from "./crm-sync/types.js";
 import type {
   CreateToolMcpGateway,
   CreateToolMcpGatewayToken,
@@ -335,6 +345,11 @@ export interface ToolGatewaySession {
   actorId?: string | null;
   /** Human whose personal connection grant applies to this execution. */
   responsibleUserId?: string | null;
+  delegatedCalendarBookingTypeId?: string | null;
+  delegatedCrmSyncJobId?: string | null;
+  delegatedCrmSyncConfigId?: string | null;
+  delegatedRequestedByUserId?: string | null;
+  delegatedPrincipalKind?: "delegated_service" | null;
   /** Captured by the controller for this request, never accepted from tool arguments. */
   identityContextId?: string | null;
   /** Set only after verifying the signed approved action. */
@@ -1846,7 +1861,12 @@ export function createToolGatewayService(
           issueId: input.issueId,
           projectId: input.session?.projectId ?? null,
           runId: input.runId,
-          gatewaySessionId: input.session?.id ?? null,
+          gatewaySessionId: input.session?.delegatedPrincipalKind ? null : input.session?.id ?? null,
+          delegatedCalendarBookingTypeId: input.session?.delegatedCalendarBookingTypeId ?? null,
+          delegatedCrmSyncJobId: input.session?.delegatedCrmSyncJobId ?? null,
+          delegatedCrmSyncConfigId: input.session?.delegatedCrmSyncConfigId ?? null,
+          delegatedRequestedByUserId: input.session?.delegatedRequestedByUserId ?? null,
+          delegatedPrincipalKind: input.session?.delegatedPrincipalKind ?? null,
           identityContextId: input.session?.identityContextId ?? null,
           gatewayId: input.session?.gatewayId ?? null,
           gatewayPublicId: input.session?.gatewayPublicId ?? null,
@@ -1889,7 +1909,12 @@ export function createToolGatewayService(
       runId: input.runId,
       issueId: input.issueId,
       details: {
-        gatewaySessionId: input.session?.id ?? null,
+        gatewaySessionId: input.session?.delegatedPrincipalKind ? null : input.session?.id ?? null,
+        delegatedCalendarBookingTypeId: input.session?.delegatedCalendarBookingTypeId ?? null,
+        delegatedCrmSyncJobId: input.session?.delegatedCrmSyncJobId ?? null,
+        delegatedCrmSyncConfigId: input.session?.delegatedCrmSyncConfigId ?? null,
+        delegatedRequestedByUserId: input.session?.delegatedRequestedByUserId ?? null,
+        delegatedPrincipalKind: input.session?.delegatedPrincipalKind ?? null,
         gatewayId: input.session?.gatewayId ?? null,
         gatewayPublicId: input.session?.gatewayPublicId ?? null,
         issueId: input.issueId,
@@ -7260,21 +7285,17 @@ export function createToolGatewayService(
     );
   }
 
-  /**
-   * Execute an already-authorized test-tab tool call against the connected MCP
-   * server and record the result/error onto the invocation. Shared by
-   * {@link executeTestCall} (the allow path) and the approval-driven execution
-   * of a parked ask-first request, so both produce identical persistence,
-   * events, and audit entries.
-   */
-  async function runTestToolInvocation(args: {
+  /** Execute an already-authorized connection tool and persist its audit/result. */
+  async function runAuthorizedToolInvocation(args: {
     session: ToolGatewaySession;
     tool: ToolGatewayDescriptor;
     parameters: unknown;
     invocationId: string;
     companyId: string;
-    agentId: string;
-    userId: string;
+    agentId: string | null;
+    userId: string | null;
+    source?: "test" | "calendar_delegation" | "crm_sync_delegation";
+    auditActorType?: "user" | "system";
     argumentsSummary: ReturnType<typeof summarizeToolValue>;
     reasonCode: string;
     matchedPolicyIds: string[];
@@ -7287,6 +7308,10 @@ export function createToolGatewayService(
         error: { message: string; reasonCode: string };
       }
   > {
+    const auditActorId = args.userId ?? args.session.actorId ?? args.session.agentId ?? args.session.delegatedRequestedByUserId;
+    if (!auditActorId) {
+      throw new ToolGatewayHttpError(500, "Tool execution session has no auditable actor", "tool_actor_missing");
+    }
     await db
       .update(toolInvocations)
       .set({
@@ -7301,11 +7326,11 @@ export function createToolGatewayService(
       agentId: args.agentId,
       runId: null,
       issueId: null,
-      actorType: "user",
-      actorId: args.userId,
+      actorType: args.auditActorType ?? "user",
+      actorId: auditActorId,
       action: "tool_gateway.call_allowed",
       details: {
-        source: "test",
+        source: args.source ?? "test",
         invocationId: args.invocationId,
         decision: "allow",
         reasonCode: args.reasonCode,
@@ -7383,7 +7408,7 @@ export function createToolGatewayService(
         argumentsSummary: args.argumentsSummary,
         resultSummary: resultValidation.summary,
         metadata: {
-          source: "test",
+          source: args.source ?? "test",
           headerSummary: connectedMcpExecution.headerSummary ?? undefined,
           execution: connectedMcpExecution.execution,
         },
@@ -7395,11 +7420,11 @@ export function createToolGatewayService(
         agentId: args.agentId,
         runId: null,
         issueId: null,
-        actorType: "user",
-        actorId: args.userId,
+        actorType: args.auditActorType ?? "user",
+        actorId: auditActorId,
         action: "tool_gateway.call_completed",
         details: {
-          source: "test",
+        source: args.source ?? "test",
           invocationId: args.invocationId,
           decision: "allow",
           reasonCode: "tool_completed",
@@ -7457,7 +7482,7 @@ export function createToolGatewayService(
         reasonCode,
         argumentsSummary: args.argumentsSummary,
         metadata: {
-          source: "test",
+          source: args.source ?? "test",
           ...(err instanceof ToolContentValidationError
             ? { findings: err.findings }
             : {}),
@@ -7473,14 +7498,14 @@ export function createToolGatewayService(
         agentId: args.agentId,
         runId: null,
         issueId: null,
-        actorType: "user",
-        actorId: args.userId,
+        actorType: args.auditActorType ?? "user",
+        actorId: auditActorId,
         action:
           status === 504
             ? "tool_gateway.call_deferred"
             : "tool_gateway.call_failed",
         details: {
-          source: "test",
+        source: args.source ?? "test",
           invocationId: args.invocationId,
           decision: status === 504 ? "defer_runtime" : "deny",
           reasonCode,
@@ -7577,7 +7602,7 @@ export function createToolGatewayService(
       promptInjectionMode: "ignore",
     }).summary;
     try {
-      await runTestToolInvocation({
+      await runAuthorizedToolInvocation({
         session,
         tool,
         parameters,
@@ -9259,6 +9284,354 @@ export function createToolGatewayService(
       };
     },
 
+    async executeCrmSyncDelegatedTool(input: CrmConnectorCall) {
+      const authority = input.authority;
+      const [job] = await db.select().from(crmSyncJobs).where(and(
+        eq(crmSyncJobs.id, authority.jobId), eq(crmSyncJobs.companyId, input.companyId),
+      )).limit(1);
+      const [config] = await db.select().from(crmSyncConfigs).where(and(
+        eq(crmSyncConfigs.id, input.configId), eq(crmSyncConfigs.companyId, input.companyId),
+        eq(crmSyncConfigs.provider, input.provider),
+      )).limit(1);
+      const key = `${authority.operation}${authority.entityKind === "customer" ? "Customer" : "Contact"}`;
+      const cursors = job?.cursors && typeof job.cursors === "object" ? job.cursors as Record<string, unknown> : {};
+      const configNames = config?.toolNames && typeof config.toolNames === "object" ? config.toolNames as Record<string, unknown> : {};
+      if (!job || !config) throw new ToolGatewayHttpError(409, "CRM sync job or configuration no longer exists", "crm_sync_authority_stale");
+      if (job.requestedByUserId !== authority.requestedByUserId || job.provider !== input.provider ||
+          job.status !== "running" || job.attempts !== authority.leaseAttempt || !job.leaseExpiresAt || job.leaseExpiresAt <= new Date() ||
+          config.connectionId !== input.connectionId || config.id !== input.configId || config.updatedAt.toISOString() !== input.configUpdatedAt ||
+          !config.enabled || config.disconnectedAt || job.direction === "import" && authority.operation !== "list" ||
+          job.direction === "export" && authority.operation === "list" ||
+          (authority.operation === "list" ? authority.task !== `import:${authority.entityKind}` : authority.task !== `export:${authority.entityKind}`) ||
+          (cursors[authority.task] ?? null) !== authority.cursor ||
+          (job.direction === "export" && config?.direction === "import") ||
+          (typeof cursors.__resolutionTarget === "string" && (authority.operation === "list" || cursors.__resolutionTarget !== `${authority.entityKind}:${authority.localRecordId}` || job.direction !== "export")) ||
+          typeof configNames[key] !== "string" || configNames[key] !== input.toolName ||
+          createHash("sha256").update(JSON.stringify(input.arguments)).digest("hex") !== authority.argumentsHash) {
+        throw new ToolGatewayHttpError(409, "CRM sync job lease, cursor, configuration or mapped operation changed; inspect its durable status before resuming", "crm_sync_authority_stale");
+      }
+      if (!authority.requestedByUserId) throw new ToolGatewayHttpError(403, "CRM sync job has no authenticated requesting user", "crm_sync_actor_membership_revoked");
+      const [connection] = await db.select({ id: toolConnections.id, name: toolConnections.name, status: toolConnections.status, enabled: toolConnections.enabled, config: toolConnections.config })
+        .from(toolConnections).where(and(eq(toolConnections.id, input.connectionId), eq(toolConnections.companyId, input.companyId))).limit(1);
+      const connectionConfig = connection?.config && typeof connection.config === "object" && !Array.isArray(connection.config)
+        ? connection.config as Record<string, unknown> : {};
+      let hostname = "";
+      try { hostname = typeof connectionConfig.url === "string" ? new URL(connectionConfig.url).hostname.toLowerCase() : ""; } catch { hostname = ""; }
+      const expectedDomain = input.provider === "hubspot" ? "hubspot.com" : "pipedrive.com";
+      const sourceKey = typeof connectionConfig.sourceTemplateKey === "string" ? connectionConfig.sourceTemplateKey.toLowerCase() : "";
+      const providerConnection = sourceKey.includes(input.provider) || hostname === expectedDomain || hostname.endsWith(`.${expectedDomain}`);
+      if (!connection || connection.status !== "active" || !connection.enabled || !providerConnection) {
+        throw new ToolGatewayHttpError(422, "The selected CRM connection is no longer active or does not match its configured provider", "crm_sync_connection_unavailable");
+      }
+      const [membership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(
+        eq(companyMemberships.companyId, input.companyId), eq(companyMemberships.principalType, "user"),
+        eq(companyMemberships.principalId, authority.requestedByUserId), eq(companyMemberships.status, "active"),
+      )).limit(1);
+      if (!membership) throw new ToolGatewayHttpError(403, "The requesting user is no longer an active company member", "crm_sync_actor_membership_revoked");
+
+      const tool = (await connectedMcpToolsForConnection(input.companyId, input.connectionId)).find((candidate) => candidate.upstreamToolName === input.toolName);
+      if (!tool || tool.connectionId !== input.connectionId || (tool.providerType !== "mcp_remote_http" && tool.providerType !== "provider_rest")) {
+        throw new ToolGatewayHttpError(422, "The configured CRM tool is not present in the current live connection catalog", "crm_sync_tool_unavailable");
+      }
+      if (authority.operation === "list" ? tool.risk !== "read" : tool.risk === "read" || tool.risk === "destructive") {
+        throw new ToolGatewayHttpError(403, "The live CRM tool risk does not match the configured sync operation", "crm_sync_tool_risk_mismatch");
+      }
+      if (authority.operation === "list") {
+        if (authority.localRecordId !== null) throw new ToolGatewayHttpError(409, "CRM import request unexpectedly targets a local record", "crm_sync_target_mismatch");
+      } else {
+        if (!authority.localRecordId) throw new ToolGatewayHttpError(409, "CRM export is not bound to a local record", "crm_sync_target_mismatch");
+        const local = authority.entityKind === "customer"
+          ? await db.select({ id: customers.id }).from(customers).where(and(eq(customers.id, authority.localRecordId), eq(customers.companyId, input.companyId), isNull(customers.archivedAt))).limit(1)
+          : await db.select({ id: contacts.id }).from(contacts).where(and(eq(contacts.id, authority.localRecordId), eq(contacts.companyId, input.companyId), isNull(contacts.archivedAt))).limit(1);
+        if (!local.length) throw new ToolGatewayHttpError(409, "CRM export target is no longer an active company record", "crm_sync_target_mismatch");
+        const inputs = Array.isArray(input.arguments.inputs) ? input.arguments.inputs : [];
+        const firstInput = inputs[0] && typeof inputs[0] === "object" ? inputs[0] as Record<string, unknown> : null;
+        const rawExternalId = input.arguments.id ?? firstInput?.id;
+        if (authority.operation === "update") {
+          const externalId = typeof rawExternalId === "string" || typeof rawExternalId === "number" ? String(rawExternalId) : null;
+          const [link] = await db.select({ id: crmSyncLinks.id }).from(crmSyncLinks).where(and(
+            eq(crmSyncLinks.companyId, input.companyId), eq(crmSyncLinks.provider, input.provider),
+            eq(crmSyncLinks.entityKind, authority.entityKind), eq(crmSyncLinks.localId, authority.localRecordId),
+            eq(crmSyncLinks.externalId, externalId ?? ""), eq(crmSyncLinks.status, "linked"),
+          )).limit(1);
+          if (!link) throw new ToolGatewayHttpError(409, "CRM update target is not the persisted local-to-provider link", "crm_sync_target_mismatch");
+        } else if (rawExternalId !== undefined) {
+          throw new ToolGatewayHttpError(422, "CRM create arguments must not include an external record id", "crm_sync_arguments_invalid");
+        } else {
+          const [reservation] = await db.select({ id: crmSyncLinks.id }).from(crmSyncLinks).where(and(
+            eq(crmSyncLinks.companyId, input.companyId), eq(crmSyncLinks.provider, input.provider),
+            eq(crmSyncLinks.entityKind, authority.entityKind), eq(crmSyncLinks.localId, authority.localRecordId),
+            isNull(crmSyncLinks.externalId), eq(crmSyncLinks.status, "uncertain"),
+          )).limit(1);
+          if (!reservation) throw new ToolGatewayHttpError(409, "CRM create has no durable uncertain reservation for this local record", "crm_sync_target_mismatch");
+        }
+      }
+      const session: ToolGatewaySession = {
+        id: `crm-sync-delegation:${job.id}:${authority.leaseAttempt}`, token: "", companyId: input.companyId,
+        agentId: null, runId: null, issueId: null, projectId: null, actorType: "system", actorId: `crm-sync-job:${job.id}`,
+        responsibleUserId: authority.requestedByUserId, delegatedCrmSyncJobId: job.id, delegatedCrmSyncConfigId: config.id,
+        delegatedRequestedByUserId: authority.requestedByUserId,
+        delegatedPrincipalKind: "delegated_service", createdAt: new Date(), expiresAt: new Date(Date.now() + 20_000),
+      };
+      const normalized = await governedToolArguments(session, tool, input.arguments);
+      const decisionInput = policyInputForAgentTool({
+        companyId: input.companyId, agentId: null, actorType: "system", actorId: session.actorId, tool,
+        parameters: normalized, idempotencyKey: `crm-sync:${job.id}:${authority.leaseAttempt}:${authority.task}:${authority.cursor ?? "start"}:${authority.operation}:${authority.argumentsHash}`,
+        consumeRateLimit: true,
+      });
+      const decision = await policyService.decide(decisionInput);
+      const recorded = await policyService.recordInvocation(decisionInput, decision);
+      await policyService.writeAudit(decisionInput, decision);
+      if (recorded.replayed) throw new ToolGatewayHttpError(409, "Previous CRM invocation has no replayable provider receipt; inspect provider and durable sync link before resuming", "crm_sync_outcome_unknown", { invocationId: recorded.invocation.id, status: recorded.invocation.status });
+      if (!decision.allowed || decision.decision === "require_approval") {
+        if (decision.decision === "require_approval") {
+          if (recorded.actionRequest) {
+            const [cancelled] = await db.update(toolActionRequests).set({ status: "cancelled", resolvedAt: new Date(), decidedAt: new Date(), updatedAt: new Date() }).where(and(eq(toolActionRequests.id, recorded.actionRequest.id), eq(toolActionRequests.status, "pending"))).returning({ id: toolActionRequests.id });
+            if (cancelled) await reflectToolActionInteractionLifecycle({ actionRequestId: cancelled.id, status: "cancelled", errorCode: "crm_sync_approval_executor_unavailable", errorMessage: "CRM sync delegated jobs do not have a durable tool approval executor." });
+          }
+          await db.update(toolInvocations).set({ status: "denied", approvalState: "expired", errorCode: "crm_sync_approval_executor_unavailable", errorMessage: "CRM sync approval has no durable delegated executor.", completedAt: new Date(), updatedAt: new Date() }).where(and(eq(toolInvocations.id, recorded.invocation.id), eq(toolInvocations.status, "awaiting_approval")));
+        }
+        void emitConnectionInvoked(db, recorded.invocation.id);
+        throw new ToolGatewayHttpError(decision.decision === "require_approval" ? 409 : 403,
+          decision.decision === "require_approval" ? "CRM tool policy requires approval before execution" : decision.explanation,
+          decision.decision === "require_approval" ? "crm_sync_tool_approval_required" : decision.reasonCode,
+          { invocationId: recorded.invocation.id, jobId: job.id });
+      }
+      const stillCurrent = await db.select({ id: crmSyncJobs.id }).from(crmSyncJobs).where(and(
+        eq(crmSyncJobs.id, job.id), eq(crmSyncJobs.status, "running"), eq(crmSyncJobs.attempts, authority.leaseAttempt), gt(crmSyncJobs.leaseExpiresAt, new Date()),
+      )).limit(1);
+      if (!stillCurrent.length) throw new ToolGatewayHttpError(409, "CRM sync lease expired before provider dispatch", "crm_sync_authority_stale");
+      const result = await runAuthorizedToolInvocation({
+        session, tool, parameters: normalized, invocationId: recorded.invocation.id, companyId: input.companyId,
+        agentId: null, userId: null, source: "crm_sync_delegation", auditActorType: "system",
+        argumentsSummary: validateToolContent({ value: normalized, direction: "arguments", sensitiveMode: "redact", promptInjectionMode: "ignore" }).summary,
+        reasonCode: decision.reasonCode, matchedPolicyIds: decision.matchedPolicyIds, timeoutMs: 15_000,
+      });
+      if ("error" in result) throw new ToolGatewayHttpError(502, result.error.message, result.error.reasonCode, { invocationId: result.invocationId });
+      return result.result;
+    },
+
+    async executeCalendarDelegatedTool(input: {
+      companyId: string;
+      connectionId: string;
+      bookingTypeId: string;
+      authority: Extract<CalendarConnectorAuthority, { kind: "board_session" | "public_booking_host" }>;
+      toolName: string;
+      parameters: Record<string, unknown>;
+      idempotencyKey: string;
+      timeoutMs?: number;
+    }) {
+      const [type] = await db.select().from(bookingTypes).where(and(
+        eq(bookingTypes.id, input.bookingTypeId),
+        eq(bookingTypes.companyId, input.companyId),
+        isNull(bookingTypes.archivedAt),
+      )).limit(1);
+      if (!type || type.connectionId !== input.connectionId || (!type.hostAgentId && !type.hostUserId)) {
+        throw new ToolGatewayHttpError(404, "Authorized booking type not found", "calendar_booking_type_unavailable");
+      }
+      const [connection] = await db.select({
+        id: toolConnections.id,
+        status: toolConnections.status,
+        enabled: toolConnections.enabled,
+        config: toolConnections.config,
+      }).from(toolConnections).where(and(
+        eq(toolConnections.id, input.connectionId),
+        eq(toolConnections.companyId, input.companyId),
+      )).limit(1);
+      const config = connection?.config && typeof connection.config === "object" && !Array.isArray(connection.config)
+        ? connection.config as Record<string, unknown>
+        : {};
+      let configuredHost = "";
+      try {
+        configuredHost = typeof config.url === "string" ? new URL(config.url).hostname : "";
+      } catch {
+        configuredHost = "";
+      }
+      if (!connection || connection.status !== "active" || !connection.enabled ||
+          (config.sourceTemplateKey !== "google-calendar" && configuredHost !== "calendarmcp.googleapis.com")) {
+        throw new ToolGatewayHttpError(404, "Active Google Calendar connection not found", "calendar_connection_unavailable");
+      }
+      if (input.authority.kind === "public_booking_host" && input.authority.bookingTypeId !== type.id) {
+        throw new ToolGatewayHttpError(403, "Public booking authority does not match this booking type", "calendar_public_authority_mismatch");
+      }
+      if (!["list-events", "create_event", "update_event", "delete_event"].includes(input.toolName)) {
+        throw new ToolGatewayHttpError(403, "Calendar method is not allowed", "calendar_tool_not_allowed");
+      }
+      let actorType: "user" | "system";
+      let actorId: string;
+      let userId: string | null;
+      let sessionId: string;
+      if (input.authority.kind === "board_session") {
+        const [membership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(
+          eq(companyMemberships.companyId, input.companyId),
+          eq(companyMemberships.principalType, "user"),
+          eq(companyMemberships.principalId, input.authority.userId),
+          eq(companyMemberships.status, "active"),
+        )).limit(1);
+        if (!membership && input.authority.source !== "local_implicit") {
+          throw new ToolGatewayHttpError(403, "An active company membership is required", "calendar_actor_membership_required");
+        }
+        actorType = "user";
+        actorId = input.authority.userId;
+        // An operator request uses that operator's grant. Merely selecting a
+        // booking type must never borrow another host user's credentials.
+        userId = input.authority.userId;
+        sessionId = input.authority.sessionId ?? "local-implicit";
+      } else {
+        if (!type.publicExecutionEnabled || !type.delegatedByUserId || !type.delegatedAt) {
+          throw new ToolGatewayHttpError(403, "Public calendar execution has not been explicitly delegated", "calendar_public_execution_not_delegated");
+        }
+        if (!(await accessService(db).canUser(input.companyId, type.delegatedByUserId, "users:manage_permissions"))) {
+          throw new ToolGatewayHttpError(403, "The delegating administrator no longer has permission management authority", "calendar_delegator_permission_revoked");
+        }
+        actorType = "system";
+        actorId = "public-booking:" + type.id;
+        userId = type.hostUserId;
+        sessionId = "calendar-delegation:" + type.id;
+      }
+      const session: ToolGatewaySession = {
+        id: sessionId, token: "", companyId: input.companyId,
+        agentId: input.authority.kind === "public_booking_host" ? type.hostAgentId : null,
+        runId: null, issueId: null, projectId: null, actorType, actorId,
+        responsibleUserId: userId,
+        delegatedCalendarBookingTypeId: input.authority.kind === "public_booking_host" ? type.id : null,
+        delegatedPrincipalKind: input.authority.kind === "public_booking_host" ? "delegated_service" : null,
+        createdAt: new Date(), expiresAt: new Date(Date.now() + 30_000),
+      };
+      if (type.hostAgentId) await assertAgentInCompany(input.companyId, type.hostAgentId);
+      if (input.authority.kind === "public_booking_host" && type.hostUserId) {
+        const [membership] = await db.select({ id: companyMemberships.id }).from(companyMemberships).where(and(
+          eq(companyMemberships.companyId, input.companyId),
+          eq(companyMemberships.principalType, "user"),
+          eq(companyMemberships.principalId, type.hostUserId),
+          eq(companyMemberships.status, "active"),
+        )).limit(1);
+        if (!membership) throw new ToolGatewayHttpError(403, "The configured booking host is no longer an active company member", "calendar_host_membership_revoked");
+      }
+      if (input.authority.kind === "public_booking_host") {
+        await writeAudit({
+          session, companyId: input.companyId, agentId: type.hostAgentId, runId: null, issueId: null,
+          actorType: "system", actorId,
+          action: "tool_gateway.calendar_delegation_admitted",
+          details: { bookingTypeId: type.id, delegatedByUserId: type.delegatedByUserId, toolName: input.toolName, decision: "allow" },
+        });
+      }
+      const tool = (await connectedMcpToolsForConnection(input.companyId, input.connectionId)).find((candidate) =>
+        candidate.upstreamToolName === input.toolName,
+      );
+      if (!tool || tool.connectionId !== input.connectionId ||
+          (tool.providerType !== "mcp_remote_http" && tool.providerType !== "provider_rest")) {
+        throw new ToolGatewayHttpError(404, "Google Calendar method is unavailable", "calendar_tool_unavailable");
+      }
+      const args = input.parameters;
+      const allowedKeys = input.toolName === "list-events"
+        ? ["timeMin", "timeMax", "singleEvents"]
+        : input.toolName === "create_event"
+          ? ["summary", "description", "startTime", "endTime", "attendees", "requestId"]
+          : input.toolName === "update_event"
+            ? ["eventId", "startTime", "endTime"] : ["eventId"];
+      if (Object.keys(args).some((key) => !allowedKeys.includes(key))) {
+        throw new ToolGatewayHttpError(422, "Unexpected Google Calendar arguments", "calendar_arguments_invalid");
+      }
+      const instant = (key: string) => typeof args[key] === "string" ? Date.parse(String(args[key])) : Number.NaN;
+      if (input.toolName === "list-events") {
+        const from = instant("timeMin"); const to = instant("timeMax");
+        if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from || to - from > 31 * 86_400_000 || args.singleEvents !== true) {
+          throw new ToolGatewayHttpError(422, "Calendar read range is invalid", "calendar_arguments_invalid");
+        }
+      } else if (input.toolName === "create_event") {
+        const attendee = Array.isArray(args.attendees) && args.attendees.length === 1 && args.attendees[0] && typeof args.attendees[0] === "object"
+          ? args.attendees[0] as Record<string, unknown> : null;
+        if (typeof args.summary !== "string" || typeof args.requestId !== "string" || args.requestId.length > 320 ||
+            !attendee || typeof attendee.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(attendee.email) ||
+            !Number.isFinite(instant("startTime")) || instant("endTime") - instant("startTime") !== type.durationMinutes * 60_000) {
+          throw new ToolGatewayHttpError(422, "Calendar event arguments are invalid", "calendar_arguments_invalid");
+        }
+        const [event] = await db.select().from(calendarEvents).where(and(
+          eq(calendarEvents.companyId, input.companyId), eq(calendarEvents.bookingTypeId, type.id),
+          eq(calendarEvents.connectionId, type.connectionId!), eq(calendarEvents.idempotencyKey, args.requestId),
+        )).limit(1);
+        if (!event || event.externalId || event.startsAt.getTime() !== instant("startTime") ||
+            event.endsAt.getTime() !== instant("endTime") || event.attendeeEmail !== attendee.email || event.title !== args.summary) {
+          throw new ToolGatewayHttpError(409, "Calendar request is not bound to a persisted booking", "calendar_event_context_mismatch");
+        }
+      } else {
+        if (typeof args.eventId !== "string" || (input.toolName === "update_event" &&
+            (!Number.isFinite(instant("startTime")) || instant("endTime") - instant("startTime") !== type.durationMinutes * 60_000))) {
+          throw new ToolGatewayHttpError(422, "Calendar event arguments are invalid", "calendar_arguments_invalid");
+        }
+        const [event] = await db.select().from(calendarEvents).where(and(
+          eq(calendarEvents.companyId, input.companyId), eq(calendarEvents.bookingTypeId, type.id),
+          eq(calendarEvents.connectionId, type.connectionId!), eq(calendarEvents.externalId, args.eventId),
+          ne(calendarEvents.status, "cancelled"),
+        )).limit(1);
+        if (!event) throw new ToolGatewayHttpError(409, "Calendar event is outside this booking type", "calendar_event_context_mismatch");
+      }
+      const normalized = await governedToolArguments(session, tool, input.parameters);
+      const decisionInput = policyInputForAgentTool({
+        companyId: input.companyId, agentId: session.agentId, actorType, actorId, tool,
+        parameters: normalized, idempotencyKey: input.idempotencyKey, consumeRateLimit: true,
+      });
+      const decision = await policyService.decide(decisionInput);
+      const recorded = await policyService.recordInvocation(decisionInput, decision);
+      await policyService.writeAudit(decisionInput, decision);
+      if (recorded.replayed) {
+        throw new ToolGatewayHttpError(409, "A previous Calendar invocation has no replayable provider receipt; inspect the booking before retrying", "calendar_execution_outcome_unknown", {
+          invocationId: recorded.invocation.id,
+        });
+      }
+      if (!decision.allowed || decision.decision === "require_approval") {
+        // Calendar delegation has no durable approval executor. Never leave an
+        // orphaned pending request that could be mistaken for an executable approval.
+        if (decision.decision === "require_approval") {
+          if (recorded.actionRequest) {
+            const [cancelledRequest] = await db.update(toolActionRequests).set({
+              status: "cancelled",
+              resolvedAt: new Date(),
+              decidedAt: new Date(),
+              updatedAt: new Date(),
+            }).where(and(
+              eq(toolActionRequests.id, recorded.actionRequest.id),
+              eq(toolActionRequests.status, "pending"),
+            )).returning({ id: toolActionRequests.id });
+            if (cancelledRequest) await reflectToolActionInteractionLifecycle({
+              actionRequestId: cancelledRequest.id,
+              status: "cancelled",
+              errorCode: "calendar_approval_executor_unavailable",
+              errorMessage: "Calendar delegation has no durable approval executor.",
+            });
+          }
+          await db.update(toolInvocations).set({
+            status: "denied",
+            approvalState: "expired",
+            errorCode: "calendar_approval_executor_unavailable",
+            errorMessage: "Calendar approval has no durable delegated executor.",
+            completedAt: new Date(),
+            updatedAt: new Date(),
+          }).where(and(
+            eq(toolInvocations.id, recorded.invocation.id),
+            eq(toolInvocations.status, "awaiting_approval"),
+          ));
+        }
+        void emitConnectionInvoked(db, recorded.invocation.id);
+        throw new ToolGatewayHttpError(decision.decision === "require_approval" ? 409 : 403,
+          decision.decision === "require_approval" ? "Calendar tool policy requires approval before execution" : decision.explanation,
+          decision.decision === "require_approval" ? "calendar_tool_approval_required" : decision.reasonCode,
+          { invocationId: recorded.invocation.id, bookingTypeId: type.id },
+        );
+      }
+      const result = await runAuthorizedToolInvocation({
+        session, tool, parameters: normalized, invocationId: recorded.invocation.id,
+        companyId: input.companyId, agentId: session.agentId, userId,
+        source: "calendar_delegation", auditActorType: actorType,
+        argumentsSummary: validateToolContent({ value: normalized, direction: "arguments", sensitiveMode: "redact", promptInjectionMode: "ignore" }).summary,
+        reasonCode: decision.reasonCode, matchedPolicyIds: decision.matchedPolicyIds,
+        timeoutMs: Math.min(30_000, Math.max(1, input.timeoutMs ?? 30_000)),
+      });
+      if ("error" in result) throw new ToolGatewayHttpError(502, result.error.message, result.error.reasonCode, { invocationId: result.invocationId });
+      return { invocationId: result.invocationId, result: result.result };
+    },
+
     async executeTestCall(input: ExecuteTestCallInput) {
       await assertAgentInCompany(input.companyId, input.agentId);
       const session: ToolGatewaySession = {
@@ -9421,7 +9794,7 @@ export function createToolGatewayService(
           reasonCode: accessDecision.reasonCode,
           argumentsSummary: argumentValidation.summary,
           metadata: {
-            source: "test",
+          source: "tool_gateway",
             actionRequestId: recorded.actionRequest.id,
           },
           tool,
@@ -9436,7 +9809,7 @@ export function createToolGatewayService(
           actorId: input.userId,
           action: "tool_gateway.approval_requested",
           details: {
-            source: "test",
+            source: "tool_gateway",
             invocationId,
             actionRequestId: recorded.actionRequest.id,
             decision: "require_approval",
@@ -9489,7 +9862,7 @@ export function createToolGatewayService(
         };
       }
 
-      return runTestToolInvocation({
+      return runAuthorizedToolInvocation({
         session,
         tool,
         parameters: requestedParameters,

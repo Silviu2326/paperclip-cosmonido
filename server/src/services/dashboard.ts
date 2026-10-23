@@ -7,6 +7,7 @@ import { executionIssueCondition } from "./issue-visibility.js";
 import { retryIdempotentDatabaseOperation } from "../database-retry.js";
 import type { DashboardSummary } from "@paperclipai/shared";
 import { assignmentDashboardService } from "./assignment-dashboard.js";
+import type { AuthorizationActor } from "./authorization.js";
 
 const DASHBOARD_RUN_ACTIVITY_DAYS = 14;
 
@@ -28,7 +29,7 @@ function getRecentUtcDateKeys(now: Date, days: number): string[] {
 
 export function dashboardService(db: Db) {
   const budgets = budgetService(db);
-  const assignmentSections = assignmentDashboardService(db);
+      const assignmentSections = assignmentDashboardService(db);
   const service = {
     summary: async (companyId: string): Promise<DashboardSummary> => {
       // This lookup only reads the company row. Rebuild it after a transient
@@ -225,9 +226,9 @@ export function dashboardService(db: Db) {
      * dashboard keeps its exact reads; each added section reports its own `error`
      * instead of failing the response.
      */
-    summaryWithAssignments: async (companyId: string): Promise<DashboardSummary> => {
+    summaryWithAssignments: async (companyId: string, actor: AuthorizationActor): Promise<DashboardSummary> => {
       const summary = await service.summary(companyId);
-      return { ...summary, ...(await assignmentSections.sections(companyId)) };
+      return { ...summary, ...(await assignmentSections.sections(companyId, actor)) };
     },
   };
 }

@@ -4,7 +4,7 @@ import { conversationMessages, externalActions } from "@paperclipai/db";
 import type { ChangeOpportunityStage } from "@paperclipai/shared";
 import { conflict, notFound } from "../errors.js";
 import { bookingService } from "./calendar/booking.js";
-import type { GoogleCalendarService } from "./calendar/google-calendar.js";
+import type { CalendarConnectorAuthority, GoogleCalendarService } from "./calendar/google-calendar.js";
 import { conversationMessageService } from "./conversations/messages.js";
 import { EXECUTOR_UNAVAILABLE_REASON, runApprovedExternalAction, type ExternalActionResult, type GateExternalActionOutput } from "./external-action-gate.js";
 import { approvalService } from "./approvals.js";
@@ -19,6 +19,7 @@ import { approvalService } from "./approvals.js";
 export interface RetryExternalActionOptions {
   /** Needed for booking retries. Without it a booking retry is refused. */
   calendar?: GoogleCalendarService;
+  calendarAuthority?: CalendarConnectorAuthority;
 }
 
 const RETRYABLE_TYPES = ["message", "booking", "stage_change"] as const;
@@ -67,7 +68,7 @@ export async function retryExternalAction(
     const bookings = bookingService(db, { calendar: options.calendar });
     const eventId = action.subjectId;
     const requestId = action.idempotencyKey ?? `retry:${action.id}`;
-    return runApprovedExternalAction(db, action.id, () => bookings.retryCreate({ companyId: action.companyId, eventId, requestId }));
+    return runApprovedExternalAction(db, action.id, () => bookings.retryCreate({ companyId: action.companyId, eventId, requestId, authority: options.calendarAuthority }));
   }
 
   // stage_change

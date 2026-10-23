@@ -47,6 +47,26 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Runtime branding exception: PublicBusinessBrand may bind these two custom
+   properties only from the server's opt-in public projection. The API validates
+   six-digit color values; layout/type/contrast surfaces remain token-owned.
+   No arbitrary CSS, remote stylesheet or requested domain is accepted here. */
+.public-business-brand {
+  border-color: var(--public-business-accent, var(--border));
+  border-inline-start-width: calc(var(--spacing) * 1);
+  border-inline-start-color: var(--public-business-primary, var(--primary));
+}
+.public-business-brand-title {
+  color: var(--foreground);
+}
+
+:root {
+  --sidebar-active-marker-color: #e8752b;
+  --sidebar-active-marker-width: 3px;
+  --media-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  --notification-settings-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
+}
+
 /* Shared file tree: preserve desktop indentation and leave room for labels on
    narrow screens, including deeply nested skill packages. */
 .file-tree-row {

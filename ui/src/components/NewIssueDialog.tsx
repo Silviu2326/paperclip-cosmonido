@@ -7,6 +7,7 @@ import { useDialog } from "../context/DialogContext";
 import { useCompany } from "../context/CompanyContext";
 import { executionWorkspacesApi } from "../api/execution-workspaces";
 import { issuesApi } from "../api/issues";
+import { assignmentsApi } from "../api/assignments";
 import { MissingUserSecretsBanner } from "../pages/secrets/MissingUserSecretsBanner";
 import { instanceSettingsApi } from "../api/instanceSettings";
 import { projectsApi } from "../api/projects";
@@ -34,6 +35,9 @@ import { useToastActions } from "../context/ToastContext";
 import { assigneeValueFromSelection, currentUserAssigneeOption, parseAssigneeValue } from "../lib/assignees";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Paperclip, FileText, Flag, PauseCircle, ListTree, X, ShieldAlert, Folder, ChevronDown, Lock } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { MentionOption } from "./MarkdownEditor";
@@ -290,6 +294,10 @@ export function NewIssueDialog() {
   const [title, setTitle] = useState("");
   const [hasTitle, setHasTitle] = useState(false);
   const [description, setDescription] = useState("");
+  const [acceptanceCriteria, setAcceptanceCriteria] = useState("");
+  const [expectedDeliverable, setExpectedDeliverable] = useState("");
+  const [assignmentBudget, setAssignmentBudget] = useState("0");
+  const [outcomeValidationError, setOutcomeValidationError] = useState("");
   const titleRef = useRef("");
   const descriptionRef = useRef("");
   const [status, setStatus] = useState("todo");
@@ -434,7 +442,38 @@ export function NewIssueDialog() {
       navigateOnCreate,
       ...data
     }: { companyId: string; stagedFiles: StagedIssueFile[]; navigateOnCreate?: boolean } & Record<string, unknown>) => {
-      const issue = await issuesApi.create(companyId, data);
+      const {
+        acceptanceCriteria,
+        expectedDeliverable,
+        budgetCents,
+        ...issueData
+      } = data;
+      let issue: Awaited<ReturnType<typeof issuesApi.create>>;
+      if (typeof acceptanceCriteria === "string" && acceptanceCriteria.trim()) {
+        const assignment = await assignmentsApi.create(companyId, {
+          title: String(issueData.title ?? ""),
+          description: typeof issueData.description === "string" ? issueData.description : null,
+          acceptanceCriteria,
+          expectedDeliverable: typeof expectedDeliverable === "string" && expectedDeliverable.trim() ? expectedDeliverable : null,
+          budgetCents: typeof budgetCents === "number" ? budgetCents : 0,
+          status: String(issueData.status ?? "todo"),
+          priority: String(issueData.priority ?? "medium"),
+          workMode: String(issueData.workMode ?? "standard"),
+          visibility: issueData.visibility === "private" ? "private" : "open",
+          projectId: typeof issueData.projectId === "string" ? issueData.projectId : null,
+          assigneeAgentId: String(issueData.assigneeAgentId ?? ""),
+          idempotencyKey: String(issueData.idempotencyKey ?? ""),
+        });
+        if (!assignment.rootIssue) throw new Error(t("uxWork.missingRootTask", { defaultValue: "La tarea no se pudo abrir. Recarga y revisa el resultado antes de reintentar." }));
+        issue = assignment.rootIssue;
+        const executionOptions = Object.fromEntries(Object.entries(issueData).filter(([key]) => [
+          "projectWorkspaceId", "assigneeAdapterOverrides", "executionWorkspacePreference",
+          "executionWorkspaceSettings", "executionWorkspaceId", "executionPolicy", "watchdog",
+        ].includes(key)));
+        if (Object.keys(executionOptions).length) await issuesApi.update(issue.id, executionOptions);
+      } else {
+        issue = await issuesApi.create(companyId, issueData);
+      }
       const failures: string[] = [];
 
       for (const stagedFile of pendingStagedFiles) {
@@ -467,6 +506,8 @@ export function NewIssueDialog() {
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.listTouchedByMe(companyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.listUnreadTouchedByMe(companyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.sidebarBadges(companyId) });
+      queryClient.invalidateQueries({ queryKey: ["assignments", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["assignment", "issue", issue.id] });
       if (draftTimer.current) clearTimeout(draftTimer.current);
       const prefix = (companies.find((company) => company.id === companyId)?.issuePrefix ?? "").trim();
       const issueRef = issue.identifier ?? issue.id;
@@ -761,6 +802,10 @@ export function NewIssueDialog() {
   function reset() {
     createRequestRef.current = null;
     setIssueText("", "");
+    setAcceptanceCriteria("");
+    setExpectedDeliverable("");
+    setAssignmentBudget("0");
+    setOutcomeValidationError("");
     setStatus("todo");
     setPriority("");
     setAssigneeValue("");
@@ -794,6 +839,21 @@ export function NewIssueDialog() {
     const currentTitle = titleRef.current.trim();
     const currentDescription = body.trim();
     if (!effectiveCompanyId || (!currentTitle && !currentDescription) || createIssue.isPending || worktreeSelectionIncomplete || parentPrivacyUnresolved) return;
+    const budgetValue = Number(assignmentBudget);
+    if (!Number.isFinite(budgetValue) || budgetValue < 0) {
+      setOutcomeValidationError(t("uxWork.budgetInvalid", { defaultValue: "Introduce un presupuesto válido de cero o más." }));
+      return;
+    }
+    if (!acceptanceCriteria.trim() && (expectedDeliverable.trim() || budgetValue !== 0)) {
+      setOutcomeValidationError(t("uxWork.criteriaRequired", { defaultValue: "Añade criterios de aceptación para guardar el resultado y el presupuesto." }));
+      return;
+    }
+    if (acceptanceCriteria.trim() && !selectedAssigneeAgentId) {
+      setOutcomeValidationError(t("uxWork.agentRequired", { defaultValue: "Elige un agente para usar criterios de revisión." }));
+      return;
+    }
+    if (acceptanceCriteria.trim() && newIssueDefaults.parentId) return;
+    setOutcomeValidationError("");
     const inheritedOverrides = buildAssigneeAdapterOverrides({
       adapterType: assigneeAdapterType,
       lane: assigneeChrome ? "custom" : assigneeModelLane,
@@ -865,6 +925,11 @@ export function NewIssueDialog() {
       ...(watchdogAgentId
         ? { watchdog: { agentId: watchdogAgentId, instructions: watchdogInstructions.trim() || null } }
         : {}),
+      ...(acceptanceCriteria.trim() ? {
+        acceptanceCriteria: acceptanceCriteria.trim(),
+        expectedDeliverable: expectedDeliverable.trim() || null,
+        budgetCents: Math.round(Number(assignmentBudget || 0) * 100),
+      } : {}),
     };
     // An explicit board create is a new task even when its title already exists.
     // Reuse the request key only for retries of the same submitted draft.
@@ -1242,6 +1307,26 @@ export function NewIssueDialog() {
                         <span>{parentPrivacyError ? t("newIssue.parentAccessFailed") : t("newIssue.checkingParentAccess")}</span>
                         {parentPrivacyError ? <Button variant="ghost" size="sm" onClick={() => void refetchParentPrivacy()}>{t("newIssue.retry")}</Button> : null}
                       </div>
+                    ) : null}
+                    {!isSubIssueMode ? (
+                      <details className="mx-4 mb-3 rounded-md border border-border/70 p-3">
+                        <summary className="cursor-pointer text-sm font-medium">{t("uxWork.outcomeReview", { defaultValue: "Resultado y revisión (opcional)" })}</summary>
+                        <div className="mt-3 flex flex-col gap-3">
+                          <div className="flex flex-col gap-2">
+                            <Label htmlFor="new-task-acceptance-criteria">{t("uxWork.acceptanceCriteria", { defaultValue: "Criterios de aceptación" })}</Label>
+                            <Textarea id="new-task-acceptance-criteria" value={acceptanceCriteria} onChange={(event) => setAcceptanceCriteria(event.target.value)} maxLength={20_000} disabled={createIssue.isPending} />
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Label htmlFor="new-task-expected-deliverable">{t("uxWork.expectedResult", { defaultValue: "Resultado esperado" })}</Label>
+                            <Input id="new-task-expected-deliverable" value={expectedDeliverable} onChange={(event) => setExpectedDeliverable(event.target.value)} maxLength={20_000} disabled={createIssue.isPending} />
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Label htmlFor="new-task-budget">{t("uxWork.budgetUsd", { defaultValue: "Presupuesto (USD)" })}</Label>
+                            <Input id="new-task-budget" type="number" min="0" step="0.01" value={assignmentBudget} onChange={(event) => setAssignmentBudget(event.target.value)} disabled={createIssue.isPending} />
+                          </div>
+                          {outcomeValidationError ? <p role="alert" className="text-sm text-destructive">{outcomeValidationError}</p> : null}
+                        </div>
+                      </details>
                     ) : null}
                     {worktreeSelectionIncomplete && !worktreesLoading ? (
                       <p role="alert" className="mb-2 text-xs text-destructive">

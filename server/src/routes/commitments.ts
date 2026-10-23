@@ -6,7 +6,7 @@ import { badRequest } from "../errors.js";
 import { validateBody422 } from "./lead-qualification.js";
 import { commitmentService, type CommitmentServiceDeps } from "../services/commitment-extractor.js";
 import { commercialTriggers, type CommercialTriggerDeps } from "../services/commercial-triggers.js";
-import { assertCompanyAccess, getActorInfo } from "./authz.js";
+import { assertBoard, assertCompanyAccess, getActorInfo } from "./authz.js";
 
 const uuid = z.string().uuid();
 const extractBodySchema = commitmentsExtractSchema.omit({ conversationId: true });
@@ -32,6 +32,17 @@ export function commitmentRoutes(db: Db, deps: CommitmentServiceDeps = {}) {
       res.json(result);
     },
   );
+
+  router.post("/companies/:companyId/commitments/:commitmentId/confirm", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertBoard(req);
+    assertCompanyAccess(req, companyId);
+    const commitmentId = uuid.safeParse(req.params.commitmentId);
+    if (!commitmentId.success) throw badRequest("Invalid commitment id");
+    const actor = getActorInfo(req);
+    if (actor.actorType !== "user") throw badRequest("Commitment confirmation requires a board user");
+    res.json(await service.confirm(companyId, commitmentId.data, { userId: actor.actorId }));
+  });
 
   return router;
 }

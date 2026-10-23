@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AutonomyLevel, CreatePlaybookInput, PlaybookStep, PlaybookStepKind, PlaybookChannel } from "@paperclipai/shared";
-import { ArrowDown, ArrowUp, BookOpen, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, BookOpen, Plus, Trash2 } from "lucide-react";
 import { Link, useNavigate, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { useCompany } from "@/context/CompanyContext";
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { PageSkeleton } from "@/components/PageSkeleton";
+import { BackToRoutinesLink, TEAM_WORKSPACE_PATHS } from "@/components/team-workspace/TeamWorkspaceLinks";
 
 const STEP_KINDS: PlaybookStepKind[] = ["qualify", "respond", "follow_up", "propose", "book", "close", "handoff", "wait"];
 const CHANNELS: PlaybookChannel[] = ["email", "whatsapp", "sms", "chat", "call", "internal"];
@@ -50,7 +51,12 @@ export function Playbooks() {
   const { selectedCompanyId } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
-  useEffect(() => { setBreadcrumbs([{ label: t("nav.playbooks", { defaultValue: "Playbooks" }) }]); }, [setBreadcrumbs, t]);
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: t("uxTeam.back.routines", { defaultValue: "Rutinas" }), href: TEAM_WORKSPACE_PATHS.routines },
+      { label: t("uxTeam.playbooks.title", { defaultValue: "Procedimientos" }) },
+    ]);
+  }, [setBreadcrumbs, t]);
   const list = useQuery({ queryKey: ["playbooks", selectedCompanyId], queryFn: () => playbooksApi.list(selectedCompanyId!), enabled: !!selectedCompanyId });
   const usage = useQuery({ queryKey: ["playbook-usage", selectedCompanyId], queryFn: () => playbooksApi.usage(selectedCompanyId!), enabled: !!selectedCompanyId });
   if (!selectedCompanyId) return <EmptyState icon={BookOpen} message={t("goals.selectOrg", { defaultValue: "Selecciona una empresa." })} />;
@@ -69,12 +75,18 @@ export function Playbooks() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{t("playbooks.intro", { defaultValue: "Secuencias comerciales versionadas que se ejecutan paso a paso." })}</p>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <BackToRoutinesLink />
+            <h1 className="text-xl font-bold">{t("uxTeam.playbooks.title", { defaultValue: "Procedimientos" })}</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">{t("uxTeam.playbooks.intro", { defaultValue: "Secuencias comerciales reutilizables y versionadas que se ejecutan paso a paso. Cuándo se lanza cada trabajo se sigue configurando en Rutinas." })}</p>
+        </div>
         <NewPlaybookDialog companyId={selectedCompanyId} />
       </div>
       {usage.error && <p role="alert" className="text-sm text-destructive">{usage.error.message}</p>}
       {!list.data?.length ? (
-        <EmptyState icon={BookOpen} message={t("playbooks.empty", { defaultValue: "Aún no hay playbooks." })} />
+        <EmptyState icon={BookOpen} message={t("uxTeam.playbooks.empty", { defaultValue: "Aún no hay procedimientos." })} />
       ) : list.data.map((playbook) => (
         <Card key={playbook.id}>
           <CardHeader>
@@ -111,11 +123,11 @@ function NewPlaybookDialog({ companyId }: { companyId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><Plus data-icon="inline-start" />{t("playbooks.new", { defaultValue: "Nuevo playbook" })}</Button>
+        <Button size="sm"><Plus data-icon="inline-start" />{t("uxTeam.playbooks.new", { defaultValue: "Nuevo procedimiento" })}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("playbooks.new", { defaultValue: "Nuevo playbook" })}</DialogTitle>
+          <DialogTitle>{t("uxTeam.playbooks.new", { defaultValue: "Nuevo procedimiento" })}</DialogTitle>
           <DialogDescription>{t("playbooks.formDescription", { defaultValue: "Define la clave, el nombre y el primer paso. Podrás añadir más pasos en el editor." })}</DialogDescription>
         </DialogHeader>
         <form
@@ -171,7 +183,7 @@ function NewPlaybookDialog({ companyId }: { companyId: string }) {
           {create.error && <p role="alert" className="text-sm text-destructive">{create.error.message}</p>}
           <DialogFooter className="flex-row justify-between sm:justify-between">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("common.cancel", { defaultValue: "Cancelar" })}</Button>
-            <Button type="submit" disabled={create.isPending}>{t("playbooks.create", { defaultValue: "Crear playbook" })}</Button>
+            <Button type="submit" disabled={create.isPending}>{t("uxTeam.playbooks.create", { defaultValue: "Crear procedimiento" })}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -206,7 +218,8 @@ export function PlaybookDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: t("nav.playbooks", { defaultValue: "Playbooks" }), href: "/playbooks" },
+      { label: t("uxTeam.back.routines", { defaultValue: "Rutinas" }), href: TEAM_WORKSPACE_PATHS.routines },
+      { label: t("uxTeam.playbooks.title", { defaultValue: "Procedimientos" }), href: TEAM_WORKSPACE_PATHS.playbooks },
       { label: playbook?.name ?? "…" },
     ]);
   }, [setBreadcrumbs, playbook?.name, t]);
@@ -235,7 +248,7 @@ export function PlaybookDetail() {
   });
 
   if (query.isLoading) return <PageSkeleton variant="detail" />;
-  if (query.error || !playbook) return <p role="alert" className="text-sm text-destructive">{query.error?.message ?? t("playbooks.notFound", { defaultValue: "Playbook no encontrado" })}</p>;
+  if (query.error || !playbook) return <p role="alert" className="text-sm text-destructive">{query.error?.message ?? t("uxTeam.playbooks.notFound", { defaultValue: "Procedimiento no encontrado" })}</p>;
 
   const isDraft = playbook.status === "draft";
   const current = steps[selected];
@@ -261,6 +274,14 @@ export function PlaybookDetail() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div>
+        <Button asChild size="sm" variant="ghost">
+          <Link to={TEAM_WORKSPACE_PATHS.playbooks}>
+            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+            {t("uxTeam.playbooks.title", { defaultValue: "Procedimientos" })}
+          </Link>
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between gap-3">

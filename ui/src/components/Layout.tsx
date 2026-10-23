@@ -607,8 +607,9 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
 
         {isMobile ? (
           <div
+            inert={!sidebarOpen}
             className={cn(
-              "fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden pt-(--sz-safe-top) transition-transform duration-100 ease-out",
+              "fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden bg-background pt-(--sz-safe-top) transition-transform duration-100 ease-out",
               sidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
@@ -744,7 +745,7 @@ export function Layout({ sidebarSections }: { sidebarSections?: ReactNode }) {
           </div>
         </div>
       </div>
-      {isMobile && <MobileBottomNav visible={mobileNavVisible} />}
+      {isMobile && <MobileBottomNav visible={mobileNavVisible && !sidebarOpen} />}
       <CommandPalette />
       <NewIssueDialog />
       <NewProjectDialog />

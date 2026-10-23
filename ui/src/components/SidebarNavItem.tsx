@@ -153,7 +153,7 @@ export function SidebarNavItem({
           "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
           primaryNav
             ? (active ?? isActive)
-              ? "relative bg-background font-semibold text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-[#E8752B] dark:bg-secondary"
+              ? "relative bg-background font-semibold text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-(--sidebar-active-marker-width) before:rounded-full before:bg-(--sidebar-active-marker-color) dark:bg-secondary"
               : "text-foreground/80 hover:bg-secondary hover:text-foreground"
             : (active ?? isActive)
               ? "bg-sidebar-accent text-sidebar-accent-foreground"

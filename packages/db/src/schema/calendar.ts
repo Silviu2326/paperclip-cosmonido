@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  boolean,
   index,
   integer,
   jsonb,
@@ -43,6 +44,9 @@ export const bookingTypes = pgTable(
     hostAgentId: uuid("host_agent_id").references(() => agents.id, { onDelete: "set null" }),
     hostUserId: text("host_user_id"),
     connectionId: uuid("connection_id").references(() => toolConnections.id, { onDelete: "set null" }),
+    publicExecutionEnabled: boolean("public_execution_enabled").notNull().default(false),
+    delegatedByUserId: text("delegated_by_user_id"),
+    delegatedAt: timestamp("delegated_at", { withTimezone: true }),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -52,6 +56,15 @@ export const bookingTypes = pgTable(
     companySlugUq: uniqueIndex("booking_types_company_slug_uq").on(table.companyId, table.slug),
     durationCheck: check("booking_types_duration_check", sql`${table.durationMinutes} > 0`),
     bufferCheck: check("booking_types_buffer_check", sql`${table.bufferMinutes} >= 0`),
+    publicExecutionDelegationCheck: check(
+      "booking_types_public_execution_delegation_check",
+      sql`not ${table.publicExecutionEnabled} or (
+        ${table.connectionId} is not null
+        and ((${table.hostAgentId} is not null) <> (${table.hostUserId} is not null))
+        and ${table.delegatedByUserId} is not null
+        and ${table.delegatedAt} is not null
+      )`,
+    ),
   }),
 );
 

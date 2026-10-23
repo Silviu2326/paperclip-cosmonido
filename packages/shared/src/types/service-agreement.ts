@@ -1,7 +1,7 @@
 /** Sprint 3 WP10: recurring agreements and renewals. */
 export type AgreementPeriodKind = "monthly" | "quarterly" | "yearly";
 export type ServiceAgreementStatus = "active" | "notice" | "renewed" | "ended" | "cancelled";
-export type AgreementPeriodStatus = "planned" | "active" | "delivered" | "skipped";
+export type AgreementPeriodStatus = "planned" | "active" | "delivered" | "skipped" | "renewal_requested_pending_run" | "renewal_requested";
 
 export interface ServiceAgreementDeliverable {
   title: string;
@@ -36,6 +36,7 @@ export interface AgreementPeriod {
   periodStart: Date | string;
   periodEnd: Date | string;
   assignmentGoalId: string | null;
+  renewalTaskId: string | null;
   renewalProposalId: string | null;
   renewalDecisionId: string | null;
   status: AgreementPeriodStatus;

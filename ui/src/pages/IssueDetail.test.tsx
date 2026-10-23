@@ -48,6 +48,9 @@ import type { issuesApi } from "../api/issues";
 
 const mockGrokBotApi = vi.hoisted(() => ({ stop: vi.fn().mockResolvedValue({ stopped: true }) }));
 vi.mock("../api/grokBot", () => ({ grokBotApi: mockGrokBotApi }));
+const mockAssignmentsApi = vi.hoisted(() => ({ getForIssue: vi.fn(), contextUsage: vi.fn() }));
+vi.mock("../api/assignments", () => ({ assignmentsApi: mockAssignmentsApi }));
+vi.mock("../components/DeliverableReviewPanel", () => ({ DeliverableReviewPanel: () => null }));
 
 const mockIssuesApi = vi.hoisted(() => ({
   get: vi.fn(),
@@ -1380,6 +1383,8 @@ describe("IssueDetail", () => {
     mockIssuesApi.listTreeHolds.mockResolvedValue([]);
     mockActivityApi.forIssue.mockResolvedValue([]);
     mockActivityApi.runsForIssue.mockResolvedValue([]);
+    mockAssignmentsApi.getForIssue.mockResolvedValue(null);
+    mockAssignmentsApi.contextUsage.mockResolvedValue([]);
     mockHeartbeatsApi.liveRunsForIssue.mockResolvedValue([]);
     mockHeartbeatsApi.activeRunForIssue.mockResolvedValue(null);
     mockAgentsApi.list.mockResolvedValue([]);
@@ -5249,6 +5254,34 @@ describe("IssueDetail", () => {
         (comment) => comment.id === "interaction-response:classic-question",
       ),
     ).toBe(false);
+  });
+
+  it.each([false, true])("keeps the result disclosure available in both task layouts (classic=%s)", async (classic) => {
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({
+      enableIssuePlanDecompositions: false,
+      enableExperimentalFileViewer: false,
+      enableExternalObjects: false,
+      enableStreamlinedUi: true,
+      enableClassicTaskInterface: classic,
+    });
+    mockIssuesApi.get.mockResolvedValue(createIssue());
+    mockAssignmentsApi.getForIssue.mockResolvedValue({
+      id: "assignment-1",
+      rootIssueId: "issue-1",
+      acceptanceCriteria: "Verified result",
+      expectedDeliverable: null,
+      budgetCents: 0,
+      assignmentStatus: "awaiting_review",
+    });
+
+    await act(async () => { renderIssueView(); });
+    await flushReact();
+    await flushReact();
+
+    expect(container.querySelector('[data-testid="task-outcome-review"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-testid="task-outcome-review"]')).toHaveLength(1);
+    expect(mockAssignmentsApi.getForIssue).toHaveBeenCalledWith("issue-1");
+    expect(Boolean(container.querySelector("[data-task-chat-shell]"))).toBe(!classic);
   });
 
   it("restores master's task chat thread when Streamlined UI is off", async () => {

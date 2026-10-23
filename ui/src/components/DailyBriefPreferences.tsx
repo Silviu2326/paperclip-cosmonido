@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DailyBriefChannel } from "@paperclipai/shared";
 import { dailyBriefApi } from "@/api/daily-brief";
+import { agentsApi } from "@/api/agents";
+import { authApi } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/select";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useTranslation } from "@/i18n";
+import { queryKeys } from "@/lib/queryKeys";
 
 function browserTimezone(): string {
   try {
@@ -26,11 +29,19 @@ export function DailyBriefPreferences({ companyId }: { companyId: string }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   // Null until the user edits the field; the input then shows the stored value.
   const [timezoneDraft, setTimezoneDraft] = useState<string | null>(null);
-  const prefsKey = ["daily-brief", "preferences", companyId];
+  const session = useQuery({ queryKey: queryKeys.auth.session, queryFn: () => authApi.getSession() });
+  const userId = session.data?.user?.id ?? session.data?.session?.userId ?? null;
+  useEffect(() => setTimezoneDraft(null), [companyId, userId]);
+  const prefsKey = ["daily-brief", "preferences", companyId, userId];
 
   const prefsQuery = useQuery({
     queryKey: prefsKey,
     queryFn: () => dailyBriefApi.getPreferences(companyId),
+    enabled: Boolean(companyId && userId),
+  });
+  const agentsQuery = useQuery({
+    queryKey: queryKeys.agents.list(companyId),
+    queryFn: () => agentsApi.list(companyId),
     enabled: Boolean(companyId),
   });
 
@@ -51,14 +62,14 @@ export function DailyBriefPreferences({ companyId }: { companyId: string }) {
 
   const prefs = prefsQuery.data;
 
-  if (prefsQuery.isLoading) {
+  if (session.isLoading || prefsQuery.isLoading) {
     return (
       <p className="text-sm text-muted-foreground">
         {t("dailyBrief.loading", { defaultValue: "Cargando preferencias…" })}
       </p>
     );
   }
-  if (prefsQuery.isError || !prefs) {
+  if (session.isError || !userId || prefsQuery.isError || !prefs) {
     return (
       <p className="text-sm text-destructive">
         {t("dailyBrief.loadError", { defaultValue: "No se pudieron cargar las preferencias del resumen diario." })}
@@ -68,6 +79,7 @@ export function DailyBriefPreferences({ companyId }: { companyId: string }) {
 
   const hours = Array.from({ length: 24 }, (_, hour) => hour);
   const saveFailed = update.isError;
+  const deliveryAgents = (agentsQuery.data ?? []).filter((agent) => ["active", "idle", "running"].includes(agent.status));
 
   return (
     <Card>
@@ -90,6 +102,32 @@ export function DailyBriefPreferences({ companyId }: { companyId: string }) {
             disabled={update.isPending}
             onCheckedChange={(enabled) => update.mutate({ enabled })}
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="daily-brief-agent">
+            {t("dailyBrief.deliveryAgent", { defaultValue: "Agente responsable de entrega" })}
+          </Label>
+          <NativeSelect
+            id="daily-brief-agent"
+            value={prefs.deliveryAgentId ?? ""}
+            disabled={update.isPending || agentsQuery.isLoading || agentsQuery.isError}
+            onChange={(event) => update.mutate({ deliveryAgentId: event.target.value || null })}
+          >
+            <option value="">{t("dailyBrief.noDeliveryAgent", { defaultValue: "Sin configurar" })}</option>
+            {deliveryAgents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
+          </NativeSelect>
+          {agentsQuery.isError ? (
+            <p className="text-sm text-destructive">{t("dailyBrief.agentLoadError", { defaultValue: "No se pudieron cargar los agentes de esta empresa." })}</p>
+          ) : null}
+          <p className="text-sm text-muted-foreground">
+            {t("dailyBrief.deliveryAgentHelp", { defaultValue: "El resumen se asigna a este agente y solo queda entregado tras un recibo confirmado." })}
+          </p>
+          {prefs.pendingTaskId ? (
+            <p className="text-sm text-muted-foreground" role="status">
+              {t("dailyBrief.deliveryPending", { defaultValue: "Entrega pendiente de confirmación por el agente. Encargo: {{taskId}}", taskId: prefs.pendingTaskId })}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">

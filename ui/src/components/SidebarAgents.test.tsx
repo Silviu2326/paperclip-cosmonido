@@ -550,9 +550,11 @@ describe("SidebarAgents", () => {
     const newAgentItem = Array.from(document.body.querySelectorAll('[data-slot="dropdown-menu-item"]'))
       .find((element) => element.textContent?.includes("Nuevo agente"));
     expect(newAgentItem).toBeFalsy();
+    // The roster has one entry point: the "see all" link under the list, not a second one in the menu.
     const browseLink = Array.from(document.body.querySelectorAll("a"))
       .find((element) => element.textContent?.includes("Explorar agentes"));
-    expect(browseLink?.getAttribute("href")).toBe("/agents/all");
+    expect(browseLink).toBeFalsy();
+    expect(container.querySelectorAll('a[href="/agents/all"]')).toHaveLength(1);
   });
 
   it("sorts alphabetically and persists the selected mode per company and user", async () => {

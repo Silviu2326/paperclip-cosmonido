@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "./StatusBadge";
 import { timeAgo } from "../lib/timeAgo";
 import { formatCents } from "../lib/utils";
+import { useDialogActions } from "../context/DialogContext";
 
 function SectionCard({
   title,
@@ -77,10 +78,10 @@ function CostRow({ label, window }: { label: string; window: DashboardCostWindow
       <p className="text-xs text-muted-foreground">
         {window.coveragePercent == null
           ? t("assignmentDashboard.noSpend", { defaultValue: "No spend recorded." })
-          : t("assignmentDashboard.coverage", {
+          : t("uxWork.taskCostCoverage", {
               percent: window.coveragePercent,
               unattributed: formatCents(window.unattributedCents),
-              defaultValue: "{{percent}}% in assignments · {{unattributed}} unattributed",
+              defaultValue: "{{percent}}% in tasks with results · {{unattributed}} unattributed",
             })}
         {window.pricingComplete ? null : ` ${t("assignmentDashboard.pricingIncomplete", { defaultValue: "Some usage is still unpriced." })}`}
       </p>
@@ -95,6 +96,7 @@ function CostRow({ label, window }: { label: string; window: DashboardCostWindow
  */
 export function AssignmentDashboard({ data }: { data: DashboardSummary }) {
   const { t } = useTranslation();
+  const { openNewIssue } = useDialogActions();
   const { activeAssignments, needsYou, costsToday, costsThisWeek } = data;
   if (!activeAssignments && !needsYou && !costsToday && !costsThisWeek) return null;
 
@@ -110,10 +112,10 @@ export function AssignmentDashboard({ data }: { data: DashboardSummary }) {
       <Card className="block p-4" data-testid="assignment-dashboard-empty">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            {t("assignmentDashboard.empty", { defaultValue: "Nothing is in progress. Create an assignment to put your agents to work." })}
+            {t("uxWork.dashboardEmpty", { defaultValue: "No tasks are in progress yet. Create a task to get started." })}
           </p>
-          <Button size="sm" asChild>
-            <Link to="/assignments">{t("assignmentDashboard.create", { defaultValue: "Create assignment" })}</Link>
+          <Button size="sm" onClick={() => openNewIssue()}>
+            {t("uxWork.newTask", { defaultValue: "Nueva tarea" })}
           </Button>
         </div>
       </Card>
@@ -129,7 +131,7 @@ export function AssignmentDashboard({ data }: { data: DashboardSummary }) {
         {!activeAssignments ? null : activeAssignments.error !== undefined ? (
           <SectionError message={activeAssignments.error} />
         ) : activeAssignments.items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("assignmentDashboard.noActive", { defaultValue: "No active assignments." })}</p>
+          <p className="text-sm text-muted-foreground">{t("uxWork.noActiveTasks", { defaultValue: "No tasks are active right now." })}</p>
         ) : (
           <ul className="divide-y divide-border">
             {activeAssignments.items.map((item) => (

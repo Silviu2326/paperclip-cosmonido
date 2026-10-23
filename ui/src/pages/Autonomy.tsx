@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { EXTERNAL_ACTION_TYPES, type AutonomyLevel, type AutonomyMatrixCell, type ExternalActionType } from "@paperclipai/shared";
 import { useTranslation } from "@/i18n";
+import { useSearchParams } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { autonomyApi } from "@/api/autonomy";
@@ -16,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmptyState } from "@/components/EmptyState";
 import { PageSkeleton } from "@/components/PageSkeleton";
+import { AUTONOMY_AGENT_PARAM, BackToTeamLink } from "@/components/team-workspace/TeamWorkspaceLinks";
 
 const LEVEL_LABELS: Record<AutonomyLevel, string> = {
   draft_only: "Solo borrador",
@@ -63,6 +65,8 @@ export function Autonomy() {
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const agentFilterId = searchParams.get(AUTONOMY_AGENT_PARAM);
   const [panel, setPanel] = useState<CellRef | null>(null);
   const [raiseCell, setRaiseCell] = useState<AutonomyMatrixCell | null>(null);
   const [revokeCell, setRevokeCell] = useState<AutonomyMatrixCell | null>(null);
@@ -102,11 +106,37 @@ export function Autonomy() {
     return <EmptyState icon={ShieldCheck} message={t("autonomy.empty", { defaultValue: "Aún no hay agentes en esta empresa." })} />;
   }
 
+  // The `agent` query parameter is a real filter: only that agent's row is shown,
+  // and an unknown id falls back to the full matrix with an explicit notice.
+  const filteredRows = agentFilterId ? rows.filter(([agentId]) => agentId === agentFilterId) : rows;
+  const filterMissing = Boolean(agentFilterId) && filteredRows.length === 0;
+  const visibleRows = filterMissing ? rows : filteredRows;
+  const clearAgentFilter = () => setSearchParams((current) => {
+    const next = new URLSearchParams(current);
+    next.delete(AUTONOMY_AGENT_PARAM);
+    return next;
+  }, { replace: true });
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        {t("autonomy.intro", { defaultValue: "La autonomía de cada agente por tipo de acción se gana con el modo sombra y el banco de pruebas. Subir un nivel requiere un banco aprobado; revocar es inmediato." })}
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="max-w-3xl text-sm text-muted-foreground">
+          {t("autonomy.intro", { defaultValue: "La autonomía de cada agente por tipo de acción se gana con el modo sombra y el banco de pruebas. Subir un nivel requiere un banco aprobado; revocar es inmediato." })}
+        </p>
+        <BackToTeamLink />
+      </div>
+      {agentFilterId && (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm" role="status">
+          <span className="text-muted-foreground">
+            {filterMissing
+              ? t("uxTeam.autonomy.filterMissing", { defaultValue: "Ese agente no tiene autonomía que mostrar. Se muestran todos los agentes." })
+              : t("uxTeam.autonomy.filtered", { defaultValue: "Mostrando solo {{name}}.", name: agentName(agentFilterId) })}
+          </span>
+          <Button size="sm" variant="outline" onClick={clearAgentFilter}>
+            {t("uxTeam.autonomy.showAll", { defaultValue: "Ver todos los agentes" })}
+          </Button>
+        </div>
+      )}
       {agents.error && <p role="alert" className="text-sm text-destructive">{errorMessage(agents.error)}</p>}
       {benchMutation.error && <p role="alert" className="text-sm text-destructive">{errorMessage(benchMutation.error)}</p>}
 
@@ -123,7 +153,7 @@ export function Autonomy() {
             </tr>
           </thead>
           <tbody>
-            {rows.map(([agentId, cells]) => (
+            {visibleRows.map(([agentId, cells]) => (
               <tr className="border-t align-top" key={agentId}>
                 <th scope="row" className="p-2 text-left font-medium">{agentName(agentId)}</th>
                 {EXTERNAL_ACTION_TYPES.map((actionType) => {

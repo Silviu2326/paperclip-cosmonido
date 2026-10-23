@@ -818,6 +818,8 @@ export type {
   IssueAncestorGoal,
   IssueAttachment,
   IssueCreationSource,
+  IssueListParams,
+  IssueReviewFilter,
   IssueLabel,
   IssueWatchdog,
   IssueWatchdogStatus,
@@ -1104,6 +1106,21 @@ export type {
 export * from "./app-definition.js";
 export * from "./chat-channels.js";
 export * from "./chat-github.js";
+export type {
+  CrmPhoneCallbackStatus,
+  CrmPhoneIdentityState,
+  CrmPhoneConsentBasis,
+  CrmPhoneEvidenceSource,
+  CrmPhoneEvidenceStatement,
+  CrmPhoneCallSummary,
+  CrmPhoneCall,
+  CrmPhoneCallback,
+  CrmPhoneConnectorStatus,
+  CrmPhoneDialAuthorization,
+  CrmPhoneCallSummaryGetInput,
+  CrmPhoneCallScheduleInput,
+  CrmPhoneToolDefinition,
+} from "../productization/crm-phone.js";
 
 export * from "./email.js";
 

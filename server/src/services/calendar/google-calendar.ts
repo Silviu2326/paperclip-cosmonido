@@ -24,9 +24,17 @@ export const GOOGLE_CALENDAR_TOOLS = {
 export interface CalendarConnectorCall {
   companyId: string;
   connectionId: string;
+  bookingTypeId: string;
   toolName: string;
   arguments: Record<string, unknown>;
+  authority: CalendarConnectorAuthority;
 }
+
+/** Server-derived identity used for a single calendar provider operation. */
+export type CalendarConnectorAuthority =
+  | { kind: "board_session"; userId: string; sessionId: string | null; source: "session" | "local_implicit" | "board_key" | "mcp_oauth" | "cloud_tenant" }
+  | { kind: "agent_real_run"; agentId: string; runId: string; issueId?: string | null }
+  | { kind: "public_booking_host"; bookingTypeId: string };
 
 /** Calls one tool of a company's connection and returns the parsed result. */
 export type CalendarConnectorInvoker = (call: CalendarConnectorCall) => Promise<unknown>;
@@ -139,21 +147,28 @@ export function googleCalendarService(db: Db, options: { invoke?: CalendarConnec
     return row;
   }
 
-  async function call(companyId: string, connectionId: string, toolName: string, args: Record<string, unknown>) {
+  async function call(
+    companyId: string,
+    connectionId: string,
+    toolName: string,
+    args: Record<string, unknown>,
+    authority: CalendarConnectorAuthority,
+    bookingTypeId: string,
+  ) {
     await assertCalendarConnection(companyId, connectionId);
-    return invoke({ companyId, connectionId, toolName, arguments: args });
+    return invoke({ companyId, connectionId, bookingTypeId, toolName, arguments: args, authority });
   }
 
   return {
     assertCalendarConnection,
 
     /** Busy intervals in [from, to) for the calendar behind this connection. */
-    async freeBusy(input: { companyId: string; connectionId: string; from: number; to: number }): Promise<BusyInterval[]> {
+    async freeBusy(input: { companyId: string; connectionId: string; bookingTypeId: string; from: number; to: number; authority: CalendarConnectorAuthority }): Promise<BusyInterval[]> {
       const response = await call(input.companyId, input.connectionId, GOOGLE_CALENDAR_TOOLS.listEvents, {
         timeMin: new Date(input.from).toISOString(),
         timeMax: new Date(input.to).toISOString(),
         singleEvents: true,
-      });
+      }, input.authority, input.bookingTypeId);
       const items = isRecord(response) && Array.isArray(response.items)
         ? response.items
         : Array.isArray(response) ? response : [];
@@ -171,12 +186,14 @@ export function googleCalendarService(db: Db, options: { invoke?: CalendarConnec
     async createEvent(input: {
       companyId: string;
       connectionId: string;
+      bookingTypeId: string;
       title: string;
       description?: string | null;
       startsAt: Date;
       endsAt: Date;
       attendeeEmail: string;
       requestId: string;
+      authority: CalendarConnectorAuthority;
     }): Promise<ProviderEventOutcome> {
       const response = await call(input.companyId, input.connectionId, GOOGLE_CALENDAR_TOOLS.createEvent, {
         summary: input.title,
@@ -185,30 +202,32 @@ export function googleCalendarService(db: Db, options: { invoke?: CalendarConnec
         endTime: input.endsAt.toISOString(),
         attendees: [{ email: input.attendeeEmail }],
         requestId: input.requestId,
-      });
+      }, input.authority, input.bookingTypeId);
       return classifyProviderResponse(response, "confirmed");
     },
 
     async updateEvent(input: {
       companyId: string;
       connectionId: string;
+      bookingTypeId: string;
       externalId: string;
       startsAt: Date;
       endsAt: Date;
+      authority: CalendarConnectorAuthority;
     }): Promise<ProviderEventOutcome> {
       const response = await call(input.companyId, input.connectionId, GOOGLE_CALENDAR_TOOLS.updateEvent, {
         eventId: input.externalId,
         startTime: input.startsAt.toISOString(),
         endTime: input.endsAt.toISOString(),
-      });
+      }, input.authority, input.bookingTypeId);
       return classifyProviderResponse(response, "confirmed");
     },
 
     /** Cancelled only when the provider reports it; otherwise `proposed` (pending). */
-    async cancelEvent(input: { companyId: string; connectionId: string; externalId: string }): Promise<ProviderEventOutcome> {
+    async cancelEvent(input: { companyId: string; connectionId: string; bookingTypeId: string; externalId: string; authority: CalendarConnectorAuthority }): Promise<ProviderEventOutcome> {
       const response = await call(input.companyId, input.connectionId, GOOGLE_CALENDAR_TOOLS.deleteEvent, {
         eventId: input.externalId,
-      });
+      }, input.authority, input.bookingTypeId);
       const outcome = classifyProviderResponse(response, "cancelled");
       return { ...outcome, externalId: outcome.externalId ?? input.externalId };
     },

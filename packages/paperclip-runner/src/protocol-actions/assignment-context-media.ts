@@ -15,6 +15,7 @@ import { sprint2ConversationToolDefinitions } from "./sprint2/conversations.js";
 import { sprint2CalendarToolDefinitions } from "./sprint2/calendar.js";
 import { sprint2MemoryToolDefinitions } from "./sprint2/memory.js";
 import { sprint2WebchatToolDefinitions } from "./sprint2/webchat.js";
+import { sprint2ReviewPhoneSyncToolDefinitions } from "./sprint2/review-phone-sync.js";
 
 /** Assignment, business-context and media operations use the authenticated server API. */
 const baseDefinitions = [
@@ -577,6 +578,7 @@ const definitions = [
   ...sprint2CalendarToolDefinitions,
   ...sprint2MemoryToolDefinitions,
   ...sprint2WebchatToolDefinitions,
+  ...sprint2ReviewPhoneSyncToolDefinitions,
 ] as const;
 
 export type AssignmentContextMediaOperationId = typeof definitions[number]['name'];
@@ -599,6 +601,7 @@ const SPRINT3_NAMESPACES: Array<[prefix: string, namespace: string]> = [
   ["proposal_", "proposals"], ["handoff_", "handoff"], ["agreement_", "agreements"], ["upsell_", "agreements"], ["explain_", "explain"],
   ["crm_", "crm"], ["commitment_", "commitments"], ["conversation_", "conversations"], ["message_", "conversations"],
   ["webchat_", "conversations"], ["calendar_", "calendar"], ["customer_memory_", "customer_memory"],
+  ["review_", "external_reviews"], ["call_", "crm_phone"],
 ];
 function sprint3Namespace(name: string): string {
   for (const [prefix, namespace] of SPRINT3_NAMESPACES) if (name.startsWith(prefix)) return namespace;

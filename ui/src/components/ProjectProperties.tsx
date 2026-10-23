@@ -7,7 +7,8 @@ import { environmentDisplayLabel, filterManagedSandboxSelectableEnvironments } f
 import { Link } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Project, SharedWorkspaceConcurrency } from "@paperclipai/shared";
-import { ProjectRepositories } from "./ProjectRepositories";
+import { ProjectRepositories } from "./ProjectRepositories";
+import { ProjectCustomerContext } from "./ProjectCustomerContext";
 import { cn, formatDate } from "../lib/utils";
 import { environmentsApi } from "../api/environments";
 import { instanceSettingsApi } from "../api/instanceSettings";
@@ -42,7 +43,8 @@ interface ProjectPropertiesProps {
 
 export type ProjectFieldSaveState = "idle" | "saving" | "saved" | "error";
 export type ProjectConfigFieldKey =
-  | "name"
+  | "name"
+  | "customer"
   | "description"
   | "status"
   | "visibility"
@@ -462,6 +464,14 @@ export function ProjectProperties({ project, repositories, onUpdate, onFieldUpda
           ) : (
             <span className="text-sm">{project.name}</span>
           )}
+        </PropertyRow>
+        <PropertyRow label={<FieldLabel label={t("uxProject.customer", { defaultValue: "Customer" })} state={fieldState("customer")} />}>
+          <ProjectCustomerContext
+            companyId={project.companyId ?? selectedCompanyId ?? ""}
+            customerId={project.customerId ?? null}
+            disabled={!(onUpdate || onFieldUpdate) || !(project.companyId ?? selectedCompanyId)}
+            onChange={(customerId) => commitField("customer", { customerId })}
+          />
         </PropertyRow>
         <PropertyRow
           label={<FieldLabel label={t("projectProps.description")} state={fieldState("description")} />}

@@ -1,71 +1,55 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useParams } from "@/lib/router";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
-import { useCompany } from "@/context/CompanyContext";
-import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { assignmentsApi } from "@/api/assignments";
-import { queryKeys } from "@/lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/EmptyState";
 import { PageSkeleton } from "@/components/PageSkeleton";
-import { Target, Plus } from "lucide-react";
-import { DeliverableReviewPanel } from "@/components/DeliverableReviewPanel";
-import { AssignmentCosts } from "@/components/AssignmentCosts";
-import { agentsApi } from "@/api/agents";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createUuid } from "@/lib/uuid";
-import { issuesApi } from "@/api/issues";
-import { costsApi } from "@/api/costs";
-import { formatCents } from "@/lib/utils";
-import { projectsApi } from "@/api/projects";
-import { mediaStudioApi } from "@/api/media-studio";
 
-const assignmentStatusLabels: Record<string, string> = {"planned":"Planificado","in_progress":"En curso","awaiting_review":"Pendiente de revisión","changes_requested":"Cambios solicitados","accepted":"Aceptado","cancelled":"Cancelado"};
+export function assignmentTaskCollectionPath(search: string, hash: string) {
+  const params = new URLSearchParams(search);
+  params.set("review", "required");
+  return `/issues?${params.toString()}${hash}`;
+}
 
+export function assignmentTaskPath(identifier: string, search: string, hash: string) {
+  return `/issues/${identifier}${search}${hash || "#outcome"}`;
+}
+
+/** Compatibility destination for saved links; the task collection owns discovery. */
 export function Assignments() {
-  const { selectedCompanyId } = useCompany(); const { t } = useTranslation(); const { setBreadcrumbs } = useBreadcrumbs();
-  const [status, setStatus] = useState<string>();
-  useEffect(() => { setBreadcrumbs([{ label: t("nav.assignments", { defaultValue: "Encargos" }) }]); }, [setBreadcrumbs, t]);
-  const query = useQuery({ queryKey: ["assignments", selectedCompanyId, status], queryFn: () => assignmentsApi.list(selectedCompanyId!, { status, limit: 50 }), enabled: !!selectedCompanyId });
-  const agents = useQuery({ queryKey: ["agents", selectedCompanyId], queryFn: () => agentsApi.list(selectedCompanyId!), enabled: !!selectedCompanyId });
-  const costs = useQuery({ queryKey: ["assignment-costs-by-goal", selectedCompanyId], queryFn: () => costsApi.byGoal(selectedCompanyId!), enabled: !!selectedCompanyId });
-  if (!selectedCompanyId) return <EmptyState icon={Target} message={t("goals.selectOrg")} />;
-  if (query.isLoading) return <PageSkeleton variant="list" />;
-  if (query.error) return <p className="text-sm text-destructive">{query.error.message}</p>;
-  const assigneeName = (agentId: string | null) => agents.error ? "—" : agents.data?.find((agent) => agent.id === agentId)?.name ?? t("assignments.unassigned", { defaultValue: "Sin responsable" });
-  const costFor = (goalId: string) => costs.error ? null : costs.data?.rows.find((row) => row.goalId === goalId)?.costCents ?? 0;
-  return <div className="flex flex-col gap-4"><div className="flex flex-wrap items-center justify-between gap-3"><Select value={status ?? "all"} onValueChange={(value) => setStatus(value === "all" ? undefined : value)}><SelectTrigger className="w-full sm:w-auto"><SelectValue placeholder={t("assignments.filterStatus", { defaultValue: "Filtrar por estado" })} /></SelectTrigger><SelectContent><SelectItem value="all">{t("assignments.allStatuses", { defaultValue: "Todos los estados" })}</SelectItem>{["planned", "in_progress", "awaiting_review", "changes_requested", "accepted", "cancelled"].map((value) => <SelectItem key={value} value={value}>{t(`assignments.status.${value}`, { defaultValue: assignmentStatusLabels[value] ?? value })}</SelectItem>)}</SelectContent></Select><NewAssignmentDialog companyId={selectedCompanyId} /></div>{agents.error && <p role="alert" className="text-sm text-destructive">{agents.error.message}</p>}{costs.error && <p role="alert" className="text-sm text-destructive">{costs.error.message}</p>}{!query.data?.length ? <EmptyState icon={Target} message={status ? t("assignments.noStatusResults", { defaultValue: "No hay encargos con este estado." }) : t("assignments.empty", { defaultValue: "Aún no hay encargos." })} /> : query.data.map((assignment) => <Card key={assignment.id}><CardHeader><CardTitle className="flex items-center justify-between gap-4"><Link to={"/assignments/" + assignment.id}>{assignment.title}</Link><Badge variant="secondary">{t(`assignments.status.${assignment.assignmentStatus}`, { defaultValue: assignmentStatusLabels[assignment.assignmentStatus] ?? assignment.assignmentStatus })}</Badge></CardTitle></CardHeader><CardContent className="flex flex-col gap-2"><p className="text-sm text-muted-foreground">{assignment.acceptanceCriteria}</p><p className="text-sm">{t("assignments.assignee", { defaultValue: "Responsable" })}: {assigneeName(assignment.assigneeAgentId)}</p><p className="text-sm">{t("assignments.spent", { defaultValue: "Coste" })}: {costFor(assignment.id) === null ? "—" : formatCents(costFor(assignment.id)!)} / {assignment.budgetCents == null ? "—" : formatCents(assignment.budgetCents)}</p></CardContent></Card>)}</div>;
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    navigate(assignmentTaskCollectionPath(location.search, location.hash), { replace: true, state: location.state });
+  }, [location.hash, location.search, location.state, navigate]);
+  return null;
 }
 
+/** Resolve a legacy assignment URL through its existing root task. */
 export function AssignmentDetail() {
-  const { id = "" } = useParams(); const { t } = useTranslation(); const { setBreadcrumbs } = useBreadcrumbs();
-  const query = useQuery({ queryKey: ["assignment", id], queryFn: () => assignmentsApi.get(id), enabled: !!id });
-  const contextUsage = useQuery({ queryKey: ["assignment-context-usage", id], queryFn: () => assignmentsApi.contextUsage(id), enabled: !!id });
-  const mediaJobs = useQuery({ queryKey: ["media-jobs", query.data?.companyId, id], queryFn: () => mediaStudioApi.listJobs(query.data!.companyId, id), enabled: !!query.data?.companyId });
-  const subtasks = useQuery({ queryKey: ["assignment-subtasks", query.data?.companyId, query.data?.rootIssueId], queryFn: () => issuesApi.list(query.data!.companyId, { parentId: query.data!.rootIssueId! }), enabled: !!query.data?.rootIssueId });
-  useEffect(() => { setBreadcrumbs([{ label: t("nav.assignments", { defaultValue: "Encargos" }), href: "/assignments" }, { label: query.data?.title ?? "…" }]); }, [setBreadcrumbs, query.data?.title, t]);
-  if (query.isLoading) return <PageSkeleton variant="detail" />;
-  if (query.error || !query.data) return <p className="text-sm text-destructive">{query.error?.message ?? "Encargo no encontrado"}</p>;
-  const assignment = query.data;
-  return <div className="flex flex-col gap-4"><Card><CardHeader><CardTitle className="flex items-center justify-between gap-4">{assignment.title}<Badge variant="secondary">{t(`assignments.status.${assignment.assignmentStatus}`, { defaultValue: assignmentStatusLabels[assignment.assignmentStatus] ?? assignment.assignmentStatus })}</Badge></CardTitle></CardHeader><CardContent className="flex flex-col gap-4"><section><h2 className="font-medium">{t("assignments.acceptance", { defaultValue: "Criterio de aceptación" })}</h2><p className="text-sm text-muted-foreground">{assignment.acceptanceCriteria}</p></section><section><h2 className="font-medium">{t("assignments.deliverable", { defaultValue: "Entregable esperado" })}</h2><p className="text-sm text-muted-foreground">{assignment.expectedDeliverable || "—"}</p></section>{assignment.rootIssue && <section className="flex flex-col gap-2"><h2 className="font-medium">{t("assignments.rootTask", { defaultValue: "Tarea raíz y subtareas" })}</h2><Button className="self-start" variant="outline" asChild><Link to={`/issues/${assignment.rootIssue.id}`}>{assignment.rootIssue.title}</Link></Button>{subtasks.data?.map((task) => <Button className="self-start" key={task.id} variant="ghost" asChild><Link to={`/issues/${task.id}`}>{task.title} · {task.status}</Link></Button>)}</section>}</CardContent></Card><AssignmentCosts goalId={assignment.id} /><AssignmentMediaJobs companyId={assignment.companyId} goalId={assignment.id} /><Card><CardHeader><CardTitle>{t("assignments.contextUsed", { defaultValue: "Contexto utilizado" })}</CardTitle></CardHeader><CardContent>{contextUsage.isLoading ? <p className="text-sm text-muted-foreground">{t("common.loading", { defaultValue: "Cargando…" })}</p> : contextUsage.error ? <p className="text-sm text-destructive">{contextUsage.error.message}</p> : !contextUsage.data?.length ? <p className="text-sm text-muted-foreground">{t("assignments.noContext", { defaultValue: "No se ha registrado contexto utilizado." })}</p> : <ul className="flex flex-col gap-2">{contextUsage.data.map((file) => <li className="flex items-center justify-between gap-3" key={file.fileId}><a href={`/api/company-files/${file.fileId}/content`}>{file.name}</a><span className="text-sm text-muted-foreground">{file.contextRole ?? t("context.other", { defaultValue: "Otro" })} · {file.issueCount} {t("assignments.tasksUsed", { defaultValue: "tareas" })}</span></li>)}</ul>}</CardContent></Card><Card><CardHeader><CardTitle>{t("deliverables.title", { defaultValue: "Entregables" })}</CardTitle></CardHeader><CardContent><DeliverableReviewPanel goalId={assignment.id} /></CardContent></Card></div>;
-}
-
-function AssignmentMediaJobs({ companyId, goalId }: { companyId: string; goalId: string }) {
+  const { id = "" } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
-  const jobs = useQuery({ queryKey: ["media-jobs", companyId, goalId], queryFn: () => mediaStudioApi.listJobs(companyId, goalId) });
-  return <Card><CardHeader><CardTitle>{t("assignments.mediaJobs", { defaultValue: "Trabajos de vídeo" })}</CardTitle></CardHeader><CardContent>{jobs.isLoading ? <p className="text-sm text-muted-foreground">{t("common.loading", { defaultValue: "Cargando" })}</p> : jobs.error ? <p role="alert" className="text-sm text-destructive">{jobs.error.message}</p> : !jobs.data?.jobs.length ? <p className="text-sm text-muted-foreground">{t("assignments.noMediaJobs", { defaultValue: "No hay trabajos de vídeo asociados." })}</p> : <ul className="flex flex-col gap-2">{jobs.data.jobs.map((job) => <li className="flex items-center justify-between gap-3" key={job.id}><span>{t(`assignments.mediaKind.${job.kind}`, { defaultValue: job.kind })}</span><Badge variant="secondary">{t(`assignments.mediaStatus.${job.status}`, { defaultValue: job.status })}</Badge>{job.outputAssetId && <a href={`/api/assets/${job.outputAssetId}/content`}>{t("assignments.openMediaOutput", { defaultValue: "Abrir resultado" })}</a>}</li>)}</ul>}</CardContent></Card>;
-}
-function NewAssignmentDialog({ companyId }: { companyId: string }) {
-  const { t } = useTranslation(); const qc = useQueryClient(); const [open, setOpen] = useState(false); const [assigneeAgentId, setAssigneeAgentId] = useState(""); const [projectId, setProjectId] = useState("");
-  const agents = useQuery({ queryKey: ["agents", companyId], queryFn: () => agentsApi.list(companyId), enabled: open });
-  const projects = useQuery({ queryKey: ["projects", companyId], queryFn: () => projectsApi.list(companyId), enabled: open });
-  const create = useMutation({ mutationFn: (data: Parameters<typeof assignmentsApi.create>[1]) => assignmentsApi.create(companyId, data), onSuccess: async () => { await qc.invalidateQueries({ queryKey: ["assignments", companyId] }); setOpen(false); } });
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button size="sm"><Plus data-icon="inline-start" />{t("assignments.new", { defaultValue: "Nuevo encargo" })}</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>{t("assignments.new", { defaultValue: "Nuevo encargo" })}</DialogTitle><DialogDescription>{t("assignments.formDescription", { defaultValue: "Define el resultado, el criterio de aceptación y quién se encargará." })}</DialogDescription></DialogHeader><form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); const form = new FormData(event.currentTarget); const title = String(form.get("title") ?? "").trim(); const criteria = String(form.get("criteria") ?? "").trim(); if (!title || !criteria || !assigneeAgentId) return; create.mutate({ title, acceptanceCriteria: criteria, description: String(form.get("description") ?? "") || null, expectedDeliverable: String(form.get("deliverable") ?? "") || null, budgetCents: Math.round(Number(form.get("budget")) * 100), assigneeAgentId, projectId: projectId || null, idempotencyKey: createUuid() }); }}><div className="flex flex-col gap-2"><Label htmlFor="assignment-title">{t("common.title", { defaultValue: "Título" })}</Label><Input id="assignment-title" name="title" required maxLength={500} /></div><div className="flex flex-col gap-2"><Label htmlFor="assignment-description">{t("common.description", { defaultValue: "Descripción" })}</Label><Textarea id="assignment-description" name="description" /></div><div className="flex flex-col gap-2"><Label htmlFor="assignment-criteria">{t("assignments.acceptance", { defaultValue: "Criterio de aceptación" })}</Label><Textarea id="assignment-criteria" name="criteria" required /></div><div className="flex flex-col gap-2"><Label htmlFor="assignment-deliverable">{t("assignments.deliverable", { defaultValue: "Entregable esperado" })}</Label><Input id="assignment-deliverable" name="deliverable" /></div><div className="flex flex-col gap-2"><Label htmlFor="assignment-budget">{t("assignments.budgetUsd", { defaultValue: "Presupuesto (USD)" })}</Label><Input id="assignment-budget" name="budget" type="number" min="0" step="0.01" defaultValue="0" required /></div><div className="flex flex-col gap-2"><Label>{t("assignments.project", { defaultValue: "Proyecto (opcional)" })}</Label><Select value={projectId || "none"} onValueChange={(value) => setProjectId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder={t("assignments.chooseProject", { defaultValue: "Selecciona un proyecto" })} /></SelectTrigger><SelectContent><SelectItem value="none">{t("assignments.noProject", { defaultValue: "Sin proyecto" })}</SelectItem>{(projects.data ?? []).map((project) => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}</SelectContent></Select></div><div className="flex flex-col gap-2"><Label>{t("assignments.assignee", { defaultValue: "Responsable" })}</Label><Select value={assigneeAgentId} onValueChange={setAssigneeAgentId}><SelectTrigger><SelectValue placeholder={t("assignments.chooseAssignee", { defaultValue: "Elige un agente" })} /></SelectTrigger><SelectContent>{(agents.data ?? []).map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}</SelectContent></Select></div>{(agents.error || projects.error || create.error) && <p className="text-sm text-destructive">{(agents.error ?? projects.error ?? create.error)?.message}</p>}<DialogFooter className="flex-row justify-between sm:justify-between"><Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("common.cancel", { defaultValue: "Cancelar" })}</Button><Button type="submit" disabled={create.isPending || !assigneeAgentId}>{t("assignments.create", { defaultValue: "Crear encargo" })}</Button></DialogFooter></form></DialogContent></Dialog>;
+  const query = useQuery({ queryKey: ["assignment", id], queryFn: () => assignmentsApi.get(id), enabled: !!id });
+
+  useEffect(() => {
+    const task = query.data?.rootIssue;
+    if (task) navigate(assignmentTaskPath(task.identifier ?? task.id, location.search, location.hash), { replace: true, state: location.state });
+  }, [location.hash, location.search, location.state, navigate, query.data?.rootIssue]);
+
+  if (query.isLoading) return <PageSkeleton variant="detail" />;
+  if (query.error) return <p role="alert" className="text-sm text-destructive">{query.error.message}</p>;
+  if (query.data?.rootIssue) return null;
+  return (
+    <Card>
+      <CardHeader><CardTitle>{t("uxWork.taskUnavailable", { defaultValue: "La tarea asociada no está disponible" })}</CardTitle></CardHeader>
+      <CardContent className="flex flex-col items-start gap-3">
+        <p className="text-sm text-muted-foreground">{t("uxWork.taskUnavailableHelp", { defaultValue: "El registro de resultado se conserva para recuperación; no se creó otra tarea al abrir este enlace." })}</p>
+        <Button asChild><Link to={assignmentTaskCollectionPath(location.search, location.hash)} state={location.state}>{t("uxWork.openTasks", { defaultValue: "Abrir tareas" })}</Link></Button>
+      </CardContent>
+    </Card>
+  );
 }

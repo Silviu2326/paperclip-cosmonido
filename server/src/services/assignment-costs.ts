@@ -13,6 +13,7 @@ import { goals, type Db } from "@paperclipai/db";
 import { notFound } from "../errors.js";
 import { withAccountingReadSnapshot } from "./accounting-transaction.js";
 import { resolveCostDateRange, type CostDateRange } from "./cost-date-range.js";
+import { issueReadSqlCondition, type AuthorizationActor } from "./authorization.js";
 
 const MAX_TREE_DEPTH = 64;
 
@@ -158,10 +159,18 @@ export function assignmentCostService(db: Db) {
     },
 
     /** Company-scoped report per goal. Events without any goal are `unattributed`. */
-    byGoal: (companyId: string, range?: CostDateRange): Promise<GoalCostReport> =>
+    byGoal: (companyId: string, range: CostDateRange | undefined, actor: AuthorizationActor): Promise<GoalCostReport> =>
       withAccountingReadSnapshot(db, companyId, async (tx) => {
         const bounds = resolveCostDateRange(range);
         const scope = eventScope(companyId, bounds);
+        const issueReadCondition = await issueReadSqlCondition(tx, actor);
+        const visibleGoals = rowsOf(await tx.execute(sql`
+          SELECT g.id FROM goals g
+          LEFT JOIN issues ON issues.id = g.root_issue_id AND issues.company_id = g.company_id
+          WHERE g.company_id = ${companyId} AND g.kind = 'assignment'
+            AND (g.root_issue_id IS NULL OR ${issueReadCondition})`));
+        const visibleGoalIds = new Set(visibleGoals.map(row => String(row.id)));
+        const [allTotals] = rowsOf(await tx.execute(sql`WITH RECURSIVE ${scope} SELECT ${TOTAL_COLUMNS} FROM ev`));
         const grouped = rowsOf(await tx.execute(sql`
           WITH RECURSIVE ${scope}
           SELECT ev.eff_goal_id AS goal_id, g.title, g.kind, g.status, g.budget_cents, ${TOTAL_COLUMNS}
@@ -177,6 +186,12 @@ export function assignmentCostService(db: Db) {
           const goalId = str(row.goal_id);
           const totals = totalsFrom(row);
           if (!goalId || !str(row.title)) { unattributed = addTotals(unattributed, totals); continue; }
+          if (String(row.kind) === "assignment" && !visibleGoalIds.has(goalId)) {
+            // Keep company-level financial totals while suppressing all private
+            // task attribution (including identifiers and titles).
+            unattributed = addTotals(unattributed, totals);
+            continue;
+          }
           rows.set(goalId, {
             goalId, title: String(row.title), kind: String(row.kind), status: String(row.status),
             budgetCents: row.budget_cents == null ? null : num(row.budget_cents), ...totals,
@@ -184,6 +199,7 @@ export function assignmentCostService(db: Db) {
         }
         for (const row of assignments) {
           const goalId = String(row.id);
+          if (!visibleGoalIds.has(goalId)) continue;
           if (rows.has(goalId)) continue;
           rows.set(goalId, {
             goalId, title: String(row.title), kind: String(row.kind), status: String(row.status),
@@ -191,15 +207,19 @@ export function assignmentCostService(db: Db) {
           });
         }
         const sorted = [...rows.values()].sort((a, b) => b.costCents - a.costCents || a.title.localeCompare(b.title));
-        const total = sorted.reduce<AssignmentCostTotals>((acc, row) => addTotals(acc, row), unattributed);
+        const total = totalsFrom(allTotals);
         return { companyId, rows: sorted, unattributed, total };
       }),
 
     /** All-time spend of one goal, including its descendant tasks. */
-    goalSummary: (companyId: string, goalId: string): Promise<GoalCostSummary> =>
+    goalSummary: (companyId: string, goalId: string, actor: AuthorizationActor): Promise<GoalCostSummary> =>
       withAccountingReadSnapshot(db, companyId, async (tx) => {
+        const issueReadCondition = await issueReadSqlCondition(tx, actor);
         const goal = rowsOf(await tx.execute(sql`
-          SELECT id, title, kind, budget_cents FROM goals WHERE id = ${goalId} AND company_id = ${companyId}`))[0];
+          SELECT g.id, g.title, g.kind, g.budget_cents FROM goals g
+          LEFT JOIN issues ON issues.id = g.root_issue_id AND issues.company_id = g.company_id
+          WHERE g.id = ${goalId} AND g.company_id = ${companyId}
+            AND (g.root_issue_id IS NULL OR ${issueReadCondition})`))[0];
         if (!goal) throw notFound("Goal not found");
         const scope = eventScope(companyId);
         const only = sql`WHERE ev.eff_goal_id = ${goalId}`;

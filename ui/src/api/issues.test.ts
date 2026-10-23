@@ -66,6 +66,20 @@ describe("issuesApi.list", () => {
     );
   });
 
+  it("passes the review filter through to the paginated task endpoint", async () => {
+    await issuesApi.list("company-1", { review: "pending", limit: 25, offset: 50 });
+    expect(mockApi.get).toHaveBeenCalledWith(
+      "/companies/company-1/issues?review=pending&limit=25&offset=50",
+    );
+  });
+
+  it("keeps project context together with the review filter", async () => {
+    await issuesApi.list("company-1", { projectId: "project-1", review: "pending", limit: 25 });
+    expect(mockApi.get).toHaveBeenCalledWith(
+      "/companies/company-1/issues?review=pending&projectId=project-1&limit=25",
+    );
+  });
+
   it("sends explicit attachment receipt IDs with the atomic comment request", async () => {
     const ids = [
       "9af8228f-0be7-45ae-a104-6fbe0af6f1d3",

@@ -1,12 +1,11 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import { AuthPage } from "./pages/Auth";
+import { AGENT_FILTER_TABS } from "./lib/agent-filter-tabs";
 import type { ToolConnectionCredentialSource } from "@paperclipai/shared";
 import { Navigate, Outlet, Route, Routes, useActiveCompanyPrefix, useLocation, useParams } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n";
-import { Layout } from "./components/Layout";
-import { Layout as ProductionLayout } from "./components/Layout.production";
 import { ConferenceRoomChatGate } from "./components/ConferenceRoomChatGate";
-import { TaskChatLab } from "./pages/TaskChatLab";
 import { PipelinesExperimentalGate } from "./components/PipelinesExperimentalGate";
 import { CasesExperimentalGate } from "./components/CasesExperimentalGate";
 import { StatusCardsExperimentalGate } from "./components/StatusCardsExperimentalGate";
@@ -18,112 +17,17 @@ import {
   UnprefixedExecutionWorkspaceRedirect,
 } from "./components/UnprefixedExecutionWorkspaceRedirect";
 import { useHiddenSettings } from "./hooks/useHiddenSettings";
-import { Cases } from "./pages/Cases";
-import { CaseDetail } from "./pages/CaseDetail";
 import { OnboardingWizardVariant } from "./components/OnboardingWizardVariant";
 import { CloudAccessGate } from "./components/CloudAccessGate";
 import { RobotLoading } from "./components/RobotLoading";
-import { Dashboard } from "./pages/Dashboard";
-import { DashboardLive } from "./pages/DashboardLive";
-import { Timeline } from "./pages/Timeline";
-import { Companies } from "./pages/Companies";
-import { AGENT_FILTER_TABS, Agents } from "./pages/Agents";
-import { AgentDetail } from "./pages/AgentDetail";
-import { Projects } from "./pages/Projects";
-import { ProjectDetail } from "./pages/ProjectDetail";
-import { ProjectWorkspaceDetail } from "./pages/ProjectWorkspaceDetail";
-import { Workspaces } from "./pages/Workspaces";
-import { Issues } from "./pages/Issues";
-import { Search } from "./pages/Search";
-import { IssueDetail } from "./pages/IssueDetail";
-import { AgentChats } from "./pages/AgentChats";
-import { AgentChat } from "./pages/AgentChat";
-import { IssueChatLongThreadPerf } from "./pages/IssueChatLongThreadPerf";
-import { Routines } from "./pages/Routines";
-import { Learnings, PipelineItemDetail, PipelineItemLegacyRedirect, Pipelines, ReviewQueue } from "./pages/Pipelines";
-import { PipelineSettings } from "./pages/PipelineSettings";
-import { StatusCards } from "./pages/StatusCards";
-import { RoutineDetail } from "./pages/RoutineDetail";
-import { UserProfile } from "./pages/UserProfile";
-import { ExecutionWorkspaceDetail } from "./pages/ExecutionWorkspaceDetail";
-import { Context } from "./pages/Context";
-import { Goals } from "./pages/Goals";
-import { Assignments, AssignmentDetail } from "./pages/Assignments";
-import { Playbooks, PlaybookDetail } from "./pages/Playbooks";
-import { Autonomy } from "./pages/Autonomy";
-import { Proposals, ProposalDetail } from "./pages/Proposals";
-import { ServiceAgreements, ServiceAgreementDetail } from "./pages/ServiceAgreements";
-import { ArtifactsExplorer } from "./pages/artifacts/ArtifactsExplorer";
-import { Office } from "./pages/Office";
-import { GoalDetail } from "./pages/GoalDetail";
-import { Customers } from "./pages/crm/Customers";
-import { CustomerDetail } from "./pages/crm/CustomerDetail";
-import { Contacts } from "./pages/crm/Contacts";
-import { Opportunities } from "./pages/crm/Opportunities";
-import { Leads } from "./pages/crm/Leads";
-import { ChannelsSettings } from "./pages/ChannelsSettings";
-import { WebchatSettings } from "./pages/WebchatSettings";
-import { LeadDetail } from "./pages/crm/LeadDetail";
-import { ConversationInbox } from "./pages/ConversationInbox";
-import { ConversationDetail } from "./pages/ConversationDetail";
-import { Schedule } from "./pages/Schedule";
-import { Approvals } from "./pages/Approvals";
-import { ApprovalDetail } from "./pages/ApprovalDetail";
-import { CompanyActivity } from "./pages/audit/CompanyActivity";
-import { AuditHub } from "./pages/audit/AuditHub";
-import { Costs } from "./pages/Costs";
-import { Inbox } from "./pages/Inbox";
+import { useLanguagePreferenceSync } from "./components/LanguagePreferenceControl";
+import { useAccountIdentity } from "./api/companies-query";
+import { ProductNotificationBridge } from "./features/productization/notifications/ProductNotificationBridge";
 import { useCombinedInboxTasksEnabled } from "./hooks/useCombinedInboxTasksEnabled";
-import { WhatNeedsMe } from "./pages/WhatNeedsMe";
-import { DecisionQueuePage } from "./pages/DecisionQueuePage";
-import { BoardChat } from "./pages/BoardChat";
-import { CompanySettings } from "./pages/CompanySettings";
-import { CompanyConnections } from "./pages/CompanyConnections";
-import { CompanyEnvironments } from "./pages/CompanyEnvironments";
-import { BootstrapSetupUxLab } from "./pages/BootstrapSetupUxLab";
-import { ResponsibleUserDenialUxLab } from "./pages/ResponsibleUserDenialUxLab";
-import { CrossIssueCollaborationUxLab } from "./pages/CrossIssueCollaborationUxLab";
-import { CompanySettingsPluginPage } from "./pages/CompanySettingsPluginPage";
-import { CompanyAccess, CompanyAccessLegacyRoute } from "./pages/CompanyAccess";
-import { AdvancedToolsRoute } from "./pages/tools/AdvancedToolsRoute";
-import { ProfileWizardRoute } from "./pages/tools/profiles/ProfileWizardRoute";
-import { ProfileDetailRoute } from "./pages/tools/profiles/ProfileDetailRoute";
-import { Browse } from "./pages/apps/Browse";
-import { AppsConnect } from "./pages/apps/AppsConnect";
-import { ChatEndpointSetup } from "./pages/apps/chat/ChatEndpointSetup";
-import { ChatEndpointDetail } from "./pages/apps/chat/ChatEndpointDetail";
-import { ChatIdentityConfirm } from "./pages/apps/chat/ChatIdentityConfirm";
+import { parseOutcomePath, parseOutcomePeriod } from "./lib/outcome-metrics-params";
 import { ChatConnectorsExperimentalGate } from "./components/ChatConnectorsExperimentalGate";
 import { useChatConnectorsEnabled } from "./hooks/useChatConnectorsEnabled";
 import { canEnterAppsConnect } from "./pages/apps/app-connect-policy";
-import { AppsReview } from "./pages/apps/AppsReview";
-import { AppDetail } from "./pages/apps/AppDetail";
-import { AppNotConnected } from "./pages/apps/AppNotConnected";
-import { PaperclipCloudOAuthHandoffPage } from "./pages/apps/PaperclipCloudOAuthHandoff";
-import { GatewaysList } from "./pages/apps/gateways/GatewaysList";
-import { GatewayDetail } from "./pages/apps/gateways/GatewayDetail";
-import { CompanySkills } from "./pages/CompanySkills";
-import { SkillSources } from "./pages/SkillSources";
-import { SkillStudio } from "./pages/SkillStudio";
-import { Secrets } from "./pages/Secrets";
-import { CompanyImport } from "./pages/CompanyImport";
-import { DesignGuide } from "./pages/DesignGuide";
-import { InstanceExperimentalSettings } from "./pages/InstanceExperimentalSettings";
-import { InstanceAccess } from "./pages/InstanceAccess";
-import { ProfileSettings } from "./pages/ProfileSettings";
-import { PluginManager } from "./pages/PluginManager";
-import { PluginSettings } from "./pages/PluginSettings";
-import { AdapterManager } from "./pages/AdapterManager";
-import { PluginPage } from "./pages/PluginPage";
-import { NewAgent } from "./pages/NewAgent";
-import { AuthPage } from "./pages/Auth";
-import { BoardClaimPage } from "./pages/BoardClaim";
-import { AssistantConnection } from "./pages/apps/AssistantConnection";
-import { McpConnectPage, McpDevicePage, AssistantConnectionsPage } from "./pages/McpConnect";
-import { CliAuthPage } from "./pages/CliAuth";
-import { InviteLandingPage } from "./pages/InviteLanding";
-import { JoinRequestQueue } from "./pages/JoinRequestQueue";
-import { NotFoundPage } from "./pages/NotFound";
 import { useCompany } from "./context/CompanyContext";
 import { useDialogActions, useDialogState } from "./context/DialogContext";
 import { loadLastInboxTab } from "./lib/inbox";
@@ -138,6 +42,144 @@ import { useCloudInstance } from "./hooks/useCloudInstance";
 import { useStreamlinedUiEnabled } from "./hooks/useStreamlinedUiEnabled";
 import { cloudStackCreateUrl } from "./lib/cloudLinks";
 import { navigateTopLevel } from "@/lib/browserNavigation";
+
+const Layout = lazy(() => import("./components/Layout").then((module) => ({ default: module.Layout })));
+const ProductionLayout = lazy(() => import("./components/Layout.production").then((module) => ({ default: module.Layout })));
+const FilesNavigation = lazy(() => import("./pages/artifacts/FilesNavigation").then(module => ({ default: module.FilesNavigation })));
+const CustomersNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.CustomersNavigation })));
+const SalesNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.SalesNavigation })));
+const ConversationsNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.ConversationsNavigation })));
+const Agents = lazy(() => import("./pages/Agents").then((module) => ({ default: module.Agents })));
+
+// Load page implementations only when their route is rendered.
+const TaskChatLab = lazy(() => import("./pages/TaskChatLab").then((module) => ({ default: module.TaskChatLab })));
+const Cases = lazy(() => import("./pages/Cases").then((module) => ({ default: module.Cases })));
+const CaseDetail = lazy(() => import("./pages/CaseDetail").then((module) => ({ default: module.CaseDetail })));
+const Dashboard = lazy(() => import("./pages/Dashboard").then((module) => ({ default: module.Dashboard })));
+const Pricing = lazy(() => import("./pages/Pricing").then((module) => ({ default: module.default })));
+const CrmSync = lazy(() => import("./pages/CrmSync").then((module) => ({ default: module.CrmSync })));
+const DashboardLive = lazy(() => import("./pages/DashboardLive").then((module) => ({ default: module.DashboardLive })));
+const Timeline = lazy(() => import("./pages/Timeline").then((module) => ({ default: module.Timeline })));
+const Companies = lazy(() => import("./pages/Companies").then((module) => ({ default: module.Companies })));
+const AgentDetail = lazy(() => import("./pages/AgentDetail").then((module) => ({ default: module.AgentDetail })));
+const Projects = lazy(() => import("./pages/Projects").then((module) => ({ default: module.Projects })));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail").then((module) => ({ default: module.ProjectDetail })));
+const ProjectWorkspaceDetail = lazy(() => import("./pages/ProjectWorkspaceDetail").then((module) => ({ default: module.ProjectWorkspaceDetail })));
+const Workspaces = lazy(() => import("./pages/Workspaces").then((module) => ({ default: module.Workspaces })));
+const Issues = lazy(() => import("./pages/Issues").then((module) => ({ default: module.Issues })));
+const Search = lazy(() => import("./pages/Search").then((module) => ({ default: module.Search })));
+const IssueDetail = lazy(() => import("./pages/IssueDetail").then((module) => ({ default: module.IssueDetail })));
+const AgentChats = lazy(() => import("./pages/AgentChats").then((module) => ({ default: module.AgentChats })));
+const AgentChat = lazy(() => import("./pages/AgentChat").then((module) => ({ default: module.AgentChat })));
+const IssueChatLongThreadPerf = lazy(() => import("./pages/IssueChatLongThreadPerf").then((module) => ({ default: module.IssueChatLongThreadPerf })));
+const Routines = lazy(() => import("./pages/Routines").then((module) => ({ default: module.Routines })));
+const Learnings = lazy(() => import("./pages/Pipelines").then((module) => ({ default: module.Learnings })));
+const PipelineItemDetail = lazy(() => import("./pages/Pipelines").then((module) => ({ default: module.PipelineItemDetail })));
+const PipelineItemLegacyRedirect = lazy(() => import("./pages/Pipelines").then((module) => ({ default: module.PipelineItemLegacyRedirect })));
+const Pipelines = lazy(() => import("./pages/Pipelines").then((module) => ({ default: module.Pipelines })));
+const ReviewQueue = lazy(() => import("./pages/Pipelines").then((module) => ({ default: module.ReviewQueue })));
+const PipelineSettings = lazy(() => import("./pages/PipelineSettings").then((module) => ({ default: module.PipelineSettings })));
+const StatusCards = lazy(() => import("./pages/StatusCards").then((module) => ({ default: module.StatusCards })));
+const RoutineDetail = lazy(() => import("./pages/RoutineDetail").then((module) => ({ default: module.RoutineDetail })));
+const UserProfile = lazy(() => import("./pages/UserProfile").then((module) => ({ default: module.UserProfile })));
+const ExecutionWorkspaceDetail = lazy(() => import("./pages/ExecutionWorkspaceDetail").then((module) => ({ default: module.ExecutionWorkspaceDetail })));
+const ContextToFilesRedirect = lazy(() => import("./pages/artifacts/ContextToFilesRedirect").then((module) => ({ default: module.ContextToFilesRedirect })));
+const Goals = lazy(() => import("./pages/Goals").then((module) => ({ default: module.Goals })));
+const Assignments = lazy(() => import("./pages/Assignments").then((module) => ({ default: module.Assignments })));
+const AssignmentDetail = lazy(() => import("./pages/Assignments").then((module) => ({ default: module.AssignmentDetail })));
+const Productization = lazy(() => import("./pages/Productization").then((module) => ({ default: module.Productization })));
+const ProductAccounts = lazy(() => import("./pages/ProductAccounts").then((module) => ({ default: module.ProductAccounts })));
+const ProductBilling = lazy(() => import("./pages/ProductBilling").then((module) => ({ default: module.default })));
+const BusinessBuilder = lazy(() => import("./pages/BusinessBuilder").then((module) => ({ default: module.BusinessBuilder })));
+const SecuritySettings = lazy(() => import("./pages/SecuritySettings").then((module) => ({ default: module.SecuritySettings })));
+const NotificationSettings = lazy(() => import("./pages/NotificationSettings").then((module) => ({ default: module.NotificationSettings })));
+const NotificationAction = lazy(() => import("./pages/NotificationAction").then((module) => ({ default: module.NotificationAction })));
+const PublicCatalog = lazy(() => import("./pages/PublicCatalog").then((module) => ({ default: module.default })));
+const AgencyWorkspace = lazy(() => import("./pages/AgencyWorkspace").then((module) => ({ default: module.AgencyWorkspace })));
+const PublicApiSettings = lazy(() => import("./pages/PublicApiSettings").then((module) => ({ default: module.PublicApiSettings })));
+const MediaQueue = lazy(() => import("./pages/MediaQueue").then((module) => ({ default: module.MediaQueue })));
+const ContactImport = lazy(() => import("./pages/ContactImport").then((module) => ({ default: module.ContactImport })));
+const MediaTemplates = lazy(() => import("./pages/MediaTemplates").then((module) => ({ default: module.MediaTemplates })));
+const PublicCustomerPortal = lazy(() => import("./pages/PublicCustomerPortal").then((module) => ({ default: module.PublicCustomerPortal })));
+const PortableCatalog = lazy(() => import("./pages/PortableCatalog").then((module) => ({ default: module.PortableCatalog })));
+const LeadForms = lazy(() => import("./pages/LeadForms").then((module) => ({ default: module.LeadForms })));
+const Playbooks = lazy(() => import("./pages/Playbooks").then((module) => ({ default: module.Playbooks })));
+const PlaybookDetail = lazy(() => import("./pages/Playbooks").then((module) => ({ default: module.PlaybookDetail })));
+const Autonomy = lazy(() => import("./pages/Autonomy").then((module) => ({ default: module.Autonomy })));
+const Proposals = lazy(() => import("./pages/Proposals").then((module) => ({ default: module.Proposals })));
+const ProposalDetail = lazy(() => import("./pages/Proposals").then((module) => ({ default: module.ProposalDetail })));
+const ServiceAgreements = lazy(() => import("./pages/ServiceAgreements").then((module) => ({ default: module.ServiceAgreements })));
+const ServiceAgreementDetail = lazy(() => import("./pages/ServiceAgreements").then((module) => ({ default: module.ServiceAgreementDetail })));
+const ArtifactsExplorer = lazy(() => import("./pages/artifacts/ArtifactsExplorer").then((module) => ({ default: module.ArtifactsExplorer })));
+const Office = lazy(() => import("./pages/Office").then((module) => ({ default: module.Office })));
+const GoalDetail = lazy(() => import("./pages/GoalDetail").then((module) => ({ default: module.GoalDetail })));
+const Customers = lazy(() => import("./pages/crm/Customers").then((module) => ({ default: module.Customers })));
+const CustomerDetail = lazy(() => import("./pages/crm/CustomerDetail").then((module) => ({ default: module.CustomerDetail })));
+const Contacts = lazy(() => import("./pages/crm/Contacts").then((module) => ({ default: module.Contacts })));
+const Opportunities = lazy(() => import("./pages/crm/Opportunities").then((module) => ({ default: module.Opportunities })));
+const Leads = lazy(() => import("./pages/crm/Leads").then((module) => ({ default: module.Leads })));
+const ChannelsSettings = lazy(() => import("./pages/ChannelsSettings").then((module) => ({ default: module.ChannelsSettings })));
+const WebchatSettings = lazy(() => import("./pages/WebchatSettings").then((module) => ({ default: module.WebchatSettings })));
+const LeadDetail = lazy(() => import("./pages/crm/LeadDetail").then((module) => ({ default: module.LeadDetail })));
+const ConversationInbox = lazy(() => import("./pages/ConversationInbox").then((module) => ({ default: module.ConversationInbox })));
+const ConversationDetail = lazy(() => import("./pages/ConversationDetail").then((module) => ({ default: module.ConversationDetail })));
+const Schedule = lazy(() => import("./pages/Schedule").then((module) => ({ default: module.Schedule })));
+const CrmPhone = lazy(() => import("./pages/CrmPhone").then((module) => ({ default: module.CrmPhone })));
+const PublicReview = lazy(() => import("./pages/PublicReview").then((module) => ({ default: module.PublicReview })));
+const ApprovalDetail = lazy(() => import("./pages/ApprovalDetail").then((module) => ({ default: module.ApprovalDetail })));
+const CompanyActivity = lazy(() => import("./pages/audit/CompanyActivity").then((module) => ({ default: module.CompanyActivity })));
+const AuditHub = lazy(() => import("./pages/audit/AuditHub").then((module) => ({ default: module.AuditHub })));
+const Costs = lazy(() => import("./pages/Costs").then((module) => ({ default: module.Costs })));
+const Inbox = lazy(() => import("./pages/Inbox").then((module) => ({ default: module.Inbox })));
+const WhatNeedsMe = lazy(() => import("./pages/WhatNeedsMe").then((module) => ({ default: module.WhatNeedsMe })));
+const DecisionQueuePage = lazy(() => import("./pages/DecisionQueuePage").then((module) => ({ default: module.DecisionQueuePage })));
+const BoardChat = lazy(() => import("./pages/BoardChat").then((module) => ({ default: module.BoardChat })));
+const CompanySettings = lazy(() => import("./pages/CompanySettings").then((module) => ({ default: module.CompanySettings })));
+const CompanyConnections = lazy(() => import("./pages/CompanyConnections").then((module) => ({ default: module.CompanyConnections })));
+const CompanyEnvironments = lazy(() => import("./pages/CompanyEnvironments").then((module) => ({ default: module.CompanyEnvironments })));
+const BootstrapSetupUxLab = lazy(() => import("./pages/BootstrapSetupUxLab").then((module) => ({ default: module.BootstrapSetupUxLab })));
+const ResponsibleUserDenialUxLab = lazy(() => import("./pages/ResponsibleUserDenialUxLab").then((module) => ({ default: module.ResponsibleUserDenialUxLab })));
+const CrossIssueCollaborationUxLab = lazy(() => import("./pages/CrossIssueCollaborationUxLab").then((module) => ({ default: module.CrossIssueCollaborationUxLab })));
+const CompanySettingsPluginPage = lazy(() => import("./pages/CompanySettingsPluginPage").then((module) => ({ default: module.CompanySettingsPluginPage })));
+const CompanyAccess = lazy(() => import("./pages/CompanyAccess").then((module) => ({ default: module.CompanyAccess })));
+const CompanyAccessLegacyRoute = lazy(() => import("./pages/CompanyAccess").then((module) => ({ default: module.CompanyAccessLegacyRoute })));
+const AdvancedToolsRoute = lazy(() => import("./pages/tools/AdvancedToolsRoute").then((module) => ({ default: module.AdvancedToolsRoute })));
+const ProfileWizardRoute = lazy(() => import("./pages/tools/profiles/ProfileWizardRoute").then((module) => ({ default: module.ProfileWizardRoute })));
+const ProfileDetailRoute = lazy(() => import("./pages/tools/profiles/ProfileDetailRoute").then((module) => ({ default: module.ProfileDetailRoute })));
+const Browse = lazy(() => import("./pages/apps/Browse").then((module) => ({ default: module.Browse })));
+const AppsConnect = lazy(() => import("./pages/apps/AppsConnect").then((module) => ({ default: module.AppsConnect })));
+const ChatEndpointSetup = lazy(() => import("./pages/apps/chat/ChatEndpointSetup").then((module) => ({ default: module.ChatEndpointSetup })));
+const ChatEndpointDetail = lazy(() => import("./pages/apps/chat/ChatEndpointDetail").then((module) => ({ default: module.ChatEndpointDetail })));
+const ChatIdentityConfirm = lazy(() => import("./pages/apps/chat/ChatIdentityConfirm").then((module) => ({ default: module.ChatIdentityConfirm })));
+const AppsReview = lazy(() => import("./pages/apps/AppsReview").then((module) => ({ default: module.AppsReview })));
+const AppDetail = lazy(() => import("./pages/apps/AppDetail").then((module) => ({ default: module.AppDetail })));
+const AppNotConnected = lazy(() => import("./pages/apps/AppNotConnected").then((module) => ({ default: module.AppNotConnected })));
+const PaperclipCloudOAuthHandoffPage = lazy(() => import("./pages/apps/PaperclipCloudOAuthHandoff").then((module) => ({ default: module.PaperclipCloudOAuthHandoffPage })));
+const GatewaysList = lazy(() => import("./pages/apps/gateways/GatewaysList").then((module) => ({ default: module.GatewaysList })));
+const GatewayDetail = lazy(() => import("./pages/apps/gateways/GatewayDetail").then((module) => ({ default: module.GatewayDetail })));
+const CompanySkills = lazy(() => import("./pages/CompanySkills").then((module) => ({ default: module.CompanySkills })));
+const SkillSources = lazy(() => import("./pages/SkillSources").then((module) => ({ default: module.SkillSources })));
+const SkillStudio = lazy(() => import("./pages/SkillStudio").then((module) => ({ default: module.SkillStudio })));
+const Secrets = lazy(() => import("./pages/Secrets").then((module) => ({ default: module.Secrets })));
+const CompanyImport = lazy(() => import("./pages/CompanyImport").then((module) => ({ default: module.CompanyImport })));
+const DesignGuide = lazy(() => import("./pages/DesignGuide").then((module) => ({ default: module.DesignGuide })));
+const InstanceExperimentalSettings = lazy(() => import("./pages/InstanceExperimentalSettings").then((module) => ({ default: module.InstanceExperimentalSettings })));
+const InstanceAccess = lazy(() => import("./pages/InstanceAccess").then((module) => ({ default: module.InstanceAccess })));
+const ProfileSettings = lazy(() => import("./pages/ProfileSettings").then((module) => ({ default: module.ProfileSettings })));
+const PluginManager = lazy(() => import("./pages/PluginManager").then((module) => ({ default: module.PluginManager })));
+const PluginSettings = lazy(() => import("./pages/PluginSettings").then((module) => ({ default: module.PluginSettings })));
+const AdapterManager = lazy(() => import("./pages/AdapterManager").then((module) => ({ default: module.AdapterManager })));
+const PluginPage = lazy(() => import("./pages/PluginPage").then((module) => ({ default: module.PluginPage })));
+const NewAgent = lazy(() => import("./pages/NewAgent").then((module) => ({ default: module.NewAgent })));
+const BoardClaimPage = lazy(() => import("./pages/BoardClaim").then((module) => ({ default: module.BoardClaimPage })));
+const AssistantConnection = lazy(() => import("./pages/apps/AssistantConnection").then((module) => ({ default: module.AssistantConnection })));
+const McpConnectPage = lazy(() => import("./pages/McpConnect").then((module) => ({ default: module.McpConnectPage })));
+const McpDevicePage = lazy(() => import("./pages/McpConnect").then((module) => ({ default: module.McpDevicePage })));
+const AssistantConnectionsPage = lazy(() => import("./pages/McpConnect").then((module) => ({ default: module.AssistantConnectionsPage })));
+const CliAuthPage = lazy(() => import("./pages/CliAuth").then((module) => ({ default: module.CliAuthPage })));
+const InviteLandingPage = lazy(() => import("./pages/InviteLanding").then((module) => ({ default: module.InviteLandingPage })));
+const JoinRequestQueue = lazy(() => import("./pages/JoinRequestQueue").then((module) => ({ default: module.JoinRequestQueue })));
+const NotFoundPage = lazy(() => import("./pages/NotFound").then((module) => ({ default: module.NotFoundPage })));
 
 const CompanyExport = lazy(() =>
   import("./pages/CompanyExport").then((module) => ({ default: module.CompanyExport })),
@@ -329,7 +371,7 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
         <Route path="workspaces" element={<Workspaces />} />
       </Route>
       <Route path="issues" element={<Issues />} />
-      <Route path="tasks" element={<Navigate to="/issues" replace />} />
+      <Route path="tasks" element={<BoardRouteRedirect to="/issues" />} />
       <Route path="search" element={<Search />} />
       {mergedTasks ? (
         <>
@@ -342,11 +384,11 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
         </>
       ) : (
         <>
-          <Route path="issues/all" element={<Navigate to="/issues" replace />} />
-          <Route path="issues/active" element={<Navigate to="/issues" replace />} />
-          <Route path="issues/backlog" element={<Navigate to="/issues" replace />} />
-          <Route path="issues/done" element={<Navigate to="/issues" replace />} />
-          <Route path="issues/recent" element={<Navigate to="/issues" replace />} />
+          <Route path="issues/all" element={<BoardRouteRedirect to="/issues" />} />
+          <Route path="issues/active" element={<BoardRouteRedirect to="/issues" />} />
+          <Route path="issues/backlog" element={<BoardRouteRedirect to="/issues" />} />
+          <Route path="issues/done" element={<BoardRouteRedirect to="/issues" />} />
+          <Route path="issues/recent" element={<BoardRouteRedirect to="/issues" />} />
         </>
       )}
       <Route path="chats" element={<AgentChats />} />
@@ -420,37 +462,94 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
         </Route>
       </Route>
       <Route path="office" element={<Office />} />
-      <Route path="context" element={<Context />} />
+      <Route path="context" element={<BoardRouteRedirect to="/artifacts/context" />} />
       <Route path="goals" element={<Goals />} />
       <Route path="assignments" element={<Assignments />} />
+      <Route path="productization" element={<Productization />} />
+      <Route path="company/settings/navigation" element={<BoardRouteRedirect to="/company/settings/instance/profile" />} />
+      <Route path="company/settings/language" element={<BoardRouteRedirect to="/company/settings/instance/profile" />} />
+      <Route path="company/settings/notifications" element={<NotificationSettings view="preferences" />} />
+      <Route path="company/settings/security" element={<SecuritySettings section="access" />} />
+      <Route path="company/settings/retention" element={<SecuritySettings section="retention" />} />
+      <Route path="company/settings/account-deletion" element={<BoardRouteRedirect to="/company/settings/accounts" />} />
+      <Route path="company/settings/accounts" element={<ProductAccounts />} />
+      <Route path="company/settings/billing" element={<ProductBilling />} />
+      <Route path="company/settings/developer" element={<PublicApiSettings />} />
+      <Route path="company/settings/installations" element={<AgencyWorkspace />} />
+      <Route path="inbox/notifications" element={<NotificationSettings view="inbox" />} />
+      <Route path="notifications/:sourceType/:sourceId" element={<NotificationAction />} />
+      <Route path="business-builder" element={<BusinessBuilder />} />
+      <Route path="outcome-metrics" element={<OutcomeMetricsRedirect />} />
+      <Route path="public-catalog" element={<PublicCatalog />} />
+      <Route path="portable-catalog" element={<PortableCatalog />} />
+      <Route path="media-queue" element={<BoardRouteRedirect to="/artifacts/media/queue" />} />
+      <Route path="media-templates" element={<BoardRouteRedirect to="/artifacts/media/new" />} />
       <Route path="assignments/:id" element={<AssignmentDetail />} />
       <Route path="playbooks" element={<Playbooks />} />
       <Route path="playbooks/:id" element={<PlaybookDetail />} />
       <Route path="autonomy" element={<Autonomy />} />
-      <Route path="proposals" element={<Proposals />} />
-      <Route path="proposals/:id" element={<ProposalDetail />} />
-      <Route path="service-agreements" element={<ServiceAgreements />} />
-      <Route path="service-agreements/:id" element={<ServiceAgreementDetail />} />
       <Route path="goals/:goalId" element={<GoalDetail />} />
-      <Route path="customers" element={<Customers />} />
-      <Route path="customers/:customerId" element={<CustomerDetail />} />
-      <Route path="contacts" element={<Contacts />} />
-      <Route path="leads" element={<Leads />} />
-      <Route path="channels-settings" element={<ChannelsSettings />} />
-      <Route path="webchat-settings" element={<WebchatSettings />} />
-      <Route path="leads/:leadId" element={<LeadDetail />} />
-      <Route path="opportunities" element={<Opportunities />} />
-      <Route path="conversations" element={<ConversationInbox />} />
-      <Route path="conversations/:conversationId" element={<ConversationDetail />} />
-      <Route path="schedule" element={<Schedule />} />
+      <Route element={<CustomersNavigation />}>
+        <Route path="customers" element={<Customers />} />
+        <Route path="customers/contacts" element={<Contacts />} />
+        <Route path="customers/contacts/import" element={<ContactImport />} />
+        <Route path="customers/services" element={<ServiceAgreements />} />
+        <Route path="customers/services/:id" element={<ServiceAgreementDetail />} />
+        <Route path="customers/:customerId" element={<CustomerDetail />} />
+      </Route>
+      <Route element={<SalesNavigation />}>
+        <Route path="sales" element={<BoardRouteRedirect to="/sales/leads" />} />
+        <Route path="sales/leads" element={<Leads />} />
+        <Route path="sales/leads/:leadId" element={<LeadDetail />} />
+        <Route path="sales/opportunities" element={<Opportunities />} />
+        <Route path="sales/proposals" element={<Proposals />} />
+        <Route path="sales/proposals/:id" element={<ProposalDetail />} />
+        <Route path="sales/forms" element={<LeadForms />} />
+      </Route>
+      <Route element={<ConversationsNavigation />}>
+        <Route path="conversations" element={<ConversationInbox />} />
+        <Route path="conversations/calls" element={<CrmPhone />} />
+        <Route path="conversations/:conversationId" element={<ConversationDetail />} />
+        <Route path="schedule" element={<Schedule />} />
+      </Route>
+      <Route path="apps/channels" element={<ChannelsSettings />} />
+      <Route path="apps/webchat" element={<WebchatSettings />} />
+      <Route path="apps/crm-sync" element={<CrmSync />} />
+      {/* Existing board links keep their company, query and fragment. Public URLs are unchanged. */}
+      <Route path="product-accounts" element={<BoardRouteRedirect to="/company/settings/accounts" />} />
+      <Route path="product-billing" element={<BoardRouteRedirect to="/company/settings/billing" />} />
+      <Route path="product-security" element={<BoardRouteRedirect to="/company/settings/security" />} />
+      <Route path="notifications" element={<BoardRouteRedirect to="/inbox/notifications" />} />
+      <Route path="agency" element={<BoardRouteRedirect to="/company/settings/installations" />} />
+      <Route path="language-settings" element={<BoardRouteRedirect to="/company/settings/instance/profile" />} />
+      <Route path="public-api" element={<BoardRouteRedirect to="/company/settings/developer" />} />
+      <Route path="contact-import" element={<BoardRouteRedirect to="/customers/contacts/import" />} />
+      <Route path="lead-forms" element={<BoardRouteRedirect to="/sales/forms" />} />
+      <Route path="contacts" element={<BoardRouteRedirect to="/customers/contacts" />} />
+      <Route path="leads" element={<BoardRouteRedirect to="/sales/leads" />} />
+      <Route path="leads/:leadId" element={<BoardRouteRedirect to="/sales/leads" param="leadId" />} />
+      <Route path="opportunities" element={<BoardRouteRedirect to="/sales/opportunities" />} />
+      <Route path="proposals" element={<BoardRouteRedirect to="/sales/proposals" />} />
+      <Route path="proposals/:id" element={<BoardRouteRedirect to="/sales/proposals" param="id" />} />
+      <Route path="service-agreements" element={<BoardRouteRedirect to="/customers/services" />} />
+      <Route path="service-agreements/:id" element={<BoardRouteRedirect to="/customers/services" param="id" />} />
+      <Route path="channels-settings" element={<BoardRouteRedirect to="/apps/channels" />} />
+      <Route path="webchat-settings" element={<BoardRouteRedirect to="/apps/webchat" />} />
+      <Route path="crm-sync" element={<BoardRouteRedirect to="/apps/crm-sync" />} />
+      <Route path="crm-phone" element={<BoardRouteRedirect to="/conversations/calls" />} />
+      <Route element={<FilesNavigation />}>
       <Route path="artifacts" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in" element={<ArtifactsExplorer />} />
       <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />
       <Route path="artifacts/out" element={<ArtifactsExplorer />} />
       <Route path="artifacts/out/:node" element={<ArtifactsExplorer />} />
-      <Route path="approvals" element={<Navigate to="/approvals/pending" replace />} />
-      <Route path="approvals/pending" element={<Approvals />} />
-      <Route path="approvals/all" element={<Approvals />} />
+        <Route path="artifacts/context" element={<ContextToFilesRedirect />} />
+        <Route path="artifacts/media/new" element={<MediaTemplates />} />
+        <Route path="artifacts/media/queue" element={<MediaQueue />} />
+      </Route>
+      <Route path="approvals" element={<ApprovalsListRedirect view="actionable" />} />
+      <Route path="approvals/pending" element={<ApprovalsListRedirect view="actionable" />} />
+      <Route path="approvals/all" element={<ApprovalsListRedirect view="all" />} />
       <Route path="approvals/:approvalId" element={<ApprovalDetail />} />
       <Route path="activity" element={streamlinedUiEnabled ? <CompanyActivity /> : <ProductionSurface><ProductionCompanyActivity /></ProductionSurface>} />
       {streamlinedUiEnabled ? (
@@ -475,18 +574,8 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
           <Route path="audit" element={<Navigate to="/activity?mode=agents" replace />} />
         </>
       )}
-      {/* Conference Room Chat surfaces (PAP-136/PAP-137): routes stay
-          registered but redirect to the company home while the experimental
-          flag is off. The board-level `artifacts` mount below is the new
-          conference-room one; the master-level mount above it still serves
-          `/artifacts` in both modes. */}
       <Route element={<ConferenceRoomChatGate />}>
         <Route path="board-chat" element={<BoardChat />} />
-        <Route path="artifacts" element={<ArtifactsExplorer />} />
-        <Route path="artifacts/in" element={<ArtifactsExplorer />} />
-        <Route path="artifacts/in/:folderId" element={<ArtifactsExplorer />} />
-        <Route path="artifacts/out" element={<ArtifactsExplorer />} />
-        <Route path="artifacts/out/:node" element={<ArtifactsExplorer />} />
       </Route>
       {/* Task chat dev harness — dev builds only. */}
       {import.meta.env.DEV ? (
@@ -540,6 +629,42 @@ function AppsConnectEntryRoute({
   return canEnterAppsConnect(searchParams, { chatConnectorsEnabled, githubReviewBotsEnabled })
     ? <AppsConnect credentialSource={credentialSource} />
     : <Navigate to="/apps" replace />;
+}
+
+function BoardRouteRedirect({ to, param }: { to: string; param?: string }) {
+  const location = useLocation();
+  const params = useParams();
+  const suffix = param && params[param] ? "/" + encodeURIComponent(params[param]!) : "";
+  return <Navigate to={{ pathname: to + suffix, search: location.search, hash: location.hash }} replace state={location.state} />;
+}
+
+/**
+ * The standalone results page lives on Home. Old links keep the page's own defaults
+ * (entrepreneur, 30 days) unless they carry an explicit `path` or `days`, so the saved
+ * onboarding path never silently replaces what the link used to show.
+ */
+function OutcomeMetricsRedirect() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const next = new URLSearchParams({
+    results: "1",
+    path: parseOutcomePath(params.get("path")) ?? "entrepreneur",
+    days: String(parseOutcomePeriod(params.get("days")) ?? 30),
+  });
+  return <Navigate to={{ pathname: "/dashboard", search: `?${next.toString()}`, hash: location.hash }} replace />;
+}
+
+/**
+ * The approvals list lives in the inbox as a filter ("pending" = actionable, "all" = every status).
+ * Merged Tasks mode opens its Everything view; otherwise the inbox's All tab. Approval detail URLs are untouched.
+ */
+function ApprovalsListRedirect({ view }: { view: "actionable" | "all" }) {
+  const { enabled: streamlinedUiEnabled } = useStreamlinedUiEnabled();
+  const { enabled: combinedInboxTasksEnabled } = useCombinedInboxTasksEnabled();
+  const preset = `show=approvals&approvals=${view}`;
+  return streamlinedUiEnabled && combinedInboxTasksEnabled
+    ? <Navigate to={`/issues?${TASK_VIEW_PARAM}=everything&${preset}`} replace />
+    : <Navigate to={`/inbox/all?${preset}`} replace />;
 }
 
 function InboxRootRedirect() {
@@ -795,6 +920,7 @@ function UnprefixedBoardRedirect() {
   return (
     <Navigate
       to={`/${targetCompany.issuePrefix}${location.pathname}${location.search}${location.hash}`}
+      state={location.state}
       replace
     />
   );
@@ -847,12 +973,21 @@ function NoCompaniesStartPage() {
 export function App() {
   const { enabled: streamlinedUiEnabled, loaded: streamlinedUiLoaded } = useStreamlinedUiEnabled();
   const { enabled: combinedInboxTasksEnabled } = useCombinedInboxTasksEnabled();
+  const identity = useAccountIdentity();
+  useLanguagePreferenceSync(identity.settled ? identity.userId : undefined);
 
   return (
     <>
+      <Suspense fallback={<RobotLoading />}>
       <Routes>
         <Route path="oauth-handoff" element={<PaperclipCloudOAuthHandoffPage />} />
         <Route path="auth" element={<AuthPage />} />
+        <Route path="signup" element={<AuthPage />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="catalog" element={<PublicCatalog />} />
+        <Route path="billing" element={<ProductBilling />} />
+        <Route path="portal/:portalId" element={<PublicCustomerPortal />} />
+        <Route path="review/:companyId/:linkId" element={<PublicReview />} />
         <Route path="board-claim/:token" element={<BoardClaimPage />} />
         <Route path="mcp-connect/:id" element={<McpConnectPage />} />
         <Route path="dot-connect/:id" element={<McpConnectPage agentPairingOnly />} />
@@ -860,17 +995,20 @@ export function App() {
         <Route path="assistant-connections" element={<AssistantConnectionsPage />} />
         <Route path="cli-auth/:id" element={<CliAuthPage />} />
         <Route path="invite/:token" element={<InviteLandingPage />} />
-        <Route element={streamlinedUiLoaded ? <CloudAccessGate allowMembershipRequest /> : <RobotLoading />}>
+        <Route element={<CloudAccessGate allowMembershipRequest />}>
+          <Route element={streamlinedUiLoaded ? <Outlet /> : <RobotLoading />}>
           {/* The identity APIs enforce the chat rollout flag. Nonmembers cannot
               read experimental settings, but a private invitation may request membership. */}
           <Route path="chat-identity/confirm" element={<ChatIdentityConfirm />} />
+          </Route>
         </Route>
         <Route path="tests/perf/long-thread" element={<IssueChatLongThreadPerf />} />
         <Route path="ux-lab/bootstrap-setup" element={<BootstrapSetupUxLab />} />
         <Route path="ux-lab/responsible-user-denial" element={<ResponsibleUserDenialUxLab />} />
         <Route path="ux-lab/cross-issue-collaboration" element={<CrossIssueCollaborationUxLab />} />
 
-        <Route element={streamlinedUiLoaded ? <CloudAccessGate /> : <RobotLoading />}>
+        <Route element={<CloudAccessGate />}>
+          <Route element={streamlinedUiLoaded ? <Outlet /> : <RobotLoading />}>
           <Route index element={<CompanyRootRedirect />} />
           <Route path="onboarding" element={<OnboardingRoutePage />} />
           <Route path="instance" element={<LegacySettingsRedirect />} />
@@ -897,9 +1035,24 @@ export function App() {
           <Route path="pipelines/:pipelineId/items/:caseId" element={<UnprefixedBoardRedirect />} />
           <Route path="pipelines/:pipelineId/cases/:caseId" element={<UnprefixedBoardRedirect />} />
           <Route path="artifacts" element={<UnprefixedBoardRedirect />} />
+          <Route path="artifacts/*" element={<UnprefixedBoardRedirect />} />
           <Route path="office" element={<UnprefixedBoardRedirect />} />
           <Route path="context" element={<UnprefixedBoardRedirect />} />
           <Route path="assignments" element={<UnprefixedBoardRedirect />} />
+          <Route path="productization" element={<UnprefixedBoardRedirect />} />
+          <Route path="product-security" element={<UnprefixedBoardRedirect />} />
+          <Route path="notifications" element={<UnprefixedBoardRedirect />} />
+          <Route path="language-settings" element={<UnprefixedBoardRedirect />} />
+          <Route path="public-api" element={<UnprefixedBoardRedirect />} />
+          <Route path="media-queue" element={<UnprefixedBoardRedirect />} />
+          <Route path="contact-import" element={<UnprefixedBoardRedirect />} />
+          <Route path="product-accounts" element={<UnprefixedBoardRedirect />} />
+          <Route path="product-billing" element={<UnprefixedBoardRedirect />} />
+          <Route path="business-builder" element={<UnprefixedBoardRedirect />} />
+          <Route path="outcome-metrics" element={<UnprefixedBoardRedirect />} />
+          <Route path="media-templates" element={<UnprefixedBoardRedirect />} />
+          <Route path="portable-catalog" element={<UnprefixedBoardRedirect />} />
+          <Route path="lead-forms" element={<UnprefixedBoardRedirect />} />
           <Route path="assignments/:id" element={<UnprefixedBoardRedirect />} />
           <Route path="playbooks" element={<UnprefixedBoardRedirect />} />
           <Route path="playbooks/:id" element={<UnprefixedBoardRedirect />} />
@@ -909,6 +1062,7 @@ export function App() {
           <Route path="service-agreements" element={<UnprefixedBoardRedirect />} />
           <Route path="service-agreements/:id" element={<UnprefixedBoardRedirect />} />
           <Route path="customers" element={<UnprefixedBoardRedirect />} />
+          <Route path="customers/*" element={<UnprefixedBoardRedirect />} />
           <Route path="customers/:customerId" element={<UnprefixedBoardRedirect />} />
           <Route path="contacts" element={<UnprefixedBoardRedirect />} />
           <Route path="leads" element={<UnprefixedBoardRedirect />} />
@@ -917,6 +1071,12 @@ export function App() {
           <Route path="conversations" element={<UnprefixedBoardRedirect />} />
           <Route path="conversations/:conversationId" element={<UnprefixedBoardRedirect />} />
           <Route path="schedule" element={<UnprefixedBoardRedirect />} />
+          <Route path="crm-sync" element={<UnprefixedBoardRedirect />} />
+          <Route path="crm-phone" element={<UnprefixedBoardRedirect />} />
+          <Route path="sales/*" element={<UnprefixedBoardRedirect />} />
+          <Route path="agency" element={<UnprefixedBoardRedirect />} />
+          <Route path="public-catalog" element={<UnprefixedBoardRedirect />} />
+          <Route path="notifications/:sourceType/:sourceId" element={<UnprefixedBoardRedirect />} />
           <Route path="channels-settings" element={<UnprefixedBoardRedirect />} />
           <Route path="webchat-settings" element={<UnprefixedBoardRedirect />} />
           <Route path="audit" element={<UnprefixedBoardRedirect />} />
@@ -962,12 +1122,14 @@ export function App() {
           <Route path="execution-workspaces/:workspaceId/runtime-logs" element={<UnprefixedExecutionWorkspaceRedirect />} />
           <Route path="execution-workspaces/:workspaceId/issues" element={<UnprefixedExecutionWorkspaceRedirect />} />
           <Route path="execution-workspaces/:workspaceId/routines" element={<UnprefixedExecutionWorkspaceRedirect />} />
-          <Route path=":companyPrefix" element={streamlinedUiEnabled ? <Layout /> : <ProductionLayout />}>
+          <Route path=":companyPrefix" element={<><ProductNotificationBridge />{streamlinedUiEnabled ? <Layout /> : <ProductionLayout />}</>}>
             {boardRoutes(streamlinedUiEnabled, combinedInboxTasksEnabled)}
           </Route>
           <Route path="*" element={<NotFoundPage scope="global" />} />
+          </Route>
         </Route>
       </Routes>
+      </Suspense>
       <OnboardingWizardVariant />
     </>
   );

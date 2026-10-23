@@ -27,6 +27,7 @@
     "signingOut": "Signing out..."
   },
   "nav": {
+    "productization": "Configuração inicial",
     "newTask": "New Task",
     "search": "Search",
     "dashboard": "Dashboard",
@@ -60,7 +61,8 @@
     "business": "Business",
     "conversations": "Conversations",
     "channels": "Channels",
-    "webchat": "Web chat"
+    "webchat": "Web chat",
+    "assignments": "Tasks"
   },
   "dashboard": {
     "welcome": "Welcome to Paperclip. Set up your first organization and agent to get started.",
@@ -3005,23 +3007,23 @@
     "updating": "Updating artifacts..."
   },
   "auth": {
-    "authFailed": "Authentication failed",
-    "checkFailed": "Unable to check sign-in. Refresh and try again.",
-    "createButton": "Create Account",
-    "createDescription": "Create an account for this instance. Email confirmation is not required in v1.",
-    "createOne": "Create one",
-    "createTitle": "Create your Paperclip account",
+    "authFailed": "Falha na autenticação",
+    "checkFailed": "Não foi possível verificar o acesso. Atualize a página e tente novamente.",
+    "createButton": "Criar conta",
+    "createDescription": "Crie uma conta para esta instância. Poderá ser necessário verificar o email antes de iniciar sessão.",
+    "createOne": "Criar uma",
+    "createTitle": "Crie a sua conta do Paperclip",
     "email": "Email",
-    "fillRequired": "Please fill in all required fields.",
-    "haveAccount": "Already have an account?",
-    "name": "Name",
-    "needAccount": "Need an account?",
-    "password": "Password",
-    "signInButton": "Sign In",
-    "signInDescription": "Use your email and password to access this instance.",
-    "signInLink": "Sign in",
-    "signInTitle": "Sign in to Paperclip",
-    "working": "Working…"
+    "fillRequired": "Preencha todos os campos obrigatórios.",
+    "haveAccount": "Já tem uma conta?",
+    "name": "Nome",
+    "needAccount": "Precisa de uma conta?",
+    "password": "Palavra-passe",
+    "signInButton": "Iniciar sessão",
+    "signInDescription": "Use o seu email e palavra-passe para aceder a esta instância.",
+    "signInLink": "Iniciar sessão",
+    "signInTitle": "Inicie sessão no Paperclip",
+    "working": "A processar..."
   },
   "boardChat": {
     "assistant": "Assistant",
@@ -11341,7 +11343,8 @@
       "slug": "Use lowercase letters, digits and dashes.",
       "duration": "Duration must be between 5 and 480 minutes.",
       "buffer": "Buffer must be between 0 and 240 minutes.",
-      "hours": "Choose at least one day and an end time after the start."
+      "hours": "Choose at least one day and an end time after the start.",
+      "publicExecution": "Choose a Google Calendar connection and a host before enabling public execution."
     },
     "weekday": {
       "0": "Sun",
@@ -11356,7 +11359,18 @@
       "proposed": "Proposed",
       "confirmed": "Confirmed",
       "cancelled": "Cancelled"
-    }
+    },
+    "publicExecutionDelegation": "Allow this public booking page to use this host's Google Calendar connection. This delegates calendar access only for bookings of this type.",
+    "publicExecutionEnabled": "Public calendar execution delegated for this booking type",
+    "publicExecutionDisabled": "Public booking is not authorized to access the provider calendar",
+    "revokePublicExecution": "Revoke calendar delegation",
+    "revokingPublicExecution": "Revoking…",
+    "publicExecutionRevoked": "Public calendar delegation revoked",
+    "typeConnection": "Google Calendar connection",
+    "typeHost": "Booking host",
+    "companyHost": "Use the organization's connection grant",
+    "agentHost": "Agent: {{name}}",
+    "userHost": "Person: {{name}}"
   },
   "conversations": {
     "title": "Conversations",
@@ -11544,5 +11558,431 @@
     "snippetTitle": "Install on your website",
     "snippetHelp": "Paste this line before the closing body tag of every page where the chat should appear.",
     "inactive": "Web chat is off. Turn it on to make the widget work on your site."
+  },
+  "uxNav": {
+    "businessFeatures": "Customers, sales and conversations",
+    "businessHelp": "Entry points for customer work and sales opportunities.",
+    "pinAgenda": "Pin Schedule",
+    "agendaHelp": "Open your meetings directly from navigation.",
+    "pinOffice": "Pin Office",
+    "officeHelp": "Quick access to the visual view of your team.",
+    "preferences": "Navigation",
+    "scope": "Your shortcuts for {{company}} in this browser. You can change them at any time.",
+    "saveError": "Could not save. Allow browser storage and try again.",
+    "sales": "Sales",
+    "personal": "Your preferences",
+    "accessSessions": "Sign-in and sessions",
+    "company": "Company",
+    "retention": "Data and retention",
+    "account": "Commercial account",
+    "installations": "Managed installations",
+    "accountDeletion": "Delete account",
+    "files": "Files",
+    "customerChannels": "Customer channels",
+    "notificationsFeed": "Notices",
+    "sessionError": "Could not load your session. Reload to try again.",
+    "sessionLoading": "Loading your session…",
+    "signIn": "Sign in to manage your notifications.",
+    "notificationPreferences": "Notifications",
+    "developer": "API and developers",
+    "team": "View team",
+    "taskResultCosts": "By task",
+    "costsWithoutDetail": "No task breakdown",
+    "costsWithoutDetailHelp": "Includes costs without a linked task or whose details you cannot access."
+  },
+  "uxCrm": {
+    "customers": "Customers",
+    "contacts": "Contacts",
+    "services": "Services",
+    "leads": "Leads",
+    "opportunities": "Opportunities",
+    "proposals": "Proposals",
+    "forms": "Lead forms",
+    "conversations": "Conversations",
+    "calls": "Calls",
+    "agenda": "Agenda",
+    "importContacts": "Import contacts",
+    "customerProposals": "Proposals",
+    "noCustomerProposals": "This customer has no proposals yet.",
+    "noCustomerServices": "This customer has no services yet.",
+    "openCustomer": "Open customer"
+  },
+  "uxFiles": {
+    "files": "Files",
+    "context": "Context",
+    "createVideo": "Create video",
+    "production": "Production",
+    "createVideoFromFile": "Create video from this file",
+    "selectCompany": "Select a company to see its production jobs.",
+    "refreshQueue": "Refresh queue",
+    "noEligibleVideo": "No company videos are available to select. Check file access and expiry, or upload a video.",
+    "projectUnavailable": "This project is not available in the selected company. Choose an authorized project before uploading.",
+    "projectContextSelected": "The selected project will be used as the file audience."
+  },
+  "uxSettings": {
+    "scope": {
+      "user": "Your user",
+      "company": "Company",
+      "account": "Commercial account",
+      "apps": "Apps"
+    },
+    "back": {
+      "settings": "Back to Settings",
+      "apps": "Back to Apps"
+    },
+    "navLabel": "Related settings",
+    "security": {
+      "links": {
+        "access": "Sign-in security",
+        "retention": "Company data retention",
+        "account": "Delete commercial account"
+      },
+      "access": {
+        "title": "Sign-in security",
+        "scope": "Two-step verification and sessions apply only to your own sign-in, in every company. Company data retention and commercial account deletion live in their own sections."
+      },
+      "retention": {
+        "title": "Data retention",
+        "scope": "This policy applies to the selected company's closed conversations and files. Your own sign-in security is managed separately."
+      },
+      "account": {
+        "title": "Delete commercial account",
+        "scope": "This only affects a commercial account you own, not your user or a single company. Only the accounts you own are listed here."
+      }
+    },
+    "notifications": {
+      "categories": {
+        "decisions": {
+          "label": "Decisions",
+          "description": "Open decisions that need a board response."
+        },
+        "reviews": {
+          "label": "Deliverable reviews",
+          "description": "Pending reviews assigned to you or the board."
+        },
+        "tasks": {
+          "label": "Assigned tasks",
+          "description": "Open tasks assigned directly to your account."
+        }
+      },
+      "permission": {
+        "granted": "allowed",
+        "denied": "blocked",
+        "default": "not requested",
+        "unsupported": "unsupported"
+      },
+      "inbox": {
+        "title": "Notifications",
+        "selectCompany": "Select a company to view its notification inbox.",
+        "preferencesLink": "Notification preferences",
+        "liveHint": "Inbox updates follow the active company session.",
+        "noResolve": "Notices only point to the work: nothing is approved or resolved from this list. Open an item to respond there.",
+        "listLabel": "Notification inbox",
+        "filterLabel": "Filter notification inbox",
+        "allShown": "All shown ({{shown}})",
+        "categoryShown": "{{label}} shown ({{shown}})",
+        "loading": "Loading notification inbox…",
+        "emptyTitle": "Nothing needs your attention",
+        "emptyDescription": "Open decisions, reviews and your assigned tasks will appear here.",
+        "open": "Open"
+      },
+      "preferences": {
+        "title": "Notification preferences",
+        "selectCompany": "Select a company to manage its notification preferences.",
+        "scope": "These settings apply only to your account in {{company}}. The notices themselves are listed in the notification inbox.",
+        "inboxLink": "Open notification inbox",
+        "categoriesTitle": "What to be notified about",
+        "categoriesDescription": "Choose which kinds of open work create notices for you in {{company}}.",
+        "saved": "Preferences saved",
+        "deviceTitle": "This device",
+        "deviceDescription": "Choose whether this account receives generic system notices for {{company}}.",
+        "browserPermission": "Browser permission: {{permission}}. Notices contain no task or customer text.",
+        "browserEnabled": "Browser notices enabled",
+        "enableBrowser": "Enable browser notices",
+        "disableBrowser": "Turn off and clear browser notices",
+        "pushTitle": "Remote web push",
+        "pushBlocked": "Blocked until the server has VAPID public key, private key and subject configured.",
+        "pushActive": "{{devices}} device subscription(s) active for this company.",
+        "pushIdle": "Web Push uses this browser subscription even when Paperclip is closed. Notices remain generic.",
+        "pushDisable": "Turn off web push for this company",
+        "pushUnsupported": "Web Push unsupported in this browser",
+        "pushEnable": "Enable remote web push",
+        "pushUnavailable": "Web Push configuration unavailable",
+        "whatsapp": "WhatsApp remains unavailable until an authorized channel and consent flow exist.",
+        "pushPermissionRequired": "Allow notifications in your browser to enable web push.",
+        "pushIncomplete": "The browser returned an incomplete push subscription.",
+        "pushEnableError": "Could not enable web push.",
+        "pushDisableError": "Could not disable web push."
+      }
+    },
+    "accounts": {
+      "scope": "Commercial accounts group the companies, members and plan limits you pay for. They are separate from your user profile and from the settings of a single company. Billing for each account is managed in Billing.",
+      "billingLink": "Billing and plan",
+      "chooseCompany": "Choose a company to link",
+      "noLinkableCompanies": "No other companies available to link",
+      "memberIdHelp": "Members are added by user ID: there is no authorized list of users to pick from, so ask the person for their user ID."
+    },
+    "billing": {
+      "scope": "Subscription, invoices and limits belong to each commercial account listed below, not to your user or one company. Manage who belongs to an account and which companies it covers in Accounts.",
+      "accountsLink": "Commercial accounts"
+    },
+    "developer": {
+      "scope": "API keys and webhooks are created for this company only and use the public /api/v1 endpoint. They are not agent or chat connections; those are managed in Apps.",
+      "appsLink": "Apps",
+      "loadingSession": "Loading session…",
+      "signIn": "Sign in to manage public API access.",
+      "loadingCompany": "Loading company…",
+      "selectCompany": "Select an available company to manage its API access."
+    },
+    "channels": {
+      "scope": "These are the customer-facing accounts (WhatsApp, Messenger, Instagram, Telegram, SMS) this company uses to talk to customers. They are not the chat connections of your agents, which are managed in Apps.",
+      "webchatLink": "Web chat widget"
+    },
+    "webchat": {
+      "scope": "The web chat widget is how visitors of your website talk to this company. Its appearance, automatic replies and embed code are set here; other customer channels are in Channels.",
+      "channelsLink": "Customer channels"
+    },
+    "crmSync": {
+      "scope": "CRM sync keeps this company's customers and contacts aligned with HubSpot or Pipedrive, using connections you create in Apps. It is not a customer chat channel and does not change agent chat connections.",
+      "connectInApps": "Connect {{provider}} in Apps and come back here.",
+      "openJob": "Job {{status}} · {{id}}"
+    }
+  },
+  "uxWork": {
+    "acceptanceCriteria": "Acceptance criteria",
+    "agentRequired": "Choose an agent to use review criteria.",
+    "allTasks": "All tasks",
+    "budget": "Budget",
+    "budgetUsd": "Budget (USD)",
+    "contextUsed": "Context used",
+    "expectedResult": "Expected result",
+    "missingRootTask": "The task could not be opened. Reload and check the result before retrying.",
+    "noContext": "No context has been recorded yet.",
+    "openTasks": "Open tasks",
+    "otherContext": "other",
+    "outcomeReview": "Result and review (optional)",
+    "pendingReview": "Pending review",
+    "reviewRequired": "With result and review",
+    "reviewStatus": "Review",
+    "status": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "awaiting_review": "Awaiting review",
+      "changes_requested": "Changes requested",
+      "accepted": "Accepted",
+      "cancelled": "Cancelled"
+    },
+    "taskUnavailable": "The associated task is unavailable",
+    "taskUnavailableHelp": "The result record is preserved for recovery; opening this link did not create another task.",
+    "budgetInvalid": "Enter a valid budget of zero or more.",
+    "criteriaRequired": "Add acceptance criteria to save the result and budget.",
+    "newTask": "New task",
+    "taskCostCoverage": "{{percent}}% in tasks with results · {{unattributed}} unattributed",
+    "taskCostsFailed": "Could not load task result costs. Reload to try again.",
+    "costsByReviewedTask": "Costs by task with a result",
+    "noTasksWithResults": "No tasks with results yet.",
+    "dashboardEmpty": "No tasks are in progress yet. Create a task to get started.",
+    "noActiveTasks": "No tasks are active right now.",
+    "taskOverBudget": "This task has exceeded its budget."
+  },
+  "uxTeam": {
+    "back": {
+      "team": "Team",
+      "routines": "Routines"
+    },
+    "nav": {
+      "label": "Create and configure a team",
+      "team": "Team",
+      "create": "Create team",
+      "private": "Private templates",
+      "shared": "Shared templates",
+      "builder": "Advanced configuration editor"
+    },
+    "agents": {
+      "addTeam": "Add team",
+      "relatedLabel": "More about the team",
+      "skills": "Skills",
+      "autonomy": "Autonomy",
+      "office": "Office",
+      "emptyHint": "You can also add a whole team from the available templates."
+    },
+    "agentDetail": {
+      "autonomyHint": "Autonomy per action type (email, message, booking…) is earned through tests and can be revoked at any time from Autonomy.",
+      "autonomyLink": "View this agent's autonomy"
+    },
+    "autonomy": {
+      "filtered": "Showing only {{name}}.",
+      "filterMissing": "That agent has no autonomy to show. All agents are shown.",
+      "showAll": "Show all agents"
+    },
+    "routines": {
+      "procedures": "Procedures",
+      "proceduresHint": "Reusable step-by-step sequences. When each routine runs is still configured here, in Routines."
+    },
+    "playbooks": {
+      "title": "Procedures",
+      "intro": "Reusable, versioned commercial sequences that run step by step. When each piece of work starts is still configured in Routines.",
+      "empty": "There are no procedures yet.",
+      "new": "New procedure",
+      "create": "Create procedure",
+      "notFound": "Procedure not found"
+    },
+    "workbench": {
+      "title": "Create your team and prepare its first task",
+      "description": "Choose a team template, review its profiles, hire the ones you need and confirm the business context.",
+      "resume": "Preparation in progress. Next step: {{step}}",
+      "resumeDone": "Preparation complete.",
+      "resumeAction": "Continue preparation",
+      "tabTemplates": "Team templates",
+      "tabHire": "Hire",
+      "tabFirstTask": "First task",
+      "tabTeamTasks": "Team and tasks",
+      "chooseProfile": "First choose a profile from a reviewed team template.",
+      "browseTemplates": "Choose a template",
+      "journeyUnavailableDescription": "You can review team templates and profiles while the account setup is completed.",
+      "openTeam": "Open Team",
+      "tasksTitle": "Real tasks",
+      "tasksDescription": "Existing activity. The journey is only linked to a task once the server confirms it has started.",
+      "loadingTasks": "Loading tasks…",
+      "noTasks": "There are no tasks to show yet.",
+      "openTasks": "Open Tasks"
+    },
+    "productization": {
+      "chooseJourney": "Choose a setup journey"
+    },
+    "onboarding": {
+      "title": "Prepare your first task",
+      "stepFirstTask": "First task",
+      "milestonesDescription": "Here you will see when the team is installed and the first task starts.",
+      "useNote": "Confirm that you want to use these agents. This does not start agents or run a task.",
+      "useConfirmed": "Team confirmed for use. Create a real task in Tasks to continue.",
+      "firstTaskTitle": "Link a task that has already started",
+      "firstTaskDescription": "The server only offers work from this company whose task has a real start after the team was confirmed.",
+      "firstTaskLinked": "The journey is already linked to a started task.",
+      "firstTaskOpen": "Open task",
+      "firstTaskNone": "There are no eligible started tasks yet.",
+      "openTasks": "Open Tasks",
+      "firstTaskTruncated": "Up to 100 eligible started tasks are shown. The list is limited by the server.",
+      "firstTaskChoose": "Select a started task",
+      "firstTaskLink": "Link task",
+      "milestoneFirstTask": "First task started",
+      "metricFirstTask": "Time to first task: {{duration}}"
+    },
+    "builder": {
+      "title": "Advanced configuration editor",
+      "description": "Describe the work and save versioned drafts of the team configuration. Without a connected generation provider, the text and configuration are supplied by you.",
+      "notHiring": "This editor only saves drafts: it does not create agents or grant permissions. To choose a template and hire, use the team preparation.",
+      "backToPreparation": "Back to preparation",
+      "reviewAndHire": "Choose a template and hire"
+    },
+    "catalog": {
+      "privateTitle": "Private team templates",
+      "privateDescription": "Save this company's teams and configurations as versioned templates. They describe content: they carry no permissions, credentials or connections, and every hire follows the company's approvals. To use one, choose a template from Create team.",
+      "sharedTitle": "Shared templates"
+    }
+  },
+  "uxAccounts": {
+    "memberFor": "Company member to add",
+    "selectCompany": "Select a company to find its members.",
+    "loadingMembers": "Loading company members…",
+    "chooseMember": "Choose a company member",
+    "addingMember": "Adding…",
+    "directoryError": "The company member list could not be loaded. You can still enter a user ID below.",
+    "directoryScope": "Select a company to choose from its active members.",
+    "externalMember": "Add someone by user ID",
+    "inviteLink": "Invite a company member",
+    "currentMembersError": "The account member list could not be loaded. Try again before adding someone."
+  },
+  "productization": {
+    "loadingJobs": "Loading tasks…",
+    "workbench": {
+      "title": "Prepare your team and first task",
+      "onboarding": "First task",
+      "team": "Team and tasks",
+      "jobsTitle": "Real tasks",
+      "jobsDescription": "Existing activity. The journey only links to an task when the server confirms its start.",
+      "noJobs": "There are no tasks to show yet.",
+      "openJobs": "Open Tasks"
+    },
+    "hiring": {
+      "specialist": "Task specialist",
+      "approvalPolicy": "Approval follows this company's policy. This screen does not start an task.",
+      "lifecycleSetup": "When you confirm, the existing endpoint creates the agent and may schedule its lifecycle setup. It does not send a heartbeat or create an task. Review the fields before confirming.",
+      "specialist_profile_unsupported": "Task specialists cannot be hired yet."
+    },
+    "catalog": {
+      "library": {
+        "templates": "Task templates"
+      },
+      "install": {
+        "kindsTitle": "Persistent agents and task specialists",
+        "kindsBody": "A persistent agent is a hired role that stays in the company and receives tasks. An task specialist would be a temporary profile created for one specific task: its execution is not supported yet, so it is never hired or simulated as a persistent agent.",
+        "specialists": "Task specialists (not installed)"
+      }
+    }
+  },
+  "productOnboarding": {
+    "title": "Prepare your first task",
+    "steps": {
+      "first_job": "First task"
+    },
+    "milestones": {
+      "description": "Here you will see when the team is installed and the first task starts.",
+      "firstJob": "First task started"
+    },
+    "team": {
+      "useNote": "Confirm that you want to use these agents. This does not start agents or run an task.",
+      "useConfirmed": "Team confirmed. Create a task with Result and review, then start it to continue."
+    },
+    "firstJob": {
+      "chooseTitle": "Link an task already started",
+      "chooseDescription": "The server only offers goals from this company whose task has a real start after the team was confirmed.",
+      "linked": "The journey is already linked to a started task.",
+      "open": "Open task",
+      "none": "No eligible started tasks yet.",
+      "openTasks": "Open Tasks",
+      "choose": "Select a started task",
+      "link": "Link task"
+    },
+    "jobs": {
+      "truncated": "Up to 100 eligible started tasks are shown. The list is limited by the server."
+    },
+    "metrics": {
+      "firstJob": "Time to first task: {{duration}}"
+    }
+  },
+  "productMetrics": {
+    "openAssignments": "View tasks",
+    "labels": {
+      "assignments": "Tasks created",
+      "accepted": "Tasks accepted"
+    }
+  },
+  "dailyBrief": {
+    "deliveryPending": "Delivery is waiting for the agent's confirmation. Task: {{taskId}}"
+  },
+  "businessHome": {
+    "customerCounts": "{{work}} active tasks with review · {{reviews}} reviews · {{overdue}} overdue commitments",
+    "costCoverage": "USD cost attributed directly to projects or tasks with review. Excludes unlinked or unpriced data; this is not margin or invoicing.",
+    "emptyPortfolio": "No active customers. Add a customer to organize their work."
+  },
+  "uxProject": {
+    "customer": "Customer",
+    "selectCustomer": "Select project customer",
+    "noCustomer": "No customer linked",
+    "searchCustomers": "Search customers by name or domain",
+    "loadingCustomers": "Loading customers…",
+    "loadingCustomer": "Loading linked customer…",
+    "unavailableCustomer": "Linked customer",
+    "noCustomersFound": "No active customers found.",
+    "loadMoreCustomers": "Load more customers",
+    "openCustomer": "Open customer",
+    "removeCustomer": "Remove",
+    "pendingReviews": "Pending reviews",
+    "projectContext": "Project context"
+  },
+  "agencyPage": {
+    "title": "Managed installations",
+    "pageDescription": "Manage the separate companies you operate for customers, their packages and public branding."
   }
 }

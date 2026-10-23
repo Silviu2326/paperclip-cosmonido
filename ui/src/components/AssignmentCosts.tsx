@@ -101,7 +101,7 @@ export function AssignmentCostsView({ summary }: { summary: GoalCostSummary }) {
       ) : null}
       {summary.overBudget ? (
         <p role="status" className="text-sm text-destructive">
-          {t("assignmentCosts.overBudget", { defaultValue: "This assignment has spent more than its budget." })}
+          {t("uxWork.taskOverBudget", { defaultValue: "This task has exceeded its budget." })}
         </p>
       ) : null}
       <div className="grid gap-4 md:grid-cols-3">
@@ -152,7 +152,7 @@ export function AssignmentCostsReport({ companyId, from, to }: { companyId: stri
 
   if (isLoading) return <p role="status" className="text-sm text-muted-foreground">{t("assignmentCosts.loading", { defaultValue: "Loading cost…" })}</p>;
   if (error || !data) {
-    return <p role="alert" className="text-sm text-destructive">{t("assignmentCosts.reportFailed", { defaultValue: "Could not load cost by assignment. Reload to try again." })}</p>;
+    return <p role="alert" className="text-sm text-destructive">{t("uxWork.taskCostsFailed", { defaultValue: "Could not load task result costs. Reload to try again." })}</p>;
   }
   return <AssignmentCostsReportView report={data} />;
 }
@@ -166,11 +166,11 @@ export function AssignmentCostsReportView({ report }: { report: GoalCostReport }
   return (
     <Card className="gap-3 py-4" data-testid="costs-by-assignment">
       <CardHeader className="gap-0 px-5">
-        <CardTitle className="text-base">{t("assignmentCosts.byAssignment", { defaultValue: "By assignment" })}</CardTitle>
+        <CardTitle className="text-base">{t("uxWork.costsByReviewedTask", { defaultValue: "Costs by task with a result" })}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 px-5">
         {assignments.length === 0 && report.unattributed.eventCount === 0 && otherGoals.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("assignmentCosts.noAssignments", { defaultValue: "No assignments yet." })}</p>
+          <p className="text-sm text-muted-foreground">{t("uxWork.noTasksWithResults", { defaultValue: "No tasks with results yet." })}</p>
         ) : (
           <ul className="divide-y divide-border">
             {assignments.map((row) => (
@@ -194,7 +194,7 @@ export function AssignmentCostsReportView({ report }: { report: GoalCostReport }
               </li>
             ) : null}
             <li className="flex items-center justify-between gap-3 py-2 text-sm text-muted-foreground" data-testid="costs-unattributed">
-              <span>{t("assignmentCosts.unattributed", { defaultValue: "Not attributed to any goal" })}</span>
+              <span title={t("uxNav.costsWithoutDetailHelp", { defaultValue: "Incluye gasto sin tarea vinculada o cuyo detalle no puedes consultar." })}>{t("uxNav.costsWithoutDetail", { defaultValue: "Sin desglose por tarea" })}</span>
               <span className="font-mono tabular-nums">{formatCents(report.unattributed.costCents)}</span>
             </li>
           </ul>

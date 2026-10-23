@@ -4,13 +4,13 @@ navigation: {"section":"Projects and execution","sectionOrder":40,"order":15}
 
 # Assignments, context and media delivery
 
-Implementation: [assignments](../../ui/src/pages/Assignments.tsx), [context](../../ui/src/pages/Context.tsx), [media panel](../../ui/src/components/MediaProjectPanel.tsx).
+Implementation: [assignments](../../ui/src/pages/Assignments.tsx), [context in Files](../../ui/src/components/artifacts/explorer/FileContextProperties.tsx), [media panel](../../ui/src/components/MediaProjectPanel.tsx).
 Agent access: [companion](../agent-access-map/assignments.md).
 
 ## Sub-features
 
 - `create`: create an assignment with criteria, responsible agent, expected deliverable and budget.
-- `review`: submit and resolve a specific deliverable version; request changes with a reason.
+- `review`: submit and resolve a specific deliverable version; request changes with a reason. Resolution uses a full-precision PostgreSQL CAS and refuses deleted/purging file targets; accepting an immutable file version leaves newer versions unreviewed.
 - `context`: manage current company/project context and inspect which files a task used.
 - `media`: ingest, transcribe, edit, render and dub a media asset with durable jobs.
 - `costs`: inspect assignment costs, descendant attribution and explicitly unattributed usage.
@@ -33,6 +33,8 @@ Preconditions: use a disposable company with two agents/projects, a short video 
 6. Install the optional team from the catalog and inspect its role/skill references and produce-video-series task template.
 
 Targeted evidence: [assignment integration](../../server/src/__tests__/assignment-services.integration.test.ts), [costs](../../server/src/__tests__/assignment-costs.test.ts), [dashboard isolation](../../server/src/__tests__/assignment-dashboard.test.ts), [tool modes](../../server/src/__tests__/product-tool-catalog.test.ts), [UI cards](../../ui/src/components/AssignmentDashboard.test.tsx).
+
+S95 focused evidence: [review availability integration](../../server/src/__tests__/deliverable-review-availability.integration.test.ts) passed two PostgreSQL cases for a purging target and exact immutable-version acceptance. This is backend evidence, not the live journey above.
 
 ## Gotchas
 

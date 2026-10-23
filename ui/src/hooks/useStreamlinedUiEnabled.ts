@@ -30,6 +30,8 @@ export function useStreamlinedUiEnabled(): { enabled: boolean; loaded: boolean }
     {
       queryKey: queryKeys.instance.experimentalSettings,
       queryFn: () => instanceSettingsApi.getExperimental(),
+      // This optional setting fails open; retries delay bootstrap after 403s.
+      retry: false,
       enabled: contextClient != null,
     },
     contextClient ?? getDetachedClient(),

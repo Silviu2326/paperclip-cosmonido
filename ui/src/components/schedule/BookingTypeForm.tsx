@@ -7,6 +7,9 @@ import type { CreateBookingTypeBody } from "../../api/calendar";
 
 interface BookingTypeFormProps {
   pending: boolean;
+  connections: Array<{ id: string; name: string; status?: string; enabled: boolean; config?: Record<string, unknown>; transportConfig?: Record<string, unknown> }>;
+  agents: Array<{ id: string; name: string; status: string }>;
+  users: Array<{ principalId: string; user: { name: string | null; email: string | null } | null }>;
   onSubmit: (body: CreateBookingTypeBody) => void;
   onCancel: () => void;
 }
@@ -15,7 +18,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0];
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Creates a booking type: duration, buffer, weekly hours and time zone. */
-export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeFormProps) {
+export function BookingTypeForm({ pending, connections, agents, users, onSubmit, onCancel }: BookingTypeFormProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -25,6 +28,9 @@ export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeForm
   const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [start, setStart] = useState("09:00");
   const [end, setEnd] = useState("17:00");
+  const [publicExecutionEnabled, setPublicExecutionEnabled] = useState(false);
+  const [connectionId, setConnectionId] = useState("");
+  const [host, setHost] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   function toggleDay(day: number) {
@@ -43,6 +49,9 @@ export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeForm
     if (!Number.isInteger(bufferMinutes) || bufferMinutes < 0 || bufferMinutes > 240) {
       return setError(t("schedule.errors.buffer"));
     }
+    if (publicExecutionEnabled && (!connectionId || !host)) {
+      return setError(t("schedule.errors.publicExecution"));
+    }
     if (days.length === 0 || start >= end) return setError(t("schedule.errors.hours"));
     setError(null);
     onSubmit({
@@ -52,6 +61,10 @@ export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeForm
       bufferMinutes,
       timezone,
       weeklyHours: days.sort((a, b) => a - b).map((weekday) => ({ weekday, start, end })),
+      publicExecutionEnabled,
+      connectionId: connectionId || null,
+      hostAgentId: host.startsWith("agent:") ? host.slice("agent:".length) : null,
+      hostUserId: host.startsWith("user:") ? host.slice("user:".length) : null,
     });
   }
 
@@ -78,6 +91,30 @@ export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeForm
           <Label htmlFor="booking-timezone">{t("schedule.typeTimezone")}</Label>
           <Input id="booking-timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)} />
         </div>
+        <div className="space-y-1">
+          <Label htmlFor="booking-connection">{t("schedule.typeConnection")}</Label>
+          <select id="booking-connection" value={connectionId} onChange={(e) => setConnectionId(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2 text-sm">
+            <option value="">{t("schedule.noConnection")}</option>
+            {connections.filter((connection) => connection.enabled && connection.status === "active" &&
+              (connection.config?.sourceTemplateKey === "google-calendar" || connection.transportConfig?.sourceTemplateKey === "google-calendar")).map((connection) => (
+              <option key={connection.id} value={connection.id}>{connection.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="booking-host">{t("schedule.typeHost")}</Label>
+          <select id="booking-host" value={host} onChange={(e) => setHost(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2 text-sm">
+            <option value="">{t("schedule.companyHost")}</option>
+            {agents.filter((agent) => agent.status !== "terminated").map((agent) => (
+              <option key={agent.id} value={"agent:" + agent.id}>{t("schedule.agentHost", { name: agent.name })}</option>
+            ))}
+            {users.map((user) => (
+              <option key={user.principalId} value={"user:" + user.principalId}>
+                {t("schedule.userHost", { name: user.user?.name ?? user.user?.email ?? user.principalId })}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="booking-start">{t("schedule.typeStart")}</Label>
@@ -100,6 +137,14 @@ export function BookingTypeForm({ pending, onSubmit, onCancel }: BookingTypeForm
           ))}
         </div>
       </fieldset>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={publicExecutionEnabled}
+          onChange={(event) => setPublicExecutionEnabled(event.target.checked)}
+        />
+        <span>{t("schedule.publicExecutionDelegation")}</span>
+      </label>
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
       <div className="flex items-center justify-end gap-3">
         <Button type="button" variant="outline" onClick={onCancel}>

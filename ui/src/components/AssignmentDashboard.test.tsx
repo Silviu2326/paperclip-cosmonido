@@ -2,9 +2,14 @@
 
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { i18n } from "../i18n";
 import type { DashboardCostWindow, DashboardSummary } from "@paperclipai/shared";
 import { AssignmentDashboard } from "./AssignmentDashboard";
+
+const mockDialogActions = vi.hoisted(() => ({ openNewIssue: vi.fn() }));
+beforeEach(async () => { await i18n.changeLanguage("en"); });
+vi.mock("../context/DialogContext", () => ({ useDialogActions: () => mockDialogActions }));
 
 vi.mock("@/lib/router", () => ({
   Link: ({ to, children, className }: { to: string; children: ReactNode; className?: string }) => (
@@ -72,6 +77,7 @@ describe("AssignmentDashboard", () => {
     expect(html).toContain("Launch series");
     expect(html).toContain("$12.50");
     expect(html).toContain("$90.00");
+    expect(html).toContain("80% in tasks with results");
   });
 
   it("shows an error in the failing section only", () => {
@@ -163,7 +169,7 @@ describe("AssignmentDashboard", () => {
     expect(reviews).not.toContain("hire_agent");
   });
 
-  it("offers to create an assignment when there is no data", () => {
+  it("offers to create a new task when there is no data", () => {
     const html = renderToStaticMarkup(
       <AssignmentDashboard
         data={summary({
@@ -175,6 +181,8 @@ describe("AssignmentDashboard", () => {
       />,
     );
     expect(html).toContain('data-testid="assignment-dashboard-empty"');
-    expect(html).toContain('href="/assignments"');
+    expect(html).toContain("New task");
+    expect(html).toContain("<button");
+    expect(html).not.toContain('href="/assignments"');
   });
 });

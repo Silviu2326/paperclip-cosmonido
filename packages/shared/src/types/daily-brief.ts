@@ -9,6 +9,8 @@ export interface DailyBriefPreference {
   channel: DailyBriefChannel;
   hourLocal: number;
   timezone: string;
+  deliveryAgentId: string | null;
+  pendingTaskId: string | null;
   lastSentOn: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;

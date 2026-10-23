@@ -134,6 +134,7 @@ import {
   getAvailableInboxIssueColumns,
   getInboxWorkItemKey,
   getApprovalsForTab,
+  parseInboxApprovalPreset,
   getArchivedInboxSearchIssues,
   getInboxKeyboardSelectionIndex,
   getInboxWorkItems,
@@ -856,6 +857,15 @@ function StreamlinedInbox({
   const { dismissedAtByKey, dismiss: dismissInboxItem } = useInboxDismissals(selectedCompanyId);
   const { readItems, markRead: markItemRead, markUnread: markItemUnread } = useReadInboxItems();
   const { allCategoryFilter, allApprovalFilter, issueFilters } = filterPreferences;
+  // A deep link (the retired Approvals list URLs) selects the approvals slice without overwriting saved preferences.
+  const approvalPreset = useMemo(() => parseInboxApprovalPreset(location.search), [location.search]);
+  useEffect(() => {
+    if (!approvalPreset) return;
+    setFilterPreferences((previous) =>
+      previous.allCategoryFilter === "approvals" && previous.allApprovalFilter === approvalPreset.approval
+        ? previous
+        : { ...previous, allCategoryFilter: "approvals", allApprovalFilter: approvalPreset.approval });
+  }, [approvalPreset, selectedCompanyId]);
 
   const pathSegment = location.pathname.split("/").pop() ?? "mine";
   const pathTab: InboxTab =
@@ -2476,6 +2486,7 @@ function StreamlinedInbox({
         )}
         controls={(
           <>
+          <Button variant="ghost" size="sm" asChild><Link to="/inbox/notifications">{t("uxNav.notificationsFeed", { defaultValue: "Avisos" })}</Link></Button>
           {tab === "blocked" ? (
             <>
               <IssueFiltersPopover

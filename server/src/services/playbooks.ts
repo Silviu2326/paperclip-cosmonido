@@ -109,7 +109,7 @@ export function playbookService(db: Db, deps: PlaybookServiceDeps = {}) {
     return db.select().from(playbooks).where(and(...conditions)).orderBy(playbooks.key, desc(playbooks.version));
   }
 
-  async function create(companyId: string, input: CreatePlaybookInput, actor: Actor): Promise<PlaybookRow> {
+  async function create(companyId: string, input: CreatePlaybookInput, actor: Actor, installerProvenance?: { itemId: string; sourceContentHash: string }): Promise<PlaybookRow> {
     return db.transaction(async (tx) => {
       await lockKey(tx, `playbook:${companyId}:${input.key}`);
       const [existing] = await tx.select({ id: playbooks.id }).from(playbooks)
@@ -127,6 +127,8 @@ export function playbookService(db: Db, deps: PlaybookServiceDeps = {}) {
         steps: input.steps as PlaybookStep[],
         createdByAgentId: actor.agentId ?? null,
         createdByUserId: actor.userId ?? null,
+        installationItemId: installerProvenance?.itemId ?? null,
+        installationSourceContentHash: installerProvenance?.sourceContentHash ?? null,
       }).returning();
       return row!;
     });

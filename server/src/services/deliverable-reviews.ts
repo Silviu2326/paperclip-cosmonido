@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { companyFileVersions, deliverableReviews, documentRevisions, goals, issueDocuments, issueWorkProducts, issues } from "@paperclipai/db";
+import { companyFiles, companyFileVersions, deliverableReviews, documentRevisions, goals, issueDocuments, issueWorkProducts, issues } from "@paperclipai/db";
 import { conflict, notFound, forbidden } from "../errors.js";
 import { resolveGoalIdForIssue } from "./assignment-costs.js";
 import { deriveAssignmentStatus } from "./assignment-status.js";
@@ -37,24 +37,37 @@ export function deliverableReviewService(db: Db) {
         throw error;
       }
     },
-    resolve: async (id: string, input: { state: "accepted" | "changes_requested"; reason?: string }, actor: { userId?: string | null; agentId?: string | null }) => {
+    resolve: async (id: string, input: { state: "accepted" | "changes_requested"; reason?: string; expectedRevision?: string }, actor: { userId?: string | null; agentId?: string | null }) => {
       if (actor.agentId || !actor.userId) throw forbidden("Only a board user can review deliverables");
-      const [review] = await db.select().from(deliverableReviews).where(eq(deliverableReviews.id, id));
-      if (!review) throw notFound("Deliverable review not found");
+      // Keep PostgreSQL's full timestamp precision for the compare-and-swap.
+      // JS Dates truncate microseconds from defaultNow(), so binding a Date
+      // back to `updated_at = ...` would reject an unchanged review.
+      const [snapshot] = await db.select({ review: deliverableReviews, revision: sql<string>`${deliverableReviews.updatedAt}::text` }).from(deliverableReviews).where(eq(deliverableReviews.id, id));
+      if (!snapshot) throw notFound("Deliverable review not found");
+      const { review, revision } = snapshot;
       if (review.state !== "pending") throw conflict("Deliverable review has already been resolved");
+      if (input.expectedRevision && review.updatedAt.toISOString() !== input.expectedRevision) throw conflict("Deliverable review changed. Reload before resolving it");
       const postCommitActivityPublications: import("./activity-log.js").ActivityPublication[] = [];
       const postCommitActions: import("./issues.js").IssuePostCommitAction[] = [];
       const resolved = await db.transaction(async (tx) => {
         const [lockedGoal] = review.goalId
           ? await tx.select().from(goals).where(and(eq(goals.id, review.goalId), eq(goals.companyId, review.companyId))).for("update")
           : [];
-        const [resolved] = await tx.update(deliverableReviews).set({ state: input.state, reason: input.reason ?? null, reviewerUserId: actor.userId, reviewerAgentId: null, reviewedAt: new Date(), updatedAt: new Date() }).where(and(eq(deliverableReviews.id, id), eq(deliverableReviews.companyId, review.companyId), eq(deliverableReviews.state, "pending"))).returning();
-        if (!resolved) throw conflict("Deliverable review has already been resolved");
+        const [resolved] = await tx.update(deliverableReviews).set({ state: input.state, reason: input.reason ?? null, reviewerUserId: actor.userId, reviewerAgentId: null, reviewedAt: new Date(), updatedAt: new Date() }).where(and(eq(deliverableReviews.id, id), eq(deliverableReviews.companyId, review.companyId), eq(deliverableReviews.state, "pending"), sql`${deliverableReviews.updatedAt} = ${revision}::timestamptz`)).returning();
+        if (!resolved) throw conflict("Deliverable review changed. Reload before resolving it");
         if (review.targetKind === "work_product") {
           const [product] = await tx.select().from(issueWorkProducts).where(and(eq(issueWorkProducts.id, review.targetId), eq(issueWorkProducts.companyId, review.companyId))).for("update");
           if (!product) throw notFound("Work product not found");
           if (product.updatedAt.toISOString() !== review.targetVersion) throw conflict("Work product changed after this review was submitted");
           await tx.update(issueWorkProducts).set({ reviewState: input.state === "accepted" ? "approved" : "changes_requested", updatedAt: new Date() }).where(and(eq(issueWorkProducts.id, review.targetId), eq(issueWorkProducts.companyId, review.companyId)));
+        } else if (review.targetKind === "company_file_version") {
+          const [version] = await tx.select().from(companyFileVersions).where(and(eq(companyFileVersions.id, review.targetId), eq(companyFileVersions.companyId, review.companyId))).limit(1);
+          if (!version || String(version.versionNumber) !== review.targetVersion) throw conflict("The submitted file version is no longer available");
+          const [file] = await tx.select().from(companyFiles).where(and(eq(companyFiles.id, version.fileId), eq(companyFiles.companyId, review.companyId))).for("update").limit(1);
+          if (!file || file.deletedAt || file.retentionPurgeStartedAt || file.retentionPurgedAt) throw conflict("The submitted file is deleted or being purged");
+        } else if (review.targetKind === "document_revision") {
+          const [revision] = await tx.select().from(documentRevisions).where(and(eq(documentRevisions.id, review.targetId), eq(documentRevisions.companyId, review.companyId))).for("share").limit(1);
+          if (!revision || String(revision.revisionNumber) !== review.targetVersion) throw conflict("The submitted document revision is no longer available");
         }
         if (input.state === "changes_requested" && review.issueId) {
           const [task] = await tx.select().from(issues).where(and(eq(issues.id, review.issueId), eq(issues.companyId, review.companyId)));

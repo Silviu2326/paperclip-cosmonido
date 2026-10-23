@@ -41,6 +41,7 @@ import type { Agent, Issue } from "@paperclipai/shared";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { SmokeLabDashboardCard } from "../components/SmokeLabDashboardCard";
 import { CommercialDecisionsSection } from "@/components/CommercialDecisionsSection";
+import { BusinessHome } from "@/features/productization/BusinessHome";
 
 const DASHBOARD_ACTIVITY_LIMIT = 10;
 
@@ -328,6 +329,7 @@ export function Dashboard() {
     <div className="space-y-6">
       {error && <p className="text-sm text-destructive">{error.message}</p>}
       <CommercialDecisionsSection />
+      <BusinessHome companyId={selectedCompanyId!} />
 
       {pausedBanner?.kind === "imported" ? (
         <InlineBanner

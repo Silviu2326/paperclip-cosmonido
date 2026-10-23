@@ -1,6 +1,7 @@
 import type { Router } from "express";
 import type { Db } from "@paperclipai/db";
 import { bookingService, bookingPublicView } from "../../services/calendar/booking.js";
+import type { GoogleCalendarService } from "../../services/calendar/google-calendar.js";
 import { bookingTypeSlugSchema, publicBookingSchema } from "../../services/calendar/schemas.js";
 import { z } from "zod";
 import { notFound } from "../../errors.js";
@@ -25,8 +26,8 @@ function companyIdOf(res: { locals: Record<string, unknown> }): string {
   return companyId;
 }
 
-export function registerPublicBookingRoutes(router: Router, db: Db): void {
-  const svc = bookingService(db);
+export function registerPublicBookingRoutes(router: Router, db: Db, options: { calendar?: GoogleCalendarService } = {}): void {
+  const svc = bookingService(db, { calendar: options.calendar });
 
   router.get("/book/:slug", async (req, res) => {
     const companyId = companyIdOf(res);
