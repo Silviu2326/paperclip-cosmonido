@@ -10,7 +10,7 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)/ui"
 # Two publishes share storybook-static; a second one waits instead of deleting it mid-build.
-lock="storybook-static.lock"
+lock="$PWD/storybook-static.lock"
 if ! mkdir "$lock" 2>/dev/null; then echo "Another Storybook publish is running ($lock)"; exit 1; fi
 trap 'rmdir "$lock"' EXIT
 rm -rf storybook-static
