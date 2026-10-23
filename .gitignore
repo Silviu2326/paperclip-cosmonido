@@ -95,3 +95,4 @@ test-results/
 
 # Opt-in CI timing artifacts
 .ci-profile/
+ui/storybook-static.lock/

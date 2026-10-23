@@ -9,6 +9,10 @@
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)/ui"
+# Two publishes share storybook-static; a second one waits instead of deleting it mid-build.
+lock="storybook-static.lock"
+if ! mkdir "$lock" 2>/dev/null; then echo "Another Storybook publish is running ($lock)"; exit 1; fi
+trap 'rmdir "$lock"' EXIT
 rm -rf storybook-static
 npx storybook build -c storybook/.storybook -o storybook-static --quiet
 
@@ -17,4 +21,5 @@ npx storybook build -c storybook/.storybook -o storybook-static --quiet
 out="$(mktemp -d)/paperclip-storybook"
 cp -r storybook-static "$out"
 cd "$out"
-vercel deploy --prod --yes
+# One archive instead of thousands of files: the free plan caps file uploads at 5,000 a day.
+vercel deploy --prod --yes --archive=tgz
