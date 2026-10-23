@@ -12,6 +12,7 @@ import {
 import { MemoryRouter } from "@/lib/router";
 import { ONBOARDING_STORAGE_KEY } from "@/components/OnboardingWizard";
 import { STORYBOOK_COMPANY_ID } from "../fixtures/onboardingDraft";
+import { experimentalFlagState } from "../fixtures/experimentalFlags";
 import {
   STORYBOOK_SANDBOX_ENVIRONMENT_ID,
   onboardingFixtureState,
@@ -159,6 +160,7 @@ function installStorybookApiFixtures() {
       enableIsolatedWorkspaces: true,
       autoRestartDevServerWhenIdle: false,
       enableManagedSandboxOnly: onboardingFixtureState.environments !== "local",
+      ...experimentalFlagState,
     });
     if (url.pathname === "/api/instance/settings/experimental") {
       return Response.json(experimentalSettings());

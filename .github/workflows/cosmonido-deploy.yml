@@ -55,8 +55,8 @@ jobs:
             echo "mode=full" >> "$GITHUB_OUTPUT"; exit 0
           fi
           changed=$(git diff --name-only "$running" HEAD)
-          # Deploy tooling and docs never reach the running app.
-          app_changed=$(printf '%s\n' "$changed" | grep -vE '^(scripts/cosmonido/|\.github/|doc/|maps/)' || true)
+          # Deploy tooling, docs and Storybook never reach the running app.
+          app_changed=$(printf '%s\n' "$changed" | grep -vE '^(scripts/cosmonido/|scripts/storybook-|ui/storybook/|\.github/|doc/|maps/)' || true)
           if [ -z "$app_changed" ]; then mode=none
           elif ! printf '%s\n' "$app_changed" | grep -qvE '^ui/' && ! printf '%s\n' "$app_changed" | grep -qE '^ui/package\.json$'; then mode=ui
           else mode=full; fi
