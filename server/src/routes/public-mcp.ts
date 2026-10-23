@@ -153,10 +153,15 @@ export function publicMcpIngressRoutes(oauth: PublicMcpOAuth, execute: ReturnTyp
         || (method === "tools/call" && decodeHeader(req.headers["mcp-name"]) !== params.name)) { fail(-32020, "MCP headers must match the request body."); return; }
       if (meta["io.modelcontextprotocol/protocolVersion"] !== "2026-07-28") { fail(-32022, "Unsupported protocol version.", { supportedVersions: ["2026-07-28"] }); return; }
       if (!req.is("application/json")) { fail(-32600, "Use application/json."); return; }
+      const clientCapabilities = meta["io.modelcontextprotocol/clientCapabilities"] as Record<string, unknown>;
       try {
         let result: Record<string, unknown>;
         switch (method) {
-          case "server/discover": result = { supportedVersions: ["2026-07-28"], capabilities: { tools: {}, ...(events ? { events: {} } : {}) } }; break;
+          case "server/discover": result = {
+            supportedVersions: ["2026-07-28"],
+            capabilities: { tools: {}, ...(events ? { events: {} } : {}) },
+            clientSupport: { events: events !== undefined && Boolean(clientCapabilities.events) },
+          }; break;
           case "tools/list": result = await listTools(); break;
           case "tools/call": result = await callTool(CallToolRequestSchema.parse(envelope.data)); break;
           case "events/list":
