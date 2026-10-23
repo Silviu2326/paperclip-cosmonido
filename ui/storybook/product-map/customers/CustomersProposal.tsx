@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { euros, type DemoContact, type DemoCustomer } from "./demo-data";
+import { NewCustomerDialog } from "./NewCustomerDialog";
 
 const MINT = BRAND(8);
 const SKY = BRAND(7);
@@ -162,7 +163,7 @@ function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCu
         "hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         selected ? "border-transparent shadow-md" : "border-border",
       )}
-      style={selected ? { boxShadow: `0 0 0 2px ${health.color}` } : undefined}
+      style={{ boxShadow: selected ? `0 0 0 2px ${health.color}` : "0 0 0 0px transparent" }}
     >
       <span aria-hidden="true" className="absolute inset-y-3 left-0 w-1 rounded-r-full" style={{ background: health.color }} />
       <div className="flex items-start gap-3">
@@ -176,7 +177,7 @@ function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCu
             ) : null}
           </div>
           <p className="truncate text-xs text-muted-foreground">
-            {customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web")} · {customer.tags.join(" · ")}
+            {[customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web"), ...customer.tags].join(" · ")}
           </p>
         </div>
         <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity duration-(--motion-duration-fast) group-hover:opacity-100" />
@@ -228,7 +229,7 @@ function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose:
         <Avatar name={customer.name} size="lg" />
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold">{customer.name}</h2>
-          <p className="text-xs text-muted-foreground">{customer.domain ?? "Persona"} · cliente desde {new Date(customer.createdAt).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}</p>
+          <p className="text-xs text-muted-foreground">{customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web")} · cliente desde {new Date(customer.createdAt).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Pill color={health.color} strong>{health.label}</Pill>
             <Pill color={LILAC}>{customer.owner}</Pill>
@@ -251,6 +252,7 @@ function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose:
       ) : null}
 
       <PanelSection title="Personas" icon={Users} color={SKY}>
+        {customer.contacts.length === 0 ? <p className="text-sm text-muted-foreground">Sin personas todavía.</p> : null}
         {customer.contacts.map((person) => (
           <div key={person.id} className="flex items-center gap-2.5 rounded-lg p-1.5 transition-colors duration-(--motion-duration-fast) hover:bg-accent/60">
             <Avatar name={person.name} size="sm" />
@@ -294,7 +296,7 @@ function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose:
   );
 }
 
-function EmptyState() {
+function EmptyState({ onCreate }: { onCreate: () => void }) {
   const tokens = useMotionTokens();
   const steps = [
     { icon: Plus, title: "Crea tu primer cliente", text: "Empresa o persona para la que trabajas.", color: MINT },
@@ -329,17 +331,20 @@ function EmptyState() {
           </motion.div>
         ))}
       </div>
-      <Button><Plus className="h-4 w-4" />Nuevo cliente</Button>
+      <Button onClick={onCreate}><Plus className="h-4 w-4" />Nuevo cliente</Button>
     </div>
   );
 }
 
 /** One customers page: summary, a single list with three views, and a side panel with everything about a customer. */
-export function CustomersProposal({ customers }: { customers: DemoCustomer[] }) {
+export function CustomersProposal({ customers: initialCustomers }: { customers: DemoCustomer[] }) {
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [justCreated, setJustCreated] = useState<string | null>(null);
   const [view, setView] = useState<View>("customers");
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(customers[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialCustomers[0]?.id ?? null);
   const tokens = useMotionTokens();
 
   const people = useMemo(() => customers.flatMap((customer) => customer.contacts.map((person) => ({ person, customer }))), [customers]);
@@ -363,11 +368,44 @@ export function CustomersProposal({ customers }: { customers: DemoCustomer[] }) 
         </div>
         <div className="flex gap-2">
           <Button variant="outline"><Upload className="h-4 w-4" />Importar contactos</Button>
-          <Button><Plus className="h-4 w-4" />Nuevo cliente</Button>
+          <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Nuevo cliente</Button>
         </div>
       </header>
 
-      {customers.length === 0 ? <EmptyState /> : <>
+      <NewCustomerDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        existing={customers}
+        onCreate={(customer) => {
+          setCustomers((current) => [customer, ...current]);
+          setView("customers");
+          setFilter("all");
+          setQuery("");
+          setSelectedId(customer.id);
+          setJustCreated(customer.name);
+          window.setTimeout(() => setJustCreated(null), 3500);
+        }}
+        onOpenExisting={(id) => { setView("customers"); setFilter("all"); setQuery(""); setSelectedId(id); }}
+      />
+
+      <AnimatePresence>
+        {justCreated ? (
+          <motion.div
+            role="status"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: tokens.base, ease: tokens.easeOut }}
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm"
+            style={{ background: tint(MINT, 24) }}
+          >
+            <CheckCircle2 className="h-4 w-4" style={{ color: readable(MINT) }} />
+            <span><strong>{justCreated}</strong> creado. Ya puedes añadir servicios, propuestas o tareas desde su panel.</span>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      {customers.length === 0 ? <EmptyState onCreate={() => setCreateOpen(true)} /> : <>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Stat index={0} label="Ingresos recurrentes" value={`${euros(monthly)}/mes`} hint={`${services.length} servicios activos`} color={MINT} icon={Repeat} />
           <Stat index={1} label="Propuestas abiertas" value={euros(proposals.reduce((sum, proposal) => sum + proposal.amountCents, 0))} hint={`${proposals.length} en curso`} color={SKY} icon={FileText} />
