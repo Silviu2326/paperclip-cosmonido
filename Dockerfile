@@ -192,7 +192,13 @@ RUN echo "cli-tools-epoch: ${CLI_TOOLS_CACHE_EPOCH}" \
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-COPY --chown=node:node --from=build /app /app
+# Dependencies and code are separate layers. node_modules (~3 GB) comes from
+# the deps stage, so it stays cached until a manifest or the lockfile changes;
+# the build stage only adds two build caches inside node_modules (runner
+# build-inputs and tsbuildinfo), which the runtime never reads. A code change
+# then re-exports ~0.5 GB instead of the whole 3.5 GB /app.
+COPY --chown=node:node --from=deps /app /app
+COPY --chown=node:node --from=build --exclude=node_modules --exclude=**/node_modules /app /app
 
 COPY --from=runner-provider-pack /provider-pack /opt/paperclip-runner/provider-pack
 # Managed deployments can remap node's UID at startup. This immutable pack
