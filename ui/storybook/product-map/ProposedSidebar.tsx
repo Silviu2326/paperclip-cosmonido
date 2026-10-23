@@ -4,8 +4,9 @@ import type { LucideIcon } from "lucide-react";
 import { SidebarNavItem } from "@/components/SidebarNavItem";
 import { SidebarSection } from "@/components/SidebarSection";
 import { primarySidebarStyles } from "@/components/primary-sidebar-styles";
+import { SidebarAgents } from "@/components/SidebarAgents";
 import { pageById } from "./pages";
-import type { SidebarProposalSection } from "./sidebar-proposal";
+import { AGENT_LIST_ITEM, type SidebarProposalSection } from "./sidebar-proposal";
 
 function iconFor(name: string): LucideIcon {
   const icon = (Icons as unknown as Record<string, LucideIcon | undefined>)[name];
@@ -15,6 +16,7 @@ function iconFor(name: string): LucideIcon {
 function ProposedSection({ section }: { section: SidebarProposalSection }) {
   const [open, setOpen] = useState(!section.collapsed);
   const items = section.items.map((id) => {
+    if (id === AGENT_LIST_ITEM) return <SidebarAgents key={id} streamlined />;
     const page = pageById(id);
     return <SidebarNavItem key={id} to={page.route} label={page.name} icon={iconFor(page.icon)} />;
   });

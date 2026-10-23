@@ -14,10 +14,14 @@ export interface SidebarProposalSection {
   items: string[];
 }
 
+/** Special item: the real agent list of the sidebar (starred and recent agents). */
+export const AGENT_LIST_ITEM = "@agent-list";
+
 export const SIDEBAR_PROPOSAL: SidebarProposalSection[] = [
-  { label: "", items: ["home", "search"] },
-  { label: "Trabajo", items: ["tasks", "projects", "files", "routines"] },
+  { label: "", items: ["home", "decisions"] },
+  { label: "Trabajo", items: ["chat", "tasks", "projects", "files"] },
   { label: "Negocio", items: ["customers", "sales", "conversations"] },
-  { label: "Equipo", items: ["agents"] },
+  // The agent list brings its own "Agentes" heading.
+  { label: "", items: [AGENT_LIST_ITEM] },
   { label: "Administración", collapsed: true, items: ["apps", "activity", "settings"] },
 ];
