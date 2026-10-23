@@ -1,0 +1,144 @@
+name: Cosmonido deploy
+
+# Push to `integracion` deploys to the Cosmonido VPS.
+# - Only ui/ changed since the running server commit: build the board here and
+#   publish it on the VPS (no container restart).
+# - Anything else: ship the commit to the VPS, build the image there and swap
+#   the container with backup, verification and automatic rollback.
+on:
+  push:
+    branches: [integracion]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto, ui or full"
+        type: choice
+        options: [auto, ui, full]
+        default: auto
+
+concurrency:
+  group: cosmonido-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_HOME: /root/cosmonido-deploy
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - id: plan
+        name: Decide ui or full
+        env:
+          REQUESTED: ${{ inputs.mode || 'auto' }}
+          VPS: ${{ secrets.VPS_HOST }}
+        run: |
+          if [ "$REQUESTED" != auto ]; then echo "mode=$REQUESTED" >> "$GITHUB_OUTPUT"; exit 0; fi
+          running=$(ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$VPS" \
+            "docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' docker-paperclip-1 | sed -n 's/^PAPERCLIP_BUILD_COMMIT=//p'")
+          echo "Server running: $running"
+          if [ -z "$running" ] || ! git cat-file -e "$running^{commit}" 2>/dev/null; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          changed=$(git diff --name-only "$running" HEAD)
+          if [ -z "$changed" ]; then mode=none
+          elif ! printf '%s\n' "$changed" | grep -qvE '^ui/' && ! printf '%s\n' "$changed" | grep -qE '^ui/package\.json$'; then mode=ui
+          else mode=full; fi
+          echo "Changed since server commit:"; printf '%s\n' "$changed" | head -n 40
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+  ui:
+    needs: plan
+    if: needs.plan.outputs.mode == 'ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build board UI
+        env:
+          PAPERCLIP_BUILD_COMMIT: ${{ github.sha }}
+        run: pnpm --filter @paperclipai/ui build
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Publish on the VPS
+        env:
+          VPS: ${{ secrets.VPS_HOST }}
+        run: |
+          tar -C ui/dist -czf ui-dist.tar.gz .
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$VPS" "mkdir -p $DEPLOY_HOME"
+          scp -i ~/.ssh/deploy_key -o BatchMode=yes scripts/cosmonido/vps/*.sh ui-dist.tar.gz "$VPS:$DEPLOY_HOME/"
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$VPS" "bash $DEPLOY_HOME/publish-ui.sh $DEPLOY_HOME/ui-dist.tar.gz" | tee publish.log
+          tail -n 1 publish.log | grep -q DEPLOY_OK
+
+  full:
+    needs: plan
+    if: needs.plan.outputs.mode == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Ship the commit to the VPS
+        env:
+          VPS: ${{ secrets.VPS_HOST }}
+        run: |
+          vps() { ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$VPS" "$@"; }
+          remote=$(vps "git -C /root/paperclip rev-parse HEAD")
+          git branch -f deploy-head HEAD
+          if git cat-file -e "$remote^{commit}" 2>/dev/null && git merge-base --is-ancestor "$remote" HEAD; then
+            [ "$remote" = "$(git rev-parse HEAD)" ] || git bundle create deploy.bundle "$remote..deploy-head"
+          else
+            git bundle create deploy.bundle deploy-head
+          fi
+          vps "mkdir -p $DEPLOY_HOME/logs"
+          scp -i ~/.ssh/deploy_key -o BatchMode=yes scripts/cosmonido/vps/*.sh "$VPS:$DEPLOY_HOME/"
+          if [ -f deploy.bundle ]; then
+            scp -i ~/.ssh/deploy_key -o BatchMode=yes deploy.bundle "$VPS:$DEPLOY_HOME/deploy.bundle"
+            vps "set -e; cd /root/paperclip; git fetch -q $DEPLOY_HOME/deploy.bundle deploy-head; git checkout -q --detach FETCH_HEAD; rm -f $DEPLOY_HOME/deploy.bundle"
+          fi
+          vps "git -C /root/paperclip rev-parse HEAD"
+      - name: Build, swap and verify on the VPS
+        env:
+          VPS: ${{ secrets.VPS_HOST }}
+        run: |
+          vps() { ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ServerAliveInterval=30 "$VPS" "$@"; }
+          logf="$DEPLOY_HOME/logs/${GITHUB_SHA}.log"
+          # Detached on the VPS so a dropped SSH session cannot leave a half-done swap.
+          vps "nohup bash $DEPLOY_HOME/activate.sh $GITHUB_SHA > $logf 2>&1 < /dev/null &"
+          for _ in $(seq 1 140); do
+            sleep 30
+            last=$(vps "tail -n 1 $logf" || true)
+            echo "$last"
+            case "$last" in *DEPLOY_OK*|*DEPLOY_FAILED*) break ;; esac
+          done
+          vps "cat $logf"
+          vps "tail -n 1 $logf" | grep -q DEPLOY_OK
