@@ -7,7 +7,7 @@ import { businessNavigationKey } from "@/hooks/useBusinessNavigation";
 import { setExperimentalFlags } from "../../../fixtures/experimentalFlags";
 import { STORYBOOK_COMPANY_ID } from "../../../fixtures/onboardingDraft";
 import { storybookAuthSession } from "../../../fixtures/paperclipData";
-import { ProposedSidebar } from "../../../product-map/ProposedSidebar";
+import { PolishedSidebar } from "../../../product-map/PolishedSidebar";
 import { SIDEBAR_PROPOSAL } from "../../../product-map/sidebar-proposal";
 
 interface CurrentSidebarArgs {
@@ -105,8 +105,8 @@ export const Actual: StoryObj<CurrentSidebarArgs> = {
 export const Propuesta: StoryObj = {
   parameters: { initialEntries: ["/PAP/dashboard"] },
   render: () => (
-    <Column title="Propuesta" note="Se dibuja desde storybook/product-map/sidebar-proposal.ts.">
-      <ProposedSidebar sections={SIDEBAR_PROPOSAL} />
+    <Column title="Propuesta" note="Pulsa los enlaces y pliega las secciones para ver las animaciones. Lista: product-map/sidebar-proposal.ts.">
+      <PolishedSidebar sections={SIDEBAR_PROPOSAL} />
     </Column>
   ),
 };
@@ -120,8 +120,8 @@ export const Comparar: StoryObj<CurrentSidebarArgs> = {
       <Column title="Actual" note="Producción (sidebar nueva).">
         <CurrentSidebar {...args} />
       </Column>
-      <Column title="Propuesta" note="sidebar-proposal.ts">
-        <ProposedSidebar sections={SIDEBAR_PROPOSAL} />
+      <Column title="Propuesta" note="Pulsa los enlaces y pliega las secciones.">
+        <PolishedSidebar sections={SIDEBAR_PROPOSAL} />
       </Column>
     </div>
   ),
