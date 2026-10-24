@@ -622,7 +622,7 @@ describe("NewIssueDialog", () => {
     mockAgentsApi.list.mockResolvedValue(defaultAgents);
     const { root } = renderDialog(container);
     await waitForAssertion(() => expect(container.querySelector('[data-testid="task-chat-composer-assignee-label"]')?.textContent).toBe("CEO"));
-    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Select assignee"]')!.click());
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Elegir responsable"]')!.click());
     const me = [...container.querySelectorAll<HTMLButtonElement>('[role="option"]')].find((button) => button.textContent?.includes("Me"))!;
     act(() => me.click());
     expect(localStorage.getItem("paperclip:recent-assignees:company-1")).toContain("user:user-1");
@@ -648,7 +648,7 @@ describe("NewIssueDialog", () => {
     mockAgentsApi.list.mockReturnValue(new Promise((resolve) => { resolveAgents = resolve; }));
     const { root } = renderDialog(container);
     await flush();
-    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Select assignee"]')!.click());
+    act(() => container.querySelector<HTMLButtonElement>('[aria-label="Elegir responsable"]')!.click());
     const me = [...container.querySelectorAll<HTMLButtonElement>('[role="option"]')].find((button) => button.textContent?.includes("Me"))!;
     act(() => me.click());
     resolveAgents(defaultAgents);
@@ -985,7 +985,7 @@ describe("NewIssueDialog", () => {
 
     const { root } = renderDialog(container);
     await waitForAssertion(() => {
-      expect(container.querySelector('[aria-label="Select model and effort"]')).not.toBeNull();
+      expect(container.querySelector('[aria-label="Elegir modelo y esfuerzo"]')).not.toBeNull();
       expect(container.querySelector('[aria-label="Effort"]')?.getAttribute("max")).toBe("6");
     });
     expect(container.textContent).not.toContain("Codex options");
@@ -1738,7 +1738,7 @@ describe("NewIssueDialog", () => {
       }));
     });
     expect(modeChip()?.getAttribute("data-pending-work-mode")).toBe("planning");
-    expect(modeChip()?.textContent).toContain("Plan mode");
+    expect(modeChip()?.textContent).toContain("Modo plan");
 
     await act(async () => {
       container.querySelector(".paperclip-task-chat-composer")?.dispatchEvent(new KeyboardEvent("keydown", {
@@ -1749,7 +1749,7 @@ describe("NewIssueDialog", () => {
       }));
     });
     expect(modeChip()?.getAttribute("data-pending-work-mode")).toBe("ask");
-    expect(modeChip()?.textContent).toContain("Ask mode");
+    expect(modeChip()?.textContent).toContain("Modo pregunta");
 
     await act(async () => {
       container.querySelector(".paperclip-task-chat-composer")?.dispatchEvent(new KeyboardEvent("keydown", {
@@ -2166,8 +2166,8 @@ describe("NewIssueDialog", () => {
       });
 
       expect(container.querySelector("[data-testid=task-chat-composer-add]")).not.toBeNull();
-      expect(workModeOption("ask")?.textContent).toContain("Ask mode");
-      expect(workModeOption("planning")?.textContent).toContain("Plan mode");
+      expect(workModeOption("ask")?.textContent).toContain("Modo pregunta");
+      expect(workModeOption("planning")?.textContent).toContain("Modo plan");
 
 
       act(() => root.unmount());

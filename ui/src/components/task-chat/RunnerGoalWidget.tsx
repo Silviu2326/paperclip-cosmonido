@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Flag, Loader2, Pause, Play, Pencil, Trash2 } from "lucide-react";
@@ -108,7 +109,7 @@ export function useRunnerGoalControl(issueId: string | null, agentId: string | n
         ...(action === "replace" ? { confirmReplace } : {}),
       });
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : "The goal action could not be applied.");
+      setActionError(error instanceof Error ? error.message : t("chatUi.theGoalActionCouldNotBeApplied", { defaultValue: "The goal action could not be applied." }));
       throw error;
     }
   }, [mutation, query]);
@@ -191,7 +192,7 @@ export function RunnerGoalWidget({ control }: { control: RunnerGoalControl }) {
   const mutationError = control.actionError ?? (control.mutation?.error instanceof Error
     ? control.mutation.error.message
     : control.mutation?.error
-      ? "The goal action could not be applied."
+      ? t("chatUi.theGoalActionCouldNotBeApplied", { defaultValue: "The goal action could not be applied." })
       : null);
   // Expansion controls the objective's detail, not whether an empty card exists.
   // In particular, a cleared goal must disappear even after it was expanded.
@@ -200,14 +201,14 @@ export function RunnerGoalWidget({ control }: { control: RunnerGoalControl }) {
   return (
     <section
       className="rounded-xl border border-border/80 bg-card/95 px-3 py-2 shadow-sm"
-      aria-label="Agent session goal"
+      aria-label={t("chatUi.agentSessionGoal", { defaultValue: "Agent session goal" })}
       data-testid="runner-goal-widget"
     >
       <div className="flex items-start gap-2">
         <Flag className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-semibold">Session goal</span>
+            <span className="text-xs font-semibold">{t("chatUi.sessionGoal", { defaultValue: "Session goal" })}</span>
             {goal ? (
               <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium capitalize" role="status">
                 {goal.status.replaceAll("_", " ")}
@@ -247,22 +248,22 @@ export function RunnerGoalWidget({ control }: { control: RunnerGoalControl }) {
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {goal && can("set") ? (
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.edit().catch(() => {})} aria-label="Edit goal">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.edit().catch(() => {})} aria-label={t("chatUi.editGoal", { defaultValue: "Edit goal" })}>
               <Pencil className="h-3.5 w-3.5" aria-hidden />
             </Button>
           ) : null}
           {goal?.status === "active" && can("pause") ? (
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.executeAction("pause").catch(() => {})} aria-label="Pause goal">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.executeAction("pause").catch(() => {})} aria-label={t("chatUi.pauseGoal", { defaultValue: "Pause goal" })}>
               <Pause className="h-3.5 w-3.5" aria-hidden />
             </Button>
           ) : null}
           {resumable && can("resume") ? (
-            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.executeAction("resume").catch(() => {})} aria-label="Resume goal">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => void control.executeAction("resume").catch(() => {})} aria-label={t("chatUi.resumeGoal", { defaultValue: "Resume goal" })}>
               <Play className="h-3.5 w-3.5" aria-hidden />
             </Button>
           ) : null}
           {goal && can("clear") ? (
-            <Button size="icon" variant="ghost" className={cn("h-7 w-7", "text-muted-foreground hover:text-destructive")} onClick={() => void control.executeAction("clear").catch(() => {})} aria-label="Clear goal">
+            <Button size="icon" variant="ghost" className={cn("h-7 w-7", "text-muted-foreground hover:text-destructive")} onClick={() => void control.executeAction("clear").catch(() => {})} aria-label={t("chatUi.clearGoal", { defaultValue: "Clear goal" })}>
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
             </Button>
           ) : null}
@@ -288,7 +289,7 @@ export function RunnerGoalWidget({ control }: { control: RunnerGoalControl }) {
               </DialogDescription>
             </DialogHeader>
             <label className="block space-y-2">
-              <span className="text-sm font-medium">Goal objective</span>
+              <span className="text-sm font-medium">{t("chatUi.goalObjective", { defaultValue: "Goal objective" })}</span>
               <Textarea
                 value={control.dialog?.objective ?? ""}
                 maxLength={4_000}

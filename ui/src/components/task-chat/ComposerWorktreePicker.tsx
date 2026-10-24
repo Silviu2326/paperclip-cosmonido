@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useMemo, type CSSProperties } from "react";
 import { Folder, GitBranch, GitBranchPlus, Monitor } from "lucide-react";
 import type { ExecutionWorkspaceSummary } from "@paperclipai/shared";
@@ -24,12 +25,12 @@ interface ComposerWorktreePickerProps {
   selectedWorkspaceLabel?: string;
 }
 
-const MODE_OPTIONS: WorktreeOption[] = [
-  { key: "isolated_workspace", value: "isolated_workspace", mode: "isolated_workspace", label: "New worktree", description: "Start in an isolated checkout." },
-  { key: "shared_workspace", value: "shared_workspace", mode: "shared_workspace", label: "Project workspace", description: "Use the project's shared checkout." },
-  { key: "operator_branch", value: "operator_branch", mode: "operator_branch", label: "New branch", description: "Create a branch in the project workspace." },
-  { key: "agent_default", value: "agent_default", mode: "agent_default", label: "Agent default", description: "Let the agent choose its workspace." },
-  { key: "inherit", value: "inherit", mode: "inherit", label: "Project default", description: "Use the project's worktree settings." },
+const modeOptions = (): WorktreeOption[] => [
+  { key: "isolated_workspace", value: "isolated_workspace", mode: "isolated_workspace", label: t("chatUi.newWorktree", { defaultValue: "New worktree" }), description: t("chatUi.startInAnIsolatedCheckout", { defaultValue: "Start in an isolated checkout." }) },
+  { key: "shared_workspace", value: "shared_workspace", mode: "shared_workspace", label: t("chatUi.projectWorkspace", { defaultValue: "Project workspace" }), description: t("chatUi.useTheProjectSSharedCheckout", { defaultValue: "Use the project's shared checkout." }) },
+  { key: "operator_branch", value: "operator_branch", mode: "operator_branch", label: t("chatUi.newBranch", { defaultValue: "New branch" }), description: t("chatUi.createABranchInTheProjectWorkspace", { defaultValue: "Create a branch in the project workspace." }) },
+  { key: "agent_default", value: "agent_default", mode: "agent_default", label: t("chatUi.agentDefault", { defaultValue: "Agent default" }), description: t("chatUi.letTheAgentChooseItsWorkspace", { defaultValue: "Let the agent choose its workspace." }) },
+  { key: "inherit", value: "inherit", mode: "inherit", label: t("chatUi.projectDefault", { defaultValue: "Project default" }), description: t("chatUi.useTheProjectSWorktreeSettings", { defaultValue: "Use the project's worktree settings." }) },
 ];
 
 /** Reuses the searchable selector and the existing workspace recency ordering. */
@@ -38,9 +39,9 @@ export function ComposerWorktreePicker({
   disabled, mobile, contentStyle, selectedWorkspaceLabel,
 }: ComposerWorktreePickerProps) {
   const groups = useMemo(() => [
-    { id: "new", options: [MODE_OPTIONS[0]!] },
+    { id: "new", options: [modeOptions()[0]!] },
     {
-      id: "reuse", label: "Reuse a worktree",
+      id: "reuse", label: t("chatUi.reuseAWorktree", { defaultValue: "Reuse a worktree" }),
       options: orderReusableExecutionWorkspaces(workspaces).map((workspace): WorktreeOption => ({
         key: `reuse:${workspace.id}`, value: `reuse:${workspace.id}`,
         workspaceId: workspace.id, mode: "reuse_existing", label: workspace.name,
@@ -49,8 +50,8 @@ export function ComposerWorktreePicker({
       })),
     },
     {
-      id: "other", label: "Other options",
-      options: MODE_OPTIONS.filter((option) => option.mode === "shared_workspace"
+      id: "other", label: t("chatUi.otherOptions", { defaultValue: "Other options" }),
+      options: modeOptions().filter((option) => option.mode === "shared_workspace"
         || (option.mode !== "isolated_workspace" && option.mode === mode)),
     },
   ], [mode, workspaces]);
@@ -61,11 +62,11 @@ export function ComposerWorktreePicker({
       value={value}
       groups={groups}
       onValueChange={(_, option) => onChange(option.mode, option.workspaceId ?? "")}
-      placeholder="Worktrees"
-      triggerAriaLabel="Worktrees"
-      mobileTitle="Worktrees"
+      placeholder={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
+      triggerAriaLabel={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
+      mobileTitle={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
       searchPlaceholder="Search worktrees..."
-      emptyMessage="No matching worktrees."
+      emptyMessage={t("chatUi.noMatchingWorktrees", { defaultValue: "No matching worktrees." })}
       disabled={disabled}
       modal={mobile}
       contentStyle={contentStyle}

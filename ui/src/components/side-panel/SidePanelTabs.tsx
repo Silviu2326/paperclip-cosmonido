@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   useEffect,
   useMemo,
@@ -130,7 +131,7 @@ export function SidePanelTabs({
   onReorderTabs,
   onAddTab,
   addControl,
-  addLabel = "Open a new tab",
+  addLabel = t("chatUi.openANewTab", { defaultValue: "Open a new tab" }),
   appearance = "default",
   className,
 }: SidePanelTabsProps) {

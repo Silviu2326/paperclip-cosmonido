@@ -3274,7 +3274,7 @@ describe("TaskChatThread blocker links", () => {
         "PAP-17427Verify the completed projection",
       ]);
       expect(notice.textContent).toContain(
-        "Now runningPAP-17426Restore live alias projection",
+        "En ejecución ahoraPAP-17426Restore live alias projection",
       );
       expect(
         notice.querySelector('a[href="/issues/PAP-17426"]'),

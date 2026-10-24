@@ -23,10 +23,10 @@ import {
 } from "@/lib/issue-filters";
 import { accentReadable, accentTint, brandAccent } from "@/lib/accent";
 import { relativeShort } from "@/lib/relative-short";
-import { useTranslation } from "@/i18n";
+import { t, useTranslation } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 import { Link } from "@/lib/router";
-import { cn, formatDate, relativeTime } from "@/lib/utils";
+import { cn, relativeTime } from "@/lib/utils";
 
 /**
  * The agent-scoped side panels shown beside an agent chat: every task the
@@ -41,11 +41,11 @@ const ARTIFACT_MAX_PAGES = 5;
 
 export type AgentTaskSortField = "updated" | "created" | "status" | "title";
 
-const SORT_OPTIONS: ReadonlyArray<[AgentTaskSortField, string]> = [
-  ["updated", "Last updated"],
-  ["created", "Created"],
-  ["status", "Status"],
-  ["title", "Title"],
+const sortOptions = (): ReadonlyArray<[AgentTaskSortField, string]> => [
+  ["updated", t("chatUi.lastUpdated", { defaultValue: "Last updated" })],
+  ["created", t("chatUi.created", { defaultValue: "Created" })],
+  ["status", t("chatUi.status", { defaultValue: "Status" })],
+  ["title", t("chatUi.title", { defaultValue: "Title" })],
 ];
 
 export function sortAgentTasks(
@@ -172,15 +172,15 @@ export function AgentTasksPanel({
   const capped = (tasksQuery.data?.length ?? 0) >= AGENT_TASK_LIMIT;
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Agent tasks">
+    <section className="flex flex-col gap-3" aria-label={t("chatUi.agentTasks", { defaultValue: "Agent tasks" })}>
       <div className="flex items-center gap-1">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search tasks"
-            aria-label="Search tasks"
+            placeholder={t("chatUi.searchTasks", { defaultValue: "Search tasks" })}
+            aria-label={t("chatUi.searchTasks", { defaultValue: "Search tasks" })}
             className="h-8 pl-7 text-sm"
           />
         </div>
@@ -196,13 +196,13 @@ export function AgentTasksPanel({
         />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Sort" aria-label="Sort tasks">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("chatUi.sort", { defaultValue: "Sort" })} aria-label={t("chatUi.sortTasks", { defaultValue: "Sort tasks" })}>
               <ArrowUpDown className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-48 p-0">
             <div className="space-y-0.5 p-2">
-              {SORT_OPTIONS.map(([field, label]) => (
+              {sortOptions().map(([field, label]) => (
                 <button
                   key={field}
                   type="button"
@@ -230,23 +230,23 @@ export function AgentTasksPanel({
       </div>
 
       {tasksQuery.isPending ? (
-        <PanelMessage>Loading tasks…</PanelMessage>
+        <PanelMessage>{t("chatUi.loadingTasks", { defaultValue: "Loading tasks…" })}</PanelMessage>
       ) : tasksQuery.isError ? (
-        <PanelMessage tone="error">Could not load this agent's tasks.</PanelMessage>
+        <PanelMessage tone="error">{t("chatUi.couldNotLoadThisAgentSTasks", { defaultValue: "Could not load this agent's tasks." })}</PanelMessage>
       ) : total === 0 ? (
-        <PanelMessage>This agent hasn't worked on any tasks yet.</PanelMessage>
+        <PanelMessage>{t("chatUi.thisAgentHasnTWorkedOnAnyTasksYet", { defaultValue: "This agent hasn't worked on any tasks yet." })}</PanelMessage>
       ) : visible.length === 0 ? (
         <PanelMessage>
           {capped
-            ? `No tasks match these filters among the ${AGENT_TASK_LIMIT} most recently updated.`
-            : "No tasks match these filters."}
+            ? t("chatUi.noTasksMatchCapped", { defaultValue: "No tasks match these filters among the {{count}} most recently updated.", count: AGENT_TASK_LIMIT })
+            : t("chatUi.noTasksMatchTheseFilters", { defaultValue: "No tasks match these filters." })}
         </PanelMessage>
       ) : (
         <div className="flex flex-col gap-2">
           {visible.map((task) => <AgentTaskCard key={task.id} task={task} />)}
           {capped ? (
             <p className="px-1 text-xs text-muted-foreground">
-              Showing the {AGENT_TASK_LIMIT} most recently updated tasks.
+              {t("chatUi.showingRecentTasks", { defaultValue: "Showing the {{count}} most recently updated tasks.", count: AGENT_TASK_LIMIT })}
             </p>
           ) : null}
         </div>
@@ -294,7 +294,7 @@ export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
           {artifact.title}
         </span>
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>Updated {formatDate(artifact.updatedAt)}</span>
+          <span>{t("chatUi.updatedOn", { defaultValue: "Updated {{date}}", date: new Date(artifact.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) })}</span>
           <span aria-hidden>·</span>
           <span className="font-mono">{artifact.issue.identifier}</span>
         </span>
@@ -328,15 +328,15 @@ const agentArtifactsQuery = (companyId: string, agentId: string) => ({
 export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string; agentId: string }) {
   const artifactsQuery = useQuery(agentArtifactsQuery(companyId, agentId));
 
-  if (artifactsQuery.isPending) return <PanelMessage>Loading artifacts…</PanelMessage>;
-  if (artifactsQuery.isError) return <PanelMessage tone="error">Could not load this agent's artifacts.</PanelMessage>;
+  if (artifactsQuery.isPending) return <PanelMessage>{t("chatUi.loadingArtifacts", { defaultValue: "Loading artifacts…" })}</PanelMessage>;
+  if (artifactsQuery.isError) return <PanelMessage tone="error">{t("chatUi.couldNotLoadThisAgentSArtifacts", { defaultValue: "Could not load this agent's artifacts." })}</PanelMessage>;
   const { artifacts, truncated } = artifactsQuery.data;
-  if (artifacts.length === 0) return <PanelMessage>This agent hasn't produced any artifacts yet.</PanelMessage>;
+  if (artifacts.length === 0) return <PanelMessage>{t("chatUi.thisAgentHasnTProducedAnyArtifactsYet", { defaultValue: "This agent hasn't produced any artifacts yet." })}</PanelMessage>;
   return (
-    <section className="flex flex-col gap-2" aria-label="Agent artifacts">
+    <section className="flex flex-col gap-2" aria-label={t("chatUi.agentArtifacts", { defaultValue: "Agent artifacts" })}>
       {artifacts.map((artifact) => <AgentArtifactCard key={artifact.id} artifact={artifact} />)}
       {truncated ? (
-        <p className="px-1 text-xs text-muted-foreground">Showing this agent's {artifacts.length} most recent artifacts.</p>
+        <p className="px-1 text-xs text-muted-foreground">{t("chatUi.showingRecentArtifacts", { defaultValue: "Showing this agent's {{count}} most recent artifacts.", count: artifacts.length })}</p>
       ) : null}
     </section>
   );
@@ -349,8 +349,8 @@ function useAgentWorkCounts(companyId: string, agentId: string, excludeIssueId?:
   const tasks = useQuery(agentTasksQuery(companyId, agentId));
   const artifacts = useQuery(agentArtifactsQuery(companyId, agentId));
   return {
-    tasks: tasks.data ? tasks.data.filter((task) => task.id !== excludeIssueId && task.status !== "done" && task.status !== "cancelled").length : null,
-    artifacts: artifacts.data ? artifacts.data.artifacts.length : null,
+    tasks: Array.isArray(tasks.data) ? tasks.data.filter((task) => task.id !== excludeIssueId && task.status !== "done" && task.status !== "cancelled").length : null,
+    artifacts: Array.isArray(artifacts.data?.artifacts) ? artifacts.data.artifacts.length : null,
   };
 }
 

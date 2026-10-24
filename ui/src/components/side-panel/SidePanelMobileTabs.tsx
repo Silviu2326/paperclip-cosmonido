@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,7 @@ export function SidePanelMobileTabs({ tabs, activeTabId, onActiveTabChange, onCl
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          aria-label="Open tabs"
+          aria-label={t("chatUi.openTabs", { defaultValue: "Open tabs" })}
           align="start"
           className="w-(--side-panel-mobile-tabs-width) max-w-(--radix-popover-content-available-width) p-2"
           onOpenAutoFocus={(event) => {
@@ -62,12 +63,12 @@ export function SidePanelMobileTabs({ tabs, activeTabId, onActiveTabChange, onCl
           }}
           onCloseAutoFocus={(event) => {
             if (tabs.length !== 0) return;
-            const addButton = headerRef.current?.querySelector<HTMLButtonElement>('[aria-label="Open a new tab"]');
+            const addButton = headerRef.current?.querySelector<HTMLButtonElement>(`[aria-label="${t("chatUi.openANewTab", { defaultValue: "Open a new tab" })}"]`);
             if (addButton) { event.preventDefault(); addButton.focus(); }
           }}
         >
-          <p className="px-2 py-2 text-xs font-medium text-muted-foreground">Open tabs</p>
-          <ul ref={listRef} aria-label="Open tabs" className="max-h-(--side-panel-mobile-tabs-max-height) overflow-y-auto overscroll-contain">
+          <p className="px-2 py-2 text-xs font-medium text-muted-foreground">{t("chatUi.openTabs", { defaultValue: "Open tabs" })}</p>
+          <ul ref={listRef} aria-label={t("chatUi.openTabs", { defaultValue: "Open tabs" })} className="max-h-(--side-panel-mobile-tabs-max-height) overflow-y-auto overscroll-contain">
             {tabs.map((tab) => (
               <li key={tab.id} className={cn("flex items-center rounded-md", tab.id === activeTabId && "bg-muted")}>
                 <button

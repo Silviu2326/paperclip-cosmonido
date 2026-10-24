@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
@@ -466,13 +467,13 @@ function QuestionFormForRequest({
     questionSet.questions.length > 1 ? (
       <nav
         className="flex shrink-0 items-center gap-1"
-        aria-label="Question pagination"
+        aria-label={t("chatUi.questionPagination", { defaultValue: "Question pagination" })}
       >
         <Button
           type="button"
           size="icon-xs"
           variant="ghost"
-          aria-label="Previous question"
+          aria-label={t("chatUi.previousQuestion", { defaultValue: "Previous question" })}
           disabled={disabled || working != null || page === 0}
           onClick={() => setPage((current) => current - 1)}
         >
@@ -485,7 +486,7 @@ function QuestionFormForRequest({
           type="button"
           size="icon-xs"
           variant="ghost"
-          aria-label="Next question"
+          aria-label={t("chatUi.nextQuestion", { defaultValue: "Next question" })}
           // The arrows browse; they do not validate. A send that finds an
           // earlier answer missing returns to that question (see submit).
           disabled={disabled || working != null || isLastPage}
@@ -532,7 +533,7 @@ function QuestionFormForRequest({
       {questionSet.description ? (
         <div
           role="region"
-          aria-label="Question context"
+          aria-label={t("chatUi.questionContext", { defaultValue: "Question context" })}
           tabIndex={0}
           className="mb-3 max-h-96 overflow-auto text-sm text-muted-foreground"
         >
@@ -541,7 +542,7 @@ function QuestionFormForRequest({
       ) : null}
       {question.answerMode === "text" ? (
         <div className="mb-2 flex items-center gap-3 text-xs text-muted-foreground">
-          {question.answerMode === "text" ? <span>Write an answer</span> : null}
+          {question.answerMode === "text" ? <span>{t("chatUi.writeAnAnswer", { defaultValue: "Write an answer" })}</span> : null}
         </div>
       ) : null}
       {pagination ? (
@@ -583,7 +584,7 @@ function QuestionFormForRequest({
             value={answer.text ?? ""}
             disabled={disabled || working != null}
             onChange={(value) => updateAnswer({ text: value })}
-            placeholder="Write your answer"
+            placeholder={t("chatUi.writeYourAnswer", { defaultValue: "Write your answer" })}
             imageUploadHandler={imageUploadHandler}
             mentions={mentions}
             autoFocus
@@ -614,7 +615,7 @@ function QuestionFormForRequest({
                     [question.id]: event.target.value,
                   }))
                 }
-                placeholder="Filter choices"
+                placeholder={t("chatUi.filterChoices", { defaultValue: "Filter choices" })}
                 aria-label={`Filter choices for ${question.prompt}`}
                 className="pl-8"
               />

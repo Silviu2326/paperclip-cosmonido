@@ -126,3 +126,9 @@ describe("agent work panels", () => {
     expect(cards[0]?.textContent).toContain("Updated");
   });
 });
+
+// These tests assert English copy; the app's default language is Spanish.
+import { afterAll as afterAllEn, beforeAll as beforeAllEn } from "vitest";
+import { i18n as i18nEn } from "@/i18n";
+beforeAllEn(async () => { await i18nEn.changeLanguage("en"); });
+afterAllEn(async () => { await i18nEn.changeLanguage("es"); });

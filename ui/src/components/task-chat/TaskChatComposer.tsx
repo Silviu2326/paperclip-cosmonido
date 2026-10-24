@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { AgentAvatar } from "../AgentAvatar";
 import {
   useEffect,
@@ -721,7 +722,7 @@ export function TaskChatComposer({
             ? {
                 ...item,
                 status: "error",
-                error: err instanceof Error ? err.message : "Upload failed",
+                error: err instanceof Error ? err.message : t("chatUi.uploadFailed", { defaultValue: "Upload failed" }),
               }
             : item,
         ),
@@ -776,7 +777,7 @@ export function TaskChatComposer({
             ? {
                 ...item,
                 status: "error",
-                error: err instanceof Error ? err.message : "Upload failed",
+                error: err instanceof Error ? err.message : t("chatUi.uploadFailed", { defaultValue: "Upload failed" }),
               }
             : item,
         ),
@@ -895,7 +896,7 @@ export function TaskChatComposer({
       try {
         await creation.onSubmit(bodyRef.current, pendingMode, runSettings);
       } catch (error) {
-        setActionError(error instanceof Error ? error.message : "Failed to create task. Try again.");
+        setActionError(error instanceof Error ? error.message : t("chatUi.failedToCreateTaskTryAgain", { defaultValue: "Failed to create task. Try again." }));
       } finally {
         submittingRef.current = false;
         setSubmitting(false);
@@ -1258,7 +1259,7 @@ export function TaskChatComposer({
           className="flex h-11 min-w-0 items-center gap-2 px-2.5"
           data-testid="task-chat-composer-context"
           role="group"
-          aria-label="Task project and worktrees"
+          aria-label={t("chatUi.taskProjectAndWorktrees", { defaultValue: "Task project and worktrees" })}
         >
           {creation.contextBar}
         </TaskChatComposerBar>
@@ -1363,7 +1364,7 @@ export function TaskChatComposer({
               mentions={mentions}
               actionCommands={creation ? [] : conversationMode ? [{
                 id: "action:new", kind: "action", command: "new", name: "New session",
-                description: "Start fresh context here, preserving conversation history.", aliases: ["new"],
+                description: t("chatUi.startFreshContextHerePreservingConversatio", { defaultValue: "Start fresh context here, preserving conversation history." }), aliases: ["new"],
                 disabled,
               }] : [goalCommandOption]}
               onSubmit={() => void submit()}
@@ -1427,7 +1428,7 @@ export function TaskChatComposer({
                         {attachment.status === "uploading"
                           ? "Uploading…"
                           : attachment.status === "error"
-                            ? (attachment.error ?? "Upload failed")
+                            ? (attachment.error ?? t("chatUi.uploadFailed", { defaultValue: "Upload failed" }))
                             : [kind.label, sizeLabel]
                                 .filter(Boolean)
                                 .join(" · ")}
@@ -1517,11 +1518,11 @@ export function TaskChatComposer({
               <InlineEntitySelector
                 value={assigneeValue}
                 options={reassignOptions ?? []}
-                placeholder="Assignee"
+                placeholder={t("chatUi.assignee", { defaultValue: "Assignee" })}
                 mobileTitle="Select assignee"
                 noneLabel="No assignee"
                 searchPlaceholder="Search assignees…"
-                emptyMessage="No matches."
+                emptyMessage={t("chatUi.noMatches", { defaultValue: "No matches." })}
                 onChange={updatePendingAssignee}
                 disabled={disabled}
                 triggerTestId="task-chat-composer-assignee"

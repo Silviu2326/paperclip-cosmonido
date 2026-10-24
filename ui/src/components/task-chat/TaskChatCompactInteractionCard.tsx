@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   useEffect,
   useMemo,
@@ -87,33 +88,33 @@ export interface TaskChatCompactInteractionCardProps extends SharedInteractionPr
 
 const KIND_COPY = {
   suggest_tasks: {
-    fallbackTitle: "Suggested tasks",
-    label: "Tasks",
+    get fallbackTitle() { return t("chatUi.suggestedTasks", { defaultValue: "Suggested tasks" }); },
+    get label() { return t("chatUi.tasks", { defaultValue: "Tasks" }); },
     icon: GitBranch,
   },
   ask_user_questions: {
-    fallbackTitle: "Questions",
-    label: "Questions",
+    get fallbackTitle() { return t("chatUi.questions", { defaultValue: "Questions" }); },
+    get label() { return t("chatUi.questions", { defaultValue: "Questions" }); },
     icon: CircleHelp,
   },
   request_confirmation: {
-    fallbackTitle: "Confirmation",
-    label: "Confirmation",
+    get fallbackTitle() { return t("chatUi.confirmation", { defaultValue: "Confirmation" }); },
+    get label() { return t("chatUi.confirmation", { defaultValue: "Confirmation" }); },
     icon: CheckCircle2,
   },
   request_checkbox_confirmation: {
-    fallbackTitle: "Choose options",
-    label: "Selection",
+    get fallbackTitle() { return t("chatUi.chooseOptions", { defaultValue: "Choose options" }); },
+    get label() { return t("chatUi.selection", { defaultValue: "Selection" }); },
     icon: ListChecks,
   },
   request_item_verdicts: {
-    fallbackTitle: "Review items",
-    label: "Review",
+    get fallbackTitle() { return t("chatUi.reviewItems", { defaultValue: "Review items" }); },
+    get label() { return t("chatUi.review", { defaultValue: "Review" }); },
     icon: MessageSquareQuote,
   },
   connection_intent: {
-    fallbackTitle: "Connect service",
-    label: "Connection",
+    get fallbackTitle() { return t("chatUi.connectService", { defaultValue: "Connect service" }); },
+    get label() { return t("chatUi.connection", { defaultValue: "Connection" }); },
     icon: Plug,
   },
 } as const;
@@ -1464,7 +1465,7 @@ function SuggestedTasksCard({
       ) : null}
       <ul
         className="mt-2 max-h-(--sz-28dvh) overflow-y-auto scrollbar-auto-hide"
-        aria-label="Suggested tasks"
+        aria-label={t("chatUi.suggestedTasks", { defaultValue: "Suggested tasks" })}
       >
         {visibleRoots.map((node) => (
           <SuggestedTaskRow
