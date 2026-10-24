@@ -1,3 +1,4 @@
+import { AgentGreeting } from "@/components/chat/AgentGreeting";
 import {
   ISSUE_DETAIL_CONTENT_PAINT_MARK,
   ISSUE_DETAIL_CONTENT_MEASURE,
@@ -3038,9 +3039,13 @@ export function TaskChatThread(props: TaskChatThreadProps) {
                         {threadHeaderWithBlockers}
                       </div>
                     ) : null}
-                    <div className="px-3 py-10 text-center text-sm text-muted-foreground">
-                      {emptyMessage}
-                    </div>
+                    {conversationMode && issueAssigneeAgentId && agentMap?.get(issueAssigneeAgentId) ? (
+                      <AgentGreeting agent={agentMap.get(issueAssigneeAgentId)!} />
+                    ) : (
+                      <div className="px-3 py-10 text-center text-sm text-muted-foreground">
+                        {emptyMessage}
+                      </div>
+                    )}
                     {bottomBlockerLinks ? (
                       <div
                         className={cn(

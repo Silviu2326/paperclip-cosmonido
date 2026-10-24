@@ -21,7 +21,7 @@ Agent access: [companion](../agent-access-map/agent-chat.md).
 
 ### `agent-conversation`
 
-Open `/chats`, choose an agent, or use `/chats/:agentRef` and its conversation sidebar.
+Open `/chats`, choose an agent, or use `/chats/:agentRef` and its conversation sidebar. The sidebar lists starred agents first, shows each agent's status dot, last activity and preview, and filters between everyone and those answering now. An empty conversation greets with the agent's name and role; a failed load offers Retry in place, and a 403 shows a no-access notice.
 
 ### `project-handoff`
 

@@ -19,6 +19,27 @@
 import { s90MessagesEn, s90MessagesEs, s90MessagesPt } from "./s90-messages";
 
 const baseProductizationMessagesEn = {
+  agentChat: {
+    greetingTitle: "Talk to {{name}}",
+    greetingText: "{{role}}. Tell them what you need and they will create the tasks for you.",
+  },
+  agentChats: {
+    chooseTitle: "Choose who to talk to",
+    chooseText: "Each agent keeps a single conversation with you, with their tasks and files beside it.",
+    noAgentsTitle: "You have no agents to talk to yet",
+    addAgentButton: "Add agent",
+    errorTitle: "We couldn't load your conversations",
+    errorText: "The chat couldn't connect. Your data is safe; try again in a few seconds.",
+    retrying: "Retrying…",
+    noAccessTitle: "You don't have access to agent chat",
+    noAccessText: "Your role doesn't include this permission. Ask a company administrator for it; the rest of the app stays available meanwhile.",
+  },
+  agentConversationSidebar: {
+    filters: "Filter agents",
+    filterAll: "All",
+    filterWorking: "Working",
+    favorites: "Favorites",
+  },
   uxCrm: {
     list: {
       "people": "People",
@@ -670,6 +691,27 @@ const baseProductizationMessagesEn = {
 type Translated<T> = { [K in keyof T]: T[K] extends string ? string : Translated<T[K]> };
 
 const baseProductizationMessagesEs: Translated<typeof baseProductizationMessagesEn> = {
+  agentChat: {
+    greetingTitle: "Habla con {{name}}",
+    greetingText: "{{role}}. Cuéntale qué necesitas y creará los encargos por ti.",
+  },
+  agentChats: {
+    chooseTitle: "Elige con quién hablar",
+    chooseText: "Cada agente guarda una sola conversación contigo, con sus encargos y archivos al lado.",
+    noAgentsTitle: "Aún no tienes agentes con quien hablar",
+    addAgentButton: "Añadir agente",
+    errorTitle: "No se pudo cargar tus conversaciones",
+    errorText: "El chat no pudo conectarse. Tus datos están a salvo; vuelve a intentarlo en unos segundos.",
+    retrying: "Reintentando…",
+    noAccessTitle: "No tienes acceso al chat con agentes",
+    noAccessText: "Tu rol no incluye este permiso. Pídeselo a un administrador de la empresa; mientras tanto el resto de la aplicación sigue disponible.",
+  },
+  agentConversationSidebar: {
+    filters: "Filtrar agentes",
+    filterAll: "Todos",
+    filterWorking: "Trabajando",
+    favorites: "Favoritos",
+  },
   uxCrm: {
     list: {
       "people": "Personas",
@@ -1323,6 +1365,27 @@ const baseProductizationMessagesEs: Translated<typeof baseProductizationMessages
  * the S4 keys; the existing pt-PT.json messages are preserved by the merge.
  */
 const baseProductizationMessagesPt: Translated<typeof baseProductizationMessagesEn> = {
+  agentChat: {
+    greetingTitle: "Fale com {{name}}",
+    greetingText: "{{role}}. Conte o que você precisa e ele criará as tarefas por você.",
+  },
+  agentChats: {
+    chooseTitle: "Escolha com quem falar",
+    chooseText: "Cada agente guarda uma única conversa com você, com as tarefas e os arquivos ao lado.",
+    noAgentsTitle: "Você ainda não tem agentes para conversar",
+    addAgentButton: "Adicionar agente",
+    errorTitle: "Não foi possível carregar suas conversas",
+    errorText: "O chat não conseguiu se conectar. Seus dados estão seguros; tente de novo em alguns segundos.",
+    retrying: "Tentando de novo…",
+    noAccessTitle: "Você não tem acesso ao chat com agentes",
+    noAccessText: "Seu perfil não inclui esta permissão. Peça a um administrador da empresa; enquanto isso, o resto do aplicativo continua disponível.",
+  },
+  agentConversationSidebar: {
+    filters: "Filtrar agentes",
+    filterAll: "Todos",
+    filterWorking: "Trabalhando",
+    favorites: "Favoritos",
+  },
   uxCrm: {
     list: {
       "people": "Pessoas",

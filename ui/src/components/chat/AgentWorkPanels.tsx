@@ -6,7 +6,7 @@ import { artifactsApi } from "@/api/artifacts";
 import { issuesApi } from "@/api/issues";
 import { projectsApi } from "@/api/projects";
 import { IssueFiltersPopover } from "@/components/IssueFiltersPopover";
-import { StatusIcon } from "@/components/StatusIcon";
+import { StatusIcon, statusLabel } from "@/components/StatusIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +17,9 @@ import {
   issueStatusOrder,
   type IssueFilterState,
 } from "@/lib/issue-filters";
+import { accentReadable, accentTint, brandAccent } from "@/lib/accent";
+import { relativeShort } from "@/lib/relative-short";
+import { useTranslation } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 import { Link } from "@/lib/router";
 import { cn, formatDate, relativeTime } from "@/lib/utils";
@@ -70,9 +73,31 @@ function PanelMessage({ children, tone = "muted" }: { children: React.ReactNode;
 }
 
 const cardClassName =
-  "flex flex-col gap-1 rounded-lg border border-border bg-card p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex flex-col gap-1.5 rounded-xl border border-border bg-card p-3 transition-[border-color,transform] duration-(--motion-duration-fast) hover:-translate-y-0.5 hover:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+const STATUS_ACCENT: Record<string, string> = {
+  in_progress: brandAccent(7),
+  in_review: brandAccent(10),
+  blocked: brandAccent(10),
+  done: brandAccent(8),
+};
+
+/** Status as a tinted pill, so the state of each task reads before its title does. */
+function TaskStatusPill({ task }: { task: Issue }) {
+  const accent = STATUS_ACCENT[task.status];
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
+      style={accent ? { background: accentTint(accent, 18), color: accentReadable(accent) } : { background: "var(--muted)" }}
+    >
+      <StatusIcon status={task.status} blockerAttention={task.blockerAttention} />
+      {statusLabel(task.status)}
+    </span>
+  );
+}
 
 export function AgentTaskCard({ task }: { task: Issue }) {
+  const { i18n } = useTranslation();
   return (
     <Link
       // design-allow(card-pattern): navigation <Link> card; Card renders a div and would break anchor semantics
@@ -83,23 +108,14 @@ export function AgentTaskCard({ task }: { task: Issue }) {
       data-testid="agent-task-card"
       className={cardClassName}
     >
-      <div className="flex min-w-0 items-start gap-2">
-        <StatusIcon
-          status={task.status}
-          blockerAttention={task.blockerAttention}
-          className="mt-0.5 shrink-0"
-        />
-        <span className="min-w-0 flex-1 line-clamp-2 text-sm font-medium text-foreground">
-          {task.title}
-        </span>
-      </div>
-      <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
+      <span className="line-clamp-2 text-sm font-medium text-foreground">{task.title}</span>
+      <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="font-mono">{task.identifier ?? task.id.slice(0, 8)}</span>
-        <span aria-hidden>·</span>
-        <time dateTime={new Date(task.updatedAt).toISOString()} title={new Date(task.updatedAt).toLocaleString()}>
-          {relativeTime(task.updatedAt)}
+        <TaskStatusPill task={task} />
+        <time className="ml-auto" dateTime={new Date(task.updatedAt).toISOString()} title={new Date(task.updatedAt).toLocaleString()}>
+          {relativeShort(task.updatedAt, i18n.language) ?? relativeTime(task.updatedAt)}
         </time>
-      </div>
+      </span>
     </Link>
   );
 }
@@ -233,15 +249,26 @@ export function AgentTasksPanel({
   );
 }
 
-function ArtifactKindIcon({ artifact }: { artifact: CompanyArtifact }) {
-  const className = "mt-0.5 h-4 w-4 shrink-0 text-muted-foreground";
-  switch (artifact.mediaKind) {
-    case "image": return <Image className={className} aria-hidden />;
-    case "video": return <Video className={className} aria-hidden />;
-    case "text":
-    case "document": return <FileText className={className} aria-hidden />;
-    default: return <File className={className} aria-hidden />;
-  }
+const ARTIFACT_KINDS = {
+  image: { icon: Image, accent: brandAccent(2) },
+  video: { icon: Video, accent: brandAccent(8) },
+  text: { icon: FileText, accent: brandAccent(7) },
+  document: { icon: FileText, accent: brandAccent(7) },
+} as const;
+
+function ArtifactKindTile({ artifact }: { artifact: CompanyArtifact }) {
+  const kind = ARTIFACT_KINDS[artifact.mediaKind as keyof typeof ARTIFACT_KINDS];
+  const Icon = kind?.icon ?? File;
+  const accent = kind?.accent ?? brandAccent(10);
+  return (
+    <span
+      aria-hidden
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+      style={{ background: accentTint(accent, 28), color: accentReadable(accent) }}
+    >
+      <Icon className="h-4 w-4" />
+    </span>
+  );
 }
 
 export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
@@ -253,19 +280,19 @@ export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
       target="_blank"
       rel="noreferrer"
       data-testid="agent-artifact-card"
-      className={cardClassName}
+      className={cn(cardClassName, "flex-row items-center gap-3")}
     >
-      <div className="flex min-w-0 items-start gap-2">
-        <ArtifactKindIcon artifact={artifact} />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground" title={artifact.title}>
+      <ArtifactKindTile artifact={artifact} />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-foreground" title={artifact.title}>
           {artifact.title}
         </span>
-      </div>
-      <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
-        <span>Updated {formatDate(artifact.updatedAt)}</span>
-        <span aria-hidden>·</span>
-        <span className="font-mono">{artifact.issue.identifier}</span>
-      </div>
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>Updated {formatDate(artifact.updatedAt)}</span>
+          <span aria-hidden>·</span>
+          <span className="font-mono">{artifact.issue.identifier}</span>
+        </span>
+      </span>
     </Link>
   );
 }
