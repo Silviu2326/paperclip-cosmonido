@@ -24,6 +24,7 @@ import {
   FolderOutput,
   FolderPlus,
   Laptop,
+  MoreHorizontal,
   LayoutGrid,
   List,
   Lock,
@@ -32,6 +33,7 @@ import {
   Search,
   Send,
   Share2,
+  SlidersHorizontal,
   Sparkles,
   Star,
   Trash2,
@@ -166,7 +168,7 @@ type Row =
   | { kind: "file"; file: DemoFile; place: string; locked: boolean };
 type Item = { type: "group"; label: string; count: number } | { type: "row"; row: Row };
 
-const GRID = "grid items-center gap-x-3 sm:grid-cols-[22px_minmax(0,2.2fr)_110px_minmax(0,0.9fr)_80px_130px] lg:grid-cols-[22px_minmax(0,2.2fr)_110px_minmax(0,0.9fr)_80px_130px_minmax(0,1fr)] grid-cols-[22px_minmax(0,1fr)_84px]";
+const GRID = "grid items-center gap-x-3 grid-cols-[22px_minmax(0,1fr)_84px] sm:grid-cols-[22px_minmax(0,1fr)_100px_130px_76px]";
 
 const TYPE_CHIPS: [FileKind | "all", string][] = [["all", "Todo"], ["image", "Imágenes"], ["video", "Vídeos"], ["document", "Documentos"], ["audio", "Audio"], ["spreadsheet", "Hojas"]];
 
@@ -196,9 +198,9 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
   const [groupBy, setGroupBy] = useState<GroupBy>("none");
   const [agentFilter, setAgentFilter] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set(config.selectedId ? [config.selectedId] : []));
-  const [anchor, setAnchor] = useState<string | null>(config.selectedId);
-  const [previewId, setPreviewId] = useState<string | null>(config.selectedId);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [anchor, setAnchor] = useState<string | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [limit, setLimit] = useState(60);
   const [dragging, setDragging] = useState(false);
   const [dragIds, setDragIds] = useState<string[] | null>(null);
@@ -207,6 +209,8 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
   const [menu, setMenu] = useState<{ x: number; y: number; row: Row } | null>(null);
   const [computerOpen, setComputerOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [urlOpen, setUrlOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -220,13 +224,13 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
   const toastTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
-    if (!menu && !importOpen) return;
-    const close = () => { setMenu(null); setImportOpen(false); };
+    if (!menu && !importOpen && !filtersOpen && !bulkOpen && !computerOpen) return;
+    const close = () => { setMenu(null); setImportOpen(false); setFiltersOpen(false); setBulkOpen(false); setComputerOpen(false); };
     const onKey = (event: globalThis.KeyboardEvent) => { if (event.key === "Escape") close(); };
     window.addEventListener("click", close);
     window.addEventListener("keydown", onKey);
     return () => { window.removeEventListener("click", close); window.removeEventListener("keydown", onKey); };
-  }, [menu, importOpen]);
+  }, [menu, importOpen, filtersOpen, bulkOpen, computerOpen]);
 
   const say = (text: string, undo?: () => void) => {
     window.clearTimeout(toastTimer.current);
@@ -338,9 +342,11 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
     reset();
     const target = folders.find((candidate) => candidate.id === id);
     if (target) setRoot(target.root);
+    if (target?.parentId && view === "activity") setView("details");
     setOpen((current) => new Set([...current, ...folderChain(folders, id).map((item) => item.id)]));
   }
-  function switchRoot(next: Root) { if (next !== root) go(next); }
+  // Salida opens on what the team did; Entrada opens on the folders.
+  function switchRoot(next: Root) { if (next !== root) { go(next); setView(next === "out" ? "activity" : "details"); } }
   function goBack() { const previous = history.back.at(-1); if (!previous) return; setHistory({ back: history.back.slice(0, -1), forward: [folderId, ...history.forward] }); go(previous, false); }
   function goForward() { const next = history.forward[0]; if (!next) return; setHistory({ back: [...history.back, folderId], forward: history.forward.slice(1) }); go(next, false); }
   function goUp() { if (folder.parentId) go(folder.parentId); }
@@ -519,10 +525,8 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
             {renaming === row.folder.id ? renameInput(row.folder.id, row.folder.name) : <button data-row type="button" onClick={() => go(row.folder.id)} className="min-w-0 flex-1 truncate rounded-md text-left text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring">{row.folder.name}</button>}
           </span>
           <span className="text-xs text-muted-foreground">—</span>
-          <span className="hidden text-xs text-muted-foreground sm:block">Carpeta</span>
-          <span className="hidden text-xs text-muted-foreground sm:block">{row.locked ? "Privada" : `${row.count} elem.`}</span>
           <span className="hidden text-xs text-muted-foreground sm:block">—</span>
-          <span className="hidden lg:block" />
+          <span className="hidden text-xs text-muted-foreground sm:block">{row.locked ? "Privada" : `${row.count} elem.`}</span>
         </motion.div>
       );
     }
@@ -543,10 +547,7 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
                 {renaming === file.id ? renameInput(file.id, file.name) : <span className="truncate text-sm font-medium">{file.name}</span>}
-                {minutes <= 180 && !trashed ? <NewBadge /> : null}
-                {row.locked ? <Pill color={ACCENT.lilac}><Lock className="h-3 w-3" />Privado</Pill> : null}
-                {file.contextRole ? <Pill color={ROLE[file.contextRole].color}><Bot className="h-3 w-3" /></Pill> : null}
-                {expiry === "expired" ? <Pill color={ACCENT.risk}>Caducado</Pill> : expiry === "soon" ? <Pill color={ACCENT.yellow}><AlarmClock className="h-3 w-3" /></Pill> : null}
+                {expiry === "expired" ? <Pill color={ACCENT.risk}>Caducado</Pill> : expiry === "soon" ? <Pill color={ACCENT.yellow}><AlarmClock className="h-3 w-3" />Caduca pronto</Pill> : row.locked ? <Pill color={ACCENT.lilac}><Lock className="h-3 w-3" />Privado</Pill> : minutes <= 180 && !trashed ? <NewBadge /> : null}
               </span>
               {row.place ? <span className="block truncate text-xs text-muted-foreground">{row.place}</span> : null}
             </span>
@@ -554,10 +555,8 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
           {trashed ? null : <button type="button" aria-label={favorites.has(file.id) ? "Quitar de favoritos" : "Añadir a favoritos"} aria-pressed={favorites.has(file.id)} onClick={() => toggleFavorite(file.id)} className={cn("shrink-0 rounded-md p-1 transition-opacity duration-(--motion-duration-fast) hover:bg-accent", favorites.has(file.id) ? "opacity-100" : "opacity-0 focus-visible:opacity-100 group-hover:opacity-100")}><Star className="h-3.5 w-3.5" style={favorites.has(file.id) ? { fill: ACCENT.yellow, color: ACCENT.yellow } : undefined} /></button>}
         </span>
         <span className="truncate text-xs text-muted-foreground">{trashed ? <Button size="sm" variant="outline" onClick={() => restore(file as TrashedFile)}><RotateCcw className="h-3 w-3" />Restaurar</Button> : file.updatedAt}</span>
-        <span className="hidden truncate text-xs text-muted-foreground sm:block">{typeLabel(file)}</span>
+        <span className="hidden min-w-0 items-center gap-1.5 text-xs sm:flex"><Avatar name={file.by} size="xs" /><span className="truncate">{file.by}</span></span>
         <span className="hidden text-xs tabular-nums text-muted-foreground sm:block">{formatBytes(file.bytes)}</span>
-        <span className="hidden min-w-0 items-center gap-1.5 text-xs sm:flex"><Avatar name={file.by} size="xs" /><span className="truncate">{file.by}</span>{isAgent(file.by) ? <Sparkles className="h-3 w-3 shrink-0" style={{ color: readable(ACCENT.lilac) }} /> : null}</span>
-        <span className="hidden truncate text-xs text-muted-foreground lg:block">{file.usedIn[0] ? `${file.usedIn[0].id}${file.usedIn.length > 1 ? ` +${file.usedIn.length - 1}` : ""}` : "—"}</span>
       </motion.div>
       </div>
     );
@@ -567,6 +566,7 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
   const totalBytes = selectedFiles.reduce((sum, file) => sum + file.bytes, 0);
   const rootColor = ROOT_INFO[root].color;
   const oneFile = selectedFiles.length === 1 ? selectedFiles[0]! : null;
+  const activeFilters = (typeFilter !== "all" ? 1 : 0) + (who !== "all" ? 1 : 0) + (groupBy !== "none" ? 1 : 0) + (quick === "context" || quick === "expiring" ? 1 : 0);
   const quickLabels: Record<Exclude<Quick, null>, string> = { recent: "Recientes", context: "Contexto para agentes", expiring: "Caducan pronto", favorites: "Favoritos", trash: "Papelera" };
 
   const menuItems = (row: Row): { label: string; icon: LucideIcon; run: () => void; disabled?: boolean }[] => {
@@ -603,101 +603,123 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
           <h1 className="text-2xl font-semibold">Archivos</h1>
           {files.length ? <p className="text-sm text-muted-foreground">{greeting(9)}, Silviu.{insights.newFromTeam ? ` Tu equipo ha dejado ${insights.newFromTeam} ${insights.newFromTeam === 1 ? "archivo nuevo" : "archivos nuevos"} desde ayer.` : " Todo tranquilo por aquí."}</p> : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {files.length ? <QuotaMeter used={config.quota.usedBytes} total={config.quota.totalBytes} compact /> : null}
-          <div className="relative">
-            <Button variant="outline" aria-expanded={computerOpen} onClick={() => setComputerOpen(!computerOpen)}><Laptop className="h-4 w-4" />En tu ordenador</Button>
-            <AnimatePresence>
-              {computerOpen ? (
-                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-2xl border border-border bg-background p-4 shadow-lg">
-                  <p className="text-sm font-medium">Esta carpeta en tu ordenador</p>
-                  <code className="break-all rounded-lg bg-muted px-2.5 py-1.5 text-xs">{path}</code>
-                  <p className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full" style={{ background: ACCENT.mint }} />Sincronizada · actualizada hace 2 min</p>
-                  <p className="text-xs text-muted-foreground">Lo que tu equipo crea en Salida aparece aquí, y lo que dejes en Entrada lo ven los agentes.</p>
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => { setComputerOpen(false); say(`Abriendo ${path} en tu explorador de archivos`); }}><ExternalLink className="h-3.5 w-3.5" />Abrir carpeta</Button>
-                    <Button size="sm" variant="outline" onClick={() => { setComputerOpen(false); say("Ruta copiada"); }}><Copy className="h-3.5 w-3.5" />Copiar ruta</Button>
-                  </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-          <div className="relative" onClick={(event) => event.stopPropagation()}>
-            <Button disabled={config.readOnly} title={config.readOnly ? "Solo lectura: no puedes subir archivos" : undefined} aria-expanded={importOpen} onClick={() => setImportOpen(!importOpen)}><Upload className="h-4 w-4" />Subir<ChevronDown className="h-3.5 w-3.5" /></Button>
-            <AnimatePresence>
-              {importOpen ? (
-                <motion.div role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-64 flex-col rounded-xl border border-border bg-background p-1 text-sm shadow-lg">
-                  {([["Subir archivos", Upload, () => picker.current?.click()], ["Subir una carpeta", FolderInput, () => say("Elige la carpeta de tu ordenador")], ["Importar desde Drive o un enlace", Download, () => setUrlOpen(true)], ["Nueva carpeta", FolderPlus, () => setCreating(true)]] as [string, LucideIcon, () => void][]).map(([label, Icon, run]) => (
-                    <button key={label} role="menuitem" onClick={() => { setImportOpen(false); run(); }} className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/60"><Icon className="h-4 w-4 text-muted-foreground" />{label}</button>
-                  ))}
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
+        <div className="relative" onClick={(event) => event.stopPropagation()}>
+          <Button disabled={config.readOnly} title={config.readOnly ? "Solo lectura: no puedes subir archivos" : undefined} aria-expanded={importOpen} onClick={() => setImportOpen(!importOpen)}><Upload className="h-4 w-4" />Subir<ChevronDown className="h-3.5 w-3.5" /></Button>
+          <AnimatePresence>
+            {importOpen ? (
+              <motion.div role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-64 flex-col rounded-xl border border-border bg-background p-1 text-sm shadow-lg">
+                {([["Subir archivos", Upload, () => picker.current?.click()], ["Subir una carpeta", FolderInput, () => say("Elige la carpeta de tu ordenador")], ["Importar desde Drive o un enlace", Download, () => setUrlOpen(true)], ["Nueva carpeta", FolderPlus, () => setCreating(true)]] as [string, LucideIcon, () => void][]).map(([label, Icon, run]) => (
+                  <button key={label} role="menuitem" onClick={() => { setImportOpen(false); run(); }} className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/60"><Icon className="h-4 w-4 text-muted-foreground" />{label}</button>
+                ))}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
       </header>
 
       {empty ? <EmptyFiles onPick={() => picker.current?.click()} /> : <>
         <RootSwitch root={root} counts={counts} onChange={switchRoot} />
-        {insights.newFromTeam || insights.expiring || insights.heavy.length ? (
-          <div className="flex min-w-0 flex-wrap items-center gap-2" aria-label="Sugerencias">
-            {insights.newFromTeam ? <button type="button" onClick={() => { switchRoot("out"); setView("activity"); }} className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs transition-colors duration-(--motion-duration-fast) hover:bg-accent/50"><Sparkles className="h-3.5 w-3.5" style={{ color: readable(ACCENT.mint) }} />Ver qué ha hecho tu equipo</button> : null}
-            {insights.expiring ? <button type="button" onClick={() => { switchRoot("in"); setQuick("expiring"); }} className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs transition-colors duration-(--motion-duration-fast) hover:bg-accent/50"><AlarmClock className="h-3.5 w-3.5" style={{ color: readable(ACCENT.yellow) }} />{insights.expiring} {insights.expiring === 1 ? "caduca" : "caducan"} pronto</button> : null}
-            {insights.heavy.length === 2 ? <button type="button" onClick={() => { const [a, b] = insights.heavy; go(a!.folderId); setSelected(new Set([a!.id, b!.id])); say(`Los 2 más pesados ocupan el ${insights.heavyShare} % de tu espacio. Empieza por ahí.`); }} className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs transition-colors duration-(--motion-duration-fast) hover:bg-accent/50"><Trash2 className="h-3.5 w-3.5" style={{ color: readable(ACCENT.sky) }} />Liberar espacio: 2 archivos pesan el {insights.heavyShare} %</button> : null}
-          </div>
-        ) : null}
         <FilesBanners config={config} files={files}
           onReviewExpired={() => { switchRoot("in"); setQuick("expiring"); }}
           onFreeSpace={() => { const biggest = [...files].sort((a, b) => b.bytes - a.bytes)[0]!; go(biggest.folderId); setSelected(new Set([biggest.id])); setPreviewId(biggest.id); say(`Empieza por el más pesado: ${biggest.name} (${formatBytes(biggest.bytes)}).`); }} />
         <UploadTray queue={queue} />
 
         {root === "out" && agentSummary.length ? (
-          <section aria-label="Lo que han hecho tus agentes" className="flex min-w-0 flex-wrap items-center gap-2 rounded-2xl border border-border p-3" style={{ background: `linear-gradient(135deg, ${tint(ACCENT.mint, 12)}, transparent 60%)` }}>
-            <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Bot className="h-4 w-4" />Qué han hecho tus agentes</span>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5" aria-label="Por agente">
+            <span className="mr-1 text-xs text-muted-foreground">Por agente</span>
             {agentSummary.map(([name, info]) => (
-              <button key={name} type="button" aria-pressed={agentFilter === name} onClick={() => { setAgentFilter(agentFilter === name ? null : name); setQuick(null); setQuery(""); setSelected(new Set()); setPreviewId(null); }}
-                className={cn("flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-xs transition-colors duration-(--motion-duration-fast)", agentFilter === name ? "border-transparent font-medium" : "border-border hover:bg-accent/50")}
+              <button key={name} type="button" aria-pressed={agentFilter === name} title={`${name}: último archivo ${agoLabel(info.latest)}`} onClick={() => { setAgentFilter(agentFilter === name ? null : name); setQuick(null); setQuery(""); setSelected(new Set()); setPreviewId(null); }}
+                className={cn("flex items-center gap-1.5 rounded-full border py-0.5 pl-0.5 pr-2.5 text-xs transition-colors duration-(--motion-duration-fast)", agentFilter === name ? "border-transparent font-medium" : "border-border hover:bg-accent/50")}
                 style={agentFilter === name ? { background: tint(ACCENT.mint, 30) } : undefined}>
-                <Avatar name={name} size="xs" />{name}<span className="tabular-nums text-muted-foreground">{info.count}</span><span className="hidden text-muted-foreground sm:inline">· {agoLabel(info.latest)}</span>
+                <Avatar name={name} size="xs" />{name}<span className="tabular-nums text-muted-foreground">{info.count}</span>
               </button>
             ))}
-          </section>
+          </div>
         ) : null}
 
-        <div className="relative grid min-w-0 gap-4 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,320px)]">
-          <nav aria-label="Carpetas" className="hidden min-w-0 flex-col gap-1 rounded-2xl border border-border p-2 md:flex md:self-start">
-            <p className="px-2 pb-0.5 pt-1 text-xs font-medium text-muted-foreground">Accesos rápidos</p>
-            {([["recent", "Recientes", Clock, ACCENT.sky, null], ["favorites", "Favoritos", Star, ACCENT.yellow, favorites.size], ["context", "Contexto para agentes", Bot, ACCENT.lilac, null], ["expiring", "Caducan pronto", AlarmClock, ACCENT.yellow, null], ["trash", "Papelera", Trash2, ACCENT.muted, trash.length]] as [Exclude<Quick, null>, string, LucideIcon, string, number | null][]).map(([id, label, Icon, color, count]) => (
+        <div className={cn("relative grid min-w-0 gap-4 md:grid-cols-[210px_minmax(0,1fr)]", preview && "lg:grid-cols-[210px_minmax(0,1fr)_minmax(0,320px)]")}>
+          <nav aria-label="Carpetas" className="hidden min-w-0 flex-col gap-0.5 md:flex md:self-start">
+            {([["recent", "Recientes", Clock, ACCENT.sky, null], ["favorites", "Favoritos", Star, ACCENT.yellow, favorites.size], ["trash", "Papelera", Trash2, ACCENT.muted, trash.length]] as [Exclude<Quick, null>, string, LucideIcon, string, number | null][]).map(([id, label, Icon, color, count]) => (
               <button key={id} type="button" aria-pressed={quick === id} onClick={() => openQuick(id)} className={cn("flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors duration-(--motion-duration-fast)", quick === id ? "font-medium" : "text-muted-foreground hover:text-foreground")} style={quick === id ? { background: `linear-gradient(90deg, ${tint(color, 26)}, ${tint(color, 6)})` } : undefined}>
                 <Icon className="h-4 w-4" style={{ color: readable(color) }} /><span className="flex-1">{label}</span>{count ? <span className="text-xs tabular-nums text-muted-foreground">{count}</span> : null}
               </button>
             ))}
-            <p className="px-2 pb-0.5 pt-3 text-xs font-medium text-muted-foreground">{ROOT_INFO[root].label}</p>
-            <LayoutGroup id="files-tree">{folders.filter((item) => item.parentId === null && item.root === root).map((item) => renderTree(item, 0))}</LayoutGroup>
+            <div className="my-2 h-px bg-border" />
+            <button type="button" onClick={() => go(root)} {...dropProps(root)} className={cn("flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors duration-(--motion-duration-fast)", !flat && folderId === root ? "font-medium" : "text-muted-foreground hover:text-foreground")} style={!flat && folderId === root ? { background: `linear-gradient(90deg, ${tint(rootColor, 26)}, ${tint(rootColor, 6)})` } : dropTarget === root ? { background: tint(ACCENT.turquoise, 28) } : undefined}>
+              <FolderOpen className="h-4 w-4" style={{ color: readable(rootColor) }} /><span className="flex-1">Todo en {ROOT_INFO[root].label}</span><span className="text-xs tabular-nums text-muted-foreground">{counts[root].total}</span>
+            </button>
+            <LayoutGroup id="files-tree">{folders.filter((item) => item.parentId === root).map((item) => renderTree(item, 0))}</LayoutGroup>
+            <div className="mt-3 px-2"><QuotaMeter used={config.quota.usedBytes} total={config.quota.totalBytes} compact /></div>
           </nav>
 
-          <div className="flex min-w-0 flex-col gap-2.5">
+          <div className="flex min-w-0 flex-col gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <div className="flex items-center gap-0.5">
                 <Button size="icon" variant="ghost" aria-label="Atrás" disabled={!history.back.length} onClick={goBack}><ArrowLeft className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" aria-label="Adelante" disabled={!history.forward.length} onClick={goForward}><ArrowRight className="h-4 w-4" /></Button>
                 <Button size="icon" variant="ghost" aria-label="Subir un nivel" disabled={!folder.parentId} onClick={goUp}><ArrowUp className="h-4 w-4" /></Button>
               </div>
-              <nav aria-label="Ruta" className="flex min-w-0 flex-1 items-center gap-0.5 overflow-hidden rounded-xl border border-border px-2 py-1 text-sm">
+              <nav aria-label="Ruta" className="flex min-w-0 flex-1 items-center gap-0.5 overflow-hidden px-1 text-sm">
                 {crumbs.map((crumb, index) => (
                   <span key={crumb.id} className={cn("min-w-0 items-center gap-0.5", index === crumbs.length - 1 && !flat ? "flex" : "hidden sm:flex")} {...dropProps(crumb.id)}>
                     {index > 0 ? <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground sm:block" /> : null}
-                    <button type="button" onClick={() => go(crumb.id)} className={cn("truncate rounded-md px-1.5 py-0.5 transition-colors duration-(--motion-duration-fast) hover:bg-accent/60", index === crumbs.length - 1 && !flat ? "font-medium" : "text-muted-foreground")} style={dropTarget === crumb.id ? { background: tint(ACCENT.turquoise, 30) } : undefined}>{crumb.name}</button>
+                    <button type="button" onClick={() => go(crumb.id)} className={cn("truncate rounded-md px-1.5 py-0.5 transition-colors duration-(--motion-duration-fast) hover:bg-accent/60", index === crumbs.length - 1 && !flat ? "font-semibold" : "text-muted-foreground")} style={dropTarget === crumb.id ? { background: tint(ACCENT.turquoise, 30) } : undefined}>{crumb.name}</button>
                   </span>
                 ))}
-                {flat ? <span className="flex items-center gap-0.5"><ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><span className="truncate px-1.5 font-medium">{needle ? `Búsqueda: ${query}` : agentFilter ? `Creado por ${agentFilter}` : quick ? quickLabels[quick] : ""}</span></span> : null}
+                {flat ? <span className="flex items-center gap-0.5"><ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><span className="truncate px-1.5 font-semibold">{needle ? `Búsqueda: ${query}` : agentFilter ? `Creado por ${agentFilter}` : quick ? quickLabels[quick] : ""}</span></span> : null}
               </nav>
-              <div className="flex basis-full items-center gap-2 rounded-xl border border-border px-3 py-1.5 text-sm focus-within:border-foreground/30 sm:basis-52 sm:flex-none">
+              <div className="relative" onClick={(event) => event.stopPropagation()}>
+                <Button size="icon" variant="ghost" aria-label="Esta carpeta en tu ordenador" title="Esta carpeta en tu ordenador" aria-expanded={computerOpen} onClick={() => setComputerOpen(!computerOpen)}><Laptop className="h-4 w-4" /></Button>
+                <AnimatePresence>
+                  {computerOpen ? (
+                    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-2xl border border-border bg-background p-4 shadow-lg">
+                      <p className="text-sm font-medium">Esta carpeta en tu ordenador</p>
+                      <code className="break-all rounded-lg bg-muted px-2.5 py-1.5 text-xs">{path}</code>
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2 w-2 rounded-full" style={{ background: ACCENT.mint }} />Sincronizada · actualizada hace 2 min</p>
+                      <p className="text-xs text-muted-foreground">Lo que tu equipo crea en Salida aparece aquí, y lo que dejes en Entrada lo ven los agentes.</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => { setComputerOpen(false); say(`Abriendo ${path} en tu explorador de archivos`); }}><ExternalLink className="h-3.5 w-3.5" />Abrir carpeta</Button>
+                        <Button size="sm" variant="outline" onClick={() => { setComputerOpen(false); say("Ruta copiada"); }}><Copy className="h-3.5 w-3.5" />Copiar ruta</Button>
+                      </div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
+              <div className="flex w-full items-center gap-2 rounded-xl border border-border px-3 py-1.5 text-sm focus-within:border-foreground/30 sm:w-44">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <input className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder={`Buscar en ${ROOT_INFO[root].label}`} aria-label="Buscar archivo" value={query} onChange={(event) => { setQuery(event.target.value); setLimit(60); }} />
+                <input className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder="Buscar" aria-label="Buscar archivo" value={query} onChange={(event) => { setQuery(event.target.value); setLimit(60); }} />
                 {query ? <button type="button" aria-label="Borrar búsqueda" onClick={() => setQuery("")}><X className="h-3.5 w-3.5 text-muted-foreground" /></button> : null}
               </div>
-              <Button size="icon" variant="outline" aria-label="Nueva carpeta" title="Nueva carpeta" disabled={config.readOnly || flat || folderLocked} onClick={() => setCreating(true)}><FolderPlus className="h-4 w-4" /></Button>
+              <div className="relative" onClick={(event) => event.stopPropagation()}>
+                <Button size="sm" variant="outline" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+                  <SlidersHorizontal className="h-3.5 w-3.5" />Filtros{activeFilters ? <span className="rounded-full px-1.5 text-xs tabular-nums" style={{ background: tint(ACCENT.turquoise, 40) }}>{activeFilters}</span> : null}
+                </Button>
+                <AnimatePresence>
+                  {filtersOpen ? (
+                    <motion.div role="dialog" aria-label="Filtros" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-4 rounded-2xl border border-border bg-background p-4 shadow-lg">
+                      <div className="flex flex-col gap-1.5"><p className="text-xs font-medium text-muted-foreground">Tipo</p>
+                        <div className="flex flex-wrap gap-1.5">{TYPE_CHIPS.map(([id, label]) => (
+                          <button key={id} type="button" aria-pressed={typeFilter === id} onClick={() => setTypeFilter(id)} className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", typeFilter === id ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={typeFilter === id ? { background: tint(id === "all" ? rootColor : KIND[id].color, 30) } : undefined}>{label}</button>
+                        ))}</div></div>
+                      <div className="flex flex-col gap-1.5"><p className="text-xs font-medium text-muted-foreground">Quién lo creó</p>
+                        <div className="flex flex-wrap gap-1.5">{([["all", "Todos"], ["mine", "Yo"], ["agents", "Agentes"]] as [Who, string][]).map(([id, label]) => (
+                          <button key={id} type="button" aria-pressed={who === id} onClick={() => setWho(id)} className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", who === id ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={who === id ? { background: tint(ACCENT.lilac, 28) } : undefined}>{label}</button>
+                        ))}</div></div>
+                      <div className="flex flex-col gap-1.5"><p className="text-xs font-medium text-muted-foreground">Mostrar solo</p>
+                        <div className="flex flex-wrap gap-1.5">{([["context", "Contexto para agentes", ACCENT.lilac], ["expiring", "Caducan pronto", ACCENT.yellow]] as [Exclude<Quick, null>, string, string][]).map(([id, label, color]) => (
+                          <button key={id} type="button" aria-pressed={quick === id} onClick={() => openQuick(id)} className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", quick === id ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={quick === id ? { background: tint(color, 30) } : undefined}>{label}</button>
+                        ))}</div></div>
+                      {view === "details" ? (
+                        <label className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">Agrupar por
+                          <select aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as GroupBy)} className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-normal text-foreground">
+                            <option value="none">Sin agrupar</option><option value="type">Tipo</option><option value="by">Quién</option><option value="date">Fecha</option>
+                          </select>
+                        </label>
+                      ) : null}
+                      <div className="flex justify-between border-t border-border pt-3"><Button size="sm" variant="ghost" disabled={!activeFilters} onClick={() => { setTypeFilter("all"); setWho("all"); setGroupBy("none"); if (quick === "context" || quick === "expiring") setQuick(null); }}>Limpiar</Button><Button size="sm" onClick={() => setFiltersOpen(false)}>Listo</Button></div>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
               <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5" role="group" aria-label="Vista">
                 {([["details", List, "Detalles"], ["icons", LayoutGrid, "Iconos"], ...(root === "out" ? [["activity", Activity, "Actividad"] as const] : [])] as const).map(([id, Icon, label]) => (
                   <button key={id} type="button" aria-label={label} title={label} aria-pressed={view === id} onClick={() => setView(id)} className={cn("relative rounded-md p-1.5 transition-colors duration-(--motion-duration-fast)", view === id ? "text-foreground" : "text-muted-foreground")}>
@@ -706,23 +728,6 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
                   </button>
                 ))}
               </div>
-            </div>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5" aria-label="Filtros">
-              {TYPE_CHIPS.map(([id, label]) => (
-                <button key={id} type="button" aria-pressed={typeFilter === id} onClick={() => setTypeFilter(id)} className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", typeFilter === id ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={typeFilter === id ? { background: tint(id === "all" ? rootColor : KIND[id].color, 30) } : undefined}>{label}</button>
-              ))}
-              <span className="mx-1 hidden h-4 w-px bg-border sm:block" />
-              {([["all", "De todos"], ["mine", "Míos"], ["agents", "De agentes"]] as [Who, string][]).map(([id, label]) => (
-                <button key={id} type="button" aria-pressed={who === id} onClick={() => setWho(id)} className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", who === id ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={who === id ? { background: tint(ACCENT.lilac, 28) } : undefined}>{label}</button>
-              ))}
-              {view === "details" ? (
-                <label className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">Agrupar
-                  <select aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as GroupBy)} className="rounded-lg border border-border bg-background px-1.5 py-0.5 text-xs text-foreground">
-                    <option value="none">Sin agrupar</option><option value="type">Por tipo</option><option value="by">Por quién</option><option value="date">Por fecha</option>
-                  </select>
-                </label>
-              ) : null}
             </div>
 
             {quick === "context" ? (
@@ -743,17 +748,31 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
 
             <AnimatePresence initial={false}>
               {selectedFiles.length >= 1 && quick !== "trash" ? (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: tokens.base, ease: tokens.easeOut }} className="overflow-hidden">
-                  <div className="flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 text-sm" style={{ background: tint(rootColor, 18) }}>
-                    <span className="font-medium">{selectedFiles.length === 1 ? "1 seleccionado" : `${selectedFiles.length} seleccionados`}</span><span className="text-muted-foreground">{formatBytes(totalBytes)}</span>
+                <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.base, ease: tokens.easeOut }}>
+                  <div className="flex min-w-0 items-center gap-2 rounded-xl px-3 py-2 text-sm" style={{ background: tint(rootColor, 18) }}>
+                    <span className="shrink-0 font-medium">{selectedFiles.length === 1 ? "1 seleccionado" : `${selectedFiles.length} seleccionados`}</span>
+                    <span className="hidden text-muted-foreground sm:inline">{formatBytes(totalBytes)}</span>
                     <span className="flex-1" />
                     <Button size="sm" onClick={() => setAskFiles(selectedFiles)} style={{ background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) }}><Send className="h-3.5 w-3.5" />Pedir a un agente</Button>
-                    {oneFile ? <Button size="sm" variant="outline" onClick={() => setShareFile(oneFile)}><Share2 className="h-3.5 w-3.5" />Compartir</Button> : null}
-                    {oneFile ? <Button size="sm" variant="outline" onClick={() => { const at = lookFiles.findIndex((file) => file.id === oneFile.id); if (at >= 0) setLook(at); }}><Eye className="h-3.5 w-3.5" />Vista rápida</Button> : null}
-                    <Button size="sm" variant="outline" onClick={() => say(selectedFiles.length === 1 ? "Descargando…" : `Descargando ${selectedFiles.length} archivos como .zip`)}><Download className="h-3.5 w-3.5" />Descargar</Button>
-                    <Button size="sm" variant="outline" disabled={config.readOnly} onClick={() => setMoveIds([...selected])}><FolderInput className="h-3.5 w-3.5" />Mover</Button>
-                    <Button size="sm" variant="outline" disabled={config.readOnly} onClick={() => removeFiles([...selected])}><Trash2 className="h-3.5 w-3.5" />Eliminar</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Quitar selección</Button>
+                    {oneFile ? <Button size="sm" variant="outline" onClick={() => setShareFile(oneFile)}><Share2 className="h-3.5 w-3.5" /><span className="hidden sm:inline">Compartir</span></Button> : null}
+                    <div className="relative" onClick={(event) => event.stopPropagation()}>
+                      <Button size="icon" variant="outline" aria-label="Más acciones" aria-expanded={bulkOpen} onClick={() => setBulkOpen(!bulkOpen)}><MoreHorizontal className="h-4 w-4" /></Button>
+                      <AnimatePresence>
+                        {bulkOpen ? (
+                          <motion.div role="menu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute right-0 z-30 mt-2 flex w-56 flex-col rounded-xl border border-border bg-background p-1 text-sm shadow-lg">
+                            {([
+                              ...(oneFile ? [["Vista rápida", Eye, () => { const at = lookFiles.findIndex((file) => file.id === oneFile.id); if (at >= 0) setLook(at); }, false]] : []),
+                              ["Descargar", Download, () => say(selectedFiles.length === 1 ? "Descargando…" : `Descargando ${selectedFiles.length} archivos como .zip`), false],
+                              ["Mover a…", FolderInput, () => setMoveIds([...selected]), config.readOnly],
+                              ["Eliminar", Trash2, () => removeFiles([...selected]), config.readOnly],
+                              ["Quitar selección", X, () => setSelected(new Set()), false],
+                            ] as [string, LucideIcon, () => void, boolean][]).map(([label, Icon, run, disabled]) => (
+                              <button key={label} role="menuitem" disabled={disabled} onClick={() => { setBulkOpen(false); run(); }} className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/60 disabled:opacity-40"><Icon className="h-4 w-4 text-muted-foreground" />{label}</button>
+                            ))}
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </motion.div>
               ) : null}
@@ -808,10 +827,8 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
                   <span />
                   {header("name", "Nombre")}
                   {header("modified", "Modificado", "justify-self-start")}
-                  <span className="hidden sm:block">{header("type", "Tipo")}</span>
-                  <span className="hidden sm:block">{header("size", "Tamaño")}</span>
                   <span className="hidden sm:block">{header("by", "Creado por")}</span>
-                  <span className="hidden text-xs font-medium text-muted-foreground lg:block">Tarea</span>
+                  <span className="hidden sm:block">{header("size", "Tamaño")}</span>
                 </div>
                 <div className="divide-y divide-border">
                   <AnimatePresence initial={false}>
@@ -828,24 +845,23 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground">
                   <span>{rows.length} elementos{selectedFiles.length ? ` · ${selectedFiles.length} seleccionado${selectedFiles.length === 1 ? "" : "s"} (${formatBytes(totalBytes)})` : ""}</span>
-                  <span className="hidden sm:inline">Arrastra sobre una carpeta para mover · Espacio: vista rápida · F2: renombrar · Supr: papelera</span>
                 </div>
               </div>
             )}
             {rows.length > shown.length && view !== "activity" ? <Button variant="outline" onClick={() => setLimit(limit + 60)}>Mostrar {Math.min(60, rows.length - shown.length)} más · quedan {rows.length - shown.length}</Button> : null}
           </div>
 
-          <div className="min-w-0 md:col-span-2 lg:col-span-1 lg:sticky lg:top-4 lg:self-start">
-            <AnimatePresence mode="wait">
-              {preview && lockedFiles.has(preview.id) ? (
-                <LockedPreview key={preview.id} file={preview} onClose={() => setPreviewId(null)} />
-              ) : preview ? (
-                <PreviewPane key={preview.id} file={preview} readOnly={config.readOnly} onClose={() => setPreviewId(null)} onChange={(patch) => setFiles((current) => current.map((file) => file.id === preview.id ? { ...file, ...patch } : file))} />
-              ) : (
-                <Panel className="items-center py-10 text-center"><IconTile icon={FileIcon} color={ACCENT.muted} /><p className="text-sm text-muted-foreground">Elige un archivo para ver su vista previa, quién lo creó, su contexto y sus versiones.</p></Panel>
-              )}
-            </AnimatePresence>
-          </div>
+          {preview ? (
+            <div className="min-w-0 md:col-span-2 lg:col-span-1 lg:sticky lg:top-4 lg:self-start">
+              <AnimatePresence mode="wait">
+                {lockedFiles.has(preview.id) ? (
+                  <LockedPreview key={preview.id} file={preview} onClose={() => setPreviewId(null)} />
+                ) : (
+                  <PreviewPane key={preview.id} file={preview} readOnly={config.readOnly} onClose={() => setPreviewId(null)} onChange={(patch) => setFiles((current) => current.map((file) => file.id === preview.id ? { ...file, ...patch } : file))} />
+                )}
+              </AnimatePresence>
+            </div>
+          ) : null}
 
           <AnimatePresence>
             {dragging ? (

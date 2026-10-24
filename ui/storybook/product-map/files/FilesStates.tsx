@@ -141,8 +141,8 @@ export function QuotaMeter({ used, total, compact = false }: { used: number; tot
   const percent = (used / total) * 100;
   const color = percent >= 98 ? ACCENT.risk : percent >= 85 ? ACCENT.yellow : ACCENT.turquoise;
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1", compact ? "w-64" : "w-72")} aria-label={`Almacenamiento: ${formatBytes(used)} de ${formatBytes(total)}`}>
-      <div className="flex items-center justify-between gap-2 whitespace-nowrap text-xs text-muted-foreground"><span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />Almacenamiento</span><span className="tabular-nums">{formatBytes(used)} / {formatBytes(total)}</span></div>
+    <div className={cn("flex min-w-0 flex-col gap-1", compact ? "w-full" : "w-72")} aria-label={`Almacenamiento: ${formatBytes(used)} de ${formatBytes(total)}`}>
+      <div className="flex items-center justify-between gap-2 whitespace-nowrap text-xs text-muted-foreground"><span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{compact ? "Espacio" : "Almacenamiento"}</span><span className="tabular-nums">{compact ? `${formatBytes(used)} de ${formatBytes(total)}` : `${formatBytes(used)} / ${formatBytes(total)}`}</span></div>
       <Progress value={percent} color={color} />
     </div>
   );
