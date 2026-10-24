@@ -21,6 +21,7 @@ import {
   type CustomerSort,
 } from "../../lib/customers-list";
 import { EmptyState } from "../../components/EmptyState";
+import { CustomersEmptyState } from "../../components/crm/CustomersEmptyState";
 import { PageSkeleton } from "../../components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,7 +135,7 @@ export function Customers() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t("nav.customers")}</h1>
-          {summary.data ? (
+          {!isEmpty && summary.data ? (
             <p className="text-sm text-muted-foreground">
               {t("uxCrm.list.subtitle", { label: countLabel, defaultValue: "{{label}} clientes activos" })}
             </p>
@@ -154,7 +155,7 @@ export function Customers() {
         </div>
       </header>
 
-      {summary.data && activeCustomers.length > 0 ? (
+      {!isEmpty && summary.data && activeCustomers.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
             index={0}
@@ -198,7 +199,7 @@ export function Customers() {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
+      {!isEmpty && <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -242,7 +243,7 @@ export function Customers() {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {query.isLoading && <PageSkeleton variant="list" />}
 
@@ -252,14 +253,7 @@ export function Customers() {
         </p>
       )}
 
-      {isEmpty && (
-        <EmptyState
-          icon={Users}
-          message={t("crm.customers.empty")}
-          action={t("crm.customers.newCustomer")}
-          onAction={() => setCreateOpen(true)}
-        />
-      )}
+      {isEmpty && <CustomersEmptyState onCreate={() => setCreateOpen(true)} />}
 
       {query.data && !isEmpty && visible.length === 0 && (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">

@@ -64,7 +64,15 @@ const baseProductizationMessagesEn = {
       "servicesEmpty": "There are no recurring services yet.",
       "servicesViewAll": "See all services",
       "servicesRenews": "renews {{date}}",
-      "servicesNoCustomer": "No customer"
+      "servicesNoCustomer": "No customer",
+      "emptyTitle": "Your customers will live here",
+      "emptyText": "With their people, their services and all the work you do for them.",
+      "emptyStepCreate": "Create your first customer",
+      "emptyStepCreateText": "A company or person you work for.",
+      "emptyStepImport": "Import your contacts",
+      "emptyStepImportText": "From a CSV; we detect duplicates.",
+      "emptyStepChannel": "Connect a channel",
+      "emptyStepChannelText": "WhatsApp, email or web chat."
     }
   },
   nav: {
@@ -682,7 +690,15 @@ const baseProductizationMessagesEs: Translated<typeof baseProductizationMessages
       "servicesEmpty": "Todavía no hay servicios recurrentes.",
       "servicesViewAll": "Ver todos los servicios",
       "servicesRenews": "renueva {{date}}",
-      "servicesNoCustomer": "Sin cliente"
+      "servicesNoCustomer": "Sin cliente",
+      "emptyTitle": "Aquí vivirán tus clientes",
+      "emptyText": "Con su gente, sus servicios y todo el trabajo que haces para ellos.",
+      "emptyStepCreate": "Crea tu primer cliente",
+      "emptyStepCreateText": "Empresa o persona para la que trabajas.",
+      "emptyStepImport": "Importa tus contactos",
+      "emptyStepImportText": "Desde un CSV; detectamos duplicados.",
+      "emptyStepChannel": "Conecta un canal",
+      "emptyStepChannelText": "WhatsApp, email o chat web."
     }
   },
   nav: {
@@ -1302,7 +1318,15 @@ const baseProductizationMessagesPt: Translated<typeof baseProductizationMessages
       "servicesEmpty": "Ainda não há serviços recorrentes.",
       "servicesViewAll": "Ver todos os serviços",
       "servicesRenews": "renova em {{date}}",
-      "servicesNoCustomer": "Sem cliente"
+      "servicesNoCustomer": "Sem cliente",
+      "emptyTitle": "Seus clientes ficarão aqui",
+      "emptyText": "Com suas pessoas, seus serviços e todo o trabalho que você faz para eles.",
+      "emptyStepCreate": "Crie seu primeiro cliente",
+      "emptyStepCreateText": "Empresa ou pessoa para quem você trabalha.",
+      "emptyStepImport": "Importe seus contatos",
+      "emptyStepImportText": "De um CSV; detectamos duplicados.",
+      "emptyStepChannel": "Conecte um canal",
+      "emptyStepChannelText": "WhatsApp, e-mail ou chat web."
     }
   },
   nav: {
