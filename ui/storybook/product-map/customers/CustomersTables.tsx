@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { ArrowDown, ArrowUp, ArrowUpDown, MessagesSquare, Repeat, Star } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown, FileText, Mail, MessageCircle, MessagesSquare, Phone, Plus, Repeat, Star, type LucideIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { BRAND, readable, tint, useMotionTokens } from "../motion";
+import type { ActionHandler } from "./CustomerDetail";
 import { Avatar, ChannelIcon, HEALTH, Pill } from "./CustomersProposal";
 import { euros, type DemoContact, type DemoCustomer, type DemoService } from "./demo-data";
 
@@ -41,7 +43,7 @@ export function nextSort(current: SortState, key: SortKey): SortState {
 }
 
 function Th({ children, align = "left", className, sort }: {
-  children: string;
+  children: ReactNode;
   align?: "left" | "right" | "center";
   className?: string;
   sort?: { key: SortKey; state: SortState; onSort: (key: SortKey) => void };
@@ -84,51 +86,64 @@ function TableShell({ children, minWidth }: { children: ReactNode; minWidth: str
 
 const cell = "px-3 py-3 align-middle";
 
-/** Customers as a table. With the side panel open (compact) the secondary columns step aside so the row stays readable. */
-export function CustomersTable({ customers, selectedId, onSelect, sort, onSort, compact }: {
+/** Icon button of a row. Stops the click so it does not also open the row's detail page. */
+function RowButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
+  return (
+    <Button
+      type="button"
+      size="icon"
+      variant="ghost"
+      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+      aria-label={label}
+      title={label}
+      onClick={(event) => { event.stopPropagation(); onClick(); }}
+    >
+      <Icon className="h-4 w-4" />
+    </Button>
+  );
+}
+
+const rowClass = "cursor-pointer border-t border-border/70 transition-colors duration-(--motion-duration-fast) first:border-t-0 hover:bg-accent/40";
+
+/** Customers as a table. A row opens the customer's page; the buttons on its right act without leaving the list. */
+export function CustomersTable({ customers, sort, onSort, onOpen, onAction, onRestore, canAct = true }: {
   customers: DemoCustomer[];
-  selectedId: string | null;
-  onSelect: (id: string | null) => void;
   sort: SortState;
   onSort: (key: SortKey) => void;
-  compact: boolean;
+  onOpen: (id: string) => void;
+  onAction: ActionHandler;
+  onRestore: (id: string) => void;
+  /** Read-only members only see the open button. */
+  canAct?: boolean;
 }) {
-  const secondary = compact ? "hidden" : "hidden lg:table-cell";
-  const tertiary = compact ? "hidden" : "hidden xl:table-cell";
   return (
-    <TableShell minWidth="min-w-136">
+    <TableShell minWidth="min-w-160">
       <thead>
         <tr className="border-b border-border bg-muted/40">
           <Th sort={{ key: "name", state: sort, onSort }}>Cliente</Th>
           <Th sort={{ key: "health", state: sort, onSort }}>Salud</Th>
-          <Th className={secondary}>Contacto</Th>
+          <Th className="hidden lg:table-cell">Contacto</Th>
           <Th align="right" sort={{ key: "monthly", state: sort, onSort }}>Mensual</Th>
           <Th align="center" sort={{ key: "tasks", state: sort, onSort }}>Tareas</Th>
-          <Th align="center" className={secondary} sort={{ key: "proposals", state: sort, onSort }}>Propuestas</Th>
-          <Th className={tertiary}>Última actividad</Th>
+          <Th align="center" className="hidden lg:table-cell" sort={{ key: "proposals", state: sort, onSort }}>Propuestas</Th>
+          <Th className="hidden xl:table-cell">Última actividad</Th>
+          <Th align="right"><span className="sr-only">Acciones</span></Th>
         </tr>
       </thead>
       <tbody>
         {customers.map((customer) => {
           const health = HEALTH[customer.health];
           const accent = customer.archived ? MUTED : health.color;
-          const selected = customer.id === selectedId;
           const primary = customer.contacts.find((person) => person.primary) ?? customer.contacts[0];
           const monthly = monthlyOf(customer);
           return (
-            <tr
-              key={customer.id}
-              aria-selected={selected}
-              onClick={() => onSelect(selected ? null : customer.id)}
-              className={cn("cursor-pointer border-t border-border/70 transition-colors duration-(--motion-duration-fast) first:border-t-0 hover:bg-accent/40", customer.archived && "opacity-70")}
-              style={selected ? { background: tint(accent, 10) } : undefined}
-            >
-              <td className={cell} style={{ boxShadow: `inset 3px 0 0 ${selected ? accent : tint(accent, 55)}` }}>
+            <tr key={customer.id} onClick={() => onOpen(customer.id)} className={cn(rowClass, customer.archived && "opacity-70")}>
+              <td className={cell} style={{ boxShadow: `inset 3px 0 0 ${tint(accent, 70)}` }}>
                 <div className="flex items-center gap-3">
                   <Avatar name={customer.name} size="sm" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <button className="max-w-56 truncate rounded text-left font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{customer.name}</button>
+                      <button onClick={(event) => { event.stopPropagation(); onOpen(customer.id); }} className="max-w-56 truncate rounded text-left font-semibold hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{customer.name}</button>
                       {customer.unreadConversations ? <Pill color={SKY} strong><MessagesSquare className="h-3 w-3" />{customer.unreadConversations}</Pill> : null}
                     </div>
                     <p className="max-w-56 truncate text-xs text-muted-foreground">{customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web")}</p>
@@ -136,15 +151,27 @@ export function CustomersTable({ customers, selectedId, onSelect, sort, onSort, 
                 </div>
               </td>
               <td className={cell}>{customer.archived ? <Pill color={MUTED}>Archivado</Pill> : <Pill color={health.color}>{health.label}</Pill>}</td>
-              <td className={cn(cell, secondary)}>
+              <td className={cn(cell, "hidden lg:table-cell")}>
                 {primary ? (
                   <span className="flex items-center gap-1.5 text-muted-foreground"><span className="max-w-40 truncate text-foreground">{primary.name}</span><ChannelIcon channel={primary.channel} /></span>
                 ) : <span className="text-muted-foreground">Sin contacto</span>}
               </td>
               <td className={cn(cell, "text-right tabular-nums")}>{monthly ? <>{euros(monthly)}<span className="text-xs text-muted-foreground">/mes</span></> : <span className="text-muted-foreground">—</span>}</td>
               <td className={cn(cell, "text-center tabular-nums", customer.activeTasks === 0 && "text-muted-foreground")}>{customer.activeTasks}</td>
-              <td className={cn(cell, secondary, "text-center tabular-nums", customer.openProposals.length === 0 && "text-muted-foreground")}>{customer.openProposals.length}</td>
-              <td className={cn(cell, tertiary, "text-xs text-muted-foreground")}>{customer.lastActivityLabel}</td>
+              <td className={cn(cell, "hidden text-center tabular-nums lg:table-cell", customer.openProposals.length === 0 && "text-muted-foreground")}>{customer.openProposals.length}</td>
+              <td className={cn(cell, "hidden text-xs text-muted-foreground xl:table-cell")}>{customer.lastActivityLabel}</td>
+              <td className={cn(cell, "pr-2")}>
+                <div className="flex items-center justify-end gap-0.5">
+                  {customer.archived && canAct ? (
+                    <Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); onRestore(customer.id); }}>Restaurar</Button>
+                  ) : canAct ? <>
+                    <RowButton icon={MessageCircle} label={`Escribir a ${primary?.name ?? customer.name}`} onClick={() => onAction("message", customer, primary)} />
+                    <RowButton icon={Plus} label={`Nueva tarea para ${customer.name}`} onClick={() => onAction("task", customer)} />
+                    <RowButton icon={FileText} label={`Nueva propuesta para ${customer.name}`} onClick={() => onAction("proposal", customer)} />
+                  </> : null}
+                  <RowButton icon={ArrowRight} label={`Abrir ${customer.name}`} onClick={() => onOpen(customer.id)} />
+                </div>
+              </td>
             </tr>
           );
         })}
@@ -153,40 +180,60 @@ export function CustomersTable({ customers, selectedId, onSelect, sort, onSort, 
   );
 }
 
-/** Every person across customers. Opening one takes you to their customer. */
-export function PeopleTable({ people, onOpenCustomer }: {
+/** Every person across customers. A row opens the person's page; their customer opens from its pill. */
+export function PeopleTable({ people, onOpenPerson, onOpenCustomer, onAction, canAct = true }: {
   people: { person: DemoContact; customer: DemoCustomer }[];
+  onOpenPerson: (personId: string, customerId: string) => void;
   onOpenCustomer: (id: string) => void;
+  onAction: ActionHandler;
+  canAct?: boolean;
 }) {
   return (
-    <TableShell minWidth="min-w-120">
+    <TableShell minWidth="min-w-136">
       <thead>
         <tr className="border-b border-border bg-muted/40">
           <Th>Persona</Th>
           <Th className="hidden md:table-cell">Cargo</Th>
           <Th>Cliente</Th>
           <Th className="hidden lg:table-cell">Contacto</Th>
-          <Th align="center">Canal</Th>
+          <Th align="right"><span className="sr-only">Acciones</span></Th>
         </tr>
       </thead>
       <tbody>
-        {people.map(({ person, customer }) => (
-          <tr key={person.id} onClick={() => onOpenCustomer(customer.id)} className="cursor-pointer border-t border-border/70 transition-colors duration-(--motion-duration-fast) first:border-t-0 hover:bg-accent/40">
-            <td className={cell}>
-              <div className="flex items-center gap-3">
-                <Avatar name={person.name} size="sm" />
-                <button className="flex items-center gap-1 rounded font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <span className="max-w-48 truncate">{person.name}</span>
-                  {person.primary ? <Star className="h-3 w-3 shrink-0 fill-current" style={{ color: YELLOW }} aria-label="Contacto principal" /> : null}
+        {people.map(({ person, customer }) => {
+          const ChannelButton = person.channel === "phone" ? Phone : person.channel === "email" ? Mail : MessageCircle;
+          return (
+            <tr key={person.id} onClick={() => onOpenPerson(person.id, customer.id)} className={rowClass}>
+              <td className={cell}>
+                <div className="flex items-center gap-3">
+                  <Avatar name={person.name} size="sm" />
+                  <button onClick={(event) => { event.stopPropagation(); onOpenPerson(person.id, customer.id); }} className="flex items-center gap-1 rounded font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <span className="max-w-48 truncate">{person.name}</span>
+                    {person.primary ? <Star className="h-3 w-3 shrink-0 fill-current" style={{ color: YELLOW }} aria-label="Contacto principal" /> : null}
+                  </button>
+                </div>
+              </td>
+              <td className={cn(cell, "hidden text-muted-foreground md:table-cell")}>{person.title ?? "Sin cargo"}</td>
+              <td className={cell}>
+                <button onClick={(event) => { event.stopPropagation(); onOpenCustomer(customer.id); }} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" title={`Abrir ${customer.name}`}>
+                  <Pill color={customer.archived ? MUTED : HEALTH[customer.health].color}>{customer.name}</Pill>
                 </button>
-              </div>
-            </td>
-            <td className={cn(cell, "hidden text-muted-foreground md:table-cell")}>{person.title ?? "Sin cargo"}</td>
-            <td className={cell}><Pill color={customer.archived ? MUTED : HEALTH[customer.health].color}>{customer.name}</Pill></td>
-            <td className={cn(cell, "hidden max-w-60 truncate text-muted-foreground lg:table-cell")}>{person.email ?? person.phone}</td>
-            <td className={cn(cell, "text-center text-muted-foreground")}><span className="inline-flex"><ChannelIcon channel={person.channel} /></span></td>
-          </tr>
-        ))}
+              </td>
+              <td className={cn(cell, "hidden max-w-60 lg:table-cell")}>
+                <span className="flex items-center gap-1.5 text-muted-foreground"><ChannelIcon channel={person.channel} /><span className="truncate">{person.email ?? person.phone}</span></span>
+              </td>
+              <td className={cn(cell, "pr-2")}>
+                <div className="flex items-center justify-end gap-0.5">
+                  {canAct ? <>
+                    <RowButton icon={ChannelButton} label={`${person.channel === "phone" ? "Llamar a" : "Escribir a"} ${person.name}`} onClick={() => onAction("message", customer, person)} />
+                    <RowButton icon={Plus} label={`Nueva tarea con ${person.name}`} onClick={() => onAction("task", customer, person)} />
+                  </> : null}
+                  <RowButton icon={ArrowRight} label={`Abrir ${person.name}`} onClick={() => onOpenPerson(person.id, customer.id)} />
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </TableShell>
   );

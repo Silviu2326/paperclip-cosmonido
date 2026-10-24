@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CustomersProposal } from "./CustomersProposal";
+import { CustomersProposal, type CustomersRoute } from "./CustomersProposal";
 import { DEMO_CUSTOMERS, setMoneyHidden, type DemoCustomer } from "./demo-data";
 import { ARCHIVED_CUSTOMERS, LONG_TEXT_CUSTOMERS, makeManyCustomers } from "./scenario-data";
 import { LoadError, LoadingStatus, PermissionNotice, Skeleton, usePhase } from "./scenario-parts";
@@ -38,7 +38,7 @@ function dataFor(state: CustomersState, customers: DemoCustomer[]): DemoCustomer
   return customers;
 }
 
-function Ready({ state, customers }: { state: CustomersState; customers: DemoCustomer[] }) {
+function Ready({ state, customers, initialRoute }: { state: CustomersState; customers: DemoCustomer[]; initialRoute?: CustomersRoute }) {
   const data = dataFor(state, customers);
   const readOnly = state === "sin-permisos";
   const pageSize = state === "muchos" ? 25 : undefined;
@@ -51,15 +51,17 @@ function Ready({ state, customers }: { state: CustomersState; customers: DemoCus
           </PermissionNotice>
         </div>
       ) : null}
-      <CustomersProposal key={state} customers={data} pageSize={pageSize} canCreate={!readOnly} initialQuery={state === "sin-resultados" ? "Zzz Ferretería" : ""} initialFilter={state === "archivados" ? "archived" : "all"} />
+      <CustomersProposal key={state} customers={data} initialRoute={initialRoute} pageSize={pageSize} canCreate={!readOnly} initialQuery={state === "sin-resultados" ? "Zzz Ferretería" : ""} initialFilter={state === "archivados" ? "archived" : "all"} />
     </div>
   );
 }
 
-/** Clientes (cards and side panel) in any state. State is the only input; data comes from the demo set. */
-export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal" }: {
+/** Clientes (a table with row actions that leads to each customer's and person's page) in any state. Data comes from the demo set. */
+export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal", initialRoute }: {
   customers?: DemoCustomer[];
   state?: CustomersState;
+  /** Open straight on a customer's or a person's page. */
+  initialRoute?: CustomersRoute;
 }) {
   const initialPhase = state === "cargando" ? "loading" : state === "error" ? "error" : "ready";
   const { phase, retrying, retry } = usePhase(initialPhase);
@@ -80,5 +82,5 @@ export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal" }: 
       </div>
     );
   }
-  return <Ready state={state === "cargando" || state === "error" ? "normal" : state} customers={customers} />;
+  return <Ready state={state === "cargando" || state === "error" ? "normal" : state} customers={customers} initialRoute={initialRoute} />;
 }

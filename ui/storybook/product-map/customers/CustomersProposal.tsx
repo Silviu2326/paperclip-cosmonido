@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
   AlertTriangle,
@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { euros, type DemoContact, type DemoCustomer } from "./demo-data";
+import { CustomerDetailPage, PersonDetailPage, type ActionHandler } from "./CustomerDetail";
 import { CustomersTable, PeopleTable, ServicesDialog, nextSort, sortCustomers, type SortKey, type SortState } from "./CustomersTables";
 import { NewCustomerDialog } from "./NewCustomerDialog";
 import { LoadMoreButton, useLoadMore } from "./scenario-parts";
@@ -48,6 +49,7 @@ export const HEALTH: Record<DemoCustomer["health"], { label: string; color: stri
 
 type View = "customers" | "people";
 type Layout = "table" | "cards";
+export type CustomersRoute = { page: "list" } | { page: "customer"; id: string } | { page: "person"; id: string; customerId: string };
 export type Filter = "all" | "attention" | "new" | "archived";
 
 function initials(name: string) {
@@ -225,7 +227,7 @@ export function CustomerRow({ customer, index, selected, onSelect }: { customer:
   );
 }
 
-function PanelSection({ title, icon: Icon, color, children }: { title: string; icon: typeof Users; color: string; children: ReactNode }) {
+export function PanelSection({ title, icon: Icon, color, children }: { title: string; icon: typeof Users; color: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
       <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -235,96 +237,6 @@ function PanelSection({ title, icon: Icon, color, children }: { title: string; i
       </h3>
       {children}
     </section>
-  );
-}
-
-export function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose: () => void }) {
-  const tokens = useMotionTokens();
-  const health = HEALTH[customer.health];
-  return (
-    <motion.aside
-      key={customer.id}
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 24 }}
-      transition={{ duration: tokens.base, ease: tokens.easeOut }}
-      className="flex flex-col gap-5 rounded-2xl border border-border bg-background p-5 shadow-lg"
-    >
-      <div className="flex items-start gap-3">
-        <Avatar name={customer.name} size="lg" />
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">{customer.name}</h2>
-          <p className="text-xs text-muted-foreground">{customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web")} · cliente desde {new Date(customer.createdAt).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Pill color={health.color} strong>{health.label}</Pill>
-            <Pill color={LILAC}>{customer.owner}</Pill>
-          </div>
-        </div>
-        <Button size="icon" variant="ghost" aria-label="Cerrar" onClick={onClose}><X className="h-4 w-4" /></Button>
-      </div>
-
-      {customer.archived ? (
-        <div className="flex items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
-          <span className="text-muted-foreground">Archivado: no aparece en la lista activa.</span>
-          <Button size="sm" variant="outline">Restaurar</Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-2">
-          <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5" />Tarea</Button>
-          <Button size="sm" variant="outline"><MessageCircle className="h-3.5 w-3.5" />Escribir</Button>
-          <Button size="sm" variant="outline"><FileText className="h-3.5 w-3.5" />Propuesta</Button>
-        </div>
-      )}
-
-      {customer.nextAction ? (
-        <div className="flex items-start gap-2 rounded-xl p-3 text-sm" style={{ background: `linear-gradient(135deg, ${tint(health.color, 22)}, ${tint(health.color, 6)})` }}>
-          <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: readable(health.color) }} />
-          <div><p className="font-medium">Próximo paso</p><p className="text-muted-foreground">{customer.nextAction}</p></div>
-        </div>
-      ) : null}
-
-      <PanelSection title="Personas" icon={Users} color={SKY}>
-        {customer.contacts.length === 0 ? <p className="text-sm text-muted-foreground">Sin personas todavía.</p> : null}
-        {customer.contacts.map((person) => (
-          <div key={person.id} className="flex items-center gap-2.5 rounded-lg p-1.5 transition-colors duration-(--motion-duration-fast) hover:bg-accent/60">
-            <Avatar name={person.name} size="sm" />
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 truncate text-sm">{person.name}{person.primary ? <Star className="h-3 w-3 fill-current" style={{ color: YELLOW }} /> : null}</p>
-              <p className="truncate text-xs text-muted-foreground">{person.title ?? person.email}</p>
-            </div>
-            <span className="text-muted-foreground"><ChannelIcon channel={person.channel} /></span>
-          </div>
-        ))}
-      </PanelSection>
-
-      <PanelSection title="Servicios" icon={Repeat} color={MINT}>
-        {customer.services.length ? customer.services.map((service) => (
-          <div key={service.id} className="flex items-center justify-between gap-2 rounded-lg border border-border p-2.5 text-sm">
-            <div className="min-w-0"><p className="truncate">{service.name}</p><p className="text-xs text-muted-foreground">Renueva {new Date(service.nextRenewal).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</p></div>
-            <div className="text-right"><p className="font-semibold tabular-nums">{euros(service.monthlyCents)}</p>
-              {service.status !== "active" ? <Pill color={service.status === "paused" ? RISK : YELLOW}>{service.status === "paused" ? "En pausa" : "Renovando"}</Pill> : null}</div>
-          </div>
-        )) : <p className="text-sm text-muted-foreground">Sin servicios recurrentes.</p>}
-      </PanelSection>
-
-      <PanelSection title="Propuestas abiertas" icon={FileText} color={SKY}>
-        {customer.openProposals.length ? customer.openProposals.map((proposal) => (
-          <div key={proposal.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="truncate">{proposal.title}</span>
-            <span className="flex items-center gap-2"><Pill color={proposal.status === "viewed" ? MINT : SKY}>{proposal.status === "viewed" ? "Vista" : proposal.status === "sent" ? "Enviada" : "Borrador"}</Pill><span className="tabular-nums">{euros(proposal.amountCents)}</span></span>
-          </div>
-        )) : <p className="text-sm text-muted-foreground">Ninguna propuesta abierta.</p>}
-      </PanelSection>
-
-      <PanelSection title="Trabajo" icon={CheckCircle2} color={LILAC}>
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {[["Tareas", customer.activeTasks], ["Revisiones", customer.pendingReviews], ["Sin leer", customer.unreadConversations]].map(([label, value]) => (
-            <div key={label as string} className="rounded-lg border border-border p-2"><p className="text-lg font-semibold tabular-nums">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div>
-          ))}
-        </div>
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarClock className="h-3.5 w-3.5" />{customer.lastActivityLabel}</p>
-      </PanelSection>
-    </motion.aside>
   );
 }
 
@@ -369,25 +281,28 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 /** One customers page: summary, a single list with three views, and a side panel with everything about a customer. */
-export function CustomersProposal({ customers: initialCustomers, initialQuery = "", initialFilter = "all", pageSize, canCreate = true }: {
+export function CustomersProposal({ customers: initialCustomers, initialQuery = "", initialFilter = "all", initialRoute = { page: "list" }, pageSize, canCreate = true }: {
   customers: DemoCustomer[];
   initialQuery?: string;
   initialFilter?: Filter;
+  /** Where the page opens: the list, a customer's page or a person's page. */
+  initialRoute?: CustomersRoute;
   /** When set, the list shows this many customers and a "load more" button. */
   pageSize?: number;
   /** Members without permission see the page read-only. */
   canCreate?: boolean;
 }) {
   const [customers, setCustomers] = useState(initialCustomers);
+  const [route, setRoute] = useState<CustomersRoute>(initialRoute);
   const [createOpen, setCreateOpen] = useState(false);
-  const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<number | undefined>(undefined);
   const [view, setView] = useState<View>("customers");
   const [layout, setLayout] = useState<Layout>("table");
   const [sort, setSort] = useState<SortState>(null);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [query, setQuery] = useState(initialQuery);
-  const [selectedId, setSelectedId] = useState<string | null>(initialCustomers[0]?.id ?? null);
   const tokens = useMotionTokens();
 
   const active = useMemo(() => customers.filter((customer) => !customer.archived), [customers]);
@@ -405,16 +320,32 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
     .filter((customer) => !needle || `${customer.name} ${customer.domain ?? ""} ${customer.tags.join(" ")}`.toLowerCase().includes(needle));
   const page = useLoadMore(layout === "table" ? sortCustomers(visibleCustomers, sort) : visibleCustomers, pageSize);
   const visiblePeople = people.filter(({ person, customer }) => !needle || `${person.name} ${person.email ?? ""} ${customer.name}`.toLowerCase().includes(needle));
-  const openCustomer = (id: string) => { setSelectedId(id); setView("customers"); };
   const filterOptions: readonly (readonly [Filter, string, string | null])[] = [
     ["all", "Todos", null],
     ["attention", "Atención", YELLOW],
     ["new", "Nuevos", SKY],
     ...(archivedCount ? [["archived", `Archivados · ${archivedCount}`, null] as const] : []),
   ];
-  const selected = customers.find((customer) => customer.id === selectedId) ?? null;
 
-  return (
+  const flash = (text: string) => {
+    setToast(text);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 2600);
+  };
+  const goList = (next: View = "customers") => { setView(next); setRoute({ page: "list" }); };
+  const openCustomer = (id: string) => setRoute({ page: "customer", id });
+  const openPerson = (personId: string, customerId: string) => setRoute({ page: "person", id: personId, customerId });
+  const restore = (id: string) => { setCustomers((current) => current.map((customer) => (customer.id === id ? { ...customer, archived: false } : customer))); flash("Cliente restaurado"); };
+  // In the real app these open the conversation, task or proposal composer; here they only say what would happen.
+  const act: ActionHandler = (action, customer, person) => {
+    const who = person?.name ?? customer.name;
+    flash(action === "message" ? `Se abriría una conversación con ${who}` : action === "task" ? `Se abriría una tarea nueva para ${who}` : `Se abriría una propuesta nueva para ${customer.name}`);
+  };
+
+  const routeCustomer = route.page === "list" ? undefined : customers.find((customer) => customer.id === (route.page === "customer" ? route.id : route.customerId));
+  const routePerson = route.page === "person" ? routeCustomer?.contacts.find((person) => person.id === route.id) : undefined;
+
+  const list = (
     <div className="flex flex-col gap-6 p-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -435,32 +366,13 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
         existing={customers}
         onCreate={(customer) => {
           setCustomers((current) => [customer, ...current]);
-          setView("customers");
           setFilter("all");
           setQuery("");
-          setSelectedId(customer.id);
-          setJustCreated(customer.name);
-          window.setTimeout(() => setJustCreated(null), 3500);
+          openCustomer(customer.id);
+          flash(`${customer.name} creado. Ya puedes añadir servicios, propuestas o tareas.`);
         }}
-        onOpenExisting={(id) => { setView("customers"); setFilter("all"); setQuery(""); setSelectedId(id); }}
+        onOpenExisting={(id) => { setFilter("all"); setQuery(""); openCustomer(id); }}
       />
-
-      <AnimatePresence>
-        {justCreated ? (
-          <motion.div
-            role="status"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: tokens.base, ease: tokens.easeOut }}
-            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm"
-            style={{ background: tint(MINT, 24) }}
-          >
-            <CheckCircle2 className="h-4 w-4" style={{ color: readable(MINT) }} />
-            <span><strong>{justCreated}</strong> creado. Ya puedes añadir servicios, propuestas o tareas desde su panel.</span>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
 
       {customers.length === 0 ? <EmptyState onCreate={() => setCreateOpen(true)} /> : <>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -474,7 +386,7 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
           <LayoutGroup id="customers-view"><ViewSwitch view={view} onChange={setView} counts={{ customers: active.length, people: people.length }} /></LayoutGroup>
           <div className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30">
             <Search className="h-4 w-4 text-muted-foreground" />
-            <input className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder="Buscar por nombre, web o etiqueta" value={query} onChange={(event) => setQuery(event.target.value)} />
+            <input aria-label="Buscar" className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder="Buscar por nombre, web o etiqueta" value={query} onChange={(event) => setQuery(event.target.value)} />
           </div>
           {view === "customers" ? (
             <div className="flex gap-1.5">
@@ -512,59 +424,76 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
 
         <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} services={services} monthly={monthly} onOpenCustomer={openCustomer} />
 
-        <div className={cn("grid grid-cols-1 gap-6", selected && view === "customers" ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]" : "")}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={view}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: tokens.fast, ease: tokens.standard }}
-              className="flex min-w-0 flex-col gap-3"
-            >
-              {view === "customers" ? (
-                visibleCustomers.length === 0 ? (
-                  <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: tint(SKY, 22), color: readable(SKY) }}><Search className="h-6 w-6" /></span>
-                    <p className="font-medium">{query ? `Ningún cliente coincide con «${query}»` : "No hay clientes en este filtro"}</p>
-                    <p className="max-w-sm text-sm text-muted-foreground">Prueba con otro nombre, con la web o con una etiqueta.</p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <Button variant="outline" onClick={() => { setQuery(""); setFilter("all"); }}>Limpiar búsqueda</Button>
-                      {canCreate && query ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Crear «{query}»</Button> : null}
-                    </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: tokens.fast, ease: tokens.standard }}
+            className="flex min-w-0 flex-col gap-3"
+          >
+            {view === "customers" ? (
+              visibleCustomers.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: tint(SKY, 22), color: readable(SKY) }}><Search className="h-6 w-6" /></span>
+                  <p className="font-medium">{query ? `Ningún cliente coincide con «${query}»` : "No hay clientes en este filtro"}</p>
+                  <p className="max-w-sm text-sm text-muted-foreground">Prueba con otro nombre, con la web o con una etiqueta.</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={() => { setQuery(""); setFilter("all"); }}>Limpiar búsqueda</Button>
+                    {canCreate && query ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Crear «{query}»</Button> : null}
                   </div>
-                ) : <>
-                  {layout === "table" ? (
-                    <div className="hidden md:block">
-                      <CustomersTable customers={page.visible} selectedId={selectedId} onSelect={setSelectedId} sort={sort} onSort={(key: SortKey) => setSort((current) => nextSort(current, key))} compact={selected !== null} />
-                    </div>
-                  ) : null}
-                  {/* Cards: the chosen layout, and the phone fallback when the table is chosen. */}
-                  <div className={cn("flex flex-col gap-3", layout === "table" && "md:hidden")}>
-                    <AnimatePresence>
-                      {page.visible.map((customer, index) => (
-                        <CustomerRow key={customer.id} customer={customer} index={Math.min(index, 12)} selected={customer.id === selectedId} onSelect={() => setSelectedId(customer.id === selectedId ? null : customer.id)} />
-                      ))}
-                    </AnimatePresence>
+                </div>
+              ) : <>
+                {layout === "table" ? (
+                  <div className="hidden md:block">
+                    <CustomersTable customers={page.visible} sort={sort} onSort={(key: SortKey) => setSort((current) => nextSort(current, key))} onOpen={openCustomer} onAction={act} onRestore={restore} canAct={canCreate} />
                   </div>
-                  <LoadMoreButton remaining={page.remaining} onClick={page.more} noun="clientes" />
-                </>
-              ) : visiblePeople.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Ninguna persona coincide con «{query}».</p>
-              ) : (
-                <PeopleTable people={visiblePeople} onOpenCustomer={openCustomer} />
-              )}
-            </motion.div>
-          </AnimatePresence>
-          <AnimatePresence mode="wait">
-            {selected && view === "customers" ? (
-              <div key={selected.id} className="lg:sticky lg:top-4 lg:self-start">
-                <CustomerPanel customer={selected} onClose={() => setSelectedId(null)} />
-              </div>
-            ) : null}
-          </AnimatePresence>
-        </div>
+                ) : null}
+                {/* Cards: the chosen layout, and the phone fallback when the table is chosen. */}
+                <div className={cn("flex flex-col gap-3", layout === "table" && "md:hidden")}>
+                  <AnimatePresence>
+                    {page.visible.map((customer, index) => (
+                      <CustomerRow key={customer.id} customer={customer} index={Math.min(index, 12)} selected={false} onSelect={() => openCustomer(customer.id)} />
+                    ))}
+                  </AnimatePresence>
+                </div>
+                <LoadMoreButton remaining={page.remaining} onClick={page.more} noun="clientes" />
+              </>
+            ) : visiblePeople.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Ninguna persona coincide con «{query}».</p>
+            ) : (
+              <PeopleTable people={visiblePeople} onOpenPerson={openPerson} onOpenCustomer={openCustomer} onAction={act} canAct={canCreate} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </>}
+    </div>
+  );
+
+  return (
+    <div>
+      {route.page === "customer" && routeCustomer ? (
+        <CustomerDetailPage customer={routeCustomer} onBack={() => goList("customers")} onOpenPerson={(personId) => openPerson(personId, routeCustomer.id)} onAction={act} onRestore={() => restore(routeCustomer.id)} canAct={canCreate} />
+      ) : route.page === "person" && routeCustomer && routePerson ? (
+        <PersonDetailPage person={routePerson} customer={routeCustomer} onBackToList={() => goList("people")} onOpenCustomer={() => openCustomer(routeCustomer.id)} onOpenPerson={(personId) => openPerson(personId, routeCustomer.id)} onAction={act} canAct={canCreate} />
+      ) : list}
+      <AnimatePresence>
+        {toast ? (
+          <motion.div
+            role="status"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: tokens.base, ease: tokens.easeOut }}
+            className="fixed bottom-6 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-popover px-4 py-2.5 text-sm shadow-lg"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: readable(MINT) }} />
+            <span>{toast}</span>
+            <span className="text-xs text-muted-foreground">(demo)</span>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
