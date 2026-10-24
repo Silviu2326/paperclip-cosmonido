@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CustomersPage, CustomersVariants } from "../../../product-map/customers/CustomersPage";
+import { CustomersPage } from "../../../product-map/customers/CustomersPage";
 import { DEMO_CUSTOMERS } from "../../../product-map/customers/demo-data";
 
 const meta = {
@@ -13,7 +13,7 @@ const meta = {
       status: "proposed",
       implementation: "guide",
       boundary: "static",
-      exception: "Product decision tool: a proposed single Customers page (customers, people and services in one view) with demo data, its states and three design variants; it does not render the production page.",
+      exception: "Product decision tool: a proposed single Customers page (customers, people and services in one view) with demo data and its states (cards and side panel); it does not render the production page.",
       notes: "Data in storybook/product-map/customers/demo-data.ts and scenario-data.ts; aggregates come from APIs that today live on separate pages.",
     },
   },
@@ -55,18 +55,3 @@ export const SinResultados: Story = { args: { state: "sin-resultados" } };
 
 /** The "Archivados" filter: customers that left the active list and can be restored. */
 export const Archivados: Story = { args: { state: "archivados" } };
-
-/** Variant B: dense table; sort by column, edit health and owner in place, bulk actions. */
-export const VarianteB: Story = { args: { variant: "b" } };
-
-/** Variant C: board by relationship health; drag a card to change it. */
-export const VarianteC: Story = { args: { variant: "c" } };
-
-/** The three designs in tabs with a sentence about what each favours. */
-export const CompararVariantes: Story = { render: () => <CustomersVariants /> };
-
-/** Variant B with 180 customers: sorting and bulk actions at volume. */
-export const VarianteBMuchosDatos: Story = { args: { variant: "b", state: "muchos" } };
-
-/** Variant C with 180 customers: columns of 40 with "Cargar más". */
-export const VarianteCMuchosDatos: Story = { args: { variant: "c", state: "muchos" } };

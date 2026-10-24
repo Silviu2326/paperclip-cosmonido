@@ -1,20 +1,11 @@
 import { useEffect } from "react";
-import { CustomersBoard } from "./CustomersBoard";
 import { CustomersProposal } from "./CustomersProposal";
-import { CustomersTable } from "./CustomersTable";
 import { DEMO_CUSTOMERS, setMoneyHidden, type DemoCustomer } from "./demo-data";
 import { ARCHIVED_CUSTOMERS, LONG_TEXT_CUSTOMERS, makeManyCustomers } from "./scenario-data";
-import { LoadError, LoadingStatus, PermissionNotice, Skeleton, VariantTabs, usePhase } from "./scenario-parts";
+import { LoadError, LoadingStatus, PermissionNotice, Skeleton, usePhase } from "./scenario-parts";
 
 export type CustomersState =
   | "normal" | "cargando" | "error" | "muchos" | "textos-largos" | "sin-permisos" | "sin-resultados" | "archivados";
-export type CustomersVariant = "a" | "b" | "c";
-
-export const CUSTOMERS_VARIANT_SUMMARY: Record<CustomersVariant, { label: string; summary: string }> = {
-  a: { label: "A · Tarjetas y panel", summary: "Contar la historia de cada cliente: tarjetas con su próximo paso y un panel con toda su gente, servicios y trabajo." },
-  b: { label: "B · Tabla densa", summary: "Ver muchos clientes a la vez y trabajar rápido: columnas ordenables, edición en línea de salud y responsable, y acciones en lote." },
-  c: { label: "C · Tablero por salud", summary: "Saber de un vistazo dónde está el riesgo: tres columnas por salud de la relación; arrastrar una tarjeta cambia su estado." },
-};
 
 function CustomersSkeleton() {
   return (
@@ -47,11 +38,10 @@ function dataFor(state: CustomersState, customers: DemoCustomer[]): DemoCustomer
   return customers;
 }
 
-function Ready({ state, variant, customers }: { state: CustomersState; variant: CustomersVariant; customers: DemoCustomer[] }) {
+function Ready({ state, customers }: { state: CustomersState; customers: DemoCustomer[] }) {
   const data = dataFor(state, customers);
   const readOnly = state === "sin-permisos";
-  const pageSize = state === "muchos" ? (variant === "a" ? 25 : 40) : undefined;
-  const key = `${state}-${variant}`;
+  const pageSize = state === "muchos" ? 25 : undefined;
   return (
     <div className="flex min-w-0 flex-col">
       {readOnly ? (
@@ -61,22 +51,15 @@ function Ready({ state, variant, customers }: { state: CustomersState; variant: 
           </PermissionNotice>
         </div>
       ) : null}
-      {variant === "a" ? (
-        <CustomersProposal key={key} customers={data} pageSize={pageSize} canCreate={!readOnly} initialQuery={state === "sin-resultados" ? "Zzz Ferretería" : ""} initialFilter={state === "archivados" ? "archived" : "all"} />
-      ) : variant === "b" ? (
-        <CustomersTable key={key} customers={data} pageSize={pageSize} canCreate={!readOnly} initialQuery={state === "sin-resultados" ? "Zzz Ferretería" : ""} />
-      ) : (
-        <CustomersBoard key={key} customers={data} pageSize={pageSize} canCreate={!readOnly} />
-      )}
+      <CustomersProposal key={state} customers={data} pageSize={pageSize} canCreate={!readOnly} initialQuery={state === "sin-resultados" ? "Zzz Ferretería" : ""} initialFilter={state === "archivados" ? "archived" : "all"} />
     </div>
   );
 }
 
-/** Clientes in any state and any of the three designs. State and variant are the only inputs; data comes from the demo set. */
-export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal", variant = "a" }: {
+/** Clientes (cards and side panel) in any state. State is the only input; data comes from the demo set. */
+export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal" }: {
   customers?: DemoCustomer[];
   state?: CustomersState;
-  variant?: CustomersVariant;
 }) {
   const initialPhase = state === "cargando" ? "loading" : state === "error" ? "error" : "ready";
   const { phase, retrying, retry } = usePhase(initialPhase);
@@ -97,19 +80,5 @@ export function CustomersPage({ customers = DEMO_CUSTOMERS, state = "normal", va
       </div>
     );
   }
-  return <Ready state={state === "cargando" || state === "error" ? "normal" : state} variant={variant} customers={customers} />;
-}
-
-/** The three designs in tabs, each with a sentence about what it favours. */
-export function CustomersVariants({ state = "normal" }: { state?: CustomersState }) {
-  return (
-    <VariantTabs
-      items={(["a", "b", "c"] as const).map((variant) => ({
-        id: variant,
-        label: CUSTOMERS_VARIANT_SUMMARY[variant].label,
-        summary: CUSTOMERS_VARIANT_SUMMARY[variant].summary,
-        render: () => <CustomersPage variant={variant} state={state} />,
-      }))}
-    />
-  );
+  return <Ready state={state === "cargando" || state === "error" ? "normal" : state} customers={customers} />;
 }
