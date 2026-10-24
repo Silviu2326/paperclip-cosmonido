@@ -20,7 +20,7 @@ Agent access: [companion](../agent-access-map/customers.md).
 
 ### `customer-list`
 
-Open `/customers` from the Business group. Search by name or domain, filter by status, and choose New customer. A possible duplicate shows a notice with the matching records; choose Create anyway only when the match is a different entity.
+Open `/customers` from the Business group. Summary cards show active customers, those needing attention, open proposals and running services (the services card opens a popup listing them). Search by name or domain, filter by All, Attention, New or Archived, sort the table by name, health or date, or switch to cards, then choose New customer. Each row has a New proposal button and an Open button; archived rows have Restore. A possible duplicate shows a notice with the matching records; choose Create anyway only when the match is a different entity.
 
 ### `customer-detail`
 
@@ -28,7 +28,7 @@ Open `/customers/:customerId`. Summary, Contacts, Opportunities, Activity, Conve
 
 ### `contact-list`
 
-Open `/contacts` to list and create contacts. Link them to a customer from the customer's Contacts tab.
+Open the People tab next to Customers (`/customers/contacts`) to list and create contacts as a table. Link them to a customer from the customer's Contacts tab. The services page (`/customers/services`) no longer has its own tab; it opens from the services card or its popup.
 
 ## Driving it with Playwright and the Paperclip CLI
 

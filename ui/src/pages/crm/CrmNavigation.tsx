@@ -32,10 +32,13 @@ const onOrUnder = (path: string) => (pathname: string) => pathname === path || p
 
 export function CustomersNavigation() {
   const { t } = useTranslation();
+  const location = useLocation();
+  // Services live in a popup on the customers page; their own page only gets a tab while you are on it.
+  const onServices = /\/customers\/services(\/|$)/.test(location.pathname);
   return <SectionNavigation tabs={[
     { value: "customers", to: "/customers", label: t("uxCrm.customers", { defaultValue: "Customers" }), matches: (path) => path === "/customers" || (/^\/customers\/[^/]+$/.test(path) && !path.endsWith("/contacts") && !path.endsWith("/services")) },
-    { value: "contacts", to: "/customers/contacts", label: t("uxCrm.contacts", { defaultValue: "Contacts" }), matches: onOrUnder("/customers/contacts") },
-    { value: "services", to: "/customers/services", label: t("uxCrm.services", { defaultValue: "Services" }), matches: onOrUnder("/customers/services") },
+    { value: "contacts", to: "/customers/contacts", label: t("uxCrm.list.people", { defaultValue: "Personas" }), matches: onOrUnder("/customers/contacts") },
+    ...(onServices ? [{ value: "services", to: "/customers/services", label: t("uxCrm.services", { defaultValue: "Services" }), matches: onOrUnder("/customers/services") }] : []),
   ]} />;
 }
 
