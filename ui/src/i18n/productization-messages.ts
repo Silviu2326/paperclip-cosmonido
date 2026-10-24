@@ -40,6 +40,10 @@ const baseProductizationMessagesEn = {
     filterWorking: "Working",
     favorites: "Favorites",
   },
+  agentWorkPanels: {
+    tasks: "Tasks",
+    artifacts: "Files",
+  },
   uxCrm: {
     list: {
       "people": "People",
@@ -711,6 +715,10 @@ const baseProductizationMessagesEs: Translated<typeof baseProductizationMessages
     filterAll: "Todos",
     filterWorking: "Trabajando",
     favorites: "Favoritos",
+  },
+  agentWorkPanels: {
+    tasks: "Encargos",
+    artifacts: "Archivos",
   },
   uxCrm: {
     list: {
@@ -1385,6 +1393,10 @@ const baseProductizationMessagesPt: Translated<typeof baseProductizationMessages
     filterAll: "Todos",
     filterWorking: "Trabalhando",
     favorites: "Favoritos",
+  },
+  agentWorkPanels: {
+    tasks: "Tarefas",
+    artifacts: "Arquivos",
   },
   uxCrm: {
     list: {

@@ -34,7 +34,7 @@ import { fileResourcesApi } from "@/api/file-resources";
 import { IssueProperties } from "@/components/IssueProperties";
 import { PROPERTIES_PANE_HEADER_SLOT_ID } from "@/components/PropertiesPanel";
 import { WorkspaceFileBrowser } from "@/components/WorkspaceFileBrowser";
-import { AgentArtifactsPanel, AgentTasksPanel } from "@/components/chat/AgentWorkPanels";
+import { AgentArtifactsPanel, AgentPanelHeader, AgentPanelSwitch, AgentTasksPanel } from "@/components/chat/AgentWorkPanels";
 import { useAgentChatEnabled } from "@/hooks/useAgentChatEnabled";
 import { IssuePropertiesArtifactsTab } from "@/components/issue-properties/IssuePropertiesArtifactsTab";
 import { ArtifactDropzone } from "@/components/artifacts/ArtifactDropzone";
@@ -699,7 +699,27 @@ export function TaskSidePanel({
       )}
     />
   );
-  const tabStrip = mobile ? (
+  // Agent chats: while only the agent's own tabs are open, a two-pill switch
+  // (tasks / artifacts) stands in for the generic tab strip. Any other tab the
+  // user opens (files, documents, a browser) brings the full strip back.
+  const agentSwitchMode = Boolean(conversationAgentId)
+    && controller.tabs.every((tab) => tab.payload.kind === "agent-tasks" || tab.payload.kind === "artifacts");
+  const agentSwitch = conversationAgentId && agentSwitchMode ? (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <AgentPanelSwitch
+        companyId={issue.companyId}
+        agentId={conversationAgentId}
+        excludeIssueId={issue.id}
+        active={activeTab?.payload.kind === "artifacts" ? "artifacts" : activeTab?.payload.kind === "agent-tasks" ? "tasks" : null}
+        onSelect={(view) => {
+          markInteracted();
+          controller.openTab(view === "artifacts" ? taskPanelArtifactsTab() : taskPanelAgentTasksTab());
+        }}
+      />
+      {launcherControl}
+    </div>
+  ) : null;
+  const tabStrip = agentSwitch ? agentSwitch : mobile ? (
     <SidePanelMobileTabs
       tabs={visualTabs}
       activeTabId={controller.activeTabId}
@@ -756,10 +776,18 @@ export function TaskSidePanel({
     );
   } else if (activeTab.payload.kind === "agent-tasks") {
     content = conversationAgentId ? (
-      <AgentTasksPanel companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
+      <>
+        {agentSwitchMode ? <AgentPanelHeader companyId={issue.companyId} agentId={conversationAgentId} /> : null}
+        <AgentTasksPanel companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
+      </>
     ) : null;
   } else if (activeTab.payload.kind === "artifacts" && conversationAgentId) {
-    content = <AgentArtifactsPanel companyId={issue.companyId} agentId={conversationAgentId} />;
+    content = (
+      <>
+        {agentSwitchMode ? <AgentPanelHeader companyId={issue.companyId} agentId={conversationAgentId} /> : null}
+        <AgentArtifactsPanel companyId={issue.companyId} agentId={conversationAgentId} />
+      </>
+    );
   } else if (activeTab.payload.kind === "artifacts") {
     content = <TextAttachmentContext.Provider value={(id, title) => {
       markInteracted();

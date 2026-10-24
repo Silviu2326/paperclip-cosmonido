@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
+import { LayoutGroup, motion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, File, FileText, Image, Search, Video } from "lucide-react";
 import type { CompanyArtifact, Issue } from "@paperclipai/shared";
+import { agentsApi } from "@/api/agents";
 import { artifactsApi } from "@/api/artifacts";
+import { AgentAvatar } from "@/components/AgentAvatar";
+import { useMotionTokens } from "@/hooks/useMotionTokens";
 import { issuesApi } from "@/api/issues";
 import { projectsApi } from "@/api/projects";
 import { IssueFiltersPopover } from "@/components/IssueFiltersPopover";
@@ -120,6 +124,16 @@ export function AgentTaskCard({ task }: { task: Issue }) {
   );
 }
 
+const agentTasksQuery = (companyId: string, agentId: string) => ({
+  queryKey: queryKeys.issues.listParticipatedByAgent(companyId, agentId),
+  queryFn: () => issuesApi.list(companyId, {
+    participantAgentId: agentId,
+    sortField: "updated" as const,
+    sortDir: "desc" as const,
+    limit: AGENT_TASK_LIMIT,
+  }),
+});
+
 export function AgentTasksPanel({
   companyId,
   agentId,
@@ -135,15 +149,7 @@ export function AgentTasksPanel({
   const [sortField, setSortField] = useState<AgentTaskSortField>("updated");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const tasksQuery = useQuery({
-    queryKey: queryKeys.issues.listParticipatedByAgent(companyId, agentId),
-    queryFn: () => issuesApi.list(companyId, {
-      participantAgentId: agentId,
-      sortField: "updated",
-      sortDir: "desc",
-      limit: AGENT_TASK_LIMIT,
-    }),
-  });
+  const tasksQuery = useQuery(agentTasksQuery(companyId, agentId));
   const projectsQuery = useQuery({
     queryKey: queryKeys.projects.list(companyId),
     queryFn: () => projectsApi.list(companyId),
@@ -314,11 +320,13 @@ async function listAgentArtifacts(companyId: string, agentId: string) {
   return { artifacts, truncated: true };
 }
 
+const agentArtifactsQuery = (companyId: string, agentId: string) => ({
+  queryKey: queryKeys.artifacts.byAgent(companyId, agentId),
+  queryFn: () => listAgentArtifacts(companyId, agentId),
+});
+
 export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string; agentId: string }) {
-  const artifactsQuery = useQuery({
-    queryKey: queryKeys.artifacts.byAgent(companyId, agentId),
-    queryFn: () => listAgentArtifacts(companyId, agentId),
-  });
+  const artifactsQuery = useQuery(agentArtifactsQuery(companyId, agentId));
 
   if (artifactsQuery.isPending) return <PanelMessage>Loading artifacts…</PanelMessage>;
   if (artifactsQuery.isError) return <PanelMessage tone="error">Could not load this agent's artifacts.</PanelMessage>;
@@ -331,5 +339,76 @@ export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string;
         <p className="px-1 text-xs text-muted-foreground">Showing this agent's {artifacts.length} most recent artifacts.</p>
       ) : null}
     </section>
+  );
+}
+
+export type AgentPanelView = "tasks" | "artifacts";
+
+/** Counts shown on the switch: the agent's open tasks and all its artifacts. Shares the panels' queries, so nothing loads twice. */
+function useAgentWorkCounts(companyId: string, agentId: string, excludeIssueId?: string) {
+  const tasks = useQuery(agentTasksQuery(companyId, agentId));
+  const artifacts = useQuery(agentArtifactsQuery(companyId, agentId));
+  return {
+    tasks: tasks.data ? tasks.data.filter((task) => task.id !== excludeIssueId && task.status !== "done" && task.status !== "cancelled").length : null,
+    artifacts: artifacts.data ? artifacts.data.artifacts.length : null,
+  };
+}
+
+/** The agent the panel is about: avatar, name and role, so the column reads as "this agent's work". */
+export function AgentPanelHeader({ companyId, agentId }: { companyId: string; agentId: string }) {
+  const agentsQuery = useQuery({
+    queryKey: queryKeys.agents.list(companyId),
+    queryFn: () => agentsApi.list(companyId),
+  });
+  const agent = agentsQuery.data?.find((item) => item.id === agentId);
+  if (!agent) return null;
+  return (
+    <div className="mb-4 flex items-center gap-3" data-testid="agent-panel-header">
+      <AgentAvatar agent={agent} size={48} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold" style={{ fontFamily: "var(--font-heading)" }}>{agent.name}</p>
+        <p className="truncate text-xs text-muted-foreground">{agent.title ?? agent.role}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Two pills instead of a tab strip: tasks and artifacts, each with its count. */
+export function AgentPanelSwitch({ companyId, agentId, excludeIssueId, active, onSelect }: {
+  companyId: string;
+  agentId: string;
+  excludeIssueId?: string;
+  active: AgentPanelView | null;
+  onSelect: (view: AgentPanelView) => void;
+}) {
+  const { t } = useTranslation();
+  const tokens = useMotionTokens();
+  const counts = useAgentWorkCounts(companyId, agentId, excludeIssueId);
+  const options: [AgentPanelView, string, number | null][] = [
+    ["tasks", t("agentWorkPanels.tasks", { defaultValue: "Encargos" }), counts.tasks],
+    ["artifacts", t("agentWorkPanels.artifacts", { defaultValue: "Archivos" }), counts.artifacts],
+  ];
+  return (
+    <LayoutGroup id="agent-panel-switch">
+      <div role="tablist" className="inline-flex shrink-0 rounded-xl border border-border bg-muted/40 p-1">
+        {options.map(([id, label, count]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={active === id}
+            data-side-panel-tab-target={id === "tasks" ? "agent-tasks" : "artifacts"}
+            onClick={() => onSelect(id)}
+            className={cn("relative rounded-lg px-3 py-1.5 text-sm transition-colors duration-(--motion-duration-fast) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active === id ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            {active === id ? (
+              <motion.span layoutId="agent-panel-pill" className="absolute inset-0 rounded-lg bg-background shadow-sm" transition={{ duration: tokens.base, ease: tokens.easeOut }} />
+            ) : null}
+            <span className="relative">{label}</span>
+            {count != null ? <span className="relative ml-1.5 text-xs tabular-nums text-muted-foreground">{count}</span> : null}
+          </button>
+        ))}
+      </div>
+    </LayoutGroup>
   );
 }

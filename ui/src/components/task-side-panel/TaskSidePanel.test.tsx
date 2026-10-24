@@ -84,6 +84,13 @@ vi.mock("@/components/chat/AgentWorkPanels", () => ({
     <div>{`Agent tasks ${agentId} excluding ${excludeIssueId}`}</div>
   ),
   AgentArtifactsPanel: ({ agentId }: { agentId: string }) => <div>{`Agent artifacts ${agentId}`}</div>,
+  AgentPanelHeader: ({ agentId }: { agentId: string }) => <div>{`Agent header ${agentId}`}</div>,
+  AgentPanelSwitch: ({ active, onSelect }: { active: "tasks" | "artifacts" | null; onSelect: (view: "tasks" | "artifacts") => void }) => (
+    <div role="tablist">
+      <button role="tab" aria-selected={active === "tasks"} data-side-panel-tab-target="agent-tasks" onClick={() => onSelect("tasks")}>Tasks</button>
+      <button role="tab" aria-selected={active === "artifacts"} data-side-panel-tab-target="artifacts" onClick={() => onSelect("artifacts")}>Artifacts</button>
+    </div>
+  ),
 }));
 
 vi.mock("@/components/WorkspaceFileBrowser", () => ({
@@ -239,7 +246,6 @@ describe("TaskSidePanel", () => {
     await render(panel({ issue: issue({ conversationAgentId: "agent-1" }) }));
     const selected = container.querySelector('[role="tab"][aria-selected="true"]');
     expect(selected?.getAttribute("data-side-panel-tab-target")).toBe("agent-tasks");
-    expect(selected?.textContent).toContain("Tasks");
     expect(container.textContent).toContain("Agent tasks agent-1 excluding task-1");
     expect(container.textContent).not.toContain("Artifacts content");
   });
@@ -253,8 +259,10 @@ describe("TaskSidePanel", () => {
       updatedAt: 1,
     });
     await render(panel({ issue: issue({ conversationAgentId: "agent-1" }) }));
+    // An agent chat shows the tasks / artifacts pills; the chosen Artifacts tab stays selected.
     expect(Array.from(container.querySelectorAll('[role="tab"]')).map((tab) => tab.getAttribute("data-side-panel-tab-target")))
-      .toEqual(["artifacts"]);
+      .toEqual(["agent-tasks", "artifacts"]);
+    expect(container.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute("data-side-panel-tab-target")).toBe("artifacts");
   });
 
   it("falls back to Artifacts when Agent Chat is off and only the Tasks tab was saved", async () => {
@@ -285,7 +293,8 @@ describe("TaskSidePanel", () => {
     });
     await render(panel({ issue: issue({ conversationAgentId: "agent-1" }) }));
     expect(Array.from(container.querySelectorAll('[role="tab"]')).map((tab) => tab.getAttribute("data-side-panel-tab-target")))
-      .toEqual(["agent-tasks"]);
+      .toEqual(["agent-tasks", "artifacts"]);
+    expect(container.querySelector('[role="tab"][aria-selected="true"]')?.getAttribute("data-side-panel-tab-target")).toBe("agent-tasks");
   });
 
   it("offers the agent's artifacts from the + launcher in an agent chat", async () => {
