@@ -22,7 +22,7 @@ Gaps: the agent tool registry admits these names, but a live run has not been us
 
 Review: `baseline`.
 
-API: `present` - GET /api/companies/{companyId}/contacts; POST /api/companies/{companyId}/contacts; GET /api/contacts/{id}; PATCH /api/contacts/{id}.
+API: `present` - GET /api/companies/{companyId}/contacts; POST /api/companies/{companyId}/contacts; GET /api/contacts/{id}; GET /api/contacts/{id}/customers; PATCH /api/contacts/{id}.
 
 Agent access: `available` - crm_create_contact creates a contact through the contact route; listing and editing contacts use REST with the agent's company-scoped key.
 

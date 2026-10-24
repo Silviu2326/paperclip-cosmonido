@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Customer, CustomerKind } from "@paperclipai/shared";
 import { crmApi } from "../../api/crm";
@@ -21,11 +21,14 @@ export function CustomerCreateDialog({
   onOpenChange,
   companyId,
   onCreated,
+  initialName,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
   onCreated?: (customer: Customer) => void;
+  /** Name to start with, e.g. the text that found no match in the list. */
+  initialName?: string;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -35,6 +38,10 @@ export function CustomerCreateDialog({
   const [contactEmail, setContactEmail] = useState("");
   const [candidates, setCandidates] = useState<CustomerCandidate[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open && initialName) setName(initialName);
+  }, [open, initialName]);
 
   function reset() {
     setName("");

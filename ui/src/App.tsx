@@ -115,6 +115,7 @@ const Office = lazy(() => import("./pages/Office").then((module) => ({ default: 
 const GoalDetail = lazy(() => import("./pages/GoalDetail").then((module) => ({ default: module.GoalDetail })));
 const Customers = lazy(() => import("./pages/crm/Customers").then((module) => ({ default: module.Customers })));
 const CustomerDetail = lazy(() => import("./pages/crm/CustomerDetail").then((module) => ({ default: module.CustomerDetail })));
+const PersonDetail = lazy(() => import("./pages/crm/PersonDetail").then((module) => ({ default: module.PersonDetail })));
 const Contacts = lazy(() => import("./pages/crm/Contacts").then((module) => ({ default: module.Contacts })));
 const Opportunities = lazy(() => import("./pages/crm/Opportunities").then((module) => ({ default: module.Opportunities })));
 const Leads = lazy(() => import("./pages/crm/Leads").then((module) => ({ default: module.Leads })));
@@ -493,6 +494,7 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
         <Route path="customers" element={<Customers />} />
         <Route path="customers/contacts" element={<Contacts />} />
         <Route path="customers/contacts/import" element={<ContactImport />} />
+        <Route path="customers/contacts/:contactId" element={<PersonDetail />} />
         <Route path="customers/services" element={<ServiceAgreements />} />
         <Route path="customers/services/:id" element={<ServiceAgreementDetail />} />
         <Route path="customers/:customerId" element={<CustomerDetail />} />

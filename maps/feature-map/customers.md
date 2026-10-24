@@ -6,7 +6,7 @@ navigation: {"section":"Customers and sales","sectionOrder":25,"order":10}
 
 People and organizations the company serves. A customer groups contacts, opportunities, conversations and memory; a contact is one person reachable through one or more identities (email, phone, chat handle). Creating a record first checks for likely duplicates; nothing is merged automatically.
 
-Implementation: [customers](../../ui/src/pages/crm/Customers.tsx), [customer detail](../../ui/src/pages/crm/CustomerDetail.tsx), [contacts](../../ui/src/pages/crm/Contacts.tsx), [duplicate notice](../../ui/src/components/crm/CustomerDuplicateNotice.tsx).
+Implementation: [customers](../../ui/src/pages/crm/Customers.tsx), [customer detail](../../ui/src/pages/crm/CustomerDetail.tsx), [contacts](../../ui/src/pages/crm/Contacts.tsx), [person detail](../../ui/src/pages/crm/PersonDetail.tsx), [duplicate notice](../../ui/src/components/crm/CustomerDuplicateNotice.tsx).
 Agent access: [companion](../agent-access-map/customers.md).
 
 ## Sub-features
@@ -24,11 +24,11 @@ Open `/customers` from the Business group. Summary cards show active customers, 
 
 ### `customer-detail`
 
-Open `/customers/:customerId`. Summary, Contacts, Opportunities, Activity, Conversations and Memory are tabs. Archive or restore the customer from the header. Contacts are linked or unlinked in the Contacts tab.
+Open `/customers/:customerId`. A header card shows health, tags and the Archive and Proposals actions. Summary lists the customer's people, running services and open proposals; Contacts, Opportunities, Activity, Conversations and Memory are tabs. Archive or restore the customer from the header. Contacts are linked or unlinked in the Contacts tab.
 
 ### `contact-list`
 
-Open the People tab next to Customers (`/customers/contacts`) to list and create contacts as a table. Link them to a customer from the customer's Contacts tab. The services page (`/customers/services`) no longer has its own tab; it opens from the services card or its popup.
+Open the People tab next to Customers (`/customers/contacts`) to list and create contacts as a table. Link them to a customer from the customer's Contacts tab. Choosing a person opens `/customers/contacts/:contactId` with their contact data, the customers they belong to and their colleagues. The services page (`/customers/services`) no longer has its own tab; it opens from the services card or its popup.
 
 ## Driving it with Playwright and the Paperclip CLI
 

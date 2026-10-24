@@ -147,6 +147,26 @@ export function contactService(db: Db) {
         .orderBy(desc(customerContacts.isPrimary), asc(contacts.displayName));
     },
 
+    /** Customers a contact is linked to, primary links first. Null when the contact is not in this company. */
+    listCustomers: async (companyId: string, contactId: string) => {
+      const contact = await db
+        .select({ id: contacts.id })
+        .from(contacts)
+        .where(and(eq(contacts.id, contactId), eq(contacts.companyId, companyId)))
+        .then((rows) => rows[0] ?? null);
+      if (!contact) return null;
+      return db
+        .select({
+          customer: customers,
+          role: customerContacts.role,
+          isPrimary: customerContacts.isPrimary,
+        })
+        .from(customerContacts)
+        .innerJoin(customers, eq(customers.id, customerContacts.customerId))
+        .where(and(eq(customerContacts.contactId, contactId), eq(customerContacts.companyId, companyId)))
+        .orderBy(desc(customerContacts.isPrimary), asc(customers.name));
+    },
+
     /**
      * Creates a contact and its email/phone identities. Idempotent by `idempotencyKey`.
      * Without `force`, an identity already known to the company throws CrmDuplicateError.

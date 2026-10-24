@@ -22,7 +22,7 @@ import {
 } from "../../lib/customers-list";
 import { EmptyState } from "../../components/EmptyState";
 import { CustomersEmptyState } from "../../components/crm/CustomersEmptyState";
-import { PageSkeleton } from "../../components/PageSkeleton";
+import { CustomersLoadError, CustomersNoAccess, CustomersSkeleton } from "../../components/crm/CustomersStates";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CustomerCreateDialog } from "../../components/crm/CustomerCreateDialog";
@@ -107,6 +107,8 @@ export function Customers() {
     return <EmptyState icon={Users} message={t("crm.customers.selectCompany")} />;
   }
 
+  if (query.isLoading) return <CustomersSkeleton />;
+
   const activeCustomers = summary.data?.items ?? [];
   const attention = activeCustomers.filter(needsAttention).length;
   const newCount = activeCustomers.filter((customer) => isNewCustomer(customer)).length;
@@ -117,7 +119,9 @@ export function Customers() {
   const countLabel = `${activeCustomers.length}${summary.data?.nextCursor ? "+" : ""}`;
   const error = query.error;
   const forbidden = error instanceof ApiError && error.status === 403;
+  const failed = !!error && !forbidden && loaded.length === 0;
   const isEmpty = !!query.data && loaded.length === 0 && filter === "all" && !q;
+  const showTools = !isEmpty && !failed && !forbidden;
 
   const filterOptions: readonly (readonly [CustomerListFilter, string, string | null])[] = [
     ["all", t("uxCrm.list.filterAll", { defaultValue: "Todos" }), null],
@@ -135,13 +139,13 @@ export function Customers() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t("nav.customers")}</h1>
-          {!isEmpty && summary.data ? (
+          {showTools && summary.data ? (
             <p className="text-sm text-muted-foreground">
               {t("uxCrm.list.subtitle", { label: countLabel, defaultValue: "{{label}} clientes activos" })}
             </p>
           ) : null}
         </div>
-        <div className="flex gap-2">
+        {!forbidden && <div className="flex gap-2">
           <Button asChild variant="outline">
             <Link to="/customers/contacts/import">
               <Upload className="h-4 w-4" />
@@ -152,10 +156,10 @@ export function Customers() {
             <Plus className="h-4 w-4" />
             {t("crm.customers.newCustomer")}
           </Button>
-        </div>
+        </div>}
       </header>
 
-      {!isEmpty && summary.data && activeCustomers.length > 0 ? (
+      {showTools && summary.data && activeCustomers.length > 0 ? (
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
             index={0}
@@ -199,7 +203,7 @@ export function Customers() {
         </div>
       ) : null}
 
-      {!isEmpty && <div className="flex flex-wrap items-center gap-3">
+      {showTools && <div className="flex flex-wrap items-center gap-3">
         <div className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -245,12 +249,12 @@ export function Customers() {
         </div>
       </div>}
 
-      {query.isLoading && <PageSkeleton variant="list" />}
+      {forbidden && <CustomersNoAccess />}
 
-      {error && (
-        <p className="text-sm text-destructive">
-          {forbidden ? t("crm.customers.forbidden") : t("crm.customers.loadError")}
-        </p>
+      {failed && <CustomersLoadError onRetry={() => void query.refetch()} retrying={query.isFetching} />}
+
+      {error && !forbidden && !failed && (
+        <p className="text-sm text-destructive">{t("crm.customers.loadError")}</p>
       )}
 
       {isEmpty && <CustomersEmptyState onCreate={() => setCreateOpen(true)} />}
@@ -263,9 +267,18 @@ export function Customers() {
           <p className="font-medium">
             {q ? t("uxCrm.list.noMatch", { query: q, defaultValue: "Ningún cliente coincide con «{{query}}»" }) : t("crm.customers.emptyFiltered")}
           </p>
-          <Button variant="outline" onClick={() => { setSearch(""); setQ(""); setFilter("all"); }}>
-            {t("uxCrm.list.clearSearch", { defaultValue: "Limpiar búsqueda" })}
-          </Button>
+          <p className="max-w-sm text-sm text-muted-foreground">{t("uxCrm.list.noMatchHint", { defaultValue: "Prueba con otro nombre o con la web." })}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button variant="outline" onClick={() => { setSearch(""); setQ(""); setFilter("all"); }}>
+              {t("uxCrm.list.clearSearch", { defaultValue: "Limpiar búsqueda" })}
+            </Button>
+            {q ? (
+              <Button onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4" />
+                {t("uxCrm.list.createNamed", { name: q, defaultValue: "Crear «{{name}}»" })}
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
 
@@ -305,7 +318,7 @@ export function Customers() {
       )}
 
       <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} agreements={runningAgreements} customers={activeCustomers} />
-      <CustomerCreateDialog open={createOpen} onOpenChange={setCreateOpen} companyId={selectedCompanyId} />
+      <CustomerCreateDialog open={createOpen} onOpenChange={setCreateOpen} companyId={selectedCompanyId} initialName={q || undefined} />
     </div>
   );
 }

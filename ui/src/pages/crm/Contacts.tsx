@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Mail, Phone, Plus, Search, Upload, UserRound } from "lucide-react";
-import { Link } from "@/lib/router";
+import { ArrowRight, Mail, Phone, Plus, Search, Upload, UserRound } from "lucide-react";
+import { Link, useNavigate } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
 import { ApiError } from "../../api/client";
@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { accentTint } from "../../lib/accent";
 import { ContactCreateDialog } from "../../components/crm/ContactCreateDialog";
 import { AccentPill, MUTED, PartyAvatar, SKY } from "../../components/crm/CustomerListParts";
-import { TableShell, tableCell } from "../../components/crm/CustomersTable";
+import { RowLink, TableShell, tableCell, tableRow } from "../../components/crm/CustomersTable";
 
 type StatusFilter = "active" | "archived" | "all";
 
@@ -23,6 +23,7 @@ export function Contacts() {
   const { selectedCompanyId } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<StatusFilter>("active");
@@ -131,17 +132,18 @@ export function Contacts() {
               <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">{t("uxCrm.list.colPerson", { defaultValue: "Persona" })}</th>
               <th scope="col" className="hidden px-3 py-2.5 text-left text-xs font-medium text-muted-foreground md:table-cell">{t("uxCrm.list.colRole", { defaultValue: "Cargo" })}</th>
               <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">{t("uxCrm.list.colContact", { defaultValue: "Contacto" })}</th>
+              <th scope="col" className="px-3 py-2.5 text-right"><span className="sr-only">{t("uxCrm.list.colActions", { defaultValue: "Acciones" })}</span></th>
             </tr>
           </thead>
           <tbody>
             {items.map((contact) => {
               const archived = contact.status === "archived";
               return (
-                <tr key={contact.id} className={cn("border-t border-border/70 first:border-t-0", archived && "opacity-70")}>
+                <tr key={contact.id} onClick={() => navigate(`/customers/contacts/${contact.id}`)} className={cn(tableRow, archived && "opacity-70")}>
                   <td className={tableCell}>
                     <div className="flex items-center gap-3">
                       <PartyAvatar name={contact.displayName} size="sm" />
-                      <span className="max-w-56 truncate font-medium">{contact.displayName}</span>
+                      <Link to={`/customers/contacts/${contact.id}`} onClick={(event) => event.stopPropagation()} className="max-w-56 truncate rounded font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{contact.displayName}</Link>
                       {archived && <AccentPill color={MUTED}>{t("crm.contacts.archivedBadge")}</AccentPill>}
                     </div>
                   </td>
@@ -151,6 +153,11 @@ export function Contacts() {
                       <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.primaryEmail ?? t("crm.contacts.noEmail")}</span></span>
                       <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.primaryPhone ?? t("crm.contacts.noPhone")}</span></span>
                     </span>
+                  </td>
+                  <td className={cn(tableCell, "pr-2")}>
+                    <div className="flex justify-end">
+                      <RowLink icon={ArrowRight} label={t("uxCrm.list.actionOpen", { name: contact.displayName, defaultValue: "Abrir {{name}}" })} to={`/customers/contacts/${contact.id}`} />
+                    </div>
                   </td>
                 </tr>
               );

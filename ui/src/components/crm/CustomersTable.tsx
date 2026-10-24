@@ -46,7 +46,7 @@ function Th({ children, align = "left", className, sort }: {
 
 export function TableShell({ children, minWidth }: { children: ReactNode; minWidth: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
       <div className="overflow-x-auto">
         <table className={cn("w-full border-collapse text-sm", minWidth)}>{children}</table>
       </div>

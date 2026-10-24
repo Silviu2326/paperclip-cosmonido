@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
+import { ArrowLeft, FileText, Users } from "lucide-react";
 import { Link, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
@@ -23,6 +23,8 @@ import { ExternalReview } from "../ExternalReview";
 import { externalReviewApi } from "../../api/external-review";
 import { useAccountIdentity } from "../../api/companies-query";
 import { ServiceAgreements } from "../ServiceAgreements";
+import { AccentPill, MUTED, PartyAvatar, useHealthMeta } from "../../components/crm/CustomerListParts";
+import { accentTint } from "../../lib/accent";
 
 export function CustomerDetail() {
   const { customerId = "" } = useParams<{ customerId: string }>();
@@ -31,6 +33,7 @@ export function CustomerDetail() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const identity = useAccountIdentity();
+  const healthMeta = useHealthMeta();
   const [tab, setTab] = useState("summary");
 
   const customerQuery = useQuery({
@@ -79,31 +82,52 @@ export function CustomerDetail() {
   if (!customer) return <EmptyState icon={Users} message={t("crm.customers.notFound")} />;
 
   const archived = customer.status === "archived";
+  const health = healthMeta(customer.health);
+  const accent = archived ? MUTED : health.color;
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{customer.name}</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={archive.isPending}
-            onClick={() => archive.mutate(archived ? "active" : "archived")}
-          >
+      <Link to="/customers" className="inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="h-4 w-4" />
+        {t("crm.customers.allCustomers")}
+      </Link>
+
+      <header
+        className="relative flex flex-wrap items-start gap-4 overflow-hidden rounded-2xl border p-5"
+        style={{ borderColor: `color-mix(in oklab, ${accent} 30%, var(--border))`, background: `radial-gradient(120% 140% at 0% 0%, ${accentTint(accent, 13)}, transparent 55%), var(--card)` }}
+      >
+        <span aria-hidden="true" className="absolute left-5 top-0 h-0.5 w-10 rounded-b-full" style={{ background: accent }} />
+        <PartyAvatar name={customer.name} size="lg" />
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-semibold [overflow-wrap:anywhere]">{customer.name}</h1>
+          <p className="text-sm text-muted-foreground">
+            {customer.domain ?? (customer.kind === "person" ? t("uxCrm.list.person", { defaultValue: "Persona" }) : t("crm.customers.noDomain"))}
+            {" · "}
+            {t("uxCrm.list.customerSince", { date: new Date(customer.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" }), defaultValue: "cliente desde {{date}}" })}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {archived ? <AccentPill color={MUTED}>{t("crm.customers.archivedBadge")}</AccentPill> : <AccentPill color={health.color} strong>{health.label}</AccentPill>}
+            {customer.tags.map((tag) => <AccentPill key={tag} color={MUTED}>{tag}</AccentPill>)}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" disabled={archive.isPending} onClick={() => archive.mutate(archived ? "active" : "archived")}>
             {archived ? t("crm.customers.restore") : t("crm.customers.archive")}
           </Button>
-          <Link to="/customers" className="text-sm text-muted-foreground hover:underline">
-            {t("crm.customers.allCustomers")}
-          </Link>
-          <Link to={`/sales/proposals?customerId=${encodeURIComponent(customer.id)}`} className="text-sm text-muted-foreground hover:underline">
-            {t("uxCrm.customerProposals", { defaultValue: "Proposals" })}
-          </Link>
+          {!archived && (
+            <Button asChild>
+              <Link to={`/sales/proposals?customerId=${encodeURIComponent(customer.id)}`}>
+                <FileText className="h-4 w-4" />
+                {t("uxCrm.customerProposals", { defaultValue: "Proposals" })}
+              </Link>
+            </Button>
+          )}
         </div>
-      </div>
+      </header>
       {archive.error && <p className="text-sm text-destructive">{t("crm.customers.updateError")}</p>}
 
       <Tabs value={tab} onValueChange={setTab}>
+        <div className="max-w-full overflow-x-auto">
         <TabsList>
           <TabsTrigger value="summary">{t("crm.customers.summaryTab")}</TabsTrigger>
           <TabsTrigger value="contacts">{t("crm.customers.contactsTab")}</TabsTrigger>
@@ -115,6 +139,7 @@ export function CustomerDetail() {
           <TabsTrigger value="portal">{t("crm.customers.portalTab", { defaultValue: "Portal de cliente" })}</TabsTrigger>
           <TabsTrigger value="review">{t("externalReview.title", { defaultValue: "Revisión por el cliente" })}</TabsTrigger>
         </TabsList>
+        </div>
 
         <TabsContent value="summary" className="pt-4">
           <CustomerSummary customer={customer} />

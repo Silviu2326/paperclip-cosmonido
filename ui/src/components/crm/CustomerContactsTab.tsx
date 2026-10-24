@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@/lib/router";
 import { crmApi, type CustomerLinkedContact } from "../../api/crm";
 import { ApiError } from "@/api/client";
 import { useTranslation } from "@/i18n";
@@ -94,7 +95,7 @@ export function CustomerContactsTab({ companyId, customerId }: { companyId: stri
             <li key={row.contact.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium">{row.contact.displayName}</span>
+                  <Link to={`/customers/contacts/${row.contact.id}`} className="truncate font-medium hover:underline">{row.contact.displayName}</Link>
                   {row.isPrimary && <Badge variant="secondary">{t("crm.customers.primaryContact")}</Badge>}
                 </div>
                 <div className="truncate text-xs text-muted-foreground">

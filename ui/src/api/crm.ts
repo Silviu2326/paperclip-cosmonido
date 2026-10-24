@@ -61,6 +61,12 @@ export interface CustomerLinkedContact {
   isPrimary: boolean;
 }
 
+export interface ContactLinkedCustomer {
+  customer: Customer;
+  role: string | null;
+  isPrimary: boolean;
+}
+
 export interface DuplicateCandidate<T> {
   record: T;
   reasons: string[];
@@ -109,6 +115,7 @@ export const crmApi = {
     list: (companyId: string, query?: Partial<CrmListQuery>) =>
       api.get<CrmPage<Contact>>(withQuery(`/companies/${companyId}/contacts`, query)),
     get: (id: string) => api.get<Contact>(`/contacts/${id}`),
+    listCustomers: (id: string) => api.get<ContactLinkedCustomer[]>(`/contacts/${id}/customers`),
     // A1 begin
     create: (companyId: string, data: CreateContact & CreateDuplicateOptions) =>
       api.post<Contact>(`/companies/${companyId}/contacts`, data),

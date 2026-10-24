@@ -158,6 +158,23 @@ describeEmbeddedPostgres("contactService and identityService", () => {
     expect(await contactSvc.unlink(companyA, customer.id, first.id, { actor })).toBe(true);
   });
 
+  it("lists the customers a contact is linked to, primary first, and hides it from other companies", async () => {
+    const companyA = await createCompany();
+    const companyB = await createCompany();
+    const first = await customerSvc.create(companyA, { name: "Zeta SL", kind: "organization", tags: [] }, { actor });
+    const second = await customerSvc.create(companyA, { name: "Alfa SL", kind: "organization", tags: [] }, { actor });
+    const contact = await contactSvc.create(companyA, { displayName: "Persona", consents: {} }, { actor });
+    await contactSvc.link(companyA, first.customer.id, contact.contact.id, { isPrimary: true, role: "CEO" }, { actor });
+    await contactSvc.link(companyA, second.customer.id, contact.contact.id, { isPrimary: false }, { actor });
+
+    const linked = await contactSvc.listCustomers(companyA, contact.contact.id);
+    expect(linked?.map((row) => [row.customer.name, row.isPrimary, row.role])).toEqual([
+      ["Zeta SL", true, "CEO"],
+      ["Alfa SL", false, null],
+    ]);
+    expect(await contactSvc.listCustomers(companyB, contact.contact.id)).toBeNull();
+  });
+
   it("paginates and searches contacts within the company", async () => {
     const companyId = await createCompany();
     for (let index = 0; index < 3; index += 1) {

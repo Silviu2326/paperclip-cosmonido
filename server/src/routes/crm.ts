@@ -40,6 +40,7 @@ import { commitmentService } from "../services/crm/commitments.js";
 //   GET/PATCH /customers/:id
 //   GET/POST  /companies/:companyId/contacts
 //   GET/PATCH /contacts/:id
+//   GET       /contacts/:id/customers
 //   GET/POST  /companies/:companyId/opportunities
 //   GET       /companies/:companyId/opportunities/forecast   (S3 WP11, estimate only)
 //   GET/PATCH /opportunities/:id
@@ -197,6 +198,15 @@ export function crmRoutes(db: Db) {
     const contact = await getAccessibleResource(req, res, contacts.getById(id), "Contact not found");
     if (!contact) return;
     res.json(contact);
+  });
+
+  router.get("/contacts/:id/customers", async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await getAccessibleResource(req, res, contacts.getById(id), "Contact not found");
+    if (!existing) return;
+    const linked = await contacts.listCustomers(existing.companyId, id);
+    if (!linked) throw notFound("Contact not found");
+    res.json(linked);
   });
 
   router.patch("/contacts/:id", validate(updateContactSchema), async (req, res) => {

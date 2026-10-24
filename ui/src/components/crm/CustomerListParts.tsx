@@ -35,19 +35,35 @@ function initials(name: string) {
 }
 
 /** Stable brand gradient per name, like agent capsules. */
-export function PartyAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" }) {
+export function PartyAvatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
   const index = ([...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 10) + 1;
   return (
     <span
       aria-hidden="true"
       className={cn(
         "flex shrink-0 items-center justify-center rounded-xl font-semibold text-white",
-        size === "sm" ? "h-7 w-7 text-xs" : "h-10 w-10 text-sm",
+        size === "sm" && "h-7 w-7 text-xs",
+        size === "md" && "h-10 w-10 text-sm",
+        size === "lg" && "h-14 w-14 text-lg",
       )}
       style={{ background: `linear-gradient(135deg, ${brandAccent(index, "a")}, ${brandAccent(index, "b")})` }}
     >
       {initials(name)}
     </span>
+  );
+}
+
+export function PanelCard({ children, className }: { children: ReactNode; className?: string }) {
+  return <section className={cn("flex min-w-0 flex-col gap-3 rounded-2xl border border-border bg-card p-5", className)}>{children}</section>;
+}
+
+export function PanelTitle({ icon: Icon, color, children }: { icon: LucideIcon; color: string; children: ReactNode }) {
+  return (
+    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} />
+      <Icon className="h-3.5 w-3.5" />
+      {children}
+    </h3>
   );
 }
 
