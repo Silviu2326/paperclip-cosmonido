@@ -46,7 +46,7 @@ import { cn } from "@/lib/utils";
 import { ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, Avatar, IconTile, Panel, Pill } from "../parts";
 import { DEMO_NOW, expiryState, formatBytes, type ContextRole, type DemoFile, type DemoFolder, type FileKind } from "./demo-data";
-import { EmptyFiles, KIND, PreviewPane, ROLE, Thumb } from "./FilesProposal";
+import { EmptyFiles, fileLook, KIND, PreviewPane, ROLE, Thumb } from "./FilesProposal";
 import { FilesBanners, LockedPreview, QuotaMeter, UploadTray, useUploadQueue } from "./FilesStates";
 import { AskAgentDialog, EmptyFolder, greeting, MoveDialog, QuickLook, ShareDialog, UrlDialog } from "./FilesTools";
 import type { FilesConfig } from "./scenarios";
@@ -104,8 +104,7 @@ function folderChain(folders: DemoFolder[], id: string): DemoFolder[] {
 const localPath = (folders: DemoFolder[], id: string) => `~/Cosmonido/${folderChain(folders, id).map((folder) => folder.name).join("/")}`;
 
 function typeLabel(file: DemoFile): string {
-  const extension = file.name.split(".").pop()?.toUpperCase();
-  return extension && extension.length <= 5 ? `${KIND[file.kind].label} ${extension}` : KIND[file.kind].label;
+  return fileLook(file).label;
 }
 
 function dateBucket(minutes: number): string {
@@ -815,7 +814,7 @@ export function FilesExplorer({ files: initialFiles, config }: { files: DemoFile
                   <button key={row.file.id} type="button" draggable={!config.readOnly && !row.locked && quick !== "trash"} onDragStart={(event) => { const ids = selected.has(row.file.id) ? [...selected] : [row.file.id]; event.dataTransfer.setData("text/plain", ids.join(",")); setDragIds(ids); }} onDragEnd={() => { setDragIds(null); setDropTarget(null); }}
                     onClick={(event) => select(row, event)} onContextMenu={(event) => { event.preventDefault(); setMenu({ x: event.clientX, y: event.clientY, row }); }}
                     className={cn("flex min-w-0 flex-col gap-2 rounded-2xl border p-2.5 text-left transition-[transform,box-shadow] duration-(--motion-duration-fast) hover:-translate-y-0.5 hover:shadow-md", selected.has(row.file.id) ? "border-transparent" : "border-border")}
-                    style={{ boxShadow: selected.has(row.file.id) ? `0 0 0 2px ${KIND[row.file.kind].color}` : flash.has(row.file.id) ? `0 0 0 2px ${ACCENT.yellow}` : undefined }}>
+                    style={{ boxShadow: selected.has(row.file.id) ? `0 0 0 2px ${fileLook(row.file).color}` : flash.has(row.file.id) ? `0 0 0 2px ${ACCENT.yellow}` : undefined }}>
                     <Thumb file={row.file} />
                     <span className="min-w-0 px-1"><span className="flex items-center gap-1.5"><span className="truncate text-sm font-medium">{row.file.name}</span>{agoMinutes(row.file.updatedAt) <= 180 && quick !== "trash" ? <NewBadge /> : null}</span><span className="flex items-center gap-1.5 truncate text-xs text-muted-foreground"><Avatar name={row.file.by} size="xs" />{row.file.by} · {row.file.updatedAt}</span></span>
                   </button>

@@ -7,11 +7,18 @@ import {
   ChevronDown,
   CircleCheck,
   CloudUpload,
+  FileArchive,
+  FileAudio,
+  FileCode,
+  FileSpreadsheet,
   FileText,
+  FileType,
   Film,
   FolderOpen,
   Image as ImageIcon,
   Music,
+  PenTool,
+  Presentation,
   Sheet,
   Sparkles,
   Upload,
@@ -19,7 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ink, readable, tint, useMotionTokens } from "../motion";
+import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, IconTile, Pill, SectionTitle } from "../parts";
 import {
   DEMO_FILES,
@@ -38,6 +45,36 @@ export const KIND: Record<FileKind, { label: string; icon: LucideIcon; color: st
   spreadsheet: { label: "Hoja", icon: Sheet, color: ACCENT.yellow },
 };
 
+export interface FileLook { label: string; icon: LucideIcon; color: string }
+
+const BY_EXTENSION: Record<string, FileLook> = {
+  pdf: { label: "PDF", icon: FileType, color: BRAND(9) },
+  doc: { label: "Word", icon: FileText, color: BRAND(5) },
+  docx: { label: "Word", icon: FileText, color: BRAND(5) },
+  md: { label: "Texto", icon: FileCode, color: BRAND(7, "b") },
+  txt: { label: "Texto", icon: FileText, color: BRAND(7, "b") },
+  xls: { label: "Hoja de cálculo", icon: FileSpreadsheet, color: BRAND(5, "b") },
+  xlsx: { label: "Hoja de cálculo", icon: FileSpreadsheet, color: BRAND(5, "b") },
+  csv: { label: "Hoja de cálculo", icon: FileSpreadsheet, color: BRAND(5, "b") },
+  ppt: { label: "Presentación", icon: Presentation, color: BRAND(4, "b") },
+  pptx: { label: "Presentación", icon: Presentation, color: BRAND(4, "b") },
+  svg: { label: "Vectorial", icon: PenTool, color: BRAND(8, "b") },
+  zip: { label: "Archivo comprimido", icon: FileArchive, color: BRAND(10) },
+  mp3: { label: "Audio", icon: FileAudio, color: ACCENT.turquoise },
+  wav: { label: "Audio", icon: FileAudio, color: ACCENT.turquoise },
+  mp4: { label: "Vídeo", icon: Film, color: BRAND(2) },
+  mov: { label: "Vídeo", icon: Film, color: BRAND(2) },
+  png: { label: "Imagen", icon: ImageIcon, color: ACCENT.mint },
+  jpg: { label: "Imagen", icon: ImageIcon, color: ACCENT.mint },
+  jpeg: { label: "Imagen", icon: ImageIcon, color: ACCENT.mint },
+};
+
+/** Finer look than `KIND`: the icon and colour follow the file extension, so a PDF, a Word and a note are told apart at a glance. */
+export function fileLook(file: { name: string; kind: FileKind }): FileLook {
+  const extension = file.name.includes(".") ? file.name.split(".").pop()!.toLowerCase() : "";
+  return BY_EXTENSION[extension] ?? KIND[file.kind];
+}
+
 export const ROLE: Record<ContextRole, { label: string; color: string }> = {
   brand: { label: "Marca", color: ACCENT.lilac },
   offer: { label: "Oferta", color: ACCENT.mint },
@@ -49,14 +86,14 @@ export const ROLE: Record<ContextRole, { label: string; color: string }> = {
 const AUDIENCE = { company: "Toda la empresa", project: "Un proyecto", customer: "Un cliente" } as const;
 
 export function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md" | "lg" }) {
-  const kind = KIND[file.kind];
+  const kind = fileLook(file);
   const Icon = kind.icon;
   const tone = size === "lg" ? "h-40" : size === "md" ? "h-28" : "h-9 w-9";
   return (
     <div
       aria-hidden="true"
       className={cn("relative flex items-center justify-center overflow-hidden rounded-xl", tone, size !== "sm" && "w-full")}
-      style={{ background: `linear-gradient(135deg, ${tint(kind.color, 34)}, ${tint(kind.color, 8)})`, color: readable(kind.color) }}
+      style={{ background: `linear-gradient(135deg, ${tint(kind.color, 40)}, ${tint(kind.color, 14)})`, color: readable(kind.color) }}
     >
       {file.kind === "image" && size !== "sm" ? (
         <span className="absolute inset-0 opacity-50" style={{ background: `radial-gradient(circle at 30% 30%, ${tint(kind.color, 70)}, transparent 55%), radial-gradient(circle at 75% 70%, ${tint(ACCENT.sky, 60)}, transparent 50%)` }} />
@@ -66,7 +103,7 @@ export function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md
           {[40, 80, 55, 95, 35, 70, 50, 85, 45, 60, 30, 75].map((height, index) => <span key={index} className="flex-1 rounded-full" style={{ height: `${height}%`, background: tint(kind.color, 60) }} />)}
         </span>
       ) : null}
-      {file.kind === "audio" && size !== "sm" ? null : <Icon className={cn("relative", size === "sm" ? "h-4 w-4" : size === "md" ? "h-8 w-8" : "h-10 w-10")} />}
+      {file.kind === "audio" && size !== "sm" ? null : <Icon className={cn("relative", size === "sm" ? "h-5 w-5" : size === "md" ? "h-8 w-8" : "h-10 w-10")} />}
       {file.kind === "video" && size !== "sm" ? <span className="absolute bottom-2 right-2 rounded bg-foreground/80 px-1.5 text-xs text-background">0:38</span> : null}
     </div>
   );
@@ -74,7 +111,7 @@ export function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md
 
 export function PreviewPane({ file, onClose, onChange, readOnly = false }: { file: DemoFile; onClose: () => void; onChange: (patch: Partial<DemoFile>) => void; readOnly?: boolean }) {
   const tokens = useMotionTokens();
-  const kind = KIND[file.kind];
+  const kind = fileLook(file);
   const [contextOpen, setContextOpen] = useState(file.contextRole !== null);
   const [versionsOpen, setVersionsOpen] = useState(false);
   const expiry = expiryState(file.validUntil);

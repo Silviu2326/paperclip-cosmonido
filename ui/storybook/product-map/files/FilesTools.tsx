@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, Avatar, IconTile, Pill } from "../parts";
 import { formatBytes, type DemoFile, type DemoFolder } from "./demo-data";
-import { KIND, Thumb } from "./FilesProposal";
+import { fileLook, Thumb } from "./FilesProposal";
 
 /** Agents that can be asked to work on a file, with what each is good at. */
 export const ASK_AGENTS = [
@@ -76,7 +76,7 @@ export function ShareDialog({ file, customers, onClose, onCreate }: { file: Demo
     <Modal open={file !== null} onClose={onClose} title="Compartir con un cliente" description="Crea un enlace del portal del cliente. Solo ve este archivo, y puedes retirarlo cuando quieras.">
       {file ? (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3 rounded-xl border border-border p-2.5"><Thumb file={file} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-muted-foreground">{KIND[file.kind].label} · {formatBytes(file.bytes)}</p></div></div>
+          <div className="flex items-center gap-3 rounded-xl border border-border p-2.5"><Thumb file={file} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-muted-foreground">{fileLook(file).label} · {formatBytes(file.bytes)}</p></div></div>
           <div className="flex flex-col gap-1.5"><p className="text-xs font-medium text-muted-foreground">Para quién</p>
             <div className="flex flex-wrap gap-1.5">{customers.map((name) => (
               <button key={name} type="button" aria-pressed={who === name} onClick={() => setWho(name)} className={cn("flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-3 text-xs transition-colors duration-(--motion-duration-fast)", who === name ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")} style={who === name ? { background: tint(ACCENT.mint, 30) } : undefined}><Avatar name={name} size="xs" />{name}</button>
@@ -187,11 +187,11 @@ export function QuickLook({ files, index, onClose, onMove, onFavorite, favorites
         <motion.div role="dialog" aria-label={`Vista rápida de ${file.name}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-sm" onClick={onClose}>
           <motion.div key={file.id} initial={{ opacity: 0, scale: 0.94, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: tokens.base, ease: tokens.easeOut }} onClick={(event) => event.stopPropagation()} className="flex w-full max-w-2xl min-w-0 flex-col gap-4 rounded-3xl border border-border bg-background p-5 shadow-2xl">
             <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1"><h2 className="truncate text-lg font-semibold">{file.name}</h2><p className="text-sm text-muted-foreground">{KIND[file.kind].label} · {formatBytes(file.bytes)} · {file.by} · {file.updatedAt}</p></div>
+              <div className="min-w-0 flex-1"><h2 className="truncate text-lg font-semibold">{file.name}</h2><p className="text-sm text-muted-foreground">{fileLook(file).label} · {formatBytes(file.bytes)} · {file.by} · {file.updatedAt}</p></div>
               <Button size="icon" variant="ghost" aria-label={favorites.has(file.id) ? "Quitar de favoritos" : "Añadir a favoritos"} onClick={() => onFavorite(file.id)}><Star className="h-4 w-4" style={favorites.has(file.id) ? { fill: ACCENT.yellow, color: ACCENT.yellow } : undefined} /></Button>
             </div>
             <Thumb file={file} size="lg" />
-            {file.excerpt ? <p className="rounded-xl p-3 text-sm" style={{ background: tint(KIND[file.kind].color, 12) }}>{file.excerpt}</p> : null}
+            {file.excerpt ? <p className="rounded-xl p-3 text-sm" style={{ background: tint(fileLook(file).color, 12) }}>{file.excerpt}</p> : null}
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               {file.usedIn.length ? <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Usado en {file.usedIn.map((task) => task.id).join(", ")}</span> : <span>Sin usar en tareas todavía</span>}
               {file.agentVisible ? <Pill color={ACCENT.lilac}><Bot className="h-3 w-3" />Los agentes lo leen</Pill> : null}
