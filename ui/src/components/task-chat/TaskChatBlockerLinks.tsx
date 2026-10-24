@@ -194,10 +194,14 @@ export function TaskChatBlockerLinks({
   placement: "top" | "bottom";
 }) {
   const streamlined = useStreamlinedTaskChatPresentation();
-  const directLabel = streamlined && placement === "bottom" ? "Still blocked by" : "Blocked by";
+  const directLabel = streamlined && placement === "bottom"
+    ? t("chatUiWork.stillBlockedBy", { defaultValue: "Still blocked by" })
+    : t("chatUiWork.blockedBy", { defaultValue: "Blocked by" });
   const rootLabel = streamlined
-    ? placement === "bottom" ? "Root blocker remains" : "Root blocker"
-    : "Ultimately blocked by";
+    ? placement === "bottom"
+      ? t("chatUiWork.rootBlockerRemains", { defaultValue: "Root blocker remains" })
+      : t("chatUiWork.rootBlocker", { defaultValue: "Root blocker" })
+    : t("chatUiWork.ultimatelyBlockedBy", { defaultValue: "Ultimately blocked by" });
   return (
     <div
       aria-label={t("chatUi.taskBlockers", { defaultValue: "Task blockers" })}
@@ -221,7 +225,9 @@ export function TaskChatLiveWorkLinks({
   placement: "top" | "bottom";
 }) {
   const streamlined = useStreamlinedTaskChatPresentation();
-  const heading = streamlined && placement === "bottom" ? "Still waiting on live work" : "Waiting on live work";
+  const heading = streamlined && placement === "bottom"
+    ? t("chatUiWork.stillWaitingLiveWork", { defaultValue: "Still waiting on live work" })
+    : t("chatUiWork.waitingLiveWork", { defaultValue: "Waiting on live work" });
   return (
     <div
       aria-label={t("chatUi.tasksWaitingOnLiveWork", { defaultValue: "Tasks waiting on live work" })}

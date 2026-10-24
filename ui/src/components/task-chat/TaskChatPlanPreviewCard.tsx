@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { IssueDocument } from "@paperclipai/shared";
 import { Lightbulb, Maximize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,7 @@ export function planPreviewContent(markdown: string) {
   const headingIndex = lines.findIndex((line) => /^#\s+/.test(line));
   const title = headingIndex >= 0
     ? lines[headingIndex]!.replace(/^#\s+/, "").trim()
-    : "Plan";
+    : t("chatUiQuestions.plan", { defaultValue: "Plan" });
   const preview = lines
     .filter((line, index) => index !== headingIndex && !/^(```|~~~|---+$|\*\*\*+$|___+$)/.test(line))
     .map((line) => line
@@ -54,7 +55,7 @@ export interface TaskChatPlanPreviewCardProps {
 function livePlanContent(activity: TaskChatProviderActivityItem) {
   const title = activity.title.trim() && activity.title.trim().toLowerCase() !== "plan"
     ? activity.title.trim()
-    : "Plan";
+    : t("chatUiQuestions.plan", { defaultValue: "Plan" });
   const preview = activity.steps
     .map((step) => step.label.trim())
     .filter(Boolean)
@@ -86,12 +87,12 @@ export function TaskChatPlanPreviewCard({
   const content = source.kind === "saved" && source.document
     ? planPreviewContent(source.document.body)
     : source.kind === "saved"
-      ? { title: source.fallbackTitle?.trim() || "Plan", preview: [] as string[] }
+      ? { title: source.fallbackTitle?.trim() || t("chatUiQuestions.plan", { defaultValue: "Plan" }), preview: [] as string[] }
       : livePlanContent(source.activity);
   const live = source.kind === "live";
   const headerDetail = revision == null
     ? null
-    : `rev ${revision}`;
+    : t("chatUiQuestions.revShort", { revision, defaultValue: "rev {{revision}}" });
   const body = (
     <>
       <div className="flex items-center gap-2 border-b border-border/70 px-3 py-2.5 text-sm text-muted-foreground">
@@ -100,7 +101,7 @@ export function TaskChatPlanPreviewCard({
           className={cn("h-4 w-4 shrink-0", live && "text-(--status-agent-running)")}
         />
         <span className={cn("font-medium", live && "shimmer-text shimmer-text-muted")} data-testid={live ? "task-chat-plan-streaming-status" : undefined}>
-          {live ? "Writing plan" : "Plan"}
+          {live ? t("chatUiQuestions.writingPlan", { defaultValue: "Writing plan" }) : t("chatUiQuestions.plan", { defaultValue: "Plan" })}
         </span>
         {headerDetail ? (
           <span
@@ -129,7 +130,7 @@ export function TaskChatPlanPreviewCard({
           </ul>
         ) : (
           <p className="mt-1 text-sm text-muted-foreground">
-            {live ? "Waiting for the first plan step…" : "Open the synchronized plan to review it."}
+            {live ? t("chatUiQuestions.waitingFirstStep", { defaultValue: "Waiting for the first plan step…" }) : t("chatUiQuestions.openSyncedPlan", { defaultValue: "Open the synchronized plan to review it." })}
           </p>
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-b from-transparent to-card/95" />
@@ -147,7 +148,9 @@ export function TaskChatPlanPreviewCard({
       <a
         href={href}
         data-testid={testId}
-        aria-label={ariaLabel ?? `Open Plan${revision == null ? "" : ` revision ${revision}`}`}
+        aria-label={ariaLabel ?? (revision == null
+          ? t("chatUiQuestions.openPlan", { defaultValue: "Open Plan" })
+          : t("chatUiQuestions.openPlanRevision", { revision, defaultValue: "Open Plan revision {{revision}}" }))}
         className={sharedClassName}
       >
         {body}
@@ -157,7 +160,7 @@ export function TaskChatPlanPreviewCard({
 
   return (
     <section
-      aria-label={ariaLabel ?? "Streaming Plan preview"}
+      aria-label={ariaLabel ?? t("chatUiQuestions.streamingPlanPreview", { defaultValue: "Streaming Plan preview" })}
       data-testid={testId}
       className={sharedClassName}
     >

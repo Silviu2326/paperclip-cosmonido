@@ -234,7 +234,7 @@ describe("TaskChatProtocolCard", () => {
     flushSync(() => savedDescription!.querySelector("summary")!.click());
     expect(savedDescription?.open).toBe(true);
     flushSync(() => savedDescription!.querySelector("summary")!.click());
-    expect(container.textContent).toContain("git · active · Updated");
+    expect(container.textContent).toContain("git · Active · Updated");
     expect(container.querySelector('button[aria-label^="Hide details:"]')?.getAttribute("aria-expanded")).toBe("true");
     expect(container.querySelector("strong")?.className).not.toContain("line-clamp-2");
     flushSync(() => container.querySelector<HTMLButtonElement>('button[aria-label^="Hide details:"]')!.click());

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { chatEndpointsApi } from "@/api/chatEndpoints";
 import { queryKeys } from "@/lib/queryKeys";
+import { t } from "@/i18n";
 import {
   Activity,
   GitPullRequest,
@@ -26,7 +27,7 @@ export function ChatDetailSidebar({
   return (
     <aside className="flex h-full min-h-0 w-full flex-col border-r border-border bg-background">
       <nav
-        aria-label="Chat connection"
+        aria-label={t("chatUiWork.chatConnection", { defaultValue: "Chat connection" })}
         data-slot="contextual-sidebar-nav"
         className={contextualSidebarStyles.nav}
       >
@@ -36,32 +37,32 @@ export function ChatDetailSidebar({
         >
           <NavItem
             to={`/apps/chat/${endpointId}/settings`}
-            label="Settings"
+            label={t("chatUiWork.settings", { defaultValue: "Settings" })}
             icon={Settings}
             end
           />
           <NavItem
             to={`/apps/chat/${endpointId}/access`}
-            label="Access"
+            label={t("chatUiWork.access", { defaultValue: "Access" })}
             icon={Users}
             end
           />
           {endpoint.data?.provider === "github" && (
             <NavItem
               to={`/apps/chat/${endpointId}/reviews`}
-              label="Reviews"
+              label={t("chatUiWork.reviews", { defaultValue: "Reviews" })}
               icon={GitPullRequest}
             />
           )}
           <NavItem
             to={`/apps/chat/${endpointId}/conversations`}
-            label="Conversations"
+            label={t("chatUiWork.conversations", { defaultValue: "Conversations" })}
             icon={MessageSquare}
             end
           />
           <NavItem
             to={`/apps/chat/${endpointId}/activity`}
-            label="Activity"
+            label={t("chatUiWork.activity", { defaultValue: "Activity" })}
             icon={Activity}
             end
           />

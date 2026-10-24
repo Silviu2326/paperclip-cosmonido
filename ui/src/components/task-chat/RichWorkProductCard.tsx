@@ -26,6 +26,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github-icon";
 import { cn, formatDateTime } from "@/lib/utils";
+import { statusLabel } from "./protocol-labels";
 
 type StateChip = {
   label: string;
@@ -49,7 +50,7 @@ export function stateChipFor(
     return { label: t("chatUi.failed", { defaultValue: "Failed" }), tone: "failure" };
   }
   if (["pending", "opening"].includes(status ?? "")) {
-    return { label: status === "opening" ? "Opening" : "Pending", tone: "progress", dashed: true };
+    return { label: status === "opening" ? t("chatUiWork.status_opening", { defaultValue: "Opening" }) : t("chatUiWork.status_pending", { defaultValue: "Pending" }), tone: "progress", dashed: true };
   }
   if (kind === "pull_request" && (status === "active" || status === "open")) {
     return { label: t("chatUi.open", { defaultValue: "Open" }), tone: "progress" };
@@ -144,7 +145,7 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
   const isVideo = isVideoLikeOutput(contentType, stringMeta(metadata, "originalFilename") ?? workProduct.title);
   let Icon: LucideIcon = File;
   let meta: Array<string | null> = [];
-  let action = "Open preview";
+  let action = t("chatUiWork.openPreview", { defaultValue: "Open preview" });
 
   switch (workProduct.type) {
     case "pull_request": {
@@ -154,40 +155,40 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
       const base = stringMeta(metadata, "baseRef", "base", "baseBranch");
       const head = stringMeta(metadata, "headRef", "head", "headBranch", "branch");
       meta = [repository, number ? `#${number.replace(/^#/, "")}` : null, base && head ? `${base} ← ${head}` : null, urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      action = t("chatUiWork.openOnGithub", { defaultValue: "Open on GitHub" });
       break;
     }
     case "commit":
       Icon = GitCommit;
       meta = [stringMeta(metadata, "shortSha", "sha")?.slice(0, 8) ?? workProduct.externalId?.slice(0, 8) ?? null, stringMeta(metadata, "branch", "branchName"), urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      action = t("chatUiWork.openOnGithub", { defaultValue: "Open on GitHub" });
       break;
     case "branch":
       Icon = GitBranch;
-      meta = [href ? "Branch" : "Branch · no remote link", stringMeta(metadata, "repository", "repo", "repositoryName"), stringMeta(metadata, "branch", "branchName") ?? workProduct.externalId, urlLabel(workProduct.url)];
-      action = "Open on GitHub";
+      meta = [href ? t("chatUiWork.branch", { defaultValue: "Branch" }) : t("chatUiWork.branchNoRemote", { defaultValue: "Branch · no remote link" }), stringMeta(metadata, "repository", "repo", "repositoryName"), stringMeta(metadata, "branch", "branchName") ?? workProduct.externalId, urlLabel(workProduct.url)];
+      action = t("chatUiWork.openOnGithub", { defaultValue: "Open on GitHub" });
       break;
     case "artifact": {
       Icon = isImage ? Image : isVideo ? Film : File;
       const size = numberMeta(metadata, "byteSize", "size");
-      meta = [isImage ? "Image" : isVideo ? "Video" : stringMeta(metadata, "kind", "fileType") ?? "File", size === null ? null : formatBytes(size)];
-      action = isImage || isVideo ? "Open gallery" : "Download";
+      meta = [isImage ? t("chatUiWork.image", { defaultValue: "Image" }) : isVideo ? t("chatUiWork.video", { defaultValue: "Video" }) : stringMeta(metadata, "kind", "fileType") ?? t("chatUiWork.file", { defaultValue: "File" }), size === null ? null : formatBytes(size)];
+      action = isImage || isVideo ? t("chatUiWork.openGallery", { defaultValue: "Open gallery" }) : t("chatUiWork.download", { defaultValue: "Download" });
       break;
     }
     case "document":
       Icon = FileText;
-      meta = ["Document", stringMeta(metadata, "revision", "revisionNumber") ? `rev ${stringMeta(metadata, "revision", "revisionNumber")}` : null];
-      action = "Open document";
+      meta = [t("chatUiWork.document", { defaultValue: "Document" }), stringMeta(metadata, "revision", "revisionNumber") ? t("chatUiWork.revisionShort", { n: stringMeta(metadata, "revision", "revisionNumber"), defaultValue: "rev {{n}}" }) : null];
+      action = t("chatUiWork.openDocument", { defaultValue: "Open document" });
       break;
     case "preview_url":
       Icon = Globe;
       meta = [urlLabel(workProduct.url)];
-      action = "Open preview";
+      action = t("chatUiWork.openPreview", { defaultValue: "Open preview" });
       break;
     case "runtime_service":
       Icon = Server;
-      meta = [stringMeta(metadata, "service", "serviceName") ?? workProduct.provider, stringMeta(metadata, "port") ? `port ${stringMeta(metadata, "port")}` : null];
-      action = "Open service";
+      meta = [stringMeta(metadata, "service", "serviceName") ?? workProduct.provider, stringMeta(metadata, "port") ? t("chatUiWork.portNumber", { n: stringMeta(metadata, "port"), defaultValue: "port {{n}}" }) : null];
+      action = t("chatUiWork.openService", { defaultValue: "Open service" });
       break;
   }
 
@@ -222,7 +223,11 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
   const changeCounts = [additions === null ? null : `+${additions}`, deletions === null ? null : `−${deletions}`]
     .filter(Boolean)
     .join(" ");
-  const fileCount = files === null ? null : `${files} ${files === 1 ? "file" : "files"}`;
+  const fileCount = files === null
+    ? null
+    : files === 1
+      ? t("chatUiWork.fileCountOne", { n: files, defaultValue: "{{n}} file" })
+      : t("chatUiWork.fileCountOther", { n: files, defaultValue: "{{n}} files" });
   const statsLabel = [changeCounts || null, fileCount].filter(Boolean).join(" · ");
   const compact = variant === "compact";
   const mediaPath = workProduct.type === "artifact" && (isImage || isVideo)
@@ -285,7 +290,7 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
         {expandable && detailsOpen ? (
           <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
             {workProduct.type !== "branch" ? <p>{t("chatUi.noLinkWasProvidedForThisWorkProduct", { defaultValue: "No link was provided for this work product." })}</p> : null}
-            <p>{workProduct.provider} · {workProduct.status.replaceAll("_", " ")} · Updated {formatDateTime(workProduct.updatedAt)}</p>
+            <p>{workProduct.provider} · {statusLabel(workProduct.status)} · {t("chatUiWork.updatedAt", { date: formatDateTime(workProduct.updatedAt), defaultValue: "Updated {{date}}" })}</p>
             {linklessBranch && summary ? (
               <details className="relative z-10 mt-1">
                 <summary className="w-fit cursor-pointer font-medium text-foreground">{t("chatUi.savedDescription", { defaultValue: "Saved description" })}</summary>
@@ -301,7 +306,7 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
           <button
             type="button"
             onClick={() => openText!(textMetadata!.attachmentId, textMetadata!.originalFilename ?? workProduct.title)}
-            aria-label={`Open in tab: ${workProduct.title}`}
+            aria-label={t("chatUiWork.openInTabTitle", { title: workProduct.title, defaultValue: "Open in tab: {{title}}" })}
             className="inline-flex items-center gap-1 text-xs font-medium text-foreground after:absolute after:inset-0 after:rounded-md focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
           >
             {compact ? null : <span className="hidden @sm:inline">{t("chatUi.openInTab", { defaultValue: "Open in tab" })}</span>}<FileText aria-hidden className="h-3 w-3" />
@@ -319,11 +324,11 @@ export function RichWorkProductCard({ workProduct, href, variant = "card" }: Ric
           <button
             type="button"
             onClick={() => setDetailsOpen((open) => !open)}
-            aria-label={`${detailsOpen ? "Hide" : "Show"} details: ${workProduct.title}`}
+            aria-label={detailsOpen ? t("chatUiWork.hideDetailsTitle", { title: workProduct.title, defaultValue: "Hide details: {{title}}" }) : t("chatUiWork.showDetailsTitle", { title: workProduct.title, defaultValue: "Show details: {{title}}" })}
             aria-expanded={detailsOpen}
             className="inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-foreground after:absolute after:inset-0 after:rounded-md focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
           >
-            <span>{detailsOpen ? "Hide details" : "Show details"}</span>
+            <span>{detailsOpen ? t("chatUiWork.hideDetails", { defaultValue: "Hide details" }) : t("chatUiWork.showDetails", { defaultValue: "Show details" })}</span>
             <ChevronDown aria-hidden className={cn("h-4 w-4", detailsOpen && "rotate-180")} />
           </button>
         ) : null}

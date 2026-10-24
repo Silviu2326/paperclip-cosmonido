@@ -279,13 +279,13 @@ describe("markdown work product review row", () => {
         <RichWorkProductCard workProduct={makeMarkdownWorkProduct()} href={`/api/attachments/${ATTACHMENT_ID}/content`} variant={variant} />
       </TextAttachmentContext.Provider>,
     ));
-    const download = container.querySelector('a[aria-label="Download: Verification report"]') as HTMLAnchorElement;
+    const download = container.querySelector('a[aria-label="Descargar: Verification report"]') as HTMLAnchorElement;
     expect(download.getAttribute("href")).toBe(`/api/attachments/${ATTACHMENT_ID}/content?download=1`);
     const click = new MouseEvent("click", { bubbles: true, cancelable: true });
     await act(async () => { download.dispatchEvent(click); });
     expect(click.defaultPrevented).toBe(false);
     expect(openText).not.toHaveBeenCalled();
-    const open = container.querySelector('button[aria-label="Open in tab: Verification report"]') as HTMLButtonElement;
+    const open = container.querySelector('button[aria-label="Abrir en una pestaña: Verification report"]') as HTMLButtonElement;
     expect(open).not.toBeNull();
     await act(async () => open.click());
     expect(openText).toHaveBeenCalledWith(ATTACHMENT_ID, "report.md");

@@ -223,7 +223,7 @@ export function parseRunnerGoalCommand(value: string): ParsedRunnerGoalCommand {
     if (extra.length > 0) {
       return {
         matched: true,
-        error: `/goal ${subcommand} does not accept extra arguments.`,
+        error: t("chatUiComposer.goalNoExtraArgs", { subcommand, defaultValue: "/goal {{subcommand}} does not accept extra arguments." }),
       };
     }
     return {
@@ -302,17 +302,17 @@ function AssigneeIdentityAvatar({
 /** v7 per-mode placeholder copy; `{agent}` is the pending assignee's name. */
 function modePlaceholder(mode: IssueWorkMode, agentName: string, mobile: boolean): string {
   if (mobile) {
-    if (mode === "planning") return `Plan with ${agentName}…`;
-    if (mode === "ask") return `Ask ${agentName}…`;
-    return `Message ${agentName}…`;
+    if (mode === "planning") return t("chatUiComposer.planWithMobile", { agentName, defaultValue: "Plan with {{agentName}}…" });
+    if (mode === "ask") return t("chatUiComposer.askMobile", { agentName, defaultValue: "Ask {{agentName}}…" });
+    return t("chatUiComposer.messageMobile", { agentName, defaultValue: "Message {{agentName}}…" });
   }
   switch (mode) {
     case "planning":
-      return `Plan with ${agentName} — shapes the plan doc, no code changes…`;
+      return t("chatUiComposer.planWith", { agentName, defaultValue: "Plan with {{agentName}} — shapes the plan doc, no code changes…" });
     case "ask":
-      return `Ask ${agentName} a question — read-only, nothing runs…`;
+      return t("chatUiComposer.askQuestion", { agentName, defaultValue: "Ask {{agentName}} a question — read-only, nothing runs…" });
     default:
-      return `Message ${agentName} — describe what you want done…`;
+      return t("chatUiComposer.messageDescribe", { agentName, defaultValue: "Message {{agentName}} — describe what you want done…" });
   }
 }
 
@@ -642,28 +642,29 @@ export function TaskChatComposer({
     enableReassign && reassignOptions && reassignOptions.length > 0,
   );
   const assigneeValue = creation ? currentAssigneeValue : pendingAssignee ?? suggestedAssigneeValue ?? currentAssigneeValue;
+  const unassignedLabel = t("chatUiComposer.unassigned", { defaultValue: "Unassigned" });
   const assigneeLabel =
-    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? "Unassigned";
+    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? unassignedLabel;
   const assigneeName =
-    assigneeLabel === "Unassigned" ? "the agent" : assigneeLabel;
+    assigneeLabel === unassignedLabel ? t("chatUiComposer.theAgent", { defaultValue: "the agent" }) : assigneeLabel;
   const effectivePlaceholder = queuedEdit
-    ? "Edit queued message…"
+    ? t("chatUiComposer.editQueuedMessage", { defaultValue: "Edit queued message…" })
     : (placeholder ?? modePlaceholder(pendingMode, assigneeName, mobile));
   const goalUnavailable = runnerGoalCapability?.availability !== "available";
   const goalCommandOption: ActionCommandOption = {
     id: "action:goal",
     kind: "action",
     command: "goal",
-    name: "Goal",
+    name: t("chatUiComposer.goalName", { defaultValue: "Goal" }),
     description:
       !runnerGoalCapability || runnerGoalCapability.verified === false
-        ? "Support will be verified when the session starts."
-        : "Pursue work across turns.",
+        ? t("chatUiComposer.goalSupportPending", { defaultValue: "Support will be verified when the session starts." })
+        : t("chatUiComposer.goalPursueWork", { defaultValue: "Pursue work across turns." }),
     aliases: ["goal", "pursue", "continue"],
     disabled: goalUnavailable && runnerGoalCapability !== null,
     disabledReason:
       runnerGoalCapability?.reason ??
-      "Session goals are unsupported by this agent.",
+      t("chatUiComposer.goalsUnsupported", { defaultValue: "Session goals are unsupported by this agent." }),
   };
 
   function updatePendingAssignee(value: string | null) {
@@ -699,7 +700,7 @@ export function TaskChatComposer({
       const url = onAttachImage
         ? attachment?.contentPath
         : await onImageUpload?.(file);
-      if (!url) throw new Error("Upload did not return a file URL");
+      if (!url) throw new Error(t("chatUiComposer.uploadNoUrl", { defaultValue: "Upload did not return a file URL" }));
       if (!attachmentsRef.current.some((item) => item.id === id))
         throw new Error("Attachment was removed");
       setAttachments((prev) =>
@@ -746,7 +747,7 @@ export function TaskChatComposer({
               ? {
                   ...item,
                   status: "error",
-                  error: "This file type cannot be attached here",
+                  error: t("chatUiComposer.fileTypeNotAttachable", { defaultValue: "This file type cannot be attached here" }),
                 }
               : item,
           ),
@@ -755,7 +756,7 @@ export function TaskChatComposer({
       }
       const attachment = await onAttachImage(file);
       if (!attachment?.contentPath)
-        throw new Error("Upload did not return a file URL");
+        throw new Error(t("chatUiComposer.uploadNoUrl", { defaultValue: "Upload did not return a file URL" }));
       const name = attachment?.originalFilename ?? file.name;
       setAttachments((prev) =>
         prev.map((item) =>
@@ -918,7 +919,7 @@ export function TaskChatComposer({
       ? ({ matched: false } as const)
       : parseRunnerGoalCommand(submittedBody);
     if (goalCommand.matched && conversationMode) {
-      setActionError("Create a separate task for work that needs an ongoing execution goal.");
+      setActionError(t("chatUiComposer.goalNeedsSeparateTask", { defaultValue: "Create a separate task for work that needs an ongoing execution goal." }));
       return;
     }
     if (goalCommand.matched) {
@@ -927,13 +928,13 @@ export function TaskChatComposer({
         return;
       }
       if (attachmentsRef.current.length > 0) {
-        setActionError("Remove attachments before using /goal.");
+        setActionError(t("chatUiComposer.removeAttachmentsBeforeGoal", { defaultValue: "Remove attachments before using /goal." }));
         return;
       }
       if (!onRunnerGoalCommand) {
         setActionError(
           runnerGoalCapability?.reason ??
-            "Session goals are unsupported by this agent.",
+            t("chatUiComposer.goalsUnsupported", { defaultValue: "Session goals are unsupported by this agent." }),
         );
         return;
       }
@@ -943,7 +944,7 @@ export function TaskChatComposer({
       ) {
         setActionError(
           runnerGoalCapability.reason ??
-            "Session goals are unsupported by this agent.",
+            t("chatUiComposer.goalsUnsupported", { defaultValue: "Session goals are unsupported by this agent." }),
         );
         return;
       }
@@ -953,7 +954,7 @@ export function TaskChatComposer({
         if (hasReassignment && goalCommand.command.action !== "focus") {
           const reassignment = parseAssigneeValue(assigneeValue);
           if (!reassignment?.assigneeAgentId || !onRunnerGoalReassign) {
-            setActionError("Select an agent before starting a session goal.");
+            setActionError(t("chatUiComposer.selectAgentBeforeGoal", { defaultValue: "Select an agent before starting a session goal." }));
             return;
           }
           await onRunnerGoalReassign(reassignment);
@@ -971,7 +972,7 @@ export function TaskChatComposer({
         setActionError(
           error instanceof Error
             ? error.message
-            : "The goal action could not be applied.",
+            : t("chatUiComposer.goalActionFailed", { defaultValue: "The goal action could not be applied." }),
         );
       }
       return;
@@ -1165,7 +1166,7 @@ export function TaskChatComposer({
       setTakeoverError(
         cause instanceof Error
           ? cause.message
-          : "This request could not be skipped.",
+          : t("chatUiComposer.requestCouldNotBeSkipped", { defaultValue: "This request could not be skipped." }),
       );
     });
   }
@@ -1181,7 +1182,7 @@ export function TaskChatComposer({
       {takeoverBusy ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       ) : null}
-      Skip
+      {t("chatUiComposer.skip", { defaultValue: "Skip" })}
     </Button>
   ) : null;
 
@@ -1224,12 +1225,12 @@ export function TaskChatComposer({
             <div className="ml-auto flex shrink-0 items-center gap-1">
               {takeover.pendingCount > 1 ? (
                 <Button type="button" size="sm" variant="ghost" className="h-7 px-2" onClick={takeover.onShowNext}>
-                  {takeover.pendingCount} pending
+                  {t("chatUiComposer.pendingCount", { count: takeover.pendingCount, defaultValue_one: "{{count}} pending", defaultValue_other: "{{count}} pending" })}
                 </Button>
               ) : null}
               <div ref={setTakeoverControlsSlot} className="flex shrink-0 items-center" data-testid="task-chat-composer-takeover-controls-slot" />
               <Button type="button" size="icon-xs" variant="ghost" className="text-muted-foreground hover:text-foreground"
-                aria-label={`Dismiss ${takeover.label}`} disabled={takeoverBusy} onClick={takeover.onDismiss}>
+                aria-label={t("chatUiComposer.dismissLabel", { label: takeover.label, defaultValue: "Dismiss {{label}}" })} disabled={takeoverBusy} onClick={takeover.onDismiss}>
                 <X aria-hidden />
               </Button>
             </div>
@@ -1296,8 +1297,7 @@ export function TaskChatComposer({
           className="mb-3 space-y-2 rounded-md border border-border bg-muted p-3 text-sm"
         >
           <p>
-            We couldn’t confirm whether this comment was saved. It may already
-            be in the conversation. Review it before starting another draft.
+            {t("chatUiComposer.uncertainSubmission", { defaultValue: "We couldn’t confirm whether this comment was saved. It may already be in the conversation. Review it before starting another draft." })}
           </p>
           <Button
             type="button"
@@ -1305,16 +1305,15 @@ export function TaskChatComposer({
             size="sm"
             onClick={reviewUncertainSubmission}
           >
-            Review conversation
+            {t("chatUiComposer.reviewConversation", { defaultValue: "Review conversation" })}
           </Button>
           {reviewError ? (
-            <p>Couldn’t refresh the conversation. Try reviewing it again.</p>
+            <p>{t("chatUiComposer.couldntRefreshConversation", { defaultValue: "Couldn’t refresh the conversation. Try reviewing it again." })}</p>
           ) : null}
           {uncertainSubmission.reviewed ? (
             <>
               <p>
-                Discarding this draft does not remove any saved comment or
-                uploaded file.
+                {t("chatUiComposer.discardingDraftNote", { defaultValue: "Discarding this draft does not remove any saved comment or uploaded file." })}
               </p>
               <Button
                 type="button"
@@ -1322,7 +1321,7 @@ export function TaskChatComposer({
                 size="sm"
                 onClick={discardUncertainDraft}
               >
-                Discard draft and start new
+                {t("chatUiComposer.discardDraftStartNew", { defaultValue: "Discard draft and start new" })}
               </Button>
             </>
           ) : null}
@@ -1337,17 +1336,17 @@ export function TaskChatComposer({
         >
           <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
           <span className="min-w-0 flex-1 truncate">
-            {pendingTakeover?.label ?? takeover?.label ?? "Pending input"}
+            {pendingTakeover?.label ?? takeover?.label ?? t("chatUiComposer.pendingInput", { defaultValue: "Pending input" })}
           </span>
           <span className="shrink-0 font-medium">
-            {pendingTakeover?.count ?? takeover?.pendingCount ?? 1} pending
+            {t("chatUiComposer.pendingCount", { count: pendingTakeover?.count ?? takeover?.pendingCount ?? 1, defaultValue_one: "{{count}} pending", defaultValue_other: "{{count}} pending" })}
           </span>
         </button>
       ) : null}
           {pause && conversationMode ? (
             <div className="space-y-2">
               <TaskChatPausedTakeover {...pause} hasDraft={Boolean(body.trim() || attachments.length)} />
-              <p className="text-xs text-muted-foreground">Send /new to start a fresh session and resume this conversation.</p>
+              <p className="text-xs text-muted-foreground">{t("chatUiComposer.sendNewToResume", { defaultValue: "Send /new to start a fresh session and resume this conversation." })}</p>
             </div>
           ) : null}
           <div data-testid="task-chat-composer-input">
@@ -1357,13 +1356,13 @@ export function TaskChatComposer({
               onChange={changeBody}
               placeholder={
                 disabled
-                  ? (disabledReason ?? "Composer disabled")
+                  ? (disabledReason ?? t("chatUiComposer.composerDisabled", { defaultValue: "Composer disabled" }))
                   : effectivePlaceholder
               }
               readOnly={disabled || !!uncertainSubmission || Boolean(creation && submitting)}
               mentions={mentions}
               actionCommands={creation ? [] : conversationMode ? [{
-                id: "action:new", kind: "action", command: "new", name: "New session",
+                id: "action:new", kind: "action", command: "new", name: t("chatUiComposer.newSession", { defaultValue: "New session" }),
                 description: t("chatUi.startFreshContextHerePreservingConversatio", { defaultValue: "Start fresh context here, preserving conversation history." }), aliases: ["new"],
                 disabled,
               }] : [goalCommandOption]}
@@ -1426,7 +1425,7 @@ export function TaskChatComposer({
                       </AttachmentTitle>
                       <AttachmentDescription className="max-w-48">
                         {attachment.status === "uploading"
-                          ? "Uploading…"
+                          ? t("chatUiComposer.uploading", { defaultValue: "Uploading…" })
                           : attachment.status === "error"
                             ? (attachment.error ?? t("chatUi.uploadFailed", { defaultValue: "Upload failed" }))
                             : [kind.label, sizeLabel]
@@ -1436,7 +1435,7 @@ export function TaskChatComposer({
                     </AttachmentContent>
                     <AttachmentActions>
                       <AttachmentAction
-                        aria-label={`Remove ${attachment.name}`}
+                        aria-label={t("chatUiComposer.removeName", { name: attachment.name, defaultValue: "Remove {{name}}" })}
                         disabled={!!uncertainSubmission}
                         onClick={() =>
                           setAttachments((prev) =>
@@ -1480,8 +1479,8 @@ export function TaskChatComposer({
             {queuedEdit ? (
               <span className="px-1 text-xs font-medium text-muted-foreground">
                 {queuedEdit.stale
-                  ? "Queued message changed"
-                  : "Editing queued message"}
+                  ? t("chatUiComposer.queuedMessageChanged", { defaultValue: "Queued message changed" })
+                  : t("chatUiComposer.editingQueuedMessage", { defaultValue: "Editing queued message" })}
               </span>
             ) : (
               <ComposerModeChip mode={pendingMode} onRemove={onWorkModeChange ? () => changeMode("standard") : undefined}
@@ -1519,9 +1518,9 @@ export function TaskChatComposer({
                 value={assigneeValue}
                 options={reassignOptions ?? []}
                 placeholder={t("chatUi.assignee", { defaultValue: "Assignee" })}
-                mobileTitle="Select assignee"
-                noneLabel="No assignee"
-                searchPlaceholder="Search assignees…"
+                mobileTitle={t("chatUiComposer.selectAssignee", { defaultValue: "Select assignee" })}
+                noneLabel={t("chatUiComposer.noAssignee", { defaultValue: "No assignee" })}
+                searchPlaceholder={t("chatUiComposer.searchAssignees", { defaultValue: "Search assignees…" })}
                 emptyMessage={t("chatUi.noMatches", { defaultValue: "No matches." })}
                 onChange={updatePendingAssignee}
                 disabled={disabled}
@@ -1569,7 +1568,7 @@ export function TaskChatComposer({
                 disabled={submitting}
                 className="h-8 shrink-0 rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
               >
-                Cancel
+                {t("chatUiComposer.cancel", { defaultValue: "Cancel" })}
               </button>
             ) : null}
             <button
@@ -1590,28 +1589,28 @@ export function TaskChatComposer({
               title={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop response"
+                    ? t("chatUiComposer.stopping", { defaultValue: "Stopping…" })
+                    : t("chatUiComposer.stopResponse", { defaultValue: "Stop response" })
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
+                      ? t("chatUiComposer.queueAsNewMessage", { defaultValue: "Queue as new message" })
+                      : t("chatUiComposer.saveQueuedMessage", { defaultValue: "Save queued message" })
                     : uploadPending
-                      ? "Waiting for upload to finish"
+                      ? t("chatUiComposer.waitingForUpload", { defaultValue: "Waiting for upload to finish" })
                       : uploadFailed
-                        ? "Remove the failed attachment to send"
-                        : creation ? `${creation.submitLabel} (⌘+Enter)` : "Send (⌘+Enter)"
+                        ? t("chatUiComposer.removeFailedAttachment", { defaultValue: "Remove the failed attachment to send" })
+                        : `${creation ? creation.submitLabel : t("chatUiComposer.send", { defaultValue: "Send" })} (⌘+Enter)`
               }
               aria-label={
                 showStop
                   ? stopControl.stopping
-                    ? "Stopping…"
-                    : "Stop"
+                    ? t("chatUiComposer.stopping", { defaultValue: "Stopping…" })
+                    : t("chatUiComposer.stop", { defaultValue: "Stop" })
                   : queuedEdit
                     ? queuedEdit.stale
-                      ? "Queue as new message"
-                      : "Save queued message"
-                    : creation?.submitLabel ?? "Send"
+                      ? t("chatUiComposer.queueAsNewMessage", { defaultValue: "Queue as new message" })
+                      : t("chatUiComposer.saveQueuedMessage", { defaultValue: "Save queued message" })
+                    : creation?.submitLabel ?? t("chatUiComposer.send", { defaultValue: "Send" })
               }
               aria-busy={submitting}
               className={cn(

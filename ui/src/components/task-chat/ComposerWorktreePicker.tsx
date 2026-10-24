@@ -45,7 +45,7 @@ export function ComposerWorktreePicker({
       options: orderReusableExecutionWorkspaces(workspaces).map((workspace): WorktreeOption => ({
         key: `reuse:${workspace.id}`, value: `reuse:${workspace.id}`,
         workspaceId: workspace.id, mode: "reuse_existing", label: workspace.name,
-        description: workspace.branchName ?? "Existing workspace",
+        description: workspace.branchName ?? t("chatUiComposer.existingWorkspace", { defaultValue: "Existing workspace" }),
         searchText: `${workspace.branchName ?? ""} ${workspace.id}`,
       })),
     },
@@ -65,7 +65,7 @@ export function ComposerWorktreePicker({
       placeholder={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
       triggerAriaLabel={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
       mobileTitle={t("chatUi.worktrees", { defaultValue: "Worktrees" })}
-      searchPlaceholder="Search worktrees..."
+      searchPlaceholder={t("chatUiComposer.searchWorktrees", { defaultValue: "Search worktrees..." })}
       emptyMessage={t("chatUi.noMatchingWorktrees", { defaultValue: "No matching worktrees." })}
       disabled={disabled}
       modal={mobile}
@@ -77,8 +77,8 @@ export function ComposerWorktreePicker({
         <span className="flex min-w-0 items-center gap-1.5">
           <GitBranch className="size-3.5 shrink-0" aria-hidden />
           <span className="truncate">
-            <span className="hidden text-muted-foreground sm:inline">Worktrees · </span>
-            {option?.label ?? selectedWorkspaceLabel ?? "Select worktree"}
+            <span className="hidden text-muted-foreground sm:inline">{t("chatUiComposer.worktreesPrefix", { defaultValue: "Worktrees · " })}</span>
+            {option?.label ?? selectedWorkspaceLabel ?? t("chatUiComposer.selectWorktree", { defaultValue: "Select worktree" })}
           </span>
         </span>
       )}
@@ -97,12 +97,12 @@ export function ComposerWorktreePicker({
       }}
       listFooter={loading || error || workspaces.length === 0 ? (
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground" role="status">
-          {loading ? "Loading existing worktrees…" : error ? (
+          {loading ? t("chatUiComposer.loadingWorktrees", { defaultValue: "Loading existing worktrees…" }) : error ? (
             <span className="flex items-center justify-between gap-2">
-              Couldn't load worktrees.
-              <button type="button" className="rounded px-2 py-1 text-foreground hover:bg-accent" onClick={onRetry}>Retry</button>
+              {t("chatUiComposer.couldntLoadWorktrees", { defaultValue: "Couldn't load worktrees." })}
+              <button type="button" className="rounded px-2 py-1 text-foreground hover:bg-accent" onClick={onRetry}>{t("chatUiComposer.retry", { defaultValue: "Retry" })}</button>
             </span>
-          ) : "No existing worktrees yet. Choose New worktree to start one."}
+          ) : t("chatUiComposer.noExistingWorktrees", { defaultValue: "No existing worktrees yet. Choose New worktree to start one." })}
         </div>
       ) : undefined}
     />

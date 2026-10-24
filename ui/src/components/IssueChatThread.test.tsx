@@ -577,9 +577,9 @@ describe("IssueChatThread", () => {
     });
 
     expect(container.textContent).toContain(
-      "interrupted by board after 1 minute",
+      "interrumpida por el equipo tras 1 minuto",
     );
-    expect(container.textContent).toContain("cancelled after 1 minute");
+    expect(container.textContent).toContain("cancelada tras 1 minuto");
     expect(container.textContent).not.toContain("run interrupted");
 
     act(() => {
@@ -4161,11 +4161,11 @@ describe("IssueChatThread", () => {
     });
 
     const header = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("worked for 4 minutes"),
+      button.textContent?.includes("trabajó durante 4 minutos"),
     );
     expect(header).toBeDefined();
     const label = Array.from(header!.children).find((child) =>
-      child.textContent?.includes("worked for 4 minutes"),
+      child.textContent?.includes("trabajó durante 4 minutos"),
     );
     const caret = label?.nextElementSibling;
     expect(caret?.tagName.toLowerCase()).toBe("svg");

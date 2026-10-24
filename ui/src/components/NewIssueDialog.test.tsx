@@ -986,7 +986,7 @@ describe("NewIssueDialog", () => {
     const { root } = renderDialog(container);
     await waitForAssertion(() => {
       expect(container.querySelector('[aria-label="Elegir modelo y esfuerzo"]')).not.toBeNull();
-      expect(container.querySelector('[aria-label="Effort"]')?.getAttribute("max")).toBe("6");
+      expect(container.querySelector('[aria-label="Esfuerzo"]')?.getAttribute("max")).toBe("6");
     });
     expect(container.textContent).not.toContain("Codex options");
 

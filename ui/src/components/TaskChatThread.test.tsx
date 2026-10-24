@@ -196,11 +196,11 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
     expect(container.textContent).toContain("Saved the useful response.");
     expect(container.textContent).toContain("Please keep this message.");
     expect(container.textContent).toContain("New session");
-    for (const status of ["La ejecución falló", "Detenida", "Worked", "Ejecución cancelada", "Esperando para reanudar", "Recovery pending", "Ejecución completada", "previous execution needs"]) {
+    for (const status of ["La ejecución falló", "Detenida", "Trabajó", "Ejecución cancelada", "Esperando para reanudar", "Recovery pending", "Ejecución completada", "previous execution needs"]) {
       expect(container.textContent).not.toContain(status);
     }
     if (runtimeMode === "legacy") {
-      const activity = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.startsWith("Activity"));
+      const activity = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.startsWith("Actividad"));
       expect(activity).toBeDefined();
       flushSync(() => activity!.click());
       expect(container.textContent).toContain("Inspected the source.");
@@ -269,7 +269,7 @@ describe.each(["legacy", "native"] as const)("historical %s system status", (run
     render(<TaskChatThread comments={[comment("old-response", "Saved the useful response.", "old"), response]}
       onAdd={async () => {}} issueStatus="in_progress" linkedRuns={[run("old", "failed", 0), run("new", "succeeded", 1)]} />);
     expect(container.textContent).toContain("The follow-up succeeded.");
-    expect(container.textContent).toContain("Worked");
+    expect(container.textContent).toContain("Trabajó");
     expect(container.textContent).not.toContain("Detenida");
     expect(container.textContent).not.toContain("La ejecución falló");
   });
@@ -1055,7 +1055,7 @@ describe("TaskChatThread runtime transcript selection", () => {
     render(<TaskChatThread {...props} linkedRuns={[denied]} />);
     const alert = container.querySelector('[data-testid="task-chat-credential-access-notice"]');
     expect(alert?.getAttribute("role")).toBe("alert");
-    expect(alert?.textContent).toContain("Codie is configured to use Dotta’s API Key, but you don’t have access");
+    expect(alert?.textContent).toContain("Codie está configurado para usar Dotta’s API Key, pero tú no tienes acceso");
     expect(alert?.querySelector('a[href="/agents/agent-1/runtime"]')).not.toBeNull();
     expect(alert?.querySelector('a[href*="/runs/credential-run"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="task-chat-run-failed-try-again"]')).toBeNull();
@@ -2055,10 +2055,10 @@ describe("TaskChatThread runtime transcript selection", () => {
     );
     expect(turnHeaders).toHaveLength(2);
     expect(turnHeaders[0]?.textContent).not.toContain(
-      "Continued after steering",
+      "Continuó tras tu indicación",
     );
     expect(turnHeaders[1]?.textContent).toContain(
-      "Continued after steering · Worked for",
+      "Continuó tras tu indicación · Trabajó durante",
     );
   });
 
@@ -2142,11 +2142,11 @@ describe("TaskChatThread runtime transcript selection", () => {
     expect(
       container.querySelector('[data-testid="task-chat-turn-summary"]')
         ?.textContent,
-    ).not.toContain("Continued after steering");
+    ).not.toContain("Continuó tras tu indicación");
     expect(
       container.querySelector('[data-testid="task-chat-turn-status-header"]')
         ?.textContent,
-    ).toContain("Continued after steering · Working for");
+    ).toContain("Continuó tras tu indicación · Trabajando desde hace");
     expect(container.textContent).toContain(
       new Date("2026-08-25T17:59:32.000Z").toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
     );
@@ -2772,7 +2772,7 @@ describe("TaskChatThread runtime transcript selection", () => {
       expect(
         container.querySelector('[data-testid="task-chat-turn-summary"]')
           ?.textContent,
-      ).toContain("Worked");
+      ).toContain("Trabajó");
       expect(
         container.querySelector('[data-testid="task-chat-runner-turn"]'),
       ).toBeNull();
@@ -2870,7 +2870,7 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
   const takeover = () => container.querySelector('[data-testid="task-chat-composer-takeover"]');
   const pendingIndicator = () => container.querySelector<HTMLButtonElement>('[data-testid="task-chat-pending-input-indicator"]');
   const dismiss = async () => {
-    await act(async () => takeover()!.querySelector<HTMLButtonElement>('[aria-label^="Dismiss "]')!.click());
+    await act(async () => takeover()!.querySelector<HTMLButtonElement>('[aria-label^="Descartar "]')!.click());
   };
   const click = async (text: string) => {
     const button = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(button => button.textContent?.trim() === text);
@@ -2887,7 +2887,7 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
     await act(async () => row!.click());
     expect(takeover()?.textContent).toContain("Which color?");
     await click("Yes");
-    await click("Submit answers");
+    await click("Enviar respuestas");
     expect(props.onSubmitInteractionAnswers).toHaveBeenCalledWith(old, [{ questionId: "old-question", optionIds: ["yes"] }]);
   });
 
@@ -2903,11 +2903,11 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
   it.each(["Cancel", "dismiss"])("leaves only the history card after %s on a fresh question", async action => {
     render(<TaskChatThread {...props} comments={[]} interactions={[old]} />);
     await click("Yes");
-    if (action === "Cancel") await click("Cancel");
+    if (action === "Cancel") await click("Cancelar");
     else await dismiss();
     expect(takeover()).toBeNull();
     expect(pendingIndicator()).toBeNull();
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which color?"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which color?"]')!.click());
     expect(takeover()?.querySelector('[role="radio"][aria-checked="true"]')?.textContent).toContain("Yes");
   });
 
@@ -2916,9 +2916,9 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
     render(<TaskChatThread {...props} comments={movedOn} interactions={[old, anotherOld]} />);
     expect(container.querySelectorAll('[data-testid="task-chat-unanswered-question"]')).toHaveLength(2);
     expect(pendingIndicator()).toBeNull();
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which color?"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which color?"]')!.click());
     expect(takeover()?.textContent).toContain("Which color?");
-    expect(takeover()?.textContent).not.toContain("2 pending");
+    expect(takeover()?.textContent).not.toContain("2 pendientes");
     await dismiss();
     expect(takeover()).toBeNull();
     expect(pendingIndicator()).toBeNull();
@@ -2929,16 +2929,16 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
     const nextApproval = { ...approval, id: "next-approval", title: "Approve the note?", createdAt: new Date("2026-08-23T10:02:00Z"), payload: { version: 1, prompt: "Approve the note?" } } as IssueThreadInteraction;
     render(<TaskChatThread {...props} comments={movedOn} interactions={[old, newer, approval, nextApproval]} />);
     expect(takeover()?.textContent).toContain("Approve the note?");
-    await click("2 pending");
+    await click("2 pendientes");
     expect(takeover()?.textContent).toContain("Approve the outline?");
-    await click("2 pending");
+    await click("2 pendientes");
     expect(takeover()?.textContent).toContain("Approve the note?");
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which color?"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which color?"]')!.click());
     expect(takeover()?.textContent).toContain("Which color?");
-    expect(takeover()?.textContent).toContain("2 pending");
-    expect(takeover()?.textContent).not.toContain("3 pending");
+    expect(takeover()?.textContent).toContain("2 pendientes");
+    expect(takeover()?.textContent).not.toContain("3 pendientes");
     await dismiss();
-    expect(pendingIndicator()?.textContent).toContain("2 pending inputs");
+    expect(pendingIndicator()?.textContent).toContain("2 pendientes");
     await act(async () => pendingIndicator()!.click());
     expect(takeover()?.textContent).toContain("Approve the note?");
   });
@@ -2947,15 +2947,15 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
     const nativeOld = { ...old, sourceRunId: "old-run", payload: { ...old.payload, runtimeRequestId: "old-request" } } as IssueThreadInteraction;
     render(<TaskChatThread {...props} comments={movedOn} interactions={[nativeOld, newer]} />);
     expect(takeover()?.textContent).toContain("Which tone?");
-    const oldRow = container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which color?"]');
+    const oldRow = container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which color?"]');
     await act(async () => oldRow!.click());
     expect(takeover()?.textContent).toContain("Which color?");
-    expect(takeover()?.textContent).not.toContain("2 pending");
+    expect(takeover()?.textContent).not.toContain("2 pendientes");
     render(<TaskChatThread {...props} comments={[...movedOn]} interactions={[nativeOld, newer]} />);
     expect(takeover()?.textContent).toContain("Which color?");
     await dismiss();
     expect(pendingIndicator()).toBeNull();
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which tone?"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which tone?"]')!.click());
     expect(takeover()?.textContent).toContain("Which tone?");
   });
 
@@ -2982,14 +2982,14 @@ describe.each([true, false])("Unanswered question history (conversationMode=%s)"
     const show = () => render(<TaskChatThread {...props} comments={[]} interactions={[old]} />);
     show();
     await click("Yes");
-    if (action === "Cancel") await click("Cancel");
+    if (action === "Cancel") await click("Cancelar");
     else await dismiss();
     flushSync(() => root!.unmount());
     root = createRoot(container);
     show();
     expect(takeover()).toBeNull();
     expect(pendingIndicator()).toBeNull();
-    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Answer question: Which color?"]')!.click());
+    await act(async () => container.querySelector<HTMLButtonElement>('[aria-label="Responder pregunta: Which color?"]')!.click());
     expect(takeover()?.querySelector('[role="radio"][aria-checked="true"]')?.textContent).toContain("Yes");
   });
 
@@ -3173,14 +3173,14 @@ describe("TaskChatThread blocker links", () => {
     expect(notices[0]?.getAttribute("data-placement")).toBe("top");
     expect(notices[1]?.getAttribute("data-placement")).toBe("bottom");
     expect(notices[0]?.textContent).toContain(
-      "Blocked byPAP-600Waiting in review",
+      "Bloqueado porPAP-600Waiting in review",
     );
-    expect(notices[0]?.textContent).toContain("Root blockerPAP-777Actual work");
+    expect(notices[0]?.textContent).toContain("Bloqueo de origenPAP-777Actual work");
     expect(notices[1]?.textContent).toContain(
-      "Still blocked byPAP-600Waiting in review",
+      "Sigue bloqueado porPAP-600Waiting in review",
     );
     expect(notices[1]?.textContent).toContain(
-      "Root blocker remainsPAP-777Actual work",
+      "El bloqueo de origen siguePAP-777Actual work",
     );
     for (const notice of notices) {
       expect(notice.querySelector('a[href="/issues/PAP-600"]')).not.toBeNull();
@@ -3260,8 +3260,8 @@ describe("TaskChatThread blocker links", () => {
     expect(notices).toHaveLength(2);
     expect(notices[0]?.getAttribute("data-placement")).toBe("top");
     expect(notices[1]?.getAttribute("data-placement")).toBe("bottom");
-    expect(notices[0]?.textContent).toContain("Waiting on live work");
-    expect(notices[1]?.textContent).toContain("Still waiting on live work");
+    expect(notices[0]?.textContent).toContain("Esperando trabajo en curso");
+    expect(notices[1]?.textContent).toContain("Sigue esperando trabajo en curso");
     for (const notice of notices) {
       const orderedLinks = [
         ...notice.querySelectorAll(
@@ -3351,10 +3351,10 @@ describe("TaskChatThread blocker links", () => {
       container.querySelectorAll('[data-testid="task-chat-blocker-links"]'),
     ).toHaveLength(2);
     expect(container.textContent).toContain(
-      "Blocked byPAP-500Direct dependency",
+      "Bloqueado porPAP-500Direct dependency",
     );
-    expect(container.textContent).not.toContain("Ultimately blocked by");
-    expect(container.textContent).not.toContain("Root blocker");
+    expect(container.textContent).not.toContain("En última instancia bloqueado por");
+    expect(container.textContent).not.toContain("Bloqueo de origen");
   });
 
   it("keeps a server-selected intermediate blocker on its direct chain", () => {
@@ -3419,16 +3419,16 @@ describe("TaskChatThread blocker links", () => {
       '[data-testid="task-chat-blocker-links"]',
     );
     expect(notices[0]?.textContent).toContain(
-      "Blocked byPAP-600Selected dependency",
+      "Bloqueado porPAP-600Selected dependency",
     );
     expect(notices[0]?.textContent).toContain(
-      "Root blockerPAP-650Stalled intermediate review",
+      "Bloqueo de origenPAP-650Stalled intermediate review",
     );
     expect(notices[1]?.textContent).toContain(
-      "Still blocked byPAP-600Selected dependency",
+      "Sigue bloqueado porPAP-600Selected dependency",
     );
     expect(notices[1]?.textContent).toContain(
-      "Root blocker remainsPAP-650Stalled intermediate review",
+      "El bloqueo de origen siguePAP-650Stalled intermediate review",
     );
     expect(container.textContent).not.toContain("Unrelated dependency");
     expect(container.textContent).not.toContain("Deeper structural leaf");
@@ -3538,7 +3538,7 @@ describe("TaskChatThread queued message actions", () => {
     const interrupt = [...container.querySelectorAll("button")].find(
       (button) => button.textContent === "Interrumpir",
     );
-    expect(container.textContent).toContain("Queued");
+    expect(container.textContent).toContain("En cola");
     expect(interrupt).not.toBeUndefined();
 
     flushSync(() => interrupt!.click());
@@ -4183,7 +4183,7 @@ describe("TaskChatThread live transcript", () => {
     );
     await act(async () => option?.click());
     const submit = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent?.trim() === "Submit answers",
+      (button) => button.textContent?.trim() === "Enviar respuestas",
     );
     await act(async () => submit?.click());
 
@@ -4379,7 +4379,7 @@ describe("TaskChatThread live transcript", () => {
     expect(container.textContent).toContain("Last words before the run stops");
     // The pill has settled to its "Worked" state rather than flipping back to a
     // spinner while it waits for the reply comment.
-    expect(container.textContent).toContain("Worked");
+    expect(container.textContent).toContain("Trabajó");
   });
 });
 
@@ -4393,7 +4393,7 @@ describe("TaskChatThread composer execution controls", () => {
     };
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="in_progress" activeRun={run} onCancelRun={onStop} stopScope="subtree" />);
     const button = container.querySelector<HTMLButtonElement>('[data-testid="task-chat-composer-stop"]')!;
-    expect(button.title).toBe("Stop response");
+    expect(button.title).toBe("Detener respuesta");
     await act(async () => { button.click(); });
     expect(onStop).toHaveBeenCalledOnce();
     render(<TaskChatThread comments={[]} onAdd={async () => {}} issueStatus="in_progress" activeRun={run} onCancelRun={onStop} stopPending />);

@@ -1644,7 +1644,7 @@ describe("IssueDetail", () => {
     await waitForAssertion(() => {
       expect(
         container.querySelector(
-          'button[aria-label="Open gallery: output.png"]',
+          'button[aria-label="Abrir galería: output.png"]',
         ),
       ).not.toBeNull();
     });
@@ -1655,7 +1655,7 @@ describe("IssueDetail", () => {
       await act(async () => {
         (
           container.querySelector(
-            `button[aria-label="Open gallery: ${filename}"]`,
+            `button[aria-label="Abrir galería: ${filename}"]`,
           ) as HTMLButtonElement
         ).click();
       });

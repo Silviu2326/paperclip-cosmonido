@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 import { useStreamlinedTaskChatPresentation } from "./presentation-mode";
 import { Check, ChevronRight, X } from "lucide-react";
 import { MarkdownBody } from "@/components/MarkdownBody";
@@ -35,7 +36,11 @@ export function turnSummaryMetrics(
   if (summary.durationLabel) parts.push(summary.durationLabel);
   if (summary.toolCount > 0)
     parts.push(
-      `${summary.toolCount} tool${summary.toolCount === 1 ? "" : "s"}`,
+      t("chatUiComposer.toolCount", {
+        count: summary.toolCount,
+        defaultValue_one: "{{count}} tool",
+        defaultValue_other: "{{count}} tools",
+      }),
     );
   if (summary.added > 0 || summary.removed > 0)
     parts.push(`+${summary.added} −${summary.removed}`);
@@ -43,10 +48,23 @@ export function turnSummaryMetrics(
   return parts.join(" · ");
 }
 
+function turnHeaderLabel(summary: TaskChatTurnItem["summary"]): string {
+  if (summary.durationLabel) {
+    return summary.failed
+      ? t("chatUiComposer.stoppedFor", { duration: summary.durationLabel, defaultValue: "Stopped for {{duration}}" })
+      : t("chatUiComposer.workedFor", { duration: summary.durationLabel, defaultValue: "Worked for {{duration}}" });
+  }
+  return summary.failed
+    ? t("chatUiComposer.stopped", { defaultValue: "Stopped" })
+    : t("chatUiComposer.worked", { defaultValue: "Worked" });
+}
+
 /** "✓ Worked · 38s · 3 tools · +34 −3 · 12.3k tokens" (parts omitted when unknown). */
 export function turnSummaryText(summary: TaskChatTurnItem["summary"]): string {
   const metrics = turnSummaryMetrics(summary);
-  const label = summary.failed ? "Stopped" : "Worked";
+  const label = summary.failed
+    ? t("chatUiComposer.stopped", { defaultValue: "Stopped" })
+    : t("chatUiComposer.worked", { defaultValue: "Worked" });
   return metrics ? `${label} · ${metrics}` : label;
 }
 
@@ -100,12 +118,8 @@ export function TaskChatTurn({
             />
           ) : null}
           {!item.historical ? <span className="min-w-0 truncate">
-            {item.continuedAfterSteering ? "Continued after steering · " : ""}
-            {item.summary.durationLabel
-              ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
-              : item.summary.failed
-                ? "Stopped"
-                : "Worked"}
+            {item.continuedAfterSteering ? `${t("chatUiComposer.continuedAfterSteering", { defaultValue: "Continued after steering" })} · ` : ""}
+            {turnHeaderLabel(item.summary)}
           </span> : null}
         </div> : null}
         {item.items.length > 0 ? (
@@ -206,11 +220,13 @@ export function TaskChatTurn({
         <SummaryIcon className="h-3.5 w-3.5 shrink-0" />
       ) : null}
       <span>
-        {item.historical ? "Activity" : item.standaloneHeader && item.summary.durationLabel
-          ? `${item.summary.failed ? "Stopped" : "Worked"} for ${item.summary.durationLabel}`
-          : item.summary.failed
-            ? "Stopped"
-            : "Worked"}
+        {item.historical
+          ? t("chatUiComposer.activity", { defaultValue: "Activity" })
+          : item.standaloneHeader && item.summary.durationLabel
+            ? turnHeaderLabel(item.summary)
+            : item.summary.failed
+              ? t("chatUiComposer.stopped", { defaultValue: "Stopped" })
+              : t("chatUiComposer.worked", { defaultValue: "Worked" })}
       </span>
       {!item.standaloneHeader && turnSummaryMetrics(item.summary) ? (
         // Time/tools/tokens is demoted, not deleted (PAP-502): it stays in the
