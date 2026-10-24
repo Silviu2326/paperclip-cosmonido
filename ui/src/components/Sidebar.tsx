@@ -40,7 +40,9 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarSection } from "./SidebarSection";
-import { SidebarNavItem, SidebarPrimaryNavProvider } from "./SidebarNavItem";
+import { SidebarAccentProvider, SidebarNavItem, SidebarPrimaryNavProvider } from "./SidebarNavItem";
+import { LayoutGroup } from "motion/react";
+import { SIDEBAR_ACCENTS } from "../lib/accent";
 import { NavLink, useLocation } from "@/lib/router";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { SidebarAgents } from "./SidebarAgents";
@@ -224,7 +226,9 @@ export function Sidebar({ children }: { children?: ReactNode }) {
           </div>
         )}
 
+        <LayoutGroup id="primary-sidebar">
         <nav className={primarySidebarStyles.nav}>
+          <SidebarAccentProvider accent={streamlinedUiEnabled ? SIDEBAR_ACCENTS.home : null}>
           <div className={primarySidebarStyles.group}>
             {!headerCreate ? newTaskButton : null}
             {!streamlinedUiEnabled ? <SidebarNavItem to="/search" label={t("nav.search")} icon={Search} /> : null}
@@ -258,10 +262,12 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               <SidebarNavItem to="/board-chat" label={t("nav.conferenceRoom")} icon={MessagesSquare} />
             ) : null}
           </div>
+          </SidebarAccentProvider>
 
           <SidebarSection
             label={t("nav.work")}
             divider={streamlinedUiEnabled}
+            accent={streamlinedUiEnabled ? SIDEBAR_ACCENTS.work : undefined}
             collapsible={{ open: workOpen, onOpenChange: setWorkOpen }}
             headerAction={headerCreate ? { ariaLabel: t("nav.newTask"), icon: Plus, onClick: () => openNewIssue() } : undefined}
           >
@@ -293,7 +299,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
               </>
             ) : null}
             <SidebarNavItem to="/artifacts" label={t("uxNav.files", { defaultValue: "Archivos" })} icon={FolderOpen} />
-            <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} />
+            {!streamlinedUiEnabled ? <SidebarNavItem to="/routines" label={t("nav.routines")} icon={Repeat} /> : null}
             {showCases ? (
               <SidebarNavItem to="/cases" label={t("nav.cases")} icon={Layers} textBadge="beta" />
             ) : null}
@@ -332,6 +338,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
           {(preferences.business || preferences.agenda) && <SidebarSection
             label={t("nav.business")}
             divider
+            accent={streamlinedUiEnabled ? SIDEBAR_ACCENTS.business : undefined}
             collapsible={{ open: businessOpen, onOpenChange: setBusinessOpen }}
           >
             {preferences.business && <>
@@ -343,12 +350,15 @@ export function Sidebar({ children }: { children?: ReactNode }) {
           </SidebarSection>}
 
           {streamlinedUiEnabled ? (
-            <SidebarSection label={t("sidebarNew.groupTeam")} divider>
-              <SidebarNavItem to="/agents/all" label={t("uxNav.team", { defaultValue: "Ver equipo" })} icon={Users} />
-              {/* Agents: one expandable group; each agent is listed once, inside it. */}
+            <div className={primarySidebarStyles.group}>
+              {/* Agents: one expandable group with its own heading and "see all" link; each agent is listed once, inside it. */}
               {children ?? <SidebarAgents streamlined />}
-              {preferences.office && <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />}
-            </SidebarSection>
+              {preferences.office && (
+                <SidebarAccentProvider accent={SIDEBAR_ACCENTS.business}>
+                  <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />
+                </SidebarAccentProvider>
+              )}
+            </div>
           ) : (
             children ?? null
           )}
@@ -377,11 +387,12 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             <SidebarSection
               label={t("sidebarNew.groupAdmin")}
               divider
+              accent={SIDEBAR_ACCENTS.admin}
               collapsible={{ open: adminOpen, onOpenChange: setAdminOpen }}
             >
-              <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
               <SidebarNavItem to="/apps" label={t("nav.connectors")} icon={Unplug} />
-              <SidebarNavItem to="/activity" label={t("nav.audit")} icon={History} />
+              <SidebarNavItem to="/activity" label={t("sidebar.activity")} icon={History} />
+              <SidebarNavItem to="/company/settings" label={t("nav.settings")} icon={Settings} />
             </SidebarSection>
           ) : null}
 
@@ -394,6 +405,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             missingBehavior="placeholder"
           />
         </nav>
+        </LayoutGroup>
       </aside>
     </SidebarPrimaryNavProvider>
   );

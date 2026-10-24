@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useSidebarNavExpanded } from "./SidebarNavItem";
+import { SidebarAccentProvider, useSidebarNavExpanded } from "./SidebarNavItem";
 import { t } from "@/i18n";
 
 type SidebarSectionIcon = ComponentType<{ className?: string }>;
@@ -66,6 +66,8 @@ interface SidebarSectionProps {
   divider?: boolean;
   /** Streamlined primary nav: children hang from a thin vertical guide on the left. */
   nested?: boolean;
+  /** Accent colour of the group: a dot by the label and coloured rows. */
+  accent?: string;
 }
 
 function SidebarSectionHeader({
@@ -74,7 +76,8 @@ function SidebarSectionHeader({
   headerAction,
   label,
   menu,
-}: Pick<SidebarSectionProps, "collapsible" | "divider" | "headerAction" | "label" | "menu">) {
+  accent,
+}: Pick<SidebarSectionProps, "collapsible" | "divider" | "headerAction" | "label" | "menu" | "accent">) {
   const { isMobile } = useSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
   const hasMenu = Boolean(
@@ -94,7 +97,12 @@ function SidebarSectionHeader({
     "h-5 w-5 shrink-0 text-muted-foreground/60 transition-opacity hover:text-foreground data-[state=open]:opacity-100",
     headerControlVisibilityClassName,
   );
-  const headerContent = <span className={labelClassName}>{label}</span>;
+  const headerContent = (
+    <span className={cn(labelClassName, accent && "inline-flex items-center gap-1.5")}>
+      {accent ? <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: accent }} /> : null}
+      {label}
+    </span>
+  );
   const HeaderActionIcon = headerAction?.icon;
 
   const headingControl = hasMenu ? (
@@ -198,6 +206,7 @@ export function SidebarSection({
   headerAction,
   divider = false,
   nested = false,
+  accent,
 }: SidebarSectionProps) {
   const { collapsed, peeking } = useSidebar();
   const forceExpanded = useSidebarNavExpanded();
@@ -209,7 +218,7 @@ export function SidebarSection({
         nested && "ml-4 border-l border-border/60 pl-1",
       )}
     >
-      {children}
+      {accent ? <SidebarAccentProvider accent={accent}>{children}</SidebarAccentProvider> : children}
     </div>
   );
 
@@ -245,6 +254,7 @@ export function SidebarSection({
           divider={divider}
           menu={menu}
           headerAction={headerAction}
+          accent={accent}
         />
         <CollapsibleContent>{content}</CollapsibleContent>
       </Collapsible>
@@ -253,7 +263,7 @@ export function SidebarSection({
 
   return (
     <div>
-      <SidebarSectionHeader label={label} divider={divider} menu={menu} headerAction={headerAction} />
+      <SidebarSectionHeader label={label} divider={divider} menu={menu} headerAction={headerAction} accent={accent} />
       {content}
     </div>
   );

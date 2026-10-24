@@ -1,4 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
+import { motion } from "motion/react";
 import { NavLink } from "@/lib/router";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
@@ -7,6 +8,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { t } from "@/i18n";
+import { accentInk, accentReadable, accentTint } from "../lib/accent";
+import { useMotionTokens } from "../hooks/useMotionTokens";
 
 /**
  * Forces the full-label (non-rail) presentation for any `SidebarNavItem`
@@ -51,6 +54,21 @@ export function SidebarPrimaryNavProvider({
       {children}
     </SidebarPrimaryNavContext.Provider>
   );
+}
+
+/**
+ * Accent colour of the nav group a row sits in (a CSS colour, usually a brand
+ * agent token). Inside the streamlined primary nav it gives rows a coloured
+ * icon tile and a highlight that slides to the active page.
+ */
+const SidebarAccentContext = createContext<string | null>(null);
+
+export function SidebarAccentProvider({ accent, children }: { accent: string | null; children: ReactNode }) {
+  return <SidebarAccentContext.Provider value={accent}>{children}</SidebarAccentContext.Provider>;
+}
+
+export function useSidebarAccent() {
+  return useContext(SidebarAccentContext);
 }
 
 interface SidebarNavItemProps {
@@ -115,6 +133,10 @@ export function SidebarNavItem({
   // sidebar preference is collapsed.
   const forceExpanded = useSidebarNavExpanded();
   const primaryNav = useContext(SidebarPrimaryNavContext);
+  const accent = useSidebarAccent();
+  const tokens = useMotionTokens();
+  // Coloured treatment: only the streamlined primary nav, and only for rows in an accent group.
+  const accented = primaryNav && accent != null;
   // The icon-only rail presentation only applies when pinned collapsed and not
   // peeking; a peek/expanded panel — or a contextual takeover — restores
   // the full label + badge.
@@ -137,34 +159,36 @@ export function SidebarNavItem({
     ? undefined
     : `${label}${railStatusText ? `, ${railStatusText}` : ""}${trailingLabel ? `, ${trailingLabel}` : ""}`;
 
-  const link = (
-    <NavLink
-      to={to}
-      state={SIDEBAR_SCROLL_RESET_STATE}
-      end={end}
-      aria-label={railAriaLabel}
-      onClick={() => { if (isMobile) setSidebarOpen(false); }}
-      className={({ isActive }) =>
-        cn(
-          // One rhythm and one inset pill highlight: mx-2 floats the row off
-          // the sidebar edges, rounded-lg matches the card anchor, px-2 gives
-          // the icon breathing room inside the pill. Rows with hover menus
-          // (agents/projects) reserve extra right padding via className.
-          "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
-          primaryNav
-            ? (active ?? isActive)
-              ? "relative bg-background font-semibold text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-(--sidebar-active-marker-width) before:rounded-full before:bg-(--sidebar-active-marker-color) dark:bg-secondary"
-              : "text-foreground/80 hover:bg-secondary hover:text-foreground"
-            : (active ?? isActive)
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-          className,
-        )
-      }
-    >
+  const renderRow = (isCurrent: boolean) => (
+    <>
+      {accented && isCurrent ? (
+        <motion.span
+          layoutId="sidebar-active-row"
+          aria-hidden="true"
+          data-slot="sidebar-active-row"
+          className="absolute inset-0 rounded-lg shadow-sm"
+          style={{ background: `linear-gradient(90deg, ${accentTint(accent, 22)}, ${accentTint(accent, 6)})` }}
+          transition={{ duration: tokens.base, ease: tokens.easeOut }}
+        >
+          <span className="absolute inset-y-1.5 left-0 w-(--sidebar-active-marker-width) rounded-full" style={{ background: accent }} />
+        </motion.span>
+      ) : null}
       {showIconSlot ? (
-        <span data-slot="sidebar-nav-icon" className="relative shrink-0">
-          {iconNode ?? (Icon ? <Icon className="h-4 w-4" /> : null)}
+        <span
+          data-slot="sidebar-nav-icon"
+          className={cn(
+            "relative shrink-0",
+            accented && !rail && "flex h-6 w-6 items-center justify-center rounded-md transition-transform duration-(--motion-duration-fast) ease-(--motion-ease-out-expo) group-hover:-rotate-3 group-hover:scale-110",
+          )}
+          style={accented
+            ? rail
+              ? { color: accentReadable(accent) }
+              : isCurrent
+                ? { background: `linear-gradient(135deg, ${accent}, ${accentTint(accent, 70)})`, color: accentInk(accent) }
+                : { background: accentTint(accent, 16), color: accentReadable(accent) }
+            : undefined}
+        >
+          {iconNode ?? (Icon ? <Icon className={accented && !rail ? "h-3.5 w-3.5" : "h-4 w-4"} /> : null)}
           {alert && (
             <span
               data-slot="sidebar-icon-alert-badge"
@@ -195,12 +219,13 @@ export function SidebarNavItem({
           )}
         </span>
       ) : null}
-      <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : cn("min-w-0 flex-1 truncate", labelClassName)}>{label}</span>
+      <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : cn("min-w-0 flex-1 truncate", accented && "relative", labelClassName)}>{label}</span>
       {!rail && trailing}
       {!rail && textBadge && (
         <Badge variant="ghost"
           className={cn(
             "ml-auto px-1.5 text-(length:--text-nano) leading-none",
+            accented && "relative",
             textBadgeTone === "amber"
               ? "bg-muted text-amber-800 dark:bg-muted/30 dark:text-amber-400"
               : "bg-muted text-muted-foreground",
@@ -210,7 +235,7 @@ export function SidebarNavItem({
         </Badge>
       )}
       {!rail && (hasLive || liveAccessory) && (
-        <span className="ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+        <span className={cn("ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap", accented && "relative")}>
           {liveAccessory}
           {hasLive && (
             <>
@@ -225,18 +250,56 @@ export function SidebarNavItem({
       )}
       {!rail && hasBadge && (
         <Badge variant="ghost"
+          style={accented && badgeTone === "default" ? { background: accentTint(accent, 28), color: accentReadable(accent) } : undefined}
           className={cn(
             "ml-auto px-1.5 leading-none",
+            accented && "relative",
             badgeTone === "danger"
               ? "bg-destructive/90 text-destructive"
               : badgeTone === "warning"
                 ? "bg-muted/90 text-amber-50"
-                : "bg-primary text-primary-foreground",
+                : accented
+                  ? ""
+                  : "bg-primary text-primary-foreground",
           )}
         >
           {badge}
         </Badge>
       )}
+    </>
+  );
+
+  const link = (
+    <NavLink
+      to={to}
+      state={SIDEBAR_SCROLL_RESET_STATE}
+      end={end}
+      aria-label={railAriaLabel}
+      onClick={() => { if (isMobile) setSidebarOpen(false); }}
+      className={({ isActive }) =>
+        cn(
+          // One rhythm and one inset pill highlight: mx-2 floats the row off
+          // the sidebar edges, rounded-lg matches the card anchor, px-2 gives
+          // the icon breathing room inside the pill. Rows with hover menus
+          // (agents/projects) reserve extra right padding via className.
+          "flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium transition-colors",
+          accented
+            ? cn(
+                "group relative py-1 pointer-coarse:py-0.5",
+                (active ?? isActive) ? "font-semibold text-foreground" : "text-foreground/80 hover:bg-secondary hover:text-foreground",
+              )
+            : primaryNav
+            ? (active ?? isActive)
+              ? "relative bg-background font-semibold text-foreground before:absolute before:inset-y-1.5 before:left-0 before:w-(--sidebar-active-marker-width) before:rounded-full before:bg-(--sidebar-active-marker-color) dark:bg-secondary"
+              : "text-foreground/80 hover:bg-secondary hover:text-foreground"
+            : (active ?? isActive)
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          className,
+        )
+      }
+    >
+      {accented ? ((state: { isActive: boolean }) => renderRow(active ?? state.isActive)) : renderRow(false)}
     </NavLink>
   );
 

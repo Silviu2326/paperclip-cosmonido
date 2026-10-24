@@ -28,7 +28,7 @@ vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/", search: "", hash: "", state: null }),
   NavLink: ({ to, children, className, ...props }: {
     to: string;
-    children: ReactNode;
+    children: ReactNode | ((state: { isActive: boolean }) => ReactNode);
     className?: string | ((state: { isActive: boolean }) => string);
   }) => (
     <a
@@ -36,7 +36,7 @@ vi.mock("@/lib/router", () => ({
       className={typeof className === "function" ? className({ isActive: false }) : className}
       {...props}
     >
-      {children}
+      {typeof children === "function" ? children({ isActive: false }) : children}
     </a>
   ),
 }));
@@ -281,7 +281,7 @@ describe("Sidebar", () => {
     });
   });
 
-  it("uses the simplified work navigation and lists each agent once, inside Equipo", async () => {
+  it("uses the simplified work navigation and lists each agent once, in its own group", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({
       enableIsolatedWorkspaces: false,
       enableStreamlinedLeftNavigation: true,
@@ -298,12 +298,14 @@ describe("Sidebar", () => {
 
     const projectsLink = [...container.querySelectorAll("nav a")].find((a) => a.textContent?.trim() === "Proyectos");
     expect(projectsLink?.getAttribute("href")).toBe("/projects");
-    // The standalone Agents link is gone: the agents group in Equipo is the only entry.
+    // The standalone Agents link and the "Ver equipo" row are gone: the agents group is the only entry.
     expect(container.querySelectorAll('a[href="/agents"]')).toHaveLength(0);
     expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
     await openAdminGroup();
     expect([...container.querySelectorAll('a[href="/activity"]')]).toHaveLength(1);
-    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).toContain("Auditoría");
+    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).toContain("Actividad");
+    expect(navLabels).not.toContain("Ver equipo");
+    expect(navLabels).not.toContain("Rutinas");
     expect(navLabels).not.toContain("Ajustes");
     expect(navLabels).not.toContain("Actividad");
     expect(navLabels).not.toContain("Costos");
@@ -569,16 +571,16 @@ describe("Sidebar", () => {
     await openAdminGroup();
     const sections = [...container.querySelectorAll("nav > div")];
     const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
-    const teamSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupTeam")));
+    const teamSection = sections.find((section) => section.querySelector('[data-testid="sidebar-agents"]'));
     const orgSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupAdmin")));
     const labels = (section: Element | undefined) => [...(section?.querySelectorAll("a") ?? [])]
       .map((anchor) => anchor.textContent?.trim());
 
     expect(labels(workSection)).toEqual([
-      t("nav.tasks"), t("nav.projects"), t("uxNav.files"), t("nav.routines"),
+      t("nav.tasks"), t("nav.projects"), t("uxNav.files"),
     ]);
     expect(teamSection?.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
-    expect(labels(orgSection)).toEqual([t("nav.settings"), "Conectores", "Auditoría"]);
+    expect(labels(orgSection)).toEqual(["Conectores", t("sidebar.activity"), t("nav.settings")]);
     expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(teamSection!));
     expect(sections.indexOf(teamSection!)).toBeLessThan(sections.indexOf(orgSection!));
     expect(
@@ -695,7 +697,7 @@ describe("Sidebar", () => {
       links.findIndex((anchor) => anchor.textContent === "Habilidades"),
     );
     expect(links.findIndex((anchor) => anchor.textContent === "Conectores")).toBeLessThan(
-      links.findIndex((anchor) => anchor.textContent === "Auditoría"),
+      links.findIndex((anchor) => anchor.textContent === "Actividad"),
     );
 
     flushSync(() => {
