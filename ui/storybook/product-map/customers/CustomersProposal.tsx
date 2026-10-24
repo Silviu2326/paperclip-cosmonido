@@ -17,6 +17,8 @@ import {
   Search,
   Sparkles,
   Star,
+  Table2,
+  LayoutGrid,
   Upload,
   User,
   Users,
@@ -26,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { euros, type DemoContact, type DemoCustomer } from "./demo-data";
+import { CustomersTable, PeopleTable, ServicesDialog, nextSort, sortCustomers, type SortKey, type SortState } from "./CustomersTables";
 import { NewCustomerDialog } from "./NewCustomerDialog";
 import { LoadMoreButton, useLoadMore } from "./scenario-parts";
 
@@ -42,7 +45,8 @@ export const HEALTH: Record<DemoCustomer["health"], { label: string; color: stri
   risk: { label: "En riesgo", color: RISK },
 };
 
-type View = "customers" | "people" | "services";
+type View = "customers" | "people";
+type Layout = "table" | "cards";
 export type Filter = "all" | "attention" | "new" | "archived";
 
 function initials(name: string) {
@@ -119,7 +123,6 @@ function ViewSwitch({ view, onChange, counts }: { view: View; onChange: (view: V
   const options: { id: View; label: string; icon: typeof Users }[] = [
     { id: "customers", label: "Clientes", icon: Building2 },
     { id: "people", label: "Personas", icon: User },
-    { id: "services", label: "Servicios", icon: Repeat },
   ];
   return (
     <div role="tablist" className="inline-flex max-w-full overflow-x-auto rounded-xl border border-border bg-muted/40 p-1">
@@ -372,6 +375,9 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
   const [createOpen, setCreateOpen] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
   const [view, setView] = useState<View>("customers");
+  const [layout, setLayout] = useState<Layout>("table");
+  const [sort, setSort] = useState<SortState>(null);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [query, setQuery] = useState(initialQuery);
   const [selectedId, setSelectedId] = useState<string | null>(initialCustomers[0]?.id ?? null);
@@ -390,7 +396,9 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
     .filter((customer) => filter === "archived" ? customer.archived : !customer.archived)
     .filter((customer) => filter === "all" || filter === "archived" || (filter === "attention" ? attention.includes(customer) : new Date(customer.createdAt) > new Date("2026-08-01")))
     .filter((customer) => !needle || `${customer.name} ${customer.domain ?? ""} ${customer.tags.join(" ")}`.toLowerCase().includes(needle));
-  const page = useLoadMore(visibleCustomers, pageSize);
+  const page = useLoadMore(layout === "table" ? sortCustomers(visibleCustomers, sort) : visibleCustomers, pageSize);
+  const visiblePeople = people.filter(({ person, customer }) => !needle || `${person.name} ${person.email ?? ""} ${customer.name}`.toLowerCase().includes(needle));
+  const openCustomer = (id: string) => { setSelectedId(id); setView("customers"); };
   const filterOptions: readonly (readonly [Filter, string, string | null])[] = [
     ["all", "Todos", null],
     ["attention", "Atención", YELLOW],
@@ -456,7 +464,7 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <LayoutGroup id="customers-view"><ViewSwitch view={view} onChange={setView} counts={{ customers: active.length, people: people.length, services: services.length }} /></LayoutGroup>
+          <LayoutGroup id="customers-view"><ViewSwitch view={view} onChange={setView} counts={{ customers: active.length, people: people.length }} /></LayoutGroup>
           <div className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder="Buscar por nombre, web o etiqueta" value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -475,7 +483,31 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
               ))}
             </div>
           ) : null}
+          <div className="ml-auto flex items-center gap-2">
+            {view === "customers" ? (
+              <div role="group" aria-label="Forma de la lista" className="inline-flex rounded-xl border border-border bg-muted/40 p-1 max-md:hidden">
+                {([["table", "Tabla", Table2], ["cards", "Tarjetas", LayoutGrid]] as const).map(([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    aria-pressed={layout === id}
+                    aria-label={`Ver como ${label.toLowerCase()}`}
+                    title={label}
+                    onClick={() => setLayout(id)}
+                    className={cn("flex h-8 w-8 items-center justify-center rounded-lg transition-colors duration-(--motion-duration-fast) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", layout === id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <Button variant="outline" onClick={() => setServicesOpen(true)}>
+              <Repeat className="h-4 w-4" style={{ color: readable(MINT) }} />Servicios
+              <span className="text-xs text-muted-foreground tabular-nums">{services.length}</span>
+            </Button>
+          </div>
         </div>
+
+        <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} services={services} monthly={monthly} onOpenCustomer={openCustomer} />
 
         <div className={cn("grid grid-cols-1 gap-6", selected && view === "customers" ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]" : "")}>
           <AnimatePresence mode="wait">
@@ -488,46 +520,36 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
               className="flex min-w-0 flex-col gap-3"
             >
               {view === "customers" ? (
-                <AnimatePresence>
-                  {page.visible.map((customer, index) => (
-                    <CustomerRow key={customer.id} customer={customer} index={Math.min(index, 12)} selected={customer.id === selectedId} onSelect={() => setSelectedId(customer.id === selectedId ? null : customer.id)} />
-                  ))}
-                  {visibleCustomers.length === 0 ? (
-                    <div key="empty" className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: tint(SKY, 22), color: readable(SKY) }}><Search className="h-6 w-6" /></span>
-                      <p className="font-medium">{query ? `Ningún cliente coincide con «${query}»` : "No hay clientes en este filtro"}</p>
-                      <p className="max-w-sm text-sm text-muted-foreground">Prueba con otro nombre, con la web o con una etiqueta.</p>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        <Button variant="outline" onClick={() => { setQuery(""); setFilter("all"); }}>Limpiar búsqueda</Button>
-                        {canCreate && query ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Crear «{query}»</Button> : null}
-                      </div>
+                visibleCustomers.length === 0 ? (
+                  <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: tint(SKY, 22), color: readable(SKY) }}><Search className="h-6 w-6" /></span>
+                    <p className="font-medium">{query ? `Ningún cliente coincide con «${query}»` : "No hay clientes en este filtro"}</p>
+                    <p className="max-w-sm text-sm text-muted-foreground">Prueba con otro nombre, con la web o con una etiqueta.</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button variant="outline" onClick={() => { setQuery(""); setFilter("all"); }}>Limpiar búsqueda</Button>
+                      {canCreate && query ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Crear «{query}»</Button> : null}
+                    </div>
+                  </div>
+                ) : <>
+                  {layout === "table" ? (
+                    <div className="hidden md:block">
+                      <CustomersTable customers={page.visible} selectedId={selectedId} onSelect={setSelectedId} sort={sort} onSort={(key: SortKey) => setSort((current) => nextSort(current, key))} compact={selected !== null} />
                     </div>
                   ) : null}
-                  <LoadMoreButton key="more" remaining={page.remaining} onClick={page.more} noun="clientes" />
-                </AnimatePresence>
-              ) : view === "people" ? (
-                <div className="divide-y divide-border rounded-xl border border-border">
-                  {people.filter(({ person, customer }) => !needle || `${person.name} ${person.email ?? ""} ${customer.name}`.toLowerCase().includes(needle)).map(({ person, customer }) => (
-                    <button key={person.id} onClick={() => { setSelectedId(customer.id); setView("customers"); }} className="flex w-full items-center gap-3 p-3 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/50">
-                      <Avatar name={person.name} size="sm" />
-                      <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-sm font-medium">{person.name}{person.primary ? <Star className="h-3 w-3 fill-current" style={{ color: YELLOW }} /> : null}</p><p className="truncate text-xs text-muted-foreground">{person.title ?? "Sin cargo"} · {person.email ?? person.phone}</p></div>
-                      <Pill color={HEALTH[customer.health].color}>{customer.name}</Pill>
-                      <span className="text-muted-foreground"><ChannelIcon channel={person.channel} /></span>
-                    </button>
-                  ))}
-                </div>
+                  {/* Cards: the chosen layout, and the phone fallback when the table is chosen. */}
+                  <div className={cn("flex flex-col gap-3", layout === "table" && "md:hidden")}>
+                    <AnimatePresence>
+                      {page.visible.map((customer, index) => (
+                        <CustomerRow key={customer.id} customer={customer} index={Math.min(index, 12)} selected={customer.id === selectedId} onSelect={() => setSelectedId(customer.id === selectedId ? null : customer.id)} />
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                  <LoadMoreButton remaining={page.remaining} onClick={page.more} noun="clientes" />
+                </>
+              ) : visiblePeople.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Ninguna persona coincide con «{query}».</p>
               ) : (
-                <div className="divide-y divide-border rounded-xl border border-border">
-                  {services.filter(({ service, customer }) => !needle || `${service.name} ${customer.name}`.toLowerCase().includes(needle)).map(({ service, customer }) => (
-                    <button key={service.id} onClick={() => { setSelectedId(customer.id); setView("customers"); }} className="flex w-full items-center gap-3 p-3 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/50">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: tint(MINT, 25), color: readable(MINT) }}><Repeat className="h-4 w-4" /></span>
-                      <div className="min-w-0 flex-1"><p className="text-sm font-medium">{service.name}</p><p className="text-xs text-muted-foreground">{customer.name} · renueva {new Date(service.nextRenewal).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</p></div>
-                      {service.status !== "active" ? <Pill color={service.status === "paused" ? RISK : YELLOW}>{service.status === "paused" ? "En pausa" : "Renovando"}</Pill> : null}
-                      <span className="w-20 text-right font-semibold tabular-nums">{euros(service.monthlyCents)}</span>
-                    </button>
-                  ))}
-                  <div className="flex justify-between p-3 text-sm font-semibold"><span>Total mensual</span><span className="tabular-nums">{euros(monthly)}</span></div>
-                </div>
+                <PeopleTable people={visiblePeople} onOpenCustomer={openCustomer} />
               )}
             </motion.div>
           </AnimatePresence>

@@ -72,7 +72,7 @@ function Th({ children, align = "left", className, sort }: {
   );
 }
 
-function TableShell({ children, minWidth }: { children: React.ReactNode; minWidth: string }) {
+function TableShell({ children, minWidth }: { children: ReactNode; minWidth: string }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <div className="overflow-x-auto">
