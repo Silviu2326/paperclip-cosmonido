@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
   ArrowLeft,
+  AlertTriangle,
   ArrowUp,
   Check,
   CheckCircle2,
@@ -14,6 +15,9 @@ import {
   Paperclip,
   ListChecks,
   Loader2,
+  Lock,
+  RefreshCw,
+  WifiOff,
   MessageCircle,
   PanelRight,
   Search,
@@ -25,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
+import { Banner } from "../conversations/states";
 import type {
   DemoAgent,
   DemoAgentStatus,
@@ -34,10 +39,10 @@ import type {
   DemoTask,
 } from "./demo-data";
 
-const MINT = BRAND(8);
-const SKY = BRAND(7);
-const YELLOW = BRAND(10);
-const LILAC = BRAND(2);
+export const MINT = BRAND(8);
+export const SKY = BRAND(7);
+export const YELLOW = BRAND(10);
+export const LILAC = BRAND(2);
 
 const STATUS: Record<DemoAgentStatus, { label: string; color: string | null }> = {
   idle: { label: "Disponible", color: MINT },
@@ -59,7 +64,7 @@ const FILE_COLOR = { doc: SKY, image: LILAC, video: MINT, sheet: YELLOW } as con
 type Filter = "all" | "working" | "needs-you";
 type Panel = "tasks" | "files";
 
-function AgentCapsule({ agent, size = "md" }: { agent: DemoAgent; size?: "sm" | "md" | "lg" }) {
+export function AgentCapsule({ agent, size = "md" }: { agent: DemoAgent; size?: "sm" | "md" | "lg" }) {
   const status = STATUS[agent.status];
   return (
     <span className="relative shrink-0">
@@ -88,7 +93,7 @@ function AgentCapsule({ agent, size = "md" }: { agent: DemoAgent; size?: "sm" | 
   );
 }
 
-function StatusPill({ status }: { status: DemoAgentStatus }) {
+export function StatusPill({ status }: { status: DemoAgentStatus }) {
   const { label, color } = STATUS[status];
   return (
     <span
@@ -100,17 +105,20 @@ function StatusPill({ status }: { status: DemoAgentStatus }) {
   );
 }
 
-function Roster({
+export function Roster({
   agents,
   selectedId,
   onSelect,
   className,
+  pageSize = 0,
 }: {
   agents: DemoAgent[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   className?: string;
+  pageSize?: number;
 }) {
+  const [shown, setShown] = useState(pageSize || Number.POSITIVE_INFINITY);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const needle = query.trim().toLowerCase();
@@ -124,6 +132,7 @@ function Roster({
     .filter((agent) => !needle || `${agent.name} ${agent.role}`.toLowerCase().includes(needle));
   const starred = visible.filter((agent) => agent.starred);
   const rest = visible.filter((agent) => !agent.starred);
+  const restShown = rest.slice(0, shown);
 
   const row = (agent: DemoAgent, index: number) => (
     <motion.button
@@ -200,19 +209,20 @@ function Roster({
         {starred.length ? <p className="px-2 pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Favoritos</p> : null}
         <LayoutGroup>{starred.map(row)}</LayoutGroup>
         {rest.length && starred.length ? <p className="px-2 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Equipo</p> : null}
-        <LayoutGroup>{rest.map((agent, index) => row(agent, index + starred.length))}</LayoutGroup>
+        <LayoutGroup>{restShown.map((agent, index) => row(agent, index + starred.length))}</LayoutGroup>
+        {rest.length > restShown.length ? <Button variant="outline" size="sm" className="mt-1" onClick={() => setShown((count) => count + (pageSize || 25))}>Cargar más · {rest.length - restShown.length} restantes</Button> : null}
         {visible.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">Ningún agente coincide.</p> : null}
       </div>
     </aside>
   );
 }
 
-function Bubble({ from, children, at }: { from: "user" | "agent"; children: ReactNode; at: string }) {
+export function Bubble({ from, children, at }: { from: "user" | "agent"; children: ReactNode; at: string }) {
   const user = from === "user";
   return (
     <div className={cn("flex flex-col gap-1", user ? "items-end" : "items-start")}>
       <div
-        className={cn("max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed", user ? "rounded-br-md" : "rounded-bl-md bg-muted")}
+        className={cn("min-w-0 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed", user ? "rounded-br-md" : "rounded-bl-md bg-muted")}
         style={user ? { background: tint(SKY, 22) } : undefined}
       >
         {children}
@@ -222,10 +232,10 @@ function Bubble({ from, children, at }: { from: "user" | "agent"; children: Reac
   );
 }
 
-function EventCard({ color, icon: Icon, label, children }: { color: string; icon: typeof ListChecks; label: string; children: ReactNode }) {
+export function EventCard({ color, icon: Icon, label, children }: { color: string; icon: typeof ListChecks; label: string; children: ReactNode }) {
   return (
     <div
-      className="flex max-w-[85%] flex-col gap-2 rounded-xl border border-border p-3 text-sm"
+      className="flex min-w-0 max-w-[85%] flex-col gap-2 break-words rounded-xl border border-border p-3 text-sm"
       style={{ background: `linear-gradient(135deg, ${tint(color, 14)}, transparent 70%)` }}
     >
       <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: readable(color) }}>
@@ -237,9 +247,24 @@ function EventCard({ color, icon: Icon, label, children }: { color: string; icon
   );
 }
 
-function MessageView({ message, onApprove }: { message: DemoMessage; onApprove: (id: string) => void }) {
+export function MessageView({ message, onApprove, onResend, onPermission }: { message: DemoMessage; onApprove: (id: string) => void; onResend?: (id: string) => void; onPermission?: (id: string, state: "once" | "always" | "denied") => void }) {
   switch (message.kind) {
     case "text":
+      if (message.from === "user" && (message.failed || message.sending)) {
+        return (
+          <div className="flex flex-col items-end gap-1">
+            <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-2.5 text-sm leading-relaxed" style={{ background: tint(SKY, message.failed ? 10 : 16), opacity: message.sending ? 0.7 : 1, boxShadow: message.failed ? `inset 0 0 0 1.5px ${tint("var(--destructive)", 55)}` : undefined }}>{message.text}</div>
+            {message.sending ? (
+              <span className="flex items-center gap-1 px-1 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Enviando…</span>
+            ) : (
+              <span role="alert" className="flex flex-wrap items-center justify-end gap-2 px-1 text-xs" style={{ color: readable("var(--destructive)") }}>
+                <AlertTriangle className="h-3 w-3" />No se pudo enviar.
+                {onResend ? <button type="button" className="font-medium underline underline-offset-2" onClick={() => onResend(message.id)}>Reenviar</button> : null}
+              </span>
+            )}
+          </div>
+        );
+      }
       return <Bubble from={message.from} at={message.at}>{message.text}</Bubble>;
     case "task": {
       const status = TASK_STATUS[message.status];
@@ -289,6 +314,30 @@ function MessageView({ message, onApprove }: { message: DemoMessage; onApprove: 
           )}
         </EventCard>
       );
+    case "permission": {
+      const decided = message.state !== "pending";
+      return (
+        <EventCard color={LILAC} icon={Lock} label={decided ? "Permiso respondido" : "Pide un permiso"}>
+          <div>
+            <p className="font-medium">{message.title}</p>
+            <p className="text-xs text-muted-foreground">{message.detail}</p>
+          </div>
+          <p className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs" style={{ background: tint(LILAC, 16) }}><ShieldCheck className="h-3.5 w-3.5 shrink-0" style={{ color: readable(LILAC) }} />{message.scope}</p>
+          {decided ? (
+            <p className="flex items-center gap-1.5 text-xs" style={{ color: readable(message.state === "denied" ? "var(--muted-foreground)" : MINT) }}>
+              {message.state === "denied" ? <X className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              {message.state === "once" ? "Permitido solo esta vez" : message.state === "always" ? "Permitido siempre para esta empresa" : "No permitido: seguirá sin acceder"}
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => onPermission?.(message.id, "once")}>Permitir una vez</Button>
+              <Button size="sm" variant="outline" onClick={() => onPermission?.(message.id, "always")}>Permitir siempre</Button>
+              <Button size="sm" variant="ghost" onClick={() => onPermission?.(message.id, "denied")}>No permitir</Button>
+            </div>
+          )}
+        </EventCard>
+      );
+    }
     case "working":
       return (
         <EventCard color={LILAC} icon={Loader2} label="Trabajando en ello">
@@ -305,7 +354,7 @@ function MessageView({ message, onApprove }: { message: DemoMessage; onApprove: 
   }
 }
 
-function SidePanel({ conversation, agent, onClose }: { conversation: DemoConversation; agent: DemoAgent; onClose: () => void }) {
+export function SidePanel({ conversation, agent, onClose }: { conversation: DemoConversation; agent: DemoAgent; onClose: () => void }) {
   const [tab, setTab] = useState<Panel>("tasks");
   const tokens = useMotionTokens();
   const open = conversation.tasks.filter((task) => task.status !== "done").length;
@@ -392,7 +441,7 @@ function ArtifactCard({ artifact }: { artifact: DemoArtifact }) {
   );
 }
 
-function Greeting({ agent, suggestions, onPick }: { agent: DemoAgent; suggestions: string[]; onPick: (text: string) => void }) {
+export function Greeting({ agent, suggestions, onPick }: { agent: DemoAgent; suggestions: string[]; onPick: (text: string) => void }) {
   const tokens = useMotionTokens();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-5 p-8 text-center">
@@ -414,7 +463,17 @@ function Greeting({ agent, suggestions, onPick }: { agent: DemoAgent; suggestion
   );
 }
 
-const DEMO_ATTACHMENTS = ["Brief-clinica.pdf", "Logo-sonrisa.png", "Tarifas-2026.xlsx"];
+export const DEMO_ATTACHMENTS = ["Brief-clinica.pdf", "Logo-sonrisa.png", "Tarifas-2026.xlsx"];
+
+/** Extra states a conversation can start in. */
+export interface ChatBehavior {
+  /** Starts with the connection lost, counting down to an automatic retry. */
+  offline?: boolean;
+  /** The agent is answering right now: this text is revealed word by word. */
+  stream?: string;
+  /** Only the latest N messages are rendered; older ones load on request. */
+  historyLimit?: number;
+}
 
 function Conversation({
   agent,
@@ -422,12 +481,14 @@ function Conversation({
   onBack,
   agents,
   onSwitch,
+  behavior = {},
 }: {
   agent: DemoAgent;
   conversation: DemoConversation;
   onBack: () => void;
   agents: DemoAgent[];
   onSwitch: (id: string) => void;
+  behavior?: ChatBehavior;
 }) {
   const [attachments, setAttachments] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -436,15 +497,70 @@ function Conversation({
   const [typing, setTyping] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  // Connection: lost → (countdown) → retrying → ok. Sending is blocked until it is back.
+  const [link, setLink] = useState<"lost" | "retrying" | "ok" | "back">(behavior.offline ? "lost" : "ok");
+  const [countdown, setCountdown] = useState(8);
+  const [streamed, setStreamed] = useState<string | null>(behavior.stream ? "" : null);
+  const [shownCount, setShownCount] = useState(behavior.historyLimit ?? Number.POSITIVE_INFINITY);
+
+  useEffect(() => {
+    if (link !== "lost") return;
+    if (countdown <= 0) { setLink("retrying"); return; }
+    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [link, countdown]);
+  useEffect(() => {
+    if (link === "retrying") {
+      const timer = window.setTimeout(() => { setLink("back"); setCountdown(8); }, 1300);
+      return () => window.clearTimeout(timer);
+    }
+    if (link === "back") {
+      const timer = window.setTimeout(() => setLink("ok"), 2600);
+      return () => window.clearTimeout(timer);
+    }
+  }, [link]);
+
+  // Streaming answer: reveal the text word by word, then settle it as a normal message.
+  useEffect(() => {
+    if (!behavior.stream || streamed === null) return;
+    const words = behavior.stream.split(" ");
+    const done = streamed.split(" ").filter(Boolean).length;
+    if (done >= words.length) {
+      const timer = window.setTimeout(() => {
+        setMessages((current) => [...current, { id: "streamed", kind: "text", from: "agent", text: behavior.stream!, at: "ahora" }]);
+        setStreamed(null);
+      }, 400);
+      return () => window.clearTimeout(timer);
+    }
+    const timer = window.setTimeout(() => setStreamed(words.slice(0, done + 1).join(" ")), 70);
+    return () => window.clearTimeout(timer);
+  }, [behavior.stream, streamed]);
+  const stopStream = () => {
+    if (streamed) setMessages((current) => [...current, { id: "streamed", kind: "text", from: "agent", text: `${streamed}…`, at: "ahora" }]);
+    setStreamed(null);
+  };
+
+  const reply = (text: string) => window.setTimeout(() => setMessages((current) => [...current, { id: `a${current.length}`, kind: "text", from: "agent", text, at: "ahora" }]), 900);
+  const resend = (id: string) => {
+    setMessages((current) => current.map((message) => (message.id === id && message.kind === "text" ? { ...message, failed: false, sending: true } : message)));
+    window.setTimeout(() => {
+      setMessages((current) => current.map((message) => (message.id === id && message.kind === "text" ? { ...message, sending: false } : message)));
+      reply("Recibido ahora. Perdona el retraso, me pongo con ello.");
+    }, 1100);
+  };
+  const permit = (id: string, state: "once" | "always" | "denied") => {
+    setMessages((current) => current.map((message) => (message.id === id && message.kind === "permission" ? { ...message, state } : message)));
+    reply(state === "denied" ? "Entendido, seguiré sin acceder. Te pediré lo que necesite por aquí." : "Gracias, ya tengo acceso. Sigo con ello y te cuento.");
+  };
   const tokens = useMotionTokens();
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-  }, [messages, typing]);
+  }, [messages, typing, streamed]);
 
   const send = (text: string) => {
     const value = text.trim();
-    if (!value) return;
+    if (!value || link !== "ok") return;
     const files = attachments;
     setAttachments([]);
     const now = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
@@ -481,8 +597,11 @@ function Conversation({
           <Greeting agent={agent} suggestions={conversation.suggestions} onPick={send} />
         ) : (
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+            {messages.length > shownCount ? (
+              <Button variant="outline" size="sm" className="self-center" onClick={() => setShownCount((count) => count + 40)}>Cargar mensajes anteriores · {messages.length - shownCount}</Button>
+            ) : null}
             <AnimatePresence initial={false}>
-              {messages.map((message) => (
+              {messages.slice(-shownCount).map((message) => (
                 <motion.div
                   key={message.id}
                   layout="position"
@@ -490,9 +609,18 @@ function Conversation({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: tokens.base, ease: tokens.easeOut }}
                 >
-                  <MessageView message={message} onApprove={approve} />
+                  <MessageView message={message} onApprove={approve} onResend={resend} onPermission={permit} />
                 </motion.div>
               ))}
+              {streamed !== null ? (
+                <motion.div key="stream" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-start gap-1">
+                  <div className="min-w-0 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl rounded-bl-md bg-muted px-4 py-2.5 text-sm leading-relaxed">
+                    {streamed || <span className="text-muted-foreground">Pensando…</span>}
+                    <motion.span aria-hidden="true" className="ml-0.5 inline-block h-4 w-0.5 translate-y-0.5 rounded-full bg-foreground" animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} />
+                  </div>
+                  <button type="button" onClick={stopStream} className="px-1 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">Detener respuesta</button>
+                </motion.div>
+              ) : null}
               {typing ? (
                 <motion.div key="typing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />{agent.name} está escribiendo…
@@ -514,6 +642,11 @@ function Conversation({
               </button>
             ))}
           </div>
+          {link !== "ok" ? (
+            <Banner tone={link === "back" ? "info" : "warning"} icon={link === "back" ? CheckCircle2 : WifiOff} action={link === "lost" ? <Button size="sm" variant="outline" onClick={() => setLink("retrying")}><RefreshCw className="h-3.5 w-3.5" />Reintentar ahora</Button> : undefined}>
+              {link === "lost" ? `Sin conexión. Reintentando en ${countdown} s…` : link === "retrying" ? "Reconectando…" : "Reconectado. Ya puedes escribir de nuevo."}
+            </Banner>
+          ) : null}
           <form
             className="flex flex-col gap-2 rounded-2xl border border-border p-2 transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30"
             onSubmit={(event) => { event.preventDefault(); send(draft); }}
@@ -560,12 +693,13 @@ function Conversation({
               aria-label={`Mensaje para ${agent.name}`}
               rows={1}
               value={draft}
+              disabled={link === "lost" || link === "retrying"}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(draft); } }}
-              placeholder={`Escribe a ${agent.name}…`}
+              placeholder={link === "lost" || link === "retrying" ? "Sin conexión…" : `Escribe a ${agent.name}…`}
               className="max-h-32 min-h-9 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none placeholder:text-muted-foreground"
             />
-            <Button type="submit" size="icon" aria-label="Enviar" disabled={!draft.trim()} style={draft.trim() ? { background: SKY, color: ink(SKY) } : undefined}>
+            <Button type="submit" size="icon" aria-label="Enviar" disabled={!draft.trim() || link === "lost" || link === "retrying"} style={draft.trim() ? { background: SKY, color: ink(SKY) } : undefined}>
               <ArrowUp className="h-4 w-4" />
             </Button>
             </div>
@@ -611,10 +745,14 @@ export function ChatProposal({
   agents,
   conversations,
   initialAgentId = null,
+  pageSize = 0,
+  behavior,
 }: {
   agents: DemoAgent[];
   conversations: Record<string, DemoConversation>;
   initialAgentId?: string | null;
+  pageSize?: number;
+  behavior?: ChatBehavior;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(initialAgentId);
   const selected = useMemo(() => agents.find((agent) => agent.id === selectedId) ?? null, [agents, selectedId]);
@@ -624,9 +762,9 @@ export function ChatProposal({
 
   return (
     <div className="flex h-dvh min-h-0">
-      <Roster agents={agents} selectedId={selectedId} onSelect={setSelectedId} className={cn("w-full lg:w-80 lg:shrink-0", selected ? "max-lg:hidden" : "")} />
+      <Roster pageSize={pageSize} agents={agents} selectedId={selectedId} onSelect={setSelectedId} className={cn("w-full lg:w-80 lg:shrink-0", selected ? "max-lg:hidden" : "")} />
       {selected && conversation ? (
-        <Conversation key={selected.id} agent={selected} conversation={conversation} onBack={() => setSelectedId(null)} agents={agents} onSwitch={setSelectedId} />
+        <Conversation key={selected.id} agent={selected} conversation={conversation} onBack={() => setSelectedId(null)} agents={agents} onSwitch={setSelectedId} behavior={behavior} />
       ) : (
         <NoSelection />
       )}

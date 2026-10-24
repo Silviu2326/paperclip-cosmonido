@@ -24,9 +24,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, Avatar, IconTile, Panel, Pill, Progress, SectionTitle } from "../parts";
+import { LoadMoreButton, useLoadMore } from "../customers/scenario-parts";
 import { DEMO_DECIDED, type DemoDecision, type DemoVerb } from "./demo-data";
 
-const KIND: Record<string, { label: string; icon: LucideIcon; color: string }> = {
+export const KIND: Record<string, { label: string; icon: LucideIcon; color: string }> = {
   approval: { label: "Aprobación", icon: ShieldCheck, color: ACCENT.mint },
   decision: { label: "Decisión", icon: Gavel, color: ACCENT.lilac },
   issue_thread_interaction: { label: "Pregunta", icon: CircleHelp, color: ACCENT.sky },
@@ -36,13 +37,13 @@ const KIND: Record<string, { label: string; icon: LucideIcon; color: string }> =
   agent_error_alert: { label: "Agente con error", icon: AlertOctagon, color: ACCENT.risk },
   join_request: { label: "Acceso", icon: UserPlus, color: ACCENT.lilac },
 };
-const kindOf = (decision: DemoDecision) => KIND[decision.sourceKind] ?? { label: "Aviso", icon: CircleHelp, color: ACCENT.muted };
+export const kindOf = (decision: DemoDecision) => KIND[decision.sourceKind] ?? { label: "Aviso", icon: CircleHelp, color: ACCENT.muted };
 
-const SEVERITY_COLOR: Record<DemoDecision["severity"], string> = {
+export const SEVERITY_COLOR: Record<DemoDecision["severity"], string> = {
   critical: ACCENT.risk, high: ACCENT.yellow, medium: ACCENT.sky, low: ACCENT.muted,
 };
 
-const VERB: Record<DemoVerb, { label: string; outcome: "approved" | "rejected" | "answered"; primary: boolean }> = {
+export const VERB: Record<DemoVerb, { label: string; outcome: "approved" | "rejected" | "answered"; primary: boolean }> = {
   approve: { label: "Aprobar", outcome: "approved", primary: true },
   accept: { label: "Dar acceso", outcome: "approved", primary: true },
   raise_budget: { label: "Subir presupuesto", outcome: "approved", primary: true },
@@ -52,7 +53,7 @@ const VERB: Record<DemoVerb, { label: string; outcome: "approved" | "rejected" |
   reject: { label: "Rechazar", outcome: "rejected", primary: false },
 };
 
-const FILTERS: { id: string; label: string; match: (decision: DemoDecision) => boolean }[] = [
+export const FILTERS: { id: string; label: string; match: (decision: DemoDecision) => boolean }[] = [
   { id: "all", label: "Todas", match: () => true },
   { id: "urgent", label: "Urgentes", match: (decision) => decision.severity === "critical" || decision.severity === "high" },
   { id: "approvals", label: "Aprobaciones", match: (decision) => decision.sourceKind === "approval" || decision.sourceKind === "decision" },
@@ -62,22 +63,31 @@ const FILTERS: { id: string; label: string; match: (decision: DemoDecision) => b
   { id: "team", label: "Equipo", match: (decision) => decision.sourceKind === "join_request" },
 ];
 
-const GROUPS: { id: string; label: string; hint: string; match: (decision: DemoDecision) => boolean; color: string }[] = [
-  { id: "now", label: "Ahora", hint: "Bloquean trabajo o tienen fecha hoy", match: (decision) => decision.severity === "critical" || decision.severity === "high", color: ACCENT.yellow },
-  { id: "week", label: "Esta semana", hint: "Importantes, sin prisa de hoy", match: (decision) => decision.severity === "medium", color: ACCENT.sky },
-  { id: "later", label: "Cuando puedas", hint: "Nadie está esperando", match: (decision) => decision.severity === "low", color: ACCENT.muted },
+/** The story's "now": deadlines before it are overdue. */
+export const NOW = new Date("2026-10-24T09:00:00Z").getTime();
+export const isOverdue = (decision: DemoDecision) => decision.decideBy !== null && new Date(decision.decideBy).getTime() < NOW;
+export const RESTRICTED_VERBS: ReadonlySet<DemoVerb> = new Set<DemoVerb>(["approve", "accept", "raise_budget", "reject"]);
+
+export const GROUPS: { id: string; label: string; hint: string; match: (decision: DemoDecision) => boolean; color: string }[] = [
+  { id: "overdue", label: "Vencidas", hint: "Pasó la fecha límite y alguien sigue esperando", match: isOverdue, color: ACCENT.risk },
+  { id: "now", label: "Ahora", hint: "Bloquean trabajo o tienen fecha hoy", match: (decision) => !isOverdue(decision) && (decision.severity === "critical" || decision.severity === "high"), color: ACCENT.yellow },
+  { id: "week", label: "Esta semana", hint: "Importantes, sin prisa de hoy", match: (decision) => !isOverdue(decision) && decision.severity === "medium", color: ACCENT.sky },
+  { id: "later", label: "Cuando puedas", hint: "Nadie está esperando", match: (decision) => !isOverdue(decision) && decision.severity === "low", color: ACCENT.muted },
 ];
 
-function deadlineLabel(decideBy: string | null): { text: string; urgent: boolean } | null {
+export function deadlineLabel(decideBy: string | null): { text: string; urgent: boolean } | null {
   if (!decideBy) return null;
-  const hours = Math.round((new Date(decideBy).getTime() - new Date("2026-10-24T09:00:00Z").getTime()) / 3_600_000);
+  const hours = Math.round((new Date(decideBy).getTime() - NOW) / 3_600_000);
+  if (hours < 0) return { text: hours > -24 ? `Venció hace ${-hours} h` : `Venció hace ${Math.round(-hours / 24)} d`, urgent: true };
   if (hours <= 12) return { text: `Decide antes de las ${new Date(decideBy).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`, urgent: true };
   return { text: `Decide antes del ${new Date(decideBy).toLocaleDateString("es-ES", { weekday: "long", day: "numeric" })}`, urgent: false };
 }
 
-function DecisionCard({ decision, index, onResolve, onSnooze }: {
+function DecisionCard({ decision, index, onResolve, onSnooze, canApprove = true }: {
   decision: DemoDecision;
   index: number;
+  /** Members cannot approve, reject, accept or raise budgets. */
+  canApprove?: boolean;
   onResolve: (decision: DemoDecision, outcome: "approved" | "rejected" | "answered") => void;
   onSnooze: (decision: DemoDecision) => void;
 }) {
@@ -96,7 +106,7 @@ function DecisionCard({ decision, index, onResolve, onSnooze }: {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 60, transition: { duration: tokens.base, ease: tokens.standard } }}
       transition={{ duration: tokens.base, ease: tokens.easeOut, delay: index * tokens.stagger }}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-background"
+      className="group relative min-w-0 overflow-hidden rounded-2xl border border-border bg-background"
     >
       <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1" style={{ background: severity }} />
       <div className="flex flex-col gap-3 p-4 pl-5">
@@ -112,8 +122,8 @@ function DecisionCard({ decision, index, onResolve, onSnooze }: {
                 </span>
               ) : null}
             </div>
-            <h3 className="mt-1.5 font-semibold leading-snug">{decision.title}</h3>
-            <p className="mt-0.5 text-sm text-muted-foreground">{decision.whyNow}</p>
+            <h3 className="mt-1.5 break-words font-semibold leading-snug">{decision.title}</h3>
+            <p className="mt-0.5 break-words text-sm text-muted-foreground">{decision.whyNow}</p>
           </div>
           {decision.preview ? (
             <Button size="icon" variant="ghost" aria-expanded={open} aria-label={open ? "Ocultar detalle" : "Ver detalle"} onClick={() => setOpen(!open)}>
@@ -171,20 +181,21 @@ function DecisionCard({ decision, index, onResolve, onSnooze }: {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            {decision.agent ? <span className="flex items-center gap-1.5"><Avatar name={decision.agent} size="xs" />{decision.agent}</span> : null}
-            {decision.customer ? <Pill color={ACCENT.mint}>{decision.customer}</Pill> : null}
-            {decision.task ? <span className="truncate">· {decision.task}</span> : null}
+            {decision.agent ? <span className="flex min-w-0 items-center gap-1.5"><Avatar name={decision.agent} size="xs" /><span className="truncate">{decision.agent}</span></span> : null}
+            {decision.customer ? <span className="max-w-full truncate"><Pill color={ACCENT.mint}>{decision.customer}</Pill></span> : null}
+            {decision.task ? <span className="min-w-0 max-w-full truncate">· {decision.task}</span> : null}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Button size="sm" variant="ghost" onClick={() => onSnooze(decision)}><AlarmClock className="h-3.5 w-3.5" />Posponer</Button>
             {decision.verbs.filter((verb) => !VERB[verb].primary).map((verb) => (
-              <Button key={verb} size="sm" variant="outline" onClick={() => onResolve(decision, VERB[verb].outcome)}><XCircle className="h-3.5 w-3.5" />{VERB[verb].label}</Button>
+              <Button key={verb} size="sm" variant="outline" disabled={!canApprove && RESTRICTED_VERBS.has(verb)} title={!canApprove && RESTRICTED_VERBS.has(verb) ? "Solo los administradores pueden hacerlo" : undefined} onClick={() => onResolve(decision, VERB[verb].outcome)}><XCircle className="h-3.5 w-3.5" />{VERB[verb].label}</Button>
             ))}
             {decision.verbs.filter((verb) => VERB[verb].primary).map((verb) => (
               <Button
                 key={verb}
                 size="sm"
-                disabled={needsChoice && choice === null}
+                disabled={(needsChoice && choice === null) || (!canApprove && RESTRICTED_VERBS.has(verb))}
+                title={!canApprove && RESTRICTED_VERBS.has(verb) ? "Solo los administradores pueden hacerlo" : undefined}
                 onClick={() => onResolve(decision, VERB[verb].outcome)}
                 style={{ background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) }}
               >
@@ -198,7 +209,7 @@ function DecisionCard({ decision, index, onResolve, onSnooze }: {
   );
 }
 
-function AllCaughtUp() {
+export function AllCaughtUp() {
   const tokens = useMotionTokens();
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-12 text-center">
@@ -217,16 +228,49 @@ function AllCaughtUp() {
   );
 }
 
-const OUTCOME_LABEL = { approved: "Aprobada", rejected: "Rechazada", answered: "Respondida" } as const;
-const OUTCOME_COLOR = { approved: ACCENT.mint, rejected: ACCENT.muted, answered: ACCENT.sky } as const;
+export function GroupSection({ group, items, pageSize, canApprove, onResolve, onSnooze }: {
+  group: (typeof GROUPS)[number];
+  items: DemoDecision[];
+  pageSize?: number;
+  canApprove: boolean;
+  onResolve: (decision: DemoDecision, outcome: "approved" | "rejected" | "answered") => void;
+  onSnooze: (decision: DemoDecision) => void;
+}) {
+  const page = useLoadMore(items, pageSize);
+  return (
+    <section className="flex min-w-0 flex-col gap-3">
+      <div className="flex flex-wrap items-baseline gap-2">
+        <span className="h-2 w-2 rounded-full" style={{ background: group.color }} />
+        <h2 className="text-sm font-semibold">{group.label}<span className="ml-1.5 text-xs font-normal text-muted-foreground tabular-nums">{items.length}</span></h2>
+        <span className="text-xs text-muted-foreground">{group.hint}</span>
+      </div>
+      <AnimatePresence mode="popLayout">
+        {page.visible.map((decision, index) => (
+          <DecisionCard key={decision.id} decision={decision} index={Math.min(index, 10)} onResolve={onResolve} onSnooze={onSnooze} canApprove={canApprove} />
+        ))}
+      </AnimatePresence>
+      <LoadMoreButton remaining={page.remaining} onClick={page.more} noun="decisiones" />
+    </section>
+  );
+}
+
+export const OUTCOME_LABEL = { approved: "Aprobada", rejected: "Rechazada", answered: "Respondida" } as const;
+export const OUTCOME_COLOR = { approved: ACCENT.mint, rejected: ACCENT.muted, answered: ACCENT.sky } as const;
 
 /** Decisions inbox: grouped by urgency, each item with its context, the real actions, undo and today's progress. */
-export function DecisionsProposal({ decisions: initial }: { decisions: DemoDecision[] }) {
+export function DecisionsProposal({ decisions: initial, initialFilter = "all", canApprove = true, pageSize }: {
+  decisions: DemoDecision[];
+  initialFilter?: string;
+  /** Members can answer and review but not approve, reject or raise budgets. */
+  canApprove?: boolean;
+  /** When set, each group shows this many decisions and a "show more" button. */
+  pageSize?: number;
+}) {
   const tokens = useMotionTokens();
   const [pending, setPending] = useState(initial);
   const [snoozed, setSnoozed] = useState<DemoDecision[]>([]);
   const [decided, setDecided] = useState(DEMO_DECIDED);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState(initialFilter);
   const [toast, setToast] = useState<{ decision: DemoDecision; text: string; from: "pending" } | null>(null);
   useEffect(() => {
     if (!toast) return;
@@ -295,20 +339,7 @@ export function DecisionsProposal({ decisions: initial }: { decisions: DemoDecis
             GROUPS.map((group) => {
               const items = visible.filter(group.match);
               if (!items.length) return null;
-              return (
-                <section key={group.id} className="flex flex-col gap-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="h-2 w-2 rounded-full" style={{ background: group.color }} />
-                    <h2 className="text-sm font-semibold">{group.label}</h2>
-                    <span className="text-xs text-muted-foreground">{group.hint}</span>
-                  </div>
-                  <AnimatePresence mode="popLayout">
-                    {items.map((decision, index) => (
-                      <DecisionCard key={decision.id} decision={decision} index={index} onResolve={resolve} onSnooze={snooze} />
-                    ))}
-                  </AnimatePresence>
-                </section>
-              );
+              return <GroupSection key={group.id} group={group} items={items} pageSize={pageSize} canApprove={canApprove} onResolve={resolve} onSnooze={snooze} />;
             })
           )}
         </div>

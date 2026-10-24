@@ -12,7 +12,8 @@ export interface DemoEvent {
   text: string;
   customer: string | null;
   at: string;
-  day: "Hoy" | "Ayer" | "Esta semana";
+  /** "Hoy", "Ayer", "Esta semana" or a dated label for long histories. */
+  day: string;
 }
 
 export const DEMO_EVENTS: DemoEvent[] = [
@@ -33,7 +34,7 @@ export interface DemoRun {
   id: string;
   agent: string;
   title: string;
-  status: "running" | "done" | "failed" | "queued";
+  status: "running" | "done" | "failed" | "queued" | "paused";
   startedAt: string;
   durationSec: number | null;
   costCents: number;

@@ -54,6 +54,8 @@ export interface DemoLead {
   status: "new" | "triaged" | "qualified";
   existingCustomer: string | null;
   suggestion: string;
+  /** Set when the same person or company already exists, so converting would create a duplicate. */
+  duplicateOf?: { name: string; customer: string; matchOn: string };
 }
 
 export const DEMO_LEADS: DemoLead[] = [

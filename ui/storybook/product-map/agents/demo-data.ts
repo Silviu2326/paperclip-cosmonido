@@ -28,6 +28,8 @@ export interface TeamAgent {
   permissions: { label: string; allowed: boolean }[];
   activity: { text: string; when: string; kind: "done" | "started" | "question" | "error" }[];
   problem?: string;
+  /** Why an agent is paused: by the user, or automatically because the monthly budget ran out. */
+  pausedBy?: "user" | "budget";
 }
 
 export const AUTONOMY_LABEL: Record<Autonomy, { label: string; hint: string }> = {

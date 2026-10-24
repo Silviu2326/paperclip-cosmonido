@@ -42,6 +42,8 @@ export interface DemoCustomer {
   lastActivityLabel: string;
   nextAction: string | null;
   createdAt: string;
+  /** Archived customers stay readable but leave the active list. */
+  archived?: boolean;
 }
 
 const contact = (id: string, name: string, title: string | null, email: string | null, extra: Partial<DemoContact> = {}): DemoContact => ({
@@ -121,6 +123,13 @@ export const DEMO_CUSTOMERS: DemoCustomer[] = [
   },
 ];
 
+let moneyHidden = false;
+/** Scenario switch: members without billing access see "—" instead of amounts. Set by the page wrapper before rendering. */
+export function setMoneyHidden(hidden: boolean): void {
+  moneyHidden = hidden;
+}
+
 export function euros(cents: number): string {
+  if (moneyHidden) return "—";
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100);
 }

@@ -21,31 +21,33 @@ import {
   Send,
   Sparkles,
   UserRound,
+  WifiOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, Avatar, IconTile, Panel, Pill, SectionTitle } from "../parts";
+import { Banner } from "./states";
 import { DEMO_AGENDA_TODAY, DEMO_CALLS, type Channel, type DemoCall, type DemoMessage, type DemoThread } from "./demo-data";
 
-const CHANNEL: Record<Channel, { label: string; icon: LucideIcon; color: string }> = {
+export const CHANNEL: Record<Channel, { label: string; icon: LucideIcon; color: string }> = {
   email: { label: "Email", icon: Mail, color: ACCENT.sky },
   whatsapp: { label: "WhatsApp", icon: MessageCircle, color: ACCENT.mint },
   webchat: { label: "Chat web", icon: Globe, color: ACCENT.turquoise },
   voice: { label: "Llamada", icon: Phone, color: ACCENT.lilac },
 };
-const HEALTH = { good: { label: "Bien", color: ACCENT.mint }, watch: { label: "Vigilar", color: ACCENT.yellow }, risk: { label: "En riesgo", color: ACCENT.risk } } as const;
+export const HEALTH = { good: { label: "Bien", color: ACCENT.mint }, watch: { label: "Vigilar", color: ACCENT.yellow }, risk: { label: "En riesgo", color: ACCENT.risk } } as const;
 const CALL: Record<DemoCall["kind"], { label: string; icon: LucideIcon; color: string }> = {
   missed: { label: "Perdida", icon: PhoneMissed, color: ACCENT.risk }, inbound: { label: "Entrante", icon: PhoneIncoming, color: ACCENT.mint },
   outbound: { label: "Saliente", icon: PhoneOutgoing, color: ACCENT.sky }, callback: { label: "Te piden llamar", icon: PhoneCall, color: ACCENT.yellow },
 };
 
-type Filter = "all" | "waiting_us" | "waiting_them" | "closed";
-const FILTERS: { id: Filter; label: string }[] = [
+export type Filter = "all" | "waiting_us" | "waiting_them" | "closed";
+export const FILTERS: { id: Filter; label: string }[] = [
   { id: "all", label: "Todas" }, { id: "waiting_us", label: "Me esperan" }, { id: "waiting_them", label: "Esperan al cliente" }, { id: "closed", label: "Cerradas" },
 ];
 
-function ThreadRow({ thread, active, index, onSelect }: { thread: DemoThread; active: boolean; index: number; onSelect: () => void }) {
+export function ThreadRow({ thread, active, index, onSelect }: { thread: DemoThread; active: boolean; index: number; onSelect: () => void }) {
   const tokens = useMotionTokens();
   const channel = CHANNEL[thread.channel];
   return (
@@ -80,7 +82,7 @@ function ThreadRow({ thread, active, index, onSelect }: { thread: DemoThread; ac
   );
 }
 
-function Bubble({ message, index }: { message: DemoMessage; index: number }) {
+export function Bubble({ message, index }: { message: DemoMessage; index: number }) {
   const tokens = useMotionTokens();
   const out = message.direction === "outbound";
   const Delivery = message.delivery === "read" ? CheckCheck : Check;
@@ -102,14 +104,14 @@ function Bubble({ message, index }: { message: DemoMessage; index: number }) {
   );
 }
 
-function ThreadView({ thread, onBack, onSend, onClose }: { thread: DemoThread; onBack: () => void; onSend: (thread: DemoThread, body: string) => void; onClose: (thread: DemoThread) => void }) {
+export function ThreadView({ thread, onBack, onSend, onClose, disconnected = false, maxHeight = 460 }: { thread: DemoThread; onBack: () => void; onSend: (thread: DemoThread, body: string) => void; onClose: (thread: DemoThread) => void; disconnected?: boolean; maxHeight?: number }) {
   const tokens = useMotionTokens();
   const [draft, setDraft] = useState("");
   const [suggestionUsed, setSuggestionUsed] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const channel = CHANNEL[thread.channel];
   useEffect(() => { endRef.current?.scrollIntoView({ block: "nearest" }); }, [thread.messages.length]);
-  const showSuggestion = thread.suggestion && !suggestionUsed && thread.status !== "closed";
+  const showSuggestion = thread.suggestion && !suggestionUsed && thread.status !== "closed" && !disconnected;
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border bg-background">
       <header className="flex items-center gap-3 border-b border-border p-3">
@@ -123,7 +125,7 @@ function ThreadView({ thread, onBack, onSend, onClose }: { thread: DemoThread; o
         {thread.status !== "closed" ? <Button size="sm" variant="ghost" onClick={() => onClose(thread)}><CheckCircle2 className="h-3.5 w-3.5" />Cerrar</Button> : <Pill color={ACCENT.muted}>Cerrada</Pill>}
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" style={{ maxHeight: 460 }}>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" style={{ maxHeight }}>
         {thread.messages.map((message, index) => <Bubble key={message.id} message={message} index={index} />)}
         <div ref={endRef} />
       </div>
@@ -144,16 +146,22 @@ function ThreadView({ thread, onBack, onSend, onClose }: { thread: DemoThread; o
             </motion.div>
           ) : null}
         </AnimatePresence>
+        {disconnected ? (
+          <Banner tone="warning" icon={WifiOff} action={<Button size="sm" variant="outline">Reconectar {channel.label}</Button>}>
+            {channel.label} está desconectado: puedes leer el hilo, pero no responder hasta reconectarlo.
+          </Banner>
+        ) : null}
         <div className="flex items-end gap-2">
           <textarea
             aria-label="Respuesta"
             rows={2}
             value={draft}
+            disabled={disconnected}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={thread.status === "closed" ? "Escribir reabre la conversación" : `Responder por ${channel.label}…`}
             className="min-h-16 min-w-0 flex-1 resize-none rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
           />
-          <Button disabled={!draft.trim()} onClick={() => { onSend(thread, draft.trim()); setDraft(""); }} style={draft.trim() ? { background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) } : undefined}><Send className="h-4 w-4" />Enviar</Button>
+          <Button disabled={!draft.trim() || disconnected} onClick={() => { onSend(thread, draft.trim()); setDraft(""); }} style={draft.trim() ? { background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) } : undefined}><Send className="h-4 w-4" />Enviar</Button>
         </div>
         <p className="text-xs text-muted-foreground">Las respuestas por {channel.label} salen con la aprobación configurada para este canal.</p>
       </footer>
@@ -161,7 +169,7 @@ function ThreadView({ thread, onBack, onSend, onClose }: { thread: DemoThread; o
   );
 }
 
-function ContextPanel({ thread }: { thread: DemoThread }) {
+export function ContextPanel({ thread }: { thread: DemoThread }) {
   const health = HEALTH[thread.context.health];
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -212,7 +220,7 @@ function EmptyState() {
 }
 
 /** One conversations page: thread list, the thread with a suggested reply, and the customer's context, calls and agenda. */
-export function ConversationsProposal({ threads: initial }: { threads: DemoThread[] }) {
+export function ConversationsProposal({ threads: initial, pageSize = 0, disconnected = [], hideHeader = false }: { threads: DemoThread[]; pageSize?: number; disconnected?: Channel[]; hideHeader?: boolean }) {
   const tokens = useMotionTokens();
   const [threads, setThreads] = useState(initial);
   const [filter, setFilter] = useState<Filter>("all");
@@ -220,6 +228,7 @@ export function ConversationsProposal({ threads: initial }: { threads: DemoThrea
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(initial[0]?.id ?? null);
   const [mobileThread, setMobileThread] = useState(false);
+  const [shown, setShown] = useState(pageSize || Number.POSITIVE_INFINITY);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
     if (!toast) return;
@@ -232,6 +241,7 @@ export function ConversationsProposal({ threads: initial }: { threads: DemoThrea
     .filter((thread) => filter === "all" ? thread.status !== "closed" : thread.status === filter)
     .filter((thread) => channelFilter === "all" || thread.channel === channelFilter)
     .filter((thread) => !needle || `${thread.contact} ${thread.customer} ${thread.subject}`.toLowerCase().includes(needle)), [threads, filter, channelFilter, needle]);
+  const shownThreads = visible.slice(0, shown);
   const selected = threads.find((thread) => thread.id === selectedId) ?? null;
   const waitingUs = threads.filter((thread) => thread.status === "waiting_us").length;
   const late = threads.filter((thread) => thread.slaLate).length;
@@ -253,13 +263,13 @@ export function ConversationsProposal({ threads: initial }: { threads: DemoThrea
 
   return (
     <div className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4 sm:p-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      {hideHeader ? null : <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Conversaciones</h1>
           {threads.length ? <p className="text-sm text-muted-foreground">{waitingUs} esperan tu respuesta{late ? ` · ${late} fuera de plazo` : ""}</p> : null}
         </div>
         <Button variant="outline"><Calendar className="h-4 w-4" />Agenda</Button>
-      </header>
+      </header>}
 
       {threads.length === 0 ? <EmptyState /> : (
         <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,320px)_minmax(0,1fr)_minmax(0,300px)]">
@@ -290,8 +300,11 @@ export function ConversationsProposal({ threads: initial }: { threads: DemoThrea
             </div>
             <div className="flex min-w-0 flex-col gap-0.5">
               <AnimatePresence mode="popLayout">
-                {visible.map((thread, index) => <ThreadRow key={thread.id} thread={thread} index={index} active={thread.id === selectedId} onSelect={() => select(thread)} />)}
+                {shownThreads.map((thread, index) => <ThreadRow key={thread.id} thread={thread} index={index} active={thread.id === selectedId} onSelect={() => select(thread)} />)}
               </AnimatePresence>
+              {visible.length > shownThreads.length ? (
+                <Button variant="outline" size="sm" className="mt-2" onClick={() => setShown((count) => count + (pageSize || 25))}>Cargar más · {visible.length - shownThreads.length} restantes</Button>
+              ) : null}
               {visible.length === 0 ? <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Nada por aquí. Prueba otro filtro.</p> : null}
             </div>
           </aside>
@@ -299,7 +312,7 @@ export function ConversationsProposal({ threads: initial }: { threads: DemoThrea
           <div className={cn("flex min-w-0 flex-col gap-4", !mobileThread && "max-lg:hidden")}>
             {selected ? (
               <>
-                <ThreadView key={selected.id} thread={selected} onBack={() => setMobileThread(false)} onSend={send} onClose={close} />
+                <ThreadView key={selected.id} thread={selected} onBack={() => setMobileThread(false)} onSend={send} onClose={close} disconnected={disconnected.includes(selected.channel)} />
                 <div className="xl:hidden"><ContextPanel thread={selected} /></div>
               </>
             ) : <p className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Elige una conversación.</p>}

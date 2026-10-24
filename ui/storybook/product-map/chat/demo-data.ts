@@ -23,11 +23,12 @@ export interface DemoAgent {
 }
 
 export type DemoMessage =
-  | { id: string; kind: "text"; from: "user" | "agent"; text: string; at: string }
+  | { id: string; kind: "text"; from: "user" | "agent"; text: string; at: string; failed?: boolean; sending?: boolean }
   | { id: string; kind: "task"; title: string; identifier: string; status: "todo" | "in_progress" | "in_review" | "done"; at: string }
   | { id: string; kind: "deliverable"; title: string; fileKind: "doc" | "image" | "video" | "sheet"; meta: string; at: string }
   | { id: string; kind: "approval"; title: string; detail: string; state: "pending" | "approved"; at: string }
-  | { id: string; kind: "working"; steps: { label: string; done: boolean }[]; at: string };
+  | { id: string; kind: "working"; steps: { label: string; done: boolean }[]; at: string }
+  | { id: string; kind: "permission"; title: string; detail: string; scope: string; state: "pending" | "once" | "always" | "denied"; at: string };
 
 export interface DemoTask {
   id: string;

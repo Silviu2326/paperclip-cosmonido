@@ -8,3 +8,4 @@ export {
   type DemoProject,
   type DemoTask,
 } from "../tasks/demo-data";
+export { LONG_PROJECTS, LONG_TASKS, MANY_PROJECTS, MANY_TASKS } from "../tasks/demo-extra";

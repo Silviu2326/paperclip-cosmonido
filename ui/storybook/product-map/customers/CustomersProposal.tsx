@@ -27,21 +27,23 @@ import { cn } from "@/lib/utils";
 import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { euros, type DemoContact, type DemoCustomer } from "./demo-data";
 import { NewCustomerDialog } from "./NewCustomerDialog";
+import { LoadMoreButton, useLoadMore } from "./scenario-parts";
 
+const ACCENT_MUTED = "var(--muted-foreground)";
 const MINT = BRAND(8);
 const SKY = BRAND(7);
 const YELLOW = BRAND(10);
 const LILAC = BRAND(2);
 const RISK = "var(--destructive)";
 
-const HEALTH: Record<DemoCustomer["health"], { label: string; color: string }> = {
+export const HEALTH: Record<DemoCustomer["health"], { label: string; color: string }> = {
   good: { label: "Bien", color: MINT },
   watch: { label: "Vigilar", color: YELLOW },
   risk: { label: "En riesgo", color: RISK },
 };
 
 type View = "customers" | "people" | "services";
-type Filter = "all" | "attention" | "new";
+export type Filter = "all" | "attention" | "new" | "archived";
 
 function initials(name: string) {
   const parts = name.split(/\s+/).filter(Boolean);
@@ -49,7 +51,7 @@ function initials(name: string) {
 }
 
 /** Stable brand gradient per customer, like agent capsules. */
-function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
+export function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
   const index = ([...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 10) + 1;
   return (
     <span
@@ -67,7 +69,7 @@ function Avatar({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg"
   );
 }
 
-function Pill({ color, children, strong = false }: { color: string; children: ReactNode; strong?: boolean }) {
+export function Pill({ color, children, strong = false }: { color: string; children: ReactNode; strong?: boolean }) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
@@ -78,7 +80,7 @@ function Pill({ color, children, strong = false }: { color: string; children: Re
   );
 }
 
-function Stat({ label, value, hint, color, icon: Icon, index }: { label: string; value: string; hint: string; color: string; icon: typeof Users; index: number }) {
+export function Stat({ label, value, hint, color, icon: Icon, index }: { label: string; value: string; hint: string; color: string; icon: typeof Users; index: number }) {
   const tokens = useMotionTokens();
   return (
     <motion.div
@@ -108,7 +110,7 @@ function ViewSwitch({ view, onChange, counts }: { view: View; onChange: (view: V
     { id: "services", label: "Servicios", icon: Repeat },
   ];
   return (
-    <div role="tablist" className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+    <div role="tablist" className="inline-flex max-w-full overflow-x-auto rounded-xl border border-border bg-muted/40 p-1">
       {options.map((option) => {
         const active = view === option.id;
         return (
@@ -139,12 +141,12 @@ function ViewSwitch({ view, onChange, counts }: { view: View; onChange: (view: V
   );
 }
 
-function ChannelIcon({ channel }: { channel: DemoContact["channel"] }) {
+export function ChannelIcon({ channel }: { channel: DemoContact["channel"] }) {
   const Icon = channel === "whatsapp" ? MessageCircle : channel === "phone" ? Phone : Mail;
   return <Icon className="h-3.5 w-3.5" aria-label={channel} />;
 }
 
-function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCustomer; index: number; selected: boolean; onSelect: () => void }) {
+export function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCustomer; index: number; selected: boolean; onSelect: () => void }) {
   const tokens = useMotionTokens();
   const health = HEALTH[customer.health];
   const primary = customer.contacts.find((person) => person.primary) ?? customer.contacts[0];
@@ -162,6 +164,7 @@ function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCu
         "transition-[border-color,box-shadow,transform] duration-(--motion-duration-fast) ease-(--motion-ease-out-expo)",
         "hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         selected ? "border-transparent shadow-md" : "border-border",
+        customer.archived && "opacity-70",
       )}
       style={{ boxShadow: selected ? `0 0 0 2px ${health.color}` : "0 0 0 0px transparent" }}
     >
@@ -170,8 +173,8 @@ function CustomerRow({ customer, index, selected, onSelect }: { customer: DemoCu
         <Avatar name={customer.name} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-semibold">{customer.name}</span>
-            <Pill color={health.color}>{health.label}</Pill>
+            <span className="max-w-full truncate font-semibold">{customer.name}</span>
+            {customer.archived ? <Pill color={ACCENT_MUTED}>Archivado</Pill> : <Pill color={health.color}>{health.label}</Pill>}
             {customer.unreadConversations ? (
               <Pill color={SKY} strong><MessagesSquare className="h-3 w-3" />{customer.unreadConversations}</Pill>
             ) : null}
@@ -213,7 +216,7 @@ function PanelSection({ title, icon: Icon, color, children }: { title: string; i
   );
 }
 
-function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose: () => void }) {
+export function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose: () => void }) {
   const tokens = useMotionTokens();
   const health = HEALTH[customer.health];
   return (
@@ -228,7 +231,7 @@ function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose:
       <div className="flex items-start gap-3">
         <Avatar name={customer.name} size="lg" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold">{customer.name}</h2>
+          <h2 className="text-lg font-semibold [overflow-wrap:anywhere]">{customer.name}</h2>
           <p className="text-xs text-muted-foreground">{customer.domain ?? (customer.kind === "person" ? "Persona" : "Sin web")} · cliente desde {new Date(customer.createdAt).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Pill color={health.color} strong>{health.label}</Pill>
@@ -238,11 +241,18 @@ function CustomerPanel({ customer, onClose }: { customer: DemoCustomer; onClose:
         <Button size="icon" variant="ghost" aria-label="Cerrar" onClick={onClose}><X className="h-4 w-4" /></Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5" />Tarea</Button>
-        <Button size="sm" variant="outline"><MessageCircle className="h-3.5 w-3.5" />Escribir</Button>
-        <Button size="sm" variant="outline"><FileText className="h-3.5 w-3.5" />Propuesta</Button>
-      </div>
+      {customer.archived ? (
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+          <span className="text-muted-foreground">Archivado: no aparece en la lista activa.</span>
+          <Button size="sm" variant="outline">Restaurar</Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          <Button size="sm" variant="outline"><Plus className="h-3.5 w-3.5" />Tarea</Button>
+          <Button size="sm" variant="outline"><MessageCircle className="h-3.5 w-3.5" />Escribir</Button>
+          <Button size="sm" variant="outline"><FileText className="h-3.5 w-3.5" />Propuesta</Button>
+        </div>
+      )}
 
       {customer.nextAction ? (
         <div className="flex items-start gap-2 rounded-xl p-3 text-sm" style={{ background: `linear-gradient(135deg, ${tint(health.color, 22)}, ${tint(health.color, 6)})` }}>
@@ -337,26 +347,44 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 /** One customers page: summary, a single list with three views, and a side panel with everything about a customer. */
-export function CustomersProposal({ customers: initialCustomers }: { customers: DemoCustomer[] }) {
+export function CustomersProposal({ customers: initialCustomers, initialQuery = "", initialFilter = "all", pageSize, canCreate = true }: {
+  customers: DemoCustomer[];
+  initialQuery?: string;
+  initialFilter?: Filter;
+  /** When set, the list shows this many customers and a "load more" button. */
+  pageSize?: number;
+  /** Members without permission see the page read-only. */
+  canCreate?: boolean;
+}) {
   const [customers, setCustomers] = useState(initialCustomers);
   const [createOpen, setCreateOpen] = useState(false);
   const [justCreated, setJustCreated] = useState<string | null>(null);
   const [view, setView] = useState<View>("customers");
-  const [filter, setFilter] = useState<Filter>("all");
-  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>(initialFilter);
+  const [query, setQuery] = useState(initialQuery);
   const [selectedId, setSelectedId] = useState<string | null>(initialCustomers[0]?.id ?? null);
   const tokens = useMotionTokens();
 
-  const people = useMemo(() => customers.flatMap((customer) => customer.contacts.map((person) => ({ person, customer }))), [customers]);
-  const services = useMemo(() => customers.flatMap((customer) => customer.services.map((service) => ({ service, customer }))), [customers]);
+  const active = useMemo(() => customers.filter((customer) => !customer.archived), [customers]);
+  const archivedCount = customers.length - active.length;
+  const people = useMemo(() => active.flatMap((customer) => customer.contacts.map((person) => ({ person, customer }))), [customers]);
+  const services = useMemo(() => active.flatMap((customer) => customer.services.map((service) => ({ service, customer }))), [customers]);
   const monthly = services.reduce((sum, { service }) => sum + (service.status === "paused" ? 0 : service.monthlyCents), 0);
-  const proposals = customers.flatMap((customer) => customer.openProposals);
-  const attention = customers.filter((customer) => customer.health !== "good" || customer.unreadConversations > 0);
-  const tasks = customers.reduce((sum, customer) => sum + customer.activeTasks, 0);
+  const proposals = active.flatMap((customer) => customer.openProposals);
+  const attention = active.filter((customer) => customer.health !== "good" || customer.unreadConversations > 0);
+  const tasks = active.reduce((sum, customer) => sum + customer.activeTasks, 0);
   const needle = query.trim().toLowerCase();
   const visibleCustomers = customers
-    .filter((customer) => filter === "all" || (filter === "attention" ? attention.includes(customer) : new Date(customer.createdAt) > new Date("2026-08-01")))
+    .filter((customer) => filter === "archived" ? customer.archived : !customer.archived)
+    .filter((customer) => filter === "all" || filter === "archived" || (filter === "attention" ? attention.includes(customer) : new Date(customer.createdAt) > new Date("2026-08-01")))
     .filter((customer) => !needle || `${customer.name} ${customer.domain ?? ""} ${customer.tags.join(" ")}`.toLowerCase().includes(needle));
+  const page = useLoadMore(visibleCustomers, pageSize);
+  const filterOptions: readonly (readonly [Filter, string, string | null])[] = [
+    ["all", "Todos", null],
+    ["attention", "Atención", YELLOW],
+    ["new", "Nuevos", SKY],
+    ...(archivedCount ? [["archived", `Archivados · ${archivedCount}`, null] as const] : []),
+  ];
   const selected = customers.find((customer) => customer.id === selectedId) ?? null;
 
   return (
@@ -364,11 +392,13 @@ export function CustomersProposal({ customers: initialCustomers }: { customers: 
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Clientes</h1>
-          {customers.length ? <p className="text-sm text-muted-foreground">{customers.length} clientes · {people.length} personas · {euros(monthly)}/mes en servicios</p> : null}
+          {customers.length ? <p className="text-sm text-muted-foreground">{active.length} clientes · {people.length} personas · {euros(monthly)}/mes en servicios</p> : null}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline"><Upload className="h-4 w-4" />Importar contactos</Button>
-          <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Nuevo cliente</Button>
+          {canCreate ? <>
+            <Button variant="outline"><Upload className="h-4 w-4" />Importar contactos</Button>
+            <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Nuevo cliente</Button>
+          </> : null}
         </div>
       </header>
 
@@ -414,14 +444,14 @@ export function CustomersProposal({ customers: initialCustomers }: { customers: 
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <LayoutGroup id="customers-view"><ViewSwitch view={view} onChange={setView} counts={{ customers: customers.length, people: people.length, services: services.length }} /></LayoutGroup>
+          <LayoutGroup id="customers-view"><ViewSwitch view={view} onChange={setView} counts={{ customers: active.length, people: people.length, services: services.length }} /></LayoutGroup>
           <div className="flex min-w-48 flex-1 items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground" placeholder="Buscar por nombre, web o etiqueta" value={query} onChange={(event) => setQuery(event.target.value)} />
           </div>
           {view === "customers" ? (
             <div className="flex gap-1.5">
-              {([["all", "Todos", null], ["attention", "Atención", YELLOW], ["new", "Nuevos", SKY]] as const).map(([id, label, color]) => (
+              {filterOptions.map(([id, label, color]) => (
                 <button
                   key={id}
                   onClick={() => setFilter(id)}
@@ -435,7 +465,7 @@ export function CustomersProposal({ customers: initialCustomers }: { customers: 
           ) : null}
         </div>
 
-        <div className={cn("grid gap-6", selected && view === "customers" ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]" : "")}>
+        <div className={cn("grid grid-cols-1 gap-6", selected && view === "customers" ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,380px)]" : "")}>
           <AnimatePresence mode="wait">
             <motion.div
               key={view}
@@ -447,10 +477,21 @@ export function CustomersProposal({ customers: initialCustomers }: { customers: 
             >
               {view === "customers" ? (
                 <AnimatePresence>
-                  {visibleCustomers.map((customer, index) => (
-                    <CustomerRow key={customer.id} customer={customer} index={index} selected={customer.id === selectedId} onSelect={() => setSelectedId(customer.id === selectedId ? null : customer.id)} />
+                  {page.visible.map((customer, index) => (
+                    <CustomerRow key={customer.id} customer={customer} index={Math.min(index, 12)} selected={customer.id === selectedId} onSelect={() => setSelectedId(customer.id === selectedId ? null : customer.id)} />
                   ))}
-                  {visibleCustomers.length === 0 ? <p className="p-6 text-center text-sm text-muted-foreground">Ningún cliente coincide con la búsqueda.</p> : null}
+                  {visibleCustomers.length === 0 ? (
+                    <div key="empty" className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border p-10 text-center">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-xl" style={{ background: tint(SKY, 22), color: readable(SKY) }}><Search className="h-6 w-6" /></span>
+                      <p className="font-medium">{query ? `Ningún cliente coincide con «${query}»` : "No hay clientes en este filtro"}</p>
+                      <p className="max-w-sm text-sm text-muted-foreground">Prueba con otro nombre, con la web o con una etiqueta.</p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <Button variant="outline" onClick={() => { setQuery(""); setFilter("all"); }}>Limpiar búsqueda</Button>
+                        {canCreate && query ? <Button onClick={() => setCreateOpen(true)}><Plus className="h-4 w-4" />Crear «{query}»</Button> : null}
+                      </div>
+                    </div>
+                  ) : null}
+                  <LoadMoreButton key="more" remaining={page.remaining} onClick={page.more} noun="clientes" />
                 </AnimatePresence>
               ) : view === "people" ? (
                 <div className="divide-y divide-border rounded-xl border border-border">

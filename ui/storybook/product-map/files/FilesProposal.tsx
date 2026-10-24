@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   LayoutGrid,
   List,
+  Lock,
   Music,
   Search,
   Sheet,
@@ -36,8 +37,10 @@ import {
   type DemoFolder,
   type FileKind,
 } from "./demo-data";
+import { FilesBanners, LockedPreview, QuotaMeter, UploadTray, useUploadQueue } from "./FilesStates";
+import { filesConfig, type FilesConfig } from "./scenarios";
 
-const KIND: Record<FileKind, { label: string; icon: LucideIcon; color: string }> = {
+export const KIND: Record<FileKind, { label: string; icon: LucideIcon; color: string }> = {
   image: { label: "Imagen", icon: ImageIcon, color: ACCENT.mint },
   video: { label: "Vídeo", icon: Film, color: ACCENT.lilac },
   document: { label: "Documento", icon: FileText, color: ACCENT.sky },
@@ -45,7 +48,7 @@ const KIND: Record<FileKind, { label: string; icon: LucideIcon; color: string }>
   spreadsheet: { label: "Hoja", icon: Sheet, color: ACCENT.yellow },
 };
 
-const ROLE: Record<ContextRole, { label: string; color: string }> = {
+export const ROLE: Record<ContextRole, { label: string; color: string }> = {
   brand: { label: "Marca", color: ACCENT.lilac },
   offer: { label: "Oferta", color: ACCENT.mint },
   procedure: { label: "Procedimiento", color: ACCENT.sky },
@@ -55,10 +58,10 @@ const ROLE: Record<ContextRole, { label: string; color: string }> = {
 
 const AUDIENCE = { company: "Toda la empresa", project: "Un proyecto", customer: "Un cliente" } as const;
 
-type Mode = "grid" | "list";
+export type Mode = "grid" | "list";
 type Scope = "files" | "context";
 
-function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md" | "lg" }) {
+export function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md" | "lg" }) {
   const kind = KIND[file.kind];
   const Icon = kind.icon;
   const tone = size === "lg" ? "h-40" : size === "md" ? "h-28" : "h-9 w-9";
@@ -82,8 +85,8 @@ function Thumb({ file, size = "md" }: { file: DemoFile; size?: "sm" | "md" | "lg
   );
 }
 
-function FolderRow({ folder, depth, active, open, hasChildren, count, onSelect, onToggle }: {
-  folder: DemoFolder; depth: number; active: boolean; open: boolean; hasChildren: boolean; count: number; onSelect: () => void; onToggle: () => void;
+function FolderRow({ folder, depth, active, open, hasChildren, count, locked = false, onSelect, onToggle }: {
+  folder: DemoFolder; depth: number; active: boolean; open: boolean; hasChildren: boolean; count: number; locked?: boolean; onSelect: () => void; onToggle: () => void;
 }) {
   const tokens = useMotionTokens();
   const color = folder.root === "in" ? ACCENT.sky : ACCENT.mint;
@@ -97,16 +100,16 @@ function FolderRow({ folder, depth, active, open, hasChildren, count, onSelect, 
           <motion.span animate={{ rotate: open ? 0 : -90 }} transition={{ duration: tokens.fast, ease: tokens.standard }} className="flex"><ChevronDown className="h-3.5 w-3.5" /></motion.span>
         </button>
         <button type="button" onClick={onSelect} className={cn("flex min-w-0 flex-1 items-center gap-2 rounded-lg py-1.5 pr-2 text-left text-sm transition-colors duration-(--motion-duration-fast)", active ? "font-medium" : "text-muted-foreground hover:text-foreground")}>
-          {open || active ? <FolderOpen className="h-4 w-4 shrink-0" style={{ color: readable(color) }} /> : <FolderClosed className="h-4 w-4 shrink-0" style={{ color: readable(color) }} />}
-          <span className="min-w-0 flex-1 truncate">{folder.name}</span>
-          <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
+          {locked ? <Lock className="h-4 w-4 shrink-0 text-muted-foreground" /> : open || active ? <FolderOpen className="h-4 w-4 shrink-0" style={{ color: readable(color) }} /> : <FolderClosed className="h-4 w-4 shrink-0" style={{ color: readable(color) }} />}
+          <span className="min-w-0 flex-1 truncate" title={folder.name}>{folder.name}</span>
+          {locked ? null : <span className="text-xs text-muted-foreground tabular-nums">{count}</span>}
         </button>
       </div>
     </div>
   );
 }
 
-function FileCard({ file, index, mode, selected, onSelect }: { file: DemoFile; index: number; mode: Mode; selected: boolean; onSelect: () => void }) {
+export function FileCard({ file, index, mode, selected, locked = false, onSelect }: { file: DemoFile; index: number; mode: Mode; selected: boolean; locked?: boolean; onSelect: () => void }) {
   const tokens = useMotionTokens();
   const kind = KIND[file.kind];
   const expiry = expiryState(file.validUntil);
@@ -119,6 +122,7 @@ function FileCard({ file, index, mode, selected, onSelect }: { file: DemoFile; i
   };
   const badges = (
     <>
+      {locked ? <Pill color={ACCENT.lilac}><Lock className="h-3 w-3" />Privado</Pill> : null}
       {file.contextRole ? <Pill color={ROLE[file.contextRole].color}><Bot className="h-3 w-3" />{ROLE[file.contextRole].label}</Pill> : null}
       {expiry === "expired" ? <Pill color={ACCENT.risk}>Caducado</Pill> : expiry === "soon" ? <Pill color={ACCENT.yellow}><AlarmClock className="h-3 w-3" />Caduca pronto</Pill> : null}
     </>
@@ -160,7 +164,7 @@ function FileCard({ file, index, mode, selected, onSelect }: { file: DemoFile; i
   );
 }
 
-function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () => void; onChange: (patch: Partial<DemoFile>) => void }) {
+export function PreviewPane({ file, onClose, onChange, readOnly = false }: { file: DemoFile; onClose: () => void; onChange: (patch: Partial<DemoFile>) => void; readOnly?: boolean }) {
   const tokens = useMotionTokens();
   const kind = KIND[file.kind];
   const [contextOpen, setContextOpen] = useState(file.contextRole !== null);
@@ -177,13 +181,22 @@ function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () 
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <h2 className="break-words text-base font-semibold leading-snug">{file.name}</h2>
+          <h2 className="break-all text-base font-semibold leading-snug">{file.name}</h2>
           <p className="text-xs text-muted-foreground">{kind.label} · {formatBytes(file.bytes)} · v{file.versions[0]?.number}</p>
         </div>
         <Button size="icon" variant="ghost" aria-label="Cerrar" onClick={onClose}><X className="h-4 w-4" /></Button>
       </div>
 
       <Thumb file={file} size="lg" />
+      {expiry === "expired" && file.contextRole ? (
+        <div role="alert" className="flex flex-col gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.yellow, 24) }}>
+          <p className="flex items-start gap-2"><AlarmClock className="mt-0.5 h-4 w-4 shrink-0" style={{ color: readable(ACCENT.yellow) }} /><span><strong>Caducó el {new Date(file.validUntil!).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}.</strong> Los agentes ya no lo leen como contexto.</span></p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" disabled={readOnly} onClick={() => onChange({ validUntil: "2027-04-24" })} style={readOnly ? undefined : { background: ACCENT.yellow, color: ink(ACCENT.yellow) }}>Renovar 6 meses</Button>
+            <Button size="sm" variant="outline" disabled={readOnly} onClick={() => onChange({ validUntil: null })}>Quitar caducidad</Button>
+          </div>
+        </div>
+      ) : null}
       {file.excerpt ? <p className="rounded-xl p-3 text-sm" style={{ background: tint(kind.color, 10) }}>{file.excerpt}</p> : null}
 
       <div className="grid grid-cols-2 gap-2">
@@ -206,8 +219,8 @@ function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () 
                   <p className="mb-1.5 text-xs font-medium text-muted-foreground">Qué es para los agentes</p>
                   <div className="flex flex-wrap gap-1.5">
                     {(Object.keys(ROLE) as ContextRole[]).map((role) => (
-                      <button key={role} type="button" aria-pressed={file.contextRole === role} onClick={() => onChange({ contextRole: file.contextRole === role ? null : role })}
-                        className={cn("rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", file.contextRole === role ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")}
+                      <button key={role} type="button" disabled={readOnly} aria-pressed={file.contextRole === role} onClick={() => onChange({ contextRole: file.contextRole === role ? null : role })}
+                        className={cn("disabled:cursor-not-allowed disabled:opacity-60", "rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-(--motion-duration-fast)", file.contextRole === role ? "border-transparent font-medium" : "border-border text-muted-foreground hover:text-foreground")}
                         style={file.contextRole === role ? { background: tint(ROLE[role].color, 30), color: readable(ROLE[role].color) } : undefined}>
                         {ROLE[role].label}
                       </button>
@@ -224,8 +237,8 @@ function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () 
                 </div>
                 <label className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">Los agentes pueden leerlo</span>
-                  <button type="button" role="switch" aria-checked={file.agentVisible} onClick={() => onChange({ agentVisible: !file.agentVisible })}
-                    className="relative h-5 w-9 rounded-full transition-colors duration-(--motion-duration-fast)" style={{ background: file.agentVisible ? ACCENT.mint : tint(ACCENT.muted, 35) }}>
+                  <button type="button" role="switch" disabled={readOnly} aria-checked={file.agentVisible} onClick={() => onChange({ agentVisible: !file.agentVisible })}
+                    className="relative h-5 w-9 rounded-full transition-colors duration-(--motion-duration-fast) disabled:cursor-not-allowed disabled:opacity-60" style={{ background: file.agentVisible ? ACCENT.mint : tint(ACCENT.muted, 35) }}>
                     <motion.span className="absolute top-0.5 h-4 w-4 rounded-full bg-background shadow" animate={{ left: file.agentVisible ? 18 : 2 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} />
                   </button>
                 </label>
@@ -238,7 +251,7 @@ function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () 
       <section className="flex flex-col gap-2">
         <SectionTitle color={ACCENT.sky} icon={CircleCheck}>Usado en {file.usedIn.length} {file.usedIn.length === 1 ? "tarea" : "tareas"}</SectionTitle>
         {file.usedIn.length ? file.usedIn.map((task) => (
-          <p key={task.id} className="flex items-center gap-2 text-sm"><span className="rounded-md px-1.5 text-xs font-medium tabular-nums" style={{ background: tint(ACCENT.sky, 22), color: readable(ACCENT.sky) }}>{task.id}</span><span className="truncate">{task.title}</span></p>
+          <p key={task.id} className="flex items-center gap-2 text-sm"><span className="shrink-0 whitespace-nowrap rounded-md px-1.5 text-xs font-medium tabular-nums" style={{ background: tint(ACCENT.sky, 22), color: readable(ACCENT.sky) }}>{task.id}</span><span className="truncate">{task.title}</span></p>
         )) : <p className="text-sm text-muted-foreground">Todavía no se usa en ninguna tarea.</p>}
       </section>
 
@@ -257,7 +270,7 @@ function PreviewPane({ file, onClose, onChange }: { file: DemoFile; onClose: () 
                     <p className="flex flex-wrap items-center gap-1.5"><span className="font-medium">{index === 0 ? "Actual" : `Versión ${version.number}`}</span><span className="text-xs text-muted-foreground">{version.by} · {version.at} · {formatBytes(version.bytes)}</span></p>
                     {version.note ? <p className="text-xs text-muted-foreground">{version.note}</p> : null}
                   </div>
-                  {index > 0 ? <Button size="sm" variant="ghost">Restaurar</Button> : null}
+                  {index > 0 ? <Button size="sm" variant="ghost" disabled={readOnly}>Restaurar</Button> : null}
                 </li>
               ))}
             </motion.ol>
@@ -291,7 +304,7 @@ function DropZone({ active, onDrop, onPick }: { active: boolean; onDrop: () => v
   );
 }
 
-function EmptyFiles({ onPick }: { onPick: () => void }) {
+export function EmptyFiles({ onPick }: { onPick: () => void }) {
   const tokens = useMotionTokens();
   const steps = [
     { icon: Sparkles, title: "Tu marca", text: "Guía de estilo y logos: los agentes los usarán en cada pieza.", color: ACCENT.lilac },
@@ -320,17 +333,23 @@ function EmptyFiles({ onPick }: { onPick: () => void }) {
 }
 
 /** Archivos: Entrada/Salida tree, grid or list, drag-and-drop upload, preview with agent context and versions. */
-export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
+export function FilesProposal({ files: initialFiles, config: configProp }: { files: DemoFile[]; config?: FilesConfig }) {
   const tokens = useMotionTokens();
-  const [files, setFiles] = useState(initialFiles);
-  const [folderId, setFolderId] = useState<string>("in");
+  const config = useMemo<FilesConfig>(() => configProp ?? { ...filesConfig("normal"), files: initialFiles, selectedId: initialFiles[0]?.id ?? null }, [configProp, initialFiles]);
+  const folders = config.folders;
+  const lockedFolders = useMemo(() => new Set(config.lockedFolderIds), [config.lockedFolderIds]);
+  const lockedFiles = useMemo(() => new Set(config.lockedFileIds), [config.lockedFileIds]);
+  const queue = useUploadQueue(config.uploads);
+  const [limit, setLimit] = useState(48);
+  const [files, setFiles] = useState(config.files);
+  const [folderId, setFolderId] = useState<string>(config.folderId);
   const [open, setOpen] = useState<Set<string>>(new Set(["in", "in-clients", "out"]));
   const [mode, setMode] = useState<Mode>("grid");
   const [scope, setScope] = useState<Scope>("files");
   const [roleFilter, setRoleFilter] = useState<ContextRole | "all">("all");
   const [validity, setValidity] = useState<"all" | "valid" | "expired">("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(initialFiles[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(config.selectedId);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const picker = useRef<HTMLInputElement>(null);
@@ -340,14 +359,14 @@ export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
     let grew = true;
     while (grew) {
       grew = false;
-      for (const folder of DEMO_FOLDERS) if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) { ids.add(folder.id); grew = true; }
+      for (const folder of folders) if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) { ids.add(folder.id); grew = true; }
     }
     return ids;
-  }, [folderId]);
+  }, [folderId, folders]);
   const countIn = (id: string) => {
     const ids = new Set<string>([id]);
     let grew = true;
-    while (grew) { grew = false; for (const folder of DEMO_FOLDERS) if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) { ids.add(folder.id); grew = true; } }
+    while (grew) { grew = false; for (const folder of folders) if (folder.parentId && ids.has(folder.parentId) && !ids.has(folder.id)) { ids.add(folder.id); grew = true; } }
     return files.filter((file) => ids.has(file.folderId)).length;
   };
 
@@ -358,13 +377,16 @@ export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
     .filter((file) => scope !== "context" || roleFilter === "all" || file.contextRole === roleFilter)
     .filter((file) => scope !== "context" || validity === "all" || (validity === "expired" ? expiryState(file.validUntil) === "expired" : expiryState(file.validUntil) !== "expired"));
   const selected = visible.find((file) => file.id === selectedId) ?? null;
-  const folder = DEMO_FOLDERS.find((candidate) => candidate.id === folderId);
+  const folder = folders.find((candidate) => candidate.id === folderId);
+  const folderLocked = scope === "files" && lockedFolders.has(folderId);
+  const shown = visible.slice(0, limit);
   const expiring = files.filter((file) => ["soon", "expired"].includes(expiryState(file.validUntil))).length;
   const totalBytes = files.reduce((sum, file) => sum + file.bytes, 0);
 
   function handleDrop(event: DragEvent) {
     event.preventDefault();
     setDragging(false);
+    if (config.readOnly) return;
     simulateUpload(event.dataTransfer?.files.length || 1);
   }
   function simulateUpload(count: number) {
@@ -378,18 +400,20 @@ export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
     setScope("files");
     setFolderId(targetFolder);
     setSelectedId(created[0]!.id);
-    setToast(`${count === 1 ? "1 archivo subido" : `${count} archivos subidos`} a ${DEMO_FOLDERS.find((candidate) => candidate.id === targetFolder)?.name}. Por defecto los agentes aún no pueden leerlo.`);
+    const left = config.quota.totalBytes - config.quota.usedBytes;
+    const lowSpace = left < config.quota.totalBytes * 0.15 ? " Te quedan " + formatBytes(left) + " libres." : "";
+    setToast((count === 1 ? "1 archivo subido" : count + " archivos subidos") + " a " + folders.find((candidate) => candidate.id === targetFolder)?.name + ". Por defecto los agentes aún no pueden leerlo." + lowSpace);
     window.setTimeout(() => setToast(null), 4000);
   }
 
-  const roots = DEMO_FOLDERS.filter((candidate) => candidate.parentId === null);
+  const roots = folders.filter((candidate) => candidate.parentId === null);
   const renderFolder = (item: DemoFolder, depth: number): React.ReactNode => {
-    const children = DEMO_FOLDERS.filter((candidate) => candidate.parentId === item.id);
+    const children = folders.filter((candidate) => candidate.parentId === item.id);
     const isOpen = open.has(item.id);
     return (
       <div key={item.id}>
-        <FolderRow folder={item} depth={depth} active={scope === "files" && folderId === item.id} open={isOpen} hasChildren={children.length > 0} count={countIn(item.id)}
-          onSelect={() => { setScope("files"); setFolderId(item.id); }}
+        <FolderRow folder={item} depth={depth} active={scope === "files" && folderId === item.id} open={isOpen} hasChildren={children.length > 0} count={countIn(item.id)} locked={lockedFolders.has(item.id)}
+          onSelect={() => { setScope("files"); setFolderId(item.id); setLimit(48); setSelectedId(null); }}
           onToggle={() => setOpen((current) => { const next = new Set(current); if (next.has(item.id)) next.delete(item.id); else next.add(item.id); return next; })} />
         <AnimatePresence initial={false}>
           {isOpen && children.length ? (
@@ -410,11 +434,18 @@ export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
           <h1 className="text-2xl font-semibold">Archivos</h1>
           {files.length ? <p className="text-sm text-muted-foreground">{files.length} archivos · {formatBytes(totalBytes)}{expiring ? ` · ${expiring} caducan o han caducado` : ""}</p> : null}
         </div>
-        <Button onClick={() => picker.current?.click()}><Upload className="h-4 w-4" />Subir archivos</Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {files.length ? <QuotaMeter used={config.quota.usedBytes} total={config.quota.totalBytes} compact /> : null}
+          <Button disabled={config.readOnly} title={config.readOnly ? "Solo lectura: no puedes subir archivos" : undefined} onClick={() => picker.current?.click()}><Upload className="h-4 w-4" />Subir archivos</Button>
+        </div>
       </header>
 
       {files.length === 0 ? <EmptyFiles onPick={() => picker.current?.click()} /> : <>
-        <DropZone active={dragging} onDrop={() => simulateUpload(1)} onPick={() => picker.current?.click()} />
+        <FilesBanners config={config} files={files}
+          onReviewExpired={() => { setScope("context"); setValidity("expired"); setSelectedId(null); }}
+          onFreeSpace={() => { const biggest = [...files].sort((a, b) => b.bytes - a.bytes)[0]!; setScope("files"); setFolderId(biggest.folderId); setSelectedId(biggest.id); setToast("Empieza por el más pesado: " + biggest.name + " (" + formatBytes(biggest.bytes) + ")."); window.setTimeout(() => setToast(null), 4000); }} />
+        <UploadTray queue={queue} />
+        {config.readOnly ? null : <DropZone active={dragging} onDrop={() => simulateUpload(1)} onPick={() => picker.current?.click()} />}
 
         <div className="grid min-w-0 gap-4 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,320px)]">
           <nav aria-label="Carpetas" className="flex min-w-0 flex-col gap-1 rounded-2xl border border-border p-2 lg:self-start">
@@ -462,27 +493,39 @@ export function FilesProposal({ files: initialFiles }: { files: DemoFile[] }) {
               </div>
             ) : null}
 
-            {visible.length === 0 ? (
+            {folderLocked ? (
+              <Panel className="items-center py-12 text-center">
+                <IconTile icon={Lock} color={ACCENT.muted} />
+                <p className="text-sm font-medium">No tienes acceso a esta carpeta</p>
+                <p className="max-w-xs text-sm text-muted-foreground">Es de otro cliente y solo la ven las personas con quienes se ha compartido. Pídesela a quien la creó.</p>
+                <Button size="sm" variant="outline">Pedir acceso</Button>
+              </Panel>
+            ) : visible.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{scope === "context" ? "Ningún archivo de contexto con estos filtros." : "Esta carpeta está vacía. Arrastra archivos aquí."}</p>
             ) : mode === "grid" ? (
               <div className="grid min-w-0 grid-cols-2 gap-3 xl:grid-cols-3">
                 <AnimatePresence mode="popLayout">
-                  {visible.map((file, index) => <FileCard key={file.id} file={file} index={index} mode="grid" selected={file.id === selectedId} onSelect={() => setSelectedId(file.id === selectedId ? null : file.id)} />)}
+                  {shown.map((file, index) => <FileCard key={file.id} file={file} index={index} mode="grid" selected={file.id === selectedId} locked={lockedFiles.has(file.id)} onSelect={() => setSelectedId(file.id === selectedId ? null : file.id)} />)}
                 </AnimatePresence>
               </div>
             ) : (
               <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
                 <AnimatePresence mode="popLayout">
-                  {visible.map((file, index) => <FileCard key={file.id} file={file} index={index} mode="list" selected={file.id === selectedId} onSelect={() => setSelectedId(file.id === selectedId ? null : file.id)} />)}
+                  {shown.map((file, index) => <FileCard key={file.id} file={file} index={index} mode="list" selected={file.id === selectedId} locked={lockedFiles.has(file.id)} onSelect={() => setSelectedId(file.id === selectedId ? null : file.id)} />)}
                 </AnimatePresence>
               </div>
             )}
+            {!folderLocked && visible.length > shown.length ? (
+              <Button variant="outline" onClick={() => setLimit(limit + 48)}>Mostrar {Math.min(48, visible.length - shown.length)} más · quedan {visible.length - shown.length}</Button>
+            ) : null}
           </div>
 
           <div className="min-w-0 md:col-span-2 lg:col-span-1 lg:sticky lg:top-4 lg:self-start">
             <AnimatePresence mode="wait">
-              {selected ? (
-                <PreviewPane key={selected.id} file={selected} onClose={() => setSelectedId(null)} onChange={(patch) => setFiles((current) => current.map((file) => file.id === selected.id ? { ...file, ...patch } : file))} />
+              {selected && lockedFiles.has(selected.id) ? (
+                <LockedPreview key={selected.id} file={selected} onClose={() => setSelectedId(null)} />
+              ) : selected ? (
+                <PreviewPane key={selected.id} file={selected} readOnly={config.readOnly} onClose={() => setSelectedId(null)} onChange={(patch) => setFiles((current) => current.map((file) => file.id === selected.id ? { ...file, ...patch } : file))} />
               ) : (
                 <Panel className="items-center py-10 text-center"><IconTile icon={FileIcon} color={ACCENT.muted} /><p className="text-sm text-muted-foreground">Elige un archivo para ver su vista previa, su contexto y sus versiones.</p></Panel>
               )}

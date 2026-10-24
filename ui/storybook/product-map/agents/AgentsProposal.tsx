@@ -31,16 +31,16 @@ import { BRAND, ink, readable, tint, useMotionTokens } from "../motion";
 import { ACCENT, Pill, Progress, Stat } from "../parts";
 import { AUTONOMY_LABEL, ROLE_TEMPLATES, type Autonomy, type RoleTemplate, type TeamAgent, type TeamStatus } from "./demo-data";
 
-const STATUS: Record<TeamStatus, { label: string; color: string }> = {
+export const STATUS: Record<TeamStatus, { label: string; color: string }> = {
   running: { label: "Trabajando", color: ACCENT.mint },
   idle: { label: "Libre", color: ACCENT.muted },
   paused: { label: "En pausa", color: ACCENT.yellow },
   error: { label: "Con un problema", color: ACCENT.risk },
 };
 
-const euros = (cents: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100);
+export const euros = (cents: number) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100);
 
-function AgentAvatar({ agent, size = "md", live = false }: { agent: Pick<TeamAgent, "name" | "accent" | "status">; size?: "sm" | "md" | "lg"; live?: boolean }) {
+export function AgentAvatar({ agent, size = "md", live = false }: { agent: Pick<TeamAgent, "name" | "accent" | "status">; size?: "sm" | "md" | "lg"; live?: boolean }) {
   const tokens = useMotionTokens();
   const ring = live && agent.status === "running";
   return (
@@ -59,7 +59,7 @@ function AgentAvatar({ agent, size = "md", live = false }: { agent: Pick<TeamAge
   );
 }
 
-function AutonomyBadge({ level }: { level: Autonomy }) {
+export function AutonomyBadge({ level }: { level: Autonomy }) {
   const icon = level === "autonomous" ? Zap : level === "supervised" ? ShieldCheck : Lock;
   const Icon = icon;
   const color = level === "autonomous" ? ACCENT.turquoise : level === "supervised" ? ACCENT.sky : ACCENT.lilac;
@@ -161,7 +161,7 @@ function OrgChart({ agents, onSelect, selectedId }: { agents: TeamAgent[]; onSel
 
 const ACTIVITY_ICON = { done: { icon: CircleCheck, color: ACCENT.mint }, started: { icon: Play, color: ACCENT.sky }, question: { icon: CircleHelp, color: ACCENT.yellow }, error: { icon: AlertTriangle, color: ACCENT.risk } } as const;
 
-function AgentPanel({ agent, onClose, onAutonomy, onTogglePause }: { agent: TeamAgent; onClose: () => void; onAutonomy: (level: Autonomy) => void; onTogglePause: () => void }) {
+export function AgentPanel({ agent, onClose, onAutonomy, onTogglePause, onRetry, onRaiseBudget }: { agent: TeamAgent; onClose: () => void; onAutonomy: (level: Autonomy) => void; onTogglePause: () => void; onRetry?: () => void; onRaiseBudget?: () => void }) {
   const tokens = useMotionTokens();
   const status = STATUS[agent.status];
   return (
@@ -172,10 +172,15 @@ function AgentPanel({ agent, onClose, onAutonomy, onTogglePause }: { agent: Team
         <Button size="icon" variant="ghost" aria-label="Cerrar" onClick={onClose}><X className="h-4 w-4" /></Button>
       </div>
 
-      {agent.problem ? (
-        <div className="flex items-start gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.risk, 14) }}>
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: readable(ACCENT.risk) }} />
-          <div><p className="font-medium">Necesita tu ayuda</p><p className="text-muted-foreground">{agent.problem}</p></div>
+      {agent.pausedBy === "budget" ? (
+        <div role="status" className="flex flex-col gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.yellow, 20), boxShadow: `inset 3px 0 0 ${ACCENT.yellow}` }}>
+          <p className="flex items-start gap-2"><Wallet className="mt-0.5 h-4 w-4 shrink-0" style={{ color: readable(ACCENT.yellow) }} /><span><span className="block font-medium">Pausada por presupuesto</span><span className="text-muted-foreground">Llegó al límite de {euros(agent.budgetCents)} este mes y se detuvo sola. Se reanuda el día 1 o cuando subas el límite.</span></span></p>
+          {onRaiseBudget ? <Button size="sm" onClick={onRaiseBudget} style={{ background: `linear-gradient(135deg, ${ACCENT.yellow}, ${ACCENT.mint})`, color: ink(ACCENT.yellow) }}>Subir el límite 20 € y reanudar</Button> : null}
+        </div>
+      ) : agent.problem ? (
+        <div className="flex flex-col gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.risk, 14) }}>
+          <p className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: readable(ACCENT.risk) }} /><span><span className="block font-medium">Necesita tu ayuda</span><span className="text-muted-foreground">{agent.problem}</span></span></p>
+          {onRetry ? <div className="flex flex-wrap gap-2"><Button size="sm" onClick={onRetry}><Zap className="h-3.5 w-3.5" />Reintentar</Button><Button size="sm" variant="ghost">Abrir Apps → Email</Button></div> : null}
         </div>
       ) : null}
 
@@ -231,7 +236,10 @@ function AgentPanel({ agent, onClose, onAutonomy, onTogglePause }: { agent: Team
   );
 }
 
-function HireDialog({ open, onOpenChange, onHire }: { open: boolean; onOpenChange: (open: boolean) => void; onHire: (agent: TeamAgent) => void }) {
+export type PlanLimit = { used: number; max: number; plan: string };
+
+function HireDialog({ open, onOpenChange, onHire, planLimit }: { open: boolean; onOpenChange: (open: boolean) => void; onHire: (agent: TeamAgent) => void; planLimit?: PlanLimit }) {
+  const limitReached = Boolean(planLimit && planLimit.used >= planLimit.max);
   const tokens = useMotionTokens();
   const [role, setRole] = useState<RoleTemplate | null>(null);
   const [name, setName] = useState("");
@@ -262,6 +270,13 @@ function HireDialog({ open, onOpenChange, onHire }: { open: boolean; onOpenChang
             <DialogTitle>Contratar un agente</DialogTitle>
             <DialogDescription>Elige un puesto. Podrás cambiar sus instrucciones y límites cuando quieras.</DialogDescription>
           </DialogHeader>
+          {limitReached && planLimit ? (
+            <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.yellow, 22), boxShadow: `inset 3px 0 0 ${ACCENT.yellow}` }}>
+              <Lock className="h-4 w-4 shrink-0" style={{ color: readable(ACCENT.yellow) }} />
+              <span className="min-w-0 flex-1"><span className="block font-medium">Has llegado al límite de tu plan</span><span className="text-muted-foreground">El plan {planLimit.plan} incluye {planLimit.max} agentes y ya tienes {planLimit.used}. Pausa o elimina uno, o sube de plan.</span></span>
+              <Button type="button" size="sm" style={{ background: `linear-gradient(135deg, ${ACCENT.yellow}, ${ACCENT.mint})`, color: ink(ACCENT.yellow) }}>Mejorar plan</Button>
+            </div>
+          ) : null}
           <LayoutGroup id="hire-role">
             <div role="radiogroup" aria-label="Puesto" className="grid gap-2 sm:grid-cols-2">
               {ROLE_TEMPLATES.map((template) => {
@@ -297,7 +312,7 @@ function HireDialog({ open, onOpenChange, onHire }: { open: boolean; onOpenChang
           </AnimatePresence>
           <div className="flex items-center justify-between gap-2 border-t border-border pt-4">
             <Button type="button" variant="ghost" onClick={() => { reset(); onOpenChange(false); }}>Cancelar</Button>
-            <Button type="submit" disabled={!role || !name.trim()} style={role && name.trim() ? { background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) } : undefined}><Plus className="h-4 w-4" />Contratar</Button>
+            <Button type="submit" disabled={!role || !name.trim() || limitReached} style={role && name.trim() && !limitReached ? { background: `linear-gradient(135deg, ${ACCENT.mint}, ${ACCENT.turquoise})`, color: ink(ACCENT.turquoise) } : undefined}><Plus className="h-4 w-4" />Contratar</Button>
           </div>
         </form>
       </DialogContent>
@@ -327,7 +342,7 @@ function EmptyTeam({ onHire }: { onHire: () => void }) {
 }
 
 /** Agentes: who works for you, what each one is doing now, what it costs, and how far it can act alone. */
-export function AgentsProposal({ agents: initial }: { agents: TeamAgent[] }) {
+export function AgentsProposal({ agents: initial, pageSize = 0, planLimit, initialSelectedId, initialHireOpen = false, hideHeader = false }: { agents: TeamAgent[]; pageSize?: number; planLimit?: PlanLimit; initialSelectedId?: string; initialHireOpen?: boolean; hideHeader?: boolean }) {
   const tokens = useMotionTokens();
   const [agents, setAgents] = useState(initial);
   const [view, setView] = useState<View>("cards");
@@ -335,9 +350,10 @@ export function AgentsProposal({ agents: initial }: { agents: TeamAgent[] }) {
   const [filter, setFilter] = useState<"all" | TeamStatus>("all");
   const isDesktop = () => typeof window === "undefined" || window.matchMedia("(min-width: 1024px)").matches;
   // On a phone the panel sits below the list, so nothing is open until the user taps an agent.
-  const [selectedId, setSelectedId] = useState<string | null>(() => (isDesktop() ? initial[0]?.id ?? null : null));
+  const [selectedId, setSelectedId] = useState<string | null>(() => (initialSelectedId ?? (isDesktop() ? initial[0]?.id ?? null : null)));
+  const [shown, setShown] = useState(pageSize || Number.POSITIVE_INFINITY);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const [hireOpen, setHireOpen] = useState(false);
+  const [hireOpen, setHireOpen] = useState(initialHireOpen);
   const [hired, setHired] = useState<string | null>(null);
 
   useEffect(() => {
@@ -352,6 +368,7 @@ export function AgentsProposal({ agents: initial }: { agents: TeamAgent[] }) {
 
   const needle = query.trim().toLowerCase();
   const visible = useMemo(() => agents.filter((agent) => (filter === "all" || agent.status === filter) && (!needle || `${agent.name} ${agent.role} ${agent.skills.join(" ")}`.toLowerCase().includes(needle))), [agents, filter, needle]);
+  const shownAgents = visible.slice(0, shown);
   const selected = agents.find((agent) => agent.id === selectedId) ?? null;
   const working = agents.filter((agent) => agent.status === "running").length;
   const attention = agents.filter((agent) => agent.status === "error" || agent.spentCents / agent.budgetCents > 0.85).length;
@@ -362,15 +379,15 @@ export function AgentsProposal({ agents: initial }: { agents: TeamAgent[] }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-6 overflow-x-hidden p-4 sm:p-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      {hideHeader ? null : <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Equipo</h1>
           {agents.length ? <p className="text-sm text-muted-foreground">{agents.length} agentes · {working} trabajando ahora</p> : null}
         </div>
-        <Button onClick={() => setHireOpen(true)}><Plus className="h-4 w-4" />Contratar agente</Button>
-      </header>
+        <Button onClick={() => setHireOpen(true)}><Plus className="h-4 w-4" />Contratar agente{planLimit ? <span className="ml-1 rounded-full px-1.5 text-xs" style={{ background: tint(planLimit.used >= planLimit.max ? ACCENT.yellow : ACCENT.muted, 40) }}>{planLimit.used}/{planLimit.max}</span> : null}</Button>
+      </header>}
 
-      <HireDialog open={hireOpen} onOpenChange={setHireOpen} onHire={(agent) => { setAgents((current) => [agent, ...current]); setSelectedId(agent.id); setView("cards"); setFilter("all"); setQuery(""); setHired(agent.name); }} />
+      <HireDialog planLimit={planLimit} open={hireOpen} onOpenChange={setHireOpen} onHire={(agent) => { setAgents((current) => [agent, ...current]); setSelectedId(agent.id); setView("cards"); setFilter("all"); setQuery(""); setHired(agent.name); }} />
 
       <AnimatePresence>
         {hired ? (
@@ -414,19 +431,22 @@ export function AgentsProposal({ agents: initial }: { agents: TeamAgent[] }) {
           <AnimatePresence mode="wait">
             <motion.div key={view} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: tokens.fast, ease: tokens.standard }} className="min-w-0">
               {view === "cards" ? (
-                visible.length ? <div className={cn("grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2", showPanel ? "xl:grid-cols-2" : "xl:grid-cols-3")}><AnimatePresence>{visible.map((agent, index) => <AgentCard key={agent.id} agent={agent} index={index} selected={agent.id === selectedId} onSelect={() => setSelectedId(agent.id === selectedId ? null : agent.id)} />)}</AnimatePresence></div>
+                visible.length ? <div className={cn("grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2", showPanel ? "xl:grid-cols-2" : "xl:grid-cols-3")}><AnimatePresence>{shownAgents.map((agent, index) => <AgentCard key={agent.id} agent={agent} index={index} selected={agent.id === selectedId} onSelect={() => setSelectedId(agent.id === selectedId ? null : agent.id)} />)}</AnimatePresence></div>
                   : <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Ningún agente coincide.</p>
               ) : view === "list" ? (
-                <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border">{visible.map((agent) => <AgentRow key={agent.id} agent={agent} selected={agent.id === selectedId} onSelect={() => setSelectedId(agent.id === selectedId ? null : agent.id)} />)}</div>
+                <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border">{shownAgents.map((agent) => <AgentRow key={agent.id} agent={agent} selected={agent.id === selectedId} onSelect={() => setSelectedId(agent.id === selectedId ? null : agent.id)} />)}</div>
               ) : (
                 <OrgChart agents={agents} onSelect={(id) => setSelectedId(id === selectedId ? null : id)} selectedId={selectedId} />
               )}
+              {view !== "org" && visible.length > shownAgents.length ? <div className="mt-3 flex justify-center"><Button variant="outline" onClick={() => setShown((count) => count + (pageSize || 24))}>Cargar más · {visible.length - shownAgents.length} restantes</Button></div> : null}
             </motion.div>
           </AnimatePresence>
           <AnimatePresence mode="wait">
             {selected ? (
               <div key={selected.id} ref={panelRef} className="min-w-0 scroll-mt-4 lg:sticky lg:top-4 lg:self-start">
-                <AgentPanel agent={selected} onClose={() => setSelectedId(null)} onAutonomy={(level) => update(selected.id, { autonomy: level })} onTogglePause={() => update(selected.id, selected.status === "paused" ? { status: "idle" } : { status: "paused", task: null, progress: 0 })} />
+                <AgentPanel agent={selected} onClose={() => setSelectedId(null)} onAutonomy={(level) => update(selected.id, { autonomy: level })} onTogglePause={() => update(selected.id, selected.status === "paused" ? { status: "idle", pausedBy: undefined } : { status: "paused", pausedBy: "user", task: null, progress: 0 })}
+                  onRetry={selected.problem ? () => update(selected.id, { status: "running", problem: undefined, task: "Reenviando la tarea…", progress: 15 }) : undefined}
+                  onRaiseBudget={selected.pausedBy === "budget" ? () => update(selected.id, { budgetCents: selected.budgetCents + 2000, status: "idle", pausedBy: undefined }) : undefined} />
               </div>
             ) : null}
           </AnimatePresence>

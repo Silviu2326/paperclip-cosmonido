@@ -16,6 +16,10 @@ export interface DemoMessage {
   at: string;
 }
 
+export interface DemoDependency { identifier: string; title: string; status: IssueStatus; assignee: string | null }
+export interface DemoRun { agent: string; startedAt: string; step: string; stepIndex: number; steps: number; costCents: number; logs: string[] }
+export interface DemoReview { requestedBy: string; summary: string; checklist: { text: string; ok: boolean }[] }
+
 export interface DemoTask {
   id: string;
   identifier: string;
@@ -32,6 +36,12 @@ export interface DemoTask {
   description: string;
   result: { title: string; kind: "document" | "video" | "email" | "link"; note: string } | null;
   thread: DemoMessage[];
+  /** Tasks (or decisions) this one waits for. Real issues have blockers; shown here in the detail. */
+  blockedBy?: DemoDependency[];
+  /** Live execution of an agent on this task: current step, cost and the log tail. */
+  run?: DemoRun;
+  /** What the reviewer has to check before approving. */
+  review?: DemoReview;
 }
 
 export interface DemoProject {
@@ -45,15 +55,22 @@ export interface DemoProject {
   targetDate: string | null;
   /** Brand palette index (1–10) for the card accent. */
   color: number;
+  startDate?: string | null;
+  /** Budget for the project and what it has cost so far (proposal-only aggregate). */
+  budgetCents?: number;
+  spentCents?: number;
+  archived?: boolean;
 }
 
 export const DEMO_PROJECTS: DemoProject[] = [
-  { id: "pj1", name: "Redes Clínica Sonrisa", description: "Calendario mensual, publicaciones y campañas de la clínica.", status: "in_progress", customer: "Clínica Dental Sonrisa", lead: "Marta", agents: ["Marta", "Leo"], targetDate: "2026-11-30", color: 7 },
-  { id: "pj2", name: "Rediseño de portfolio", description: "Nueva web con proyectos, blog y SEO inicial.", status: "planned", customer: "Estudio Arquitectura Norte", lead: "Diego", agents: ["Diego"], targetDate: "2026-12-15", color: 2 },
-  { id: "pj3", name: "Instagram Yoga Bahía", description: "Vídeos y publicaciones semanales para la comunidad.", status: "in_progress", customer: "Yoga Bahía", lead: "Leo", agents: ["Leo", "Marta"], targetDate: "2026-11-20", color: 8 },
-  { id: "pj4", name: "Newsletter La Espiga", description: "Envío mensual a los 312 suscriptores.", status: "in_progress", customer: "Panadería La Espiga", lead: "Nora", agents: ["Nora"], targetDate: null, color: 10 },
-  { id: "pj5", name: "Curso online de Lucía", description: "Guion, grabación y edición del curso.", status: "backlog", customer: "Lucía Martín", lead: null, agents: [], targetDate: "2027-02-01", color: 3 },
-  { id: "pj6", name: "Procesos internos", description: "Plantillas, rutinas y mejoras del propio negocio.", status: "in_progress", customer: null, lead: "Marta", agents: ["Marta", "Diego"], targetDate: null, color: 5 },
+  { id: "pj1", name: "Redes Clínica Sonrisa", description: "Calendario mensual, publicaciones y campañas de la clínica.", status: "in_progress", customer: "Clínica Dental Sonrisa", lead: "Marta", agents: ["Marta", "Leo"], targetDate: "2026-11-30", color: 7, startDate: "2026-09-01", budgetCents: 90000, spentCents: 61200 },
+  { id: "pj2", name: "Rediseño de portfolio", description: "Nueva web con proyectos, blog y SEO inicial.", status: "planned", customer: "Estudio Arquitectura Norte", lead: "Diego", agents: ["Diego"], targetDate: "2026-12-15", color: 2, startDate: "2026-10-15", budgetCents: 60000, spentCents: 4800 },
+  { id: "pj3", name: "Instagram Yoga Bahía", description: "Vídeos y publicaciones semanales para la comunidad.", status: "in_progress", customer: "Yoga Bahía", lead: "Leo", agents: ["Leo", "Marta"], targetDate: "2026-11-20", color: 8, startDate: "2026-10-01", budgetCents: 40000, spentCents: 22100 },
+  { id: "pj4", name: "Newsletter La Espiga", description: "Envío mensual a los 312 suscriptores.", status: "in_progress", customer: "Panadería La Espiga", lead: "Nora", agents: ["Nora"], targetDate: null, color: 10, startDate: "2026-06-01", budgetCents: 12000, spentCents: 7300 },
+  { id: "pj5", name: "Curso online de Lucía", description: "Guion, grabación y edición del curso.", status: "backlog", customer: "Lucía Martín", lead: null, agents: [], targetDate: "2027-02-01", color: 3, startDate: "2026-12-01", budgetCents: 150000, spentCents: 0 },
+  { id: "pj6", name: "Procesos internos", description: "Plantillas, rutinas y mejoras del propio negocio.", status: "in_progress", customer: null, lead: "Marta", agents: ["Marta", "Diego"], targetDate: null, color: 5, startDate: "2026-01-10", budgetCents: 30000, spentCents: 17400 },
+  { id: "pj7", name: "Campaña de verano 2026", description: "Promoción de verano de la clínica. Cerrada y archivada.", status: "completed", customer: "Clínica Dental Sonrisa", lead: "Marta", agents: ["Marta"], targetDate: "2026-08-31", color: 4, startDate: "2026-06-15", budgetCents: 35000, spentCents: 31900, archived: true },
+  { id: "pj8", name: "Web antigua de La Espiga", description: "Sustituida por la nueva ficha de Google y la newsletter.", status: "cancelled", customer: "Panadería La Espiga", lead: null, agents: [], targetDate: null, color: 6, startDate: "2025-11-01", budgetCents: 20000, spentCents: 5200, archived: true },
 ];
 
 const msg = (id: string, from: string, fromKind: DemoMessage["fromKind"], text: string, at: string): DemoMessage => ({ id, from, fromKind, text, at });
@@ -68,6 +85,16 @@ export const DEMO_TASKS: DemoTask[] = [
       msg("m1", "Tú", "human", "Quiero que el primero sea el de blanqueamiento y que nombre a la Dra. Gómez.", "ayer 18:02"),
       msg("m2", "Marta", "agent", "Hecho. He ordenado: blanqueamiento, equipo, mitos de ortodoncia y promoción de revisión anual. ¿Los aprobamos juntos?", "hoy 07:10"),
     ],
+    review: {
+      requestedBy: "Marta",
+      summary: "4 publicaciones listas para programar el lunes 27 a las 10:00.",
+      checklist: [
+        { text: "El texto no promete resultados médicos", ok: true },
+        { text: "Aparece el nombre y cargo correctos de la Dra. Gómez", ok: true },
+        { text: "Las imágenes tienen permiso de uso de la clínica", ok: false },
+        { text: "Las fechas no chocan con la promoción de Black Friday", ok: true },
+      ],
+    },
   },
   {
     id: "t2", identifier: "PAP-418", title: "Propuesta de rediseño de portfolio", status: "blocked", priority: "high", assignee: "Diego", projectId: "pj2", customer: "Estudio Arquitectura Norte",
@@ -76,6 +103,10 @@ export const DEMO_TASKS: DemoTask[] = [
     result: null,
     thread: [
       msg("m3", "Diego", "agent", "Estoy bloqueado: necesito que elijas el precio (3.200, 3.800 o 4.500 €) antes de enviarla.", "hoy 06:40"),
+    ],
+    blockedBy: [
+      { identifier: "PAP-417", title: "Aprobar el alcance de la sesión de fotos", status: "in_review", assignee: "Leo" },
+      { identifier: "PAP-419", title: "Pedir el logotipo vectorial al cliente", status: "todo", assignee: "Diego" },
     ],
   },
   {
@@ -98,6 +129,17 @@ export const DEMO_TASKS: DemoTask[] = [
     description: "Carrusel de 8 diapositivas sobre hábitos de coaching.",
     result: null,
     thread: [msg("m6", "Marta", "agent", "Voy por la diapositiva 5. Te lo paso para revisar esta tarde.", "hoy 08:45")],
+    run: {
+      agent: "Marta", startedAt: "08:31", step: "Maquetando la diapositiva 5 de 8", stepIndex: 5, steps: 8, costCents: 38,
+      logs: [
+        "Leyendo el brief de Lucía y sus 3 últimos carruseles",
+        "Elegida la idea: «3 hábitos que sostienen un cambio»",
+        "Escrito el guion de las 8 diapositivas",
+        "Generadas las ilustraciones con la paleta de marca",
+        "Maquetadas las diapositivas 1 a 4",
+        "Maquetando la diapositiva 5: texto y contraste",
+      ],
+    },
   },
   {
     id: "t6", identifier: "PAP-423", title: "Ficha de Google y reseñas", status: "todo", priority: "medium", assignee: "Diego", projectId: null, customer: "Taller Mecánico Ruedas",

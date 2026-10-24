@@ -5,7 +5,7 @@
  * edits. Agents match home/demo-data.ts.
  */
 export type AppCategory = "Comunicación" | "Calendario" | "Redes sociales" | "Documentos" | "Anuncios" | "Pagos";
-export type AppState = "connected" | "attention" | "available";
+export type AppState = "connected" | "attention" | "available" | "pending";
 export type Access = "none" | "read" | "ask" | "write";
 
 export interface DemoPermission {
@@ -40,6 +40,11 @@ export interface DemoApp {
   permissions: DemoPermission[];
   /** Contextual entries that live under this app today. */
   related?: { label: string; text: string }[];
+  /** The last health check failed although the connection is still in use (a timeout, a 5xx…). */
+  check?: "failed";
+  checkError?: string;
+  /** A connection request waiting for an administrator. */
+  pending?: { approver: string; since: string };
 }
 
 const team = (levels: [Access, Access, Access, Access]): DemoPermission[] => [

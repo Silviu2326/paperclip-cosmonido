@@ -35,8 +35,11 @@ import {
   type DemoApp,
   type DemoPermission,
 } from "./demo-data";
+import { AppPrimaryAction, AppsBanners, appRules, type AppRules } from "./AppsStates";
+import type { AppsConfig } from "./scenarios";
 
-const STATE: Record<AppState, { label: string; color: string }> = {
+export const STATE: Record<AppState, { label: string; color: string }> = {
+  pending: { label: "Esperando aprobación", color: ACCENT.lilac },
   connected: { label: "Conectada", color: ACCENT.mint },
   attention: { label: "Necesita atención", color: ACCENT.yellow },
   available: { label: "Disponible", color: ACCENT.muted },
@@ -46,7 +49,7 @@ const ACCESS_COLOR: Record<Access, string> = { none: ACCENT.muted, read: ACCENT.
 const ACCESS_ORDER: Access[] = ["none", "read", "ask", "write"];
 
 /** Brand logo tile: third-party brand colour, same in light and dark. */
-function AppLogo({ app, size = "md" }: { app: Pick<DemoApp, "brand" | "letter" | "name">; size?: "sm" | "md" | "lg" }) {
+export function AppLogo({ app, size = "md" }: { app: Pick<DemoApp, "brand" | "letter" | "name">; size?: "sm" | "md" | "lg" }) {
   return (
     <span
       aria-hidden="true"
@@ -58,7 +61,9 @@ function AppLogo({ app, size = "md" }: { app: Pick<DemoApp, "brand" | "letter" |
   );
 }
 
-function AppCard({ app, index, selected, onOpen, onConnect }: { app: DemoApp; index: number; selected: boolean; onOpen: () => void; onConnect: () => void }) {
+export function AppCard({ app, index, selected, rules, onOpen, onConnect, onRequest, onRemind, onUpgrade }: {
+  app: DemoApp; index: number; selected: boolean; rules: AppRules; onOpen: () => void; onConnect: () => void; onRequest: () => void; onRemind: () => void; onUpgrade: () => void;
+}) {
   const tokens = useMotionTokens();
   const state = STATE[app.state];
   return (
@@ -75,30 +80,27 @@ function AppCard({ app, index, selected, onOpen, onConnect }: { app: DemoApp; in
       <div className="relative flex items-start gap-3">
         <AppLogo app={app} />
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold">{app.name}</h3>
+          <h3 className="truncate font-semibold" title={app.name}>{app.name}</h3>
           <p className="line-clamp-2 text-xs text-muted-foreground">{app.tagline}</p>
         </div>
       </div>
       <div className="relative flex flex-wrap items-center gap-1.5">
         <Pill color={state.color}>{app.state === "connected" ? <Check className="h-3 w-3" /> : app.state === "attention" ? <CircleAlert className="h-3 w-3" /> : null}{state.label}</Pill>
+        {app.check === "failed" ? <Pill color={ACCENT.yellow}><CircleAlert className="h-3 w-3" />Sin comprobar</Pill> : null}
         {app.usedBy ? <span className="text-xs text-muted-foreground">{app.usedBy} {app.usedBy === 1 ? "agente" : "agentes"}</span> : null}
       </div>
-      {app.attention ? <p className="relative rounded-lg px-2.5 py-1.5 text-xs" style={{ background: tint(ACCENT.yellow, 20) }}>{app.attention}</p> : null}
-      <div className="relative mt-auto flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-xs text-muted-foreground">{app.account ?? app.category}</span>
-        {app.state === "available" ? (
-          <Button size="sm" onClick={onConnect} style={{ background: app.brand, color: ink(app.brand) }}><Plug className="h-3.5 w-3.5" />Conectar</Button>
-        ) : app.state === "attention" ? (
-          <Button size="sm" onClick={onConnect} style={{ background: ACCENT.yellow, color: ink(ACCENT.yellow) }}><RefreshCw className="h-3.5 w-3.5" />Reconectar</Button>
-        ) : (
-          <Button size="sm" variant="outline" onClick={onOpen}>Gestionar<ArrowRight className="h-3.5 w-3.5" /></Button>
-        )}
+      {app.attention ? <p className="relative rounded-lg px-2.5 py-1.5 text-xs" style={{ background: tint(ACCENT.yellow, 20) }} title={app.attention}><span className="line-clamp-3">{app.attention}</span></p> : null}
+      {app.check === "failed" && app.checkError ? <p className="relative rounded-lg px-2.5 py-1.5 text-xs" style={{ background: tint(ACCENT.yellow, 14) }} title={app.checkError}><span className="line-clamp-2">{app.checkError}</span></p> : null}
+      {app.pending ? <p className="relative rounded-lg px-2.5 py-1.5 text-xs" style={{ background: tint(ACCENT.lilac, 16) }}>Esperando a {app.pending.approver} desde {app.pending.since}.</p> : null}
+      <div className="relative mt-auto flex min-w-0 items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={app.account ?? app.category}>{app.account ?? app.category}</span>
+        <AppPrimaryAction app={app} rules={rules} onOpen={onOpen} onConnect={onConnect} onRequest={onRequest} onRemind={onRemind} onUpgrade={onUpgrade} />
       </div>
     </motion.article>
   );
 }
 
-function ConnectDialog({ app, onClose, onDone }: { app: DemoApp | null; onClose: () => void; onDone: (app: DemoApp, account: string) => void }) {
+export function ConnectDialog({ app, onClose, onDone }: { app: DemoApp | null; onClose: () => void; onDone: (app: DemoApp, account: string) => void }) {
   const tokens = useMotionTokens();
   const [step, setStep] = useState(0);
   const [key, setKey] = useState("");
@@ -222,13 +224,13 @@ function ConnectDialog({ app, onClose, onDone }: { app: DemoApp | null; onClose:
   );
 }
 
-function AccessPicker({ value, onChange, label }: { value: Access; onChange: (value: Access) => void; label: string }) {
+function AccessPicker({ value, onChange, label, disabled = false }: { value: Access; onChange: (value: Access) => void; label: string; disabled?: boolean }) {
   const tokens = useMotionTokens();
   return (
     <LayoutGroup id={`access-${label}`}>
       <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
         {ACCESS_ORDER.map((level) => (
-          <button key={level} type="button" role="radio" aria-checked={value === level} onClick={() => onChange(level)} className={cn("relative rounded-md px-2 py-1 text-xs transition-colors duration-(--motion-duration-fast)", value === level ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}>
+          <button key={level} type="button" role="radio" disabled={disabled} aria-checked={value === level} onClick={() => onChange(level)} className={cn("relative rounded-md px-2 py-1 text-xs transition-colors duration-(--motion-duration-fast) disabled:cursor-not-allowed", disabled && value !== level && "opacity-50", value === level ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}>
             {value === level ? <motion.span layoutId={`access-pill-${label}`} className="absolute inset-0 rounded-md" style={{ background: tint(ACCESS_COLOR[level], 34) }} transition={{ duration: tokens.base, ease: tokens.easeOut }} /> : null}
             <span className="relative">{ACCESS_LABEL[level]}</span>
           </button>
@@ -238,30 +240,32 @@ function AccessPicker({ value, onChange, label }: { value: Access; onChange: (va
   );
 }
 
-function AppDetail({ app, onBack, onUpdate, onDisconnect, onReconnect }: { app: DemoApp; onBack: () => void; onUpdate: (patch: Partial<DemoApp>) => void; onDisconnect: () => void; onReconnect: () => void }) {
+export function AppDetail({ app, onBack, onUpdate, onDisconnect, onReconnect, readOnly = false, backLabel = "Todas las apps" }: { app: DemoApp; onBack: () => void; onUpdate: (patch: Partial<DemoApp>) => void; onDisconnect: () => void; onReconnect: () => void; readOnly?: boolean; backLabel?: string }) {
   const tokens = useMotionTokens();
   const state = STATE[app.state];
   const [checking, setChecking] = useState(false);
   const setAccess = (agent: string, access: Access) => onUpdate({ permissions: app.permissions.map((permission: DemoPermission) => permission.agent === agent ? { ...permission, access } : permission), usedBy: app.permissions.filter((permission) => (permission.agent === agent ? access : permission.access) !== "none").length });
   return (
     <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: tokens.base, ease: tokens.easeOut }} className="flex min-w-0 flex-col gap-4">
-      <Button variant="ghost" size="sm" className="self-start" onClick={onBack}><ArrowLeft className="h-4 w-4" />Todas las apps</Button>
+      <Button variant="ghost" size="sm" className="self-start" onClick={onBack}><ArrowLeft className="h-4 w-4" />{backLabel}</Button>
       <div className="relative overflow-hidden rounded-2xl border border-border p-5" style={{ background: `linear-gradient(135deg, ${tint(app.brand, 22)}, transparent 65%)` }}>
         <div className="flex flex-wrap items-center gap-4">
           <AppLogo app={app} size="lg" />
           <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-semibold">{app.name}</h2>
-            <p className="text-sm text-muted-foreground">{app.account} · {app.authKind === "oauth" ? "Inicio de sesión seguro" : "Clave de API"}</p>
+            <h2 className="break-words text-xl font-semibold">{app.name}</h2>
+            <p className="break-all text-sm text-muted-foreground">{app.account} · {app.authKind === "oauth" ? "Inicio de sesión seguro" : "Clave de API"}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2"><Pill color={state.color} strong={app.state === "attention"}>{state.label}</Pill><span className="text-xs text-muted-foreground">Última comprobación: {app.lastCheck}</span></div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" disabled={checking} onClick={() => { setChecking(true); window.setTimeout(() => { setChecking(false); onUpdate({ lastCheck: "ahora mismo" }); }, 900); }}>
+            <Button variant="outline" size="sm" disabled={checking} onClick={() => { setChecking(true); window.setTimeout(() => { setChecking(false); onUpdate({ lastCheck: "ahora mismo", check: undefined, checkError: undefined }); }, 900); }}>
               <RefreshCw className={cn("h-3.5 w-3.5", checking && "animate-spin")} />{checking ? "Comprobando…" : "Comprobar ahora"}
             </Button>
-            {app.state === "attention" ? <Button size="sm" onClick={onReconnect} style={{ background: ACCENT.yellow, color: ink(ACCENT.yellow) }}>Reconectar</Button> : null}
+            {app.state === "attention" && !readOnly ? <Button size="sm" onClick={onReconnect} style={{ background: ACCENT.yellow, color: ink(ACCENT.yellow) }}>Reconectar</Button> : null}
           </div>
         </div>
         {app.attention ? <p className="mt-4 flex items-start gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.yellow, 24) }}><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />{app.attention}</p> : null}
+        {app.check === "failed" ? <p role="alert" className="mt-4 flex items-start gap-2 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.yellow, 18) }}><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span><strong>La última comprobación falló.</strong> {app.checkError} Última comprobación correcta: {app.lastCheck}.</span></p> : null}
+        {readOnly ? <p className="mt-4 rounded-xl p-3 text-sm" style={{ background: tint(ACCENT.sky, 16) }}>Solo un administrador puede cambiar permisos o reconectar esta app.</p> : null}
       </div>
 
       <Panel>
@@ -272,7 +276,7 @@ function AppDetail({ app, onBack, onUpdate, onDisconnect, onReconnect }: { app: 
             <div key={permission.agent} className="flex flex-wrap items-center gap-3 py-2.5">
               <Avatar name={permission.agent} size="sm" />
               <div className="min-w-0 flex-1"><p className="text-sm font-medium">{permission.agent}</p><p className="truncate text-xs text-muted-foreground">{permission.role}</p></div>
-              <AccessPicker label={`${app.id}-${permission.agent}`} value={permission.access} onChange={(access) => setAccess(permission.agent, access)} />
+              <AccessPicker label={`${app.id}-${permission.agent}`} value={permission.access} disabled={readOnly} onChange={(access) => setAccess(permission.agent, access)} />
             </div>
           ))}
         </div>
@@ -298,7 +302,7 @@ function AppDetail({ app, onBack, onUpdate, onDisconnect, onReconnect }: { app: 
             </button>
           )) : <p className="text-sm text-muted-foreground">Nada más ligado a esta app.</p>}
           <div className="mt-auto border-t border-border pt-3">
-            <Button variant="ghost" size="sm" onClick={onDisconnect} style={{ color: readable(ACCENT.risk) }}><Unplug className="h-3.5 w-3.5" />Desconectar {app.name}</Button>
+            <Button variant="ghost" size="sm" disabled={readOnly} onClick={onDisconnect} style={readOnly ? undefined : { color: readable(ACCENT.risk) }}><Unplug className="h-3.5 w-3.5" />Desconectar</Button>
           </div>
         </Panel>
       </div>
@@ -306,7 +310,7 @@ function AppDetail({ app, onBack, onUpdate, onDisconnect, onReconnect }: { app: 
   );
 }
 
-function EmptyApps({ onBrowse }: { onBrowse: () => void }) {
+export function EmptyApps({ onBrowse }: { onBrowse: () => void }) {
   const tokens = useMotionTokens();
   const ideas = [
     { name: "Gmail", text: "Que tu equipo lea y prepare correos.", brand: "#EA4335", letter: "G" },
@@ -334,9 +338,12 @@ function EmptyApps({ onBrowse }: { onBrowse: () => void }) {
 }
 
 /** Apps: connection catalog with states, a stepped connect dialog and a connection detail with per-agent permissions. */
-export function AppsProposal({ apps: initialApps, hasConnections = true }: { apps: DemoApp[]; hasConnections?: boolean }) {
+export function AppsProposal({ apps: initialApps, hasConnections = true, config }: { apps: DemoApp[]; hasConnections?: boolean; config?: AppsConfig }) {
   const tokens = useMotionTokens();
   const [apps, setApps] = useState(initialApps);
+  const [limit, setLimit] = useState(24);
+  const cfg: AppsConfig = config ?? { scenario: "normal", apps: initialApps, readOnly: false, hasConnections, plan: null };
+  const rules = appRules(cfg, apps);
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("Todas");
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -347,10 +354,23 @@ export function AppsProposal({ apps: initialApps, hasConnections = true }: { app
   const needle = query.trim().toLowerCase();
   const filtered = useMemo(() => apps.filter((app) => (category === "Todas" || app.category === category) && (!needle || `${app.name} ${app.tagline}`.toLowerCase().includes(needle))), [apps, category, needle]);
   const attention = apps.filter((app) => app.state === "attention");
-  const connected = filtered.filter((app) => app.state !== "available");
-  const available = filtered.filter((app) => app.state === "available");
+  const connected = filtered.filter((app) => app.state === "connected" || app.state === "attention");
+  const waiting = filtered.filter((app) => app.state === "pending");
+  const availableAll = filtered.filter((app) => app.state === "available");
+  const available = availableAll.slice(0, limit);
   const open = apps.find((app) => app.id === openId) ?? null;
   const update = (id: string, patch: Partial<DemoApp>) => setApps((current) => current.map((app) => app.id === id ? { ...app, ...patch } : app));
+
+  function say(text: string) {
+    setToast(text);
+    window.setTimeout(() => setToast(null), 4000);
+  }
+  const rulesActions = {
+    onRequest: (app: DemoApp) => say(`Pedido enviado a los administradores: conectar ${app.name}.`),
+    onRemind: (app: DemoApp) => say(`Le hemos recordado a ${app.pending?.approver.split(" (")[0] ?? "un administrador"} la solicitud de ${app.name}.`),
+    onUpgrade: () => say("Los planes se cambian en Ajustes → Facturación."),
+    onCheck: (app: DemoApp) => { update(app.id, { check: undefined, checkError: undefined, lastCheck: "ahora mismo" }); say(`${app.name} comprobada: todo en orden.`); },
+  };
 
   function finishConnect(app: DemoApp, account: string) {
     update(app.id, { state: "connected", account, attention: null, lastCheck: "ahora mismo", usedBy: app.usedBy || 1, permissions: app.permissions.map((permission, index) => index === 0 ? { ...permission, access: permission.access === "none" ? "ask" : permission.access } : permission) });
@@ -366,26 +386,27 @@ export function AppsProposal({ apps: initialApps, hasConnections = true }: { app
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Apps</h1>
-          <p className="text-sm text-muted-foreground">{hasConnections || apps.some((app) => app.state !== "available") ? `${apps.filter((app) => app.state !== "available").length} conectadas · ${attention.length ? `${attention.length} necesita atención` : "todo en orden"}` : "Aún no hay nada conectado"}</p>
+          <p className="text-sm text-muted-foreground">{hasConnections || apps.some((app) => app.state !== "available") ? `${rules.used} conectadas · ${attention.length ? `${attention.length} ${attention.length === 1 ? "necesita" : "necesitan"} atención` : "todo en orden"}` : "Aún no hay nada conectado"}</p>
         </div>
       </header>
 
       <AnimatePresence mode="wait" initial={false}>
         {open ? (
-          <AppDetail key={open.id} app={open} onBack={() => setOpenId(null)} onUpdate={(patch) => update(open.id, patch)} onReconnect={() => setConnecting(open)}
+          <AppDetail key={open.id} app={open} readOnly={rules.readOnly} onBack={() => setOpenId(null)} onUpdate={(patch) => update(open.id, patch)} onReconnect={() => setConnecting(open)}
             onDisconnect={() => { update(open.id, { state: "available", account: null, lastCheck: null, attention: null, usedBy: 0 }); setOpenId(null); setToast(`${open.name} desconectada.`); window.setTimeout(() => setToast(null), 3500); }} />
         ) : !browsing ? (
           <motion.div key="empty" exit={{ opacity: 0 }}><EmptyApps onBrowse={() => setBrowsing(true)} /></motion.div>
         ) : (
           <motion.div key="catalog" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: tokens.fast, ease: tokens.standard }} className="flex min-w-0 flex-col gap-5">
+            <AppsBanners rules={rules} apps={apps} onRemind={rulesActions.onRemind} onCheck={rulesActions.onCheck} onUpgrade={rulesActions.onUpgrade} />
             <AnimatePresence>
               {attention.length ? (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: tokens.base, ease: tokens.easeOut }} className="overflow-hidden">
                   {attention.map((app) => (
                     <div key={app.id} className="flex flex-wrap items-center gap-3 rounded-2xl p-3" style={{ background: `linear-gradient(90deg, ${tint(ACCENT.yellow, 26)}, ${tint(ACCENT.yellow, 8)})` }}>
                       <AppLogo app={app} size="sm" />
-                      <p className="min-w-0 flex-1 text-sm"><strong>{app.name}</strong> necesita que vuelvas a conectarla. {app.attention}</p>
-                      <Button size="sm" onClick={() => setConnecting(app)} style={{ background: ACCENT.yellow, color: ink(ACCENT.yellow) }}><RefreshCw className="h-3.5 w-3.5" />Reconectar</Button>
+                      <p className="min-w-0 flex-1 text-sm"><strong>{app.name.length > 40 ? `${app.name.slice(0, 40)}…` : app.name}</strong> necesita que vuelvas a conectarla. <span className="line-clamp-2">{app.attention}</span></p>
+                      {rules.readOnly ? null : <Button size="sm" onClick={() => setConnecting(app)} style={{ background: ACCENT.yellow, color: ink(ACCENT.yellow) }}><RefreshCw className="h-3.5 w-3.5" />Reconectar</Button>}
                     </div>
                   ))}
                 </motion.div>
@@ -413,19 +434,28 @@ export function AppsProposal({ apps: initialApps, hasConnections = true }: { app
               <section className="flex min-w-0 flex-col gap-3">
                 <SectionTitle color={ACCENT.mint} icon={CheckCircle2}>Tus apps</SectionTitle>
                 <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  <AnimatePresence mode="popLayout">{connected.map((app, index) => <AppCard key={app.id} app={app} index={index} selected={false} onOpen={() => setOpenId(app.id)} onConnect={() => setConnecting(app)} />)}</AnimatePresence>
+                  <AnimatePresence mode="popLayout">{connected.map((app, index) => <AppCard key={app.id} app={app} index={index} selected={false} rules={rules} onOpen={() => setOpenId(app.id)} onConnect={() => setConnecting(app)} onRequest={() => rulesActions.onRequest(app)} onRemind={() => rulesActions.onRemind(app)} onUpgrade={rulesActions.onUpgrade} />)}</AnimatePresence>
+                </div>
+              </section>
+            ) : null}
+            {waiting.length ? (
+              <section className="flex min-w-0 flex-col gap-3">
+                <SectionTitle color={ACCENT.lilac} icon={Plug}>Esperando aprobación</SectionTitle>
+                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {waiting.map((app, index) => <AppCard key={app.id} app={app} index={index} selected={false} rules={rules} onOpen={() => setOpenId(app.id)} onConnect={() => setConnecting(app)} onRequest={() => rulesActions.onRequest(app)} onRemind={() => rulesActions.onRemind(app)} onUpgrade={rulesActions.onUpgrade} />)}
                 </div>
               </section>
             ) : null}
             {available.length ? (
               <section className="flex min-w-0 flex-col gap-3">
-                <SectionTitle color={ACCENT.muted} icon={Plug}>Disponibles para conectar</SectionTitle>
+                <SectionTitle color={ACCENT.muted} icon={Plug}>Disponibles para conectar <span className="text-xs font-normal text-muted-foreground">{availableAll.length}</span></SectionTitle>
                 <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  <AnimatePresence mode="popLayout">{available.map((app, index) => <AppCard key={app.id} app={app} index={index} selected={false} onOpen={() => setOpenId(app.id)} onConnect={() => setConnecting(app)} />)}</AnimatePresence>
+                  <AnimatePresence mode="popLayout">{available.map((app, index) => <AppCard key={app.id} app={app} index={index} selected={false} rules={rules} onOpen={() => setOpenId(app.id)} onConnect={() => setConnecting(app)} onRequest={() => rulesActions.onRequest(app)} onRemind={() => rulesActions.onRemind(app)} onUpgrade={rulesActions.onUpgrade} />)}</AnimatePresence>
                 </div>
+                {availableAll.length > available.length ? <Button variant="outline" className="self-center" onClick={() => setLimit(limit + 24)}>Mostrar {Math.min(24, availableAll.length - available.length)} más · quedan {availableAll.length - available.length}</Button> : null}
               </section>
             ) : null}
-            {!connected.length && !available.length ? <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Ninguna app coincide con la búsqueda.</p> : null}
+            {!connected.length && !available.length && !waiting.length ? <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Ninguna app coincide con la búsqueda.</p> : null}
 
             <section className="flex min-w-0 flex-col gap-3">
               <SectionTitle color={ACCENT.lilac} icon={Webhook}>Canales y sincronización</SectionTitle>
