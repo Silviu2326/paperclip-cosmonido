@@ -10,8 +10,8 @@ import {
 
 /**
  * Scenarios for the Archivos proposal. One config object drives every state
- * (loading, error, huge folder, read-only, uploads…) so the three layout
- * variants render the same situations without copying components.
+ * (loading, error, huge folder, read-only, uploads…) so the explorer renders
+ * every situation without copying components.
  */
 export type FilesScenario =
   | "normal"

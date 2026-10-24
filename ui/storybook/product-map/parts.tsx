@@ -41,7 +41,7 @@ export function Avatar({ name, size = "md", ring }: { name: string; size?: "xs" 
         boxShadow: ring ? `0 0 0 2px var(--background), 0 0 0 4px ${ring}` : undefined,
       }}
     >
-      {initials(name)}
+      {size === "xs" ? initials(name).slice(0, 1) : initials(name)}
     </span>
   );
 }

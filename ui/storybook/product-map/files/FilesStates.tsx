@@ -27,42 +27,27 @@ function Bone({ className, delay = 0 }: { className?: string; delay?: number }) 
   );
 }
 
-export type FilesVariantId = "a" | "b" | "c";
-
-/** Loading state shaped like the layout it replaces, so nothing jumps when data arrives. */
-export function FilesSkeleton({ variant = "a" }: { variant?: FilesVariantId }) {
+/** Loading state shaped like the explorer it replaces, so nothing jumps when data arrives. */
+export function FilesSkeleton() {
   return (
-    <div role="status" aria-label="Cargando archivos" className="flex min-w-0 flex-col gap-5 overflow-x-hidden p-4 sm:p-6">
+    <div role="status" aria-label="Cargando archivos" className="flex min-w-0 flex-col gap-4 overflow-x-hidden p-4 sm:p-6">
       <div className="flex items-end justify-between gap-4">
         <div className="flex flex-col gap-2"><Bone className="h-7 w-40" /><Bone className="h-4 w-56" delay={0.1} /></div>
         <Bone className="h-9 w-36" />
       </div>
-      {variant === "b" ? (
-        <div className="flex flex-col gap-4">
-          <div className="flex gap-2">{[0, 1, 2, 3].map((index) => <Bone key={index} className="h-7 w-20 rounded-full" delay={index * 0.08} />)}</div>
-          <Bone className="h-72 w-full rounded-2xl sm:h-96" />
-          <div className="flex gap-2 overflow-hidden">{Array.from({ length: 10 }, (_, index) => <Bone key={index} className="h-16 w-20 shrink-0" delay={index * 0.06} />)}</div>
-        </div>
-      ) : variant === "c" ? (
-        <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }, (_, index) => (
-            <div key={index} className="flex flex-col gap-3 rounded-2xl border border-border p-4">
-              <div className="flex items-center gap-3"><Bone className="h-10 w-10" delay={index * 0.07} /><div className="flex flex-1 flex-col gap-2"><Bone className="h-4 w-3/4" delay={index * 0.07} /><Bone className="h-3 w-1/2" delay={index * 0.07 + 0.1} /></div></div>
-              <Bone className="h-3 w-full" delay={index * 0.07 + 0.2} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="grid min-w-0 gap-4 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)_minmax(0,320px)]">
-          <div className="flex flex-col gap-2 rounded-2xl border border-border p-3">{Array.from({ length: 7 }, (_, index) => <Bone key={index} className="h-6" delay={index * 0.07} />)}</div>
-          <div className="grid min-w-0 grid-cols-2 gap-3 xl:grid-cols-3">
-            {Array.from({ length: 6 }, (_, index) => (
-              <div key={index} className="flex flex-col gap-2 rounded-2xl border border-border p-2.5"><Bone className="h-28" delay={index * 0.07} /><Bone className="h-4 w-3/4" delay={index * 0.07 + 0.1} /><Bone className="h-3 w-1/2" delay={index * 0.07 + 0.2} /></div>
+      <div className="grid grid-cols-2 gap-2"><Bone className="h-16 rounded-2xl" /><Bone className="h-16 rounded-2xl" delay={0.1} /></div>
+      <div className="grid min-w-0 gap-4 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,1fr)_minmax(0,320px)]">
+        <div className="hidden flex-col gap-2 rounded-2xl border border-border p-3 md:flex">{Array.from({ length: 8 }, (_, index) => <Bone key={index} className="h-6" delay={index * 0.07} />)}</div>
+        <div className="flex min-w-0 flex-col gap-2.5">
+          <div className="flex gap-2"><Bone className="h-9 w-24" /><Bone className="h-9 flex-1" delay={0.1} /><Bone className="h-9 w-40" delay={0.2} /></div>
+          <div className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border">
+            {Array.from({ length: 9 }, (_, index) => (
+              <div key={index} className="flex items-center gap-3 px-3 py-2.5"><Bone className="h-8 w-8" delay={index * 0.06} /><Bone className="h-4 flex-1" delay={index * 0.06 + 0.1} /><Bone className="hidden h-4 w-24 sm:block" delay={index * 0.06 + 0.15} /><Bone className="h-4 w-16" delay={index * 0.06 + 0.2} /></div>
             ))}
           </div>
-          <div className="hidden flex-col gap-3 rounded-2xl border border-border p-4 lg:flex"><Bone className="h-5 w-3/4" /><Bone className="h-40" delay={0.1} /><Bone className="h-4" delay={0.2} /><Bone className="h-4 w-2/3" delay={0.3} /></div>
         </div>
-      )}
+        <div className="hidden flex-col gap-3 rounded-2xl border border-border p-4 lg:flex"><Bone className="h-5 w-3/4" /><Bone className="h-40" delay={0.1} /><Bone className="h-4" delay={0.2} /><Bone className="h-4 w-2/3" delay={0.3} /></div>
+      </div>
     </div>
   );
 }
