@@ -56,19 +56,19 @@ export interface DemoConversation {
 
 export const DEMO_AGENTS: DemoAgent[] = [
   {
-    id: "a-ceo", name: "Lucía", role: "Directora de operaciones", color: 7, status: "needs-you", starred: true, unread: 1,
+    id: "a-ceo", name: "Diego", role: "Agente comercial", color: 7, status: "needs-you", starred: true, unread: 1,
     lastMessage: "Necesito tu OK para enviar la propuesta a Clínica Sonrisa.", lastAt: "hace 4 min",
   },
   {
-    id: "a-content", name: "Marcos", role: "Responsable de contenido", color: 8, status: "working", starred: true, unread: 0,
+    id: "a-content", name: "Marta", role: "Agente de cuentas", color: 8, status: "working", starred: true, unread: 0,
     doing: "Escribiendo el calendario de octubre", lastMessage: "Voy por el post 9 de 12.", lastAt: "hace 1 min",
   },
   {
-    id: "a-accounts", name: "Marta", role: "Cuentas y clientes", color: 2, status: "idle", unread: 0,
+    id: "a-accounts", name: "Nora", role: "Agente de email", color: 2, status: "idle", unread: 0,
     lastMessage: "Dejé el resumen semanal en Archivos.", lastAt: "ayer",
   },
   {
-    id: "a-design", name: "Nico", role: "Diseño y vídeo", color: 10, status: "working", unread: 2,
+    id: "a-design", name: "Leo", role: "Editor de vídeo", color: 10, status: "working", unread: 2,
     doing: "Renderizando el reel de Pastelería Lola", lastMessage: "Primer corte listo para revisar.", lastAt: "hace 12 min",
   },
   {
@@ -76,7 +76,7 @@ export const DEMO_AGENTS: DemoAgent[] = [
     lastMessage: "Pausado: falta el IBAN de Taller Norte.", lastAt: "hace 2 días",
   },
   {
-    id: "a-research", name: "Irene", role: "Investigación de mercado", color: 3, status: "idle", unread: 0,
+    id: "a-research", name: "Iris", role: "Investigadora", color: 3, status: "idle", unread: 0,
     lastMessage: "El informe de competencia está terminado.", lastAt: "hace 3 días",
   },
 ];
@@ -86,7 +86,7 @@ export const DEMO_CONVERSATIONS: Record<string, DemoConversation> = {
     agentId: "a-ceo",
     suggestions: ["¿Cómo va la semana?", "Prepara el resumen para el cliente", "¿Qué necesita mi decisión?"],
     messages: [
-      { id: "m1", kind: "text", from: "user", text: "Lucía, ¿cómo vamos con la propuesta para la clínica?", at: "10:02" },
+      { id: "m1", kind: "text", from: "user", text: "Diego, ¿cómo vamos con la propuesta para la clínica?", at: "10:02" },
       { id: "m2", kind: "text", from: "agent", text: "Está casi lista. He juntado el alcance (redes + newsletter), tres opciones de precio y el calendario del primer mes. Solo falta tu visto bueno.", at: "10:03" },
       { id: "m3", kind: "task", title: "Redactar propuesta para Clínica Dental Sonrisa", identifier: "PAP-142", status: "in_review", at: "10:03" },
       { id: "m4", kind: "deliverable", title: "Propuesta Clínica Sonrisa v2", fileKind: "doc", meta: "Documento · 4 páginas", at: "10:04" },

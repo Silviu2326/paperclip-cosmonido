@@ -10,6 +10,8 @@ import {
   FileText,
   Film,
   Image as ImageIcon,
+  ChevronDown,
+  Paperclip,
   ListChecks,
   Loader2,
   MessageCircle,
@@ -412,15 +414,23 @@ function Greeting({ agent, suggestions, onPick }: { agent: DemoAgent; suggestion
   );
 }
 
+const DEMO_ATTACHMENTS = ["Brief-clinica.pdf", "Logo-sonrisa.png", "Tarifas-2026.xlsx"];
+
 function Conversation({
   agent,
   conversation,
   onBack,
+  agents,
+  onSwitch,
 }: {
   agent: DemoAgent;
   conversation: DemoConversation;
   onBack: () => void;
+  agents: DemoAgent[];
+  onSwitch: (id: string) => void;
 }) {
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [messages, setMessages] = useState<DemoMessage[]>(conversation.messages);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
@@ -435,8 +445,11 @@ function Conversation({
   const send = (text: string) => {
     const value = text.trim();
     if (!value) return;
+    const files = attachments;
+    setAttachments([]);
     const now = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
-    setMessages((current) => [...current, { id: `u${current.length}`, kind: "text", from: "user", text: value, at: now }]);
+    setMessages((current) => [...current, { id: `u${current.length}`, kind: "text", from: "user", text: files.length ? `${value}
+📎 ${files.join(" · ")}` : value, at: now }]);
     setDraft("");
     setTyping(true);
     window.setTimeout(() => {
@@ -502,9 +515,47 @@ function Conversation({
             ))}
           </div>
           <form
-            className="flex items-end gap-2 rounded-2xl border border-border p-2 transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30"
+            className="flex flex-col gap-2 rounded-2xl border border-border p-2 transition-colors duration-(--motion-duration-fast) focus-within:border-foreground/30"
             onSubmit={(event) => { event.preventDefault(); send(draft); }}
           >
+            <div className="relative flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Para:</span>
+              <button type="button" aria-haspopup="listbox" aria-expanded={pickerOpen} onClick={() => setPickerOpen(!pickerOpen)} className="flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-xs transition-colors duration-(--motion-duration-fast) hover:bg-accent/50">
+                <span aria-hidden="true" className="h-4 w-4 rounded-full" style={{ background: `linear-gradient(135deg, ${BRAND(agent.color, "a")}, ${BRAND(agent.color, "b")})` }} />
+                {agent.name}<ChevronDown className="h-3 w-3" />
+              </button>
+              <AnimatePresence>
+                {pickerOpen ? (
+                  <motion.ul role="listbox" aria-label="Elegir agente" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="absolute bottom-full left-8 z-20 mb-1 flex w-56 flex-col rounded-xl border border-border bg-background p-1 shadow-lg">
+                    {agents.map((candidate) => (
+                      <li key={candidate.id}>
+                        <button type="button" role="option" aria-selected={candidate.id === agent.id} onClick={() => { setPickerOpen(false); if (candidate.id !== agent.id) onSwitch(candidate.id); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors duration-(--motion-duration-fast) hover:bg-accent/60">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold text-white" style={{ background: `linear-gradient(135deg, ${BRAND(candidate.color, "a")}, ${BRAND(candidate.color, "b")})` }}>{candidate.name[0]}</span>
+                          <span className="min-w-0 flex-1"><span className="block truncate">{candidate.name}</span><span className="block truncate text-xs text-muted-foreground">{candidate.role}</span></span>
+                          {candidate.id === agent.id ? <Check className="h-3.5 w-3.5" /> : null}
+                        </button>
+                      </li>
+                    ))}
+                  </motion.ul>
+                ) : null}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence initial={false}>
+              {attachments.length ? (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: tokens.base, ease: tokens.easeOut }} className="flex flex-wrap gap-1.5 overflow-hidden">
+                  {attachments.map((file) => (
+                    <motion.span key={file} layout initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }} transition={{ duration: tokens.fast, ease: tokens.easeOut }} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs" style={{ background: tint(SKY, 22), color: readable(SKY) }}>
+                      <FileText className="h-3.5 w-3.5" />{file}
+                      <button type="button" aria-label={`Quitar ${file}`} onClick={() => setAttachments(attachments.filter((item) => item !== file))}><X className="h-3 w-3" /></button>
+                    </motion.span>
+                  ))}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+            <div className="flex items-end gap-2">
+            <Button type="button" size="icon" variant="ghost" aria-label="Adjuntar archivo" onClick={() => setAttachments((current) => { const next = DEMO_ATTACHMENTS.find((file) => !current.includes(file)); return next ? [...current, next] : current; })}>
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <textarea
               aria-label={`Mensaje para ${agent.name}`}
               rows={1}
@@ -517,6 +568,7 @@ function Conversation({
             <Button type="submit" size="icon" aria-label="Enviar" disabled={!draft.trim()} style={draft.trim() ? { background: SKY, color: ink(SKY) } : undefined}>
               <ArrowUp className="h-4 w-4" />
             </Button>
+            </div>
           </form>
         </footer>
       </div>
@@ -574,7 +626,7 @@ export function ChatProposal({
     <div className="flex h-dvh min-h-0">
       <Roster agents={agents} selectedId={selectedId} onSelect={setSelectedId} className={cn("w-full lg:w-80 lg:shrink-0", selected ? "max-lg:hidden" : "")} />
       {selected && conversation ? (
-        <Conversation key={selected.id} agent={selected} conversation={conversation} onBack={() => setSelectedId(null)} />
+        <Conversation key={selected.id} agent={selected} conversation={conversation} onBack={() => setSelectedId(null)} agents={agents} onSwitch={setSelectedId} />
       ) : (
         <NoSelection />
       )}
