@@ -3,6 +3,7 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
   AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   Building2,
   CalendarClock,
   CheckCircle2,
@@ -85,14 +86,19 @@ export function Pill({ color, children, strong = false }: { color: string; child
 }
 
 /** Summary card: accent-tinted border and glow, a small colour tab on top, and the unit set apart from the number. */
-export function Stat({ label, value, unit, hint, color, icon: Icon, index }: { label: string; value: string; unit?: string; hint: string; color: string; icon: typeof Users; index: number }) {
+export function Stat({ label, value, unit, hint, color, icon: Icon, index, onOpen, openLabel }: { label: string; value: string; unit?: string; hint: string; color: string; icon: typeof Users; index: number; onOpen?: () => void; openLabel?: string }) {
   const tokens = useMotionTokens();
+  const Card = onOpen ? motion.button : motion.div;
   return (
-    <motion.div
+    <Card
+      {...(onOpen ? { type: "button" as const, onClick: onOpen, "aria-label": `${openLabel ?? label}: ${value}${unit ? ` ${unit}` : ""}` } : {})}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: tokens.base, ease: tokens.easeOut, delay: index * tokens.stagger }}
-      className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-4"
+      className={cn(
+        "group relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-4 text-left",
+        onOpen && "cursor-pointer transition-shadow duration-(--motion-duration-fast) hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      )}
       style={{
         borderColor: `color-mix(in oklab, ${color} 30%, var(--border))`,
         background: `radial-gradient(120% 130% at 0% 0%, ${tint(color, 13)}, transparent 55%), var(--card)`,
@@ -114,7 +120,8 @@ export function Stat({ label, value, unit, hint, color, icon: Icon, index }: { l
         {unit && value !== "—" ? <span className="text-sm font-medium text-muted-foreground">{unit}</span> : null}
       </p>
       <p className="text-xs text-muted-foreground">{hint}</p>
-    </motion.div>
+      {onOpen ? <ArrowUpRight aria-hidden="true" className="absolute right-3.5 top-3.5 h-4 w-4 text-muted-foreground opacity-60 transition-[opacity,transform] duration-(--motion-duration-fast) group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" /> : null}
+    </Card>
   );
 }
 
@@ -457,7 +464,7 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
 
       {customers.length === 0 ? <EmptyState onCreate={() => setCreateOpen(true)} /> : <>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Stat index={0} label="Ingresos recurrentes" value={euros(monthly)} unit="/mes" hint={`${services.length} servicios activos`} color={MINT} icon={Repeat} />
+          <Stat index={0} label="Ingresos recurrentes" value={euros(monthly)} unit="/mes" hint={`${services.length} servicios activos`} color={MINT} icon={Repeat} onOpen={() => setServicesOpen(true)} openLabel="Ver servicios recurrentes" />
           <Stat index={1} label="Propuestas abiertas" value={euros(proposals.reduce((sum, proposal) => sum + proposal.amountCents, 0))} hint={`${proposals.length} en curso`} color={SKY} icon={FileText} />
           <Stat index={2} label="Necesitan atención" value={String(attention.length)} unit={`de ${active.length} clientes`} hint="Salud baja o sin responder" color={YELLOW} icon={AlertTriangle} />
           <Stat index={3} label="Trabajo en curso" value={String(tasks)} unit={tasks === 1 ? "tarea" : "tareas"} hint="Abiertas para clientes" color={LILAC} icon={CheckCircle2} />
@@ -500,10 +507,6 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
                 ))}
               </div>
             ) : null}
-            <Button variant="outline" onClick={() => setServicesOpen(true)}>
-              <Repeat className="h-4 w-4" style={{ color: readable(MINT) }} />Servicios
-              <span className="text-xs text-muted-foreground tabular-nums">{services.length}</span>
-            </Button>
           </div>
         </div>
 
