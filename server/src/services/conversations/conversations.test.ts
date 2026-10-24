@@ -6,11 +6,13 @@ import {
   agents,
   autonomyPolicies,
   companies,
+  companyMemberships,
   conversationMessages,
   conversations,
   createDb,
   externalActions,
   leads,
+  principalPermissionGrants,
   type Db,
 } from "@paperclipai/db";
 import {
@@ -55,6 +57,8 @@ describeEmbeddedPostgres("conversation inbox", () => {
     await db.delete(conversations);
     await db.delete(leads);
     await db.delete(autonomyPolicies);
+    await db.delete(principalPermissionGrants);
+    await db.delete(companyMemberships);
     await db.delete(agents);
     await db.delete(companies);
   });
@@ -63,7 +67,7 @@ describeEmbeddedPostgres("conversation inbox", () => {
     await tempDb?.cleanup();
   });
 
-  async function setup() {
+  async function setup(grants: string[] = ["channels:message"]) {
     const companyId = randomUUID();
     await db.insert(companies).values({
       id: companyId,
@@ -82,6 +86,11 @@ describeEmbeddedPostgres("conversation inbox", () => {
       adapterConfig: {},
       runtimeConfig: {},
     });
+    // Company grants for the agent (A1 creates these for real agents). Default: messages on.
+    await db.insert(companyMemberships).values({ companyId, principalType: "agent", principalId: agentId, status: "active", membershipRole: "member" });
+    for (const permissionKey of grants) {
+      await db.insert(principalPermissionGrants).values({ companyId, principalType: "agent", principalId: agentId, permissionKey });
+    }
     return { companyId, agentId };
   }
 
@@ -137,6 +146,20 @@ describeEmbeddedPostgres("conversation inbox", () => {
 
     expect(outcome.mode).toBe("draft");
     expect(outcome.message.deliveryStatus).toBe("draft");
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("refuses to send from an agent without the channels:message grant, even with send_direct", async () => {
+    const { companyId, agentId } = await setup([]);
+    await db.insert(autonomyPolicies).values({ companyId, agentId, actionType: "message", level: "send_direct" });
+    const { conversation } = await inbound(companyId, "msg-1");
+    const svc = conversationMessageService(db);
+    const draft = await svc.draft(companyId, conversation.id, { body: "Respuesta", attachments: [], idempotencyKey: "k-1" }, { agentId });
+
+    await expect(svc.send(companyId, draft.id, { agentId })).rejects.toMatchObject({
+      status: 403,
+      details: { code: "agent_capability_disabled" },
+    });
     expect(send).not.toHaveBeenCalled();
   });
 

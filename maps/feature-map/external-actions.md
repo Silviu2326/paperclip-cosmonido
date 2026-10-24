@@ -17,6 +17,7 @@ Agent access: [companion](../agent-access-map/external-actions.md).
 - `direct`: the action executes now; its result or failure is stored.
 - `idempotency`: the same company, action type and key return the existing action.
 - `audit`: each transition is written to the activity log.
+- `capability`: an agent may send messages and emails only with its `channels:message` company grant, make calls only with `channels:call`, and use media tools only with `media:generate`. Without the grant the request is refused (403, `agent_capability_disabled`) before any action is stored. Board users are not affected.
 
 ## How to get to it (user POV)
 
@@ -46,3 +47,4 @@ Targeted evidence: [external action gate](../../server/src/services/external-act
 - A pending action is not a sent action. Report delivery only from the executed state.
 - The autonomy matrix currently lists seven action types; the review link type is accepted by the gate and the policy validator but has no matrix cell yet.
 - Approval decisions are forwarded from the approvals route; a failed execution is returned to the decision, not thrown.
+- A missing capability grant is a refusal, not a draft: the agent gets 403 and no pending action row is created. Granting an agent a capability does not change the autonomy level, which still decides draft, approval or direct.

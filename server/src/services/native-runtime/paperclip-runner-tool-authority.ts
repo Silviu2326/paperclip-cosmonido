@@ -1,6 +1,7 @@
 import { PRODUCT_TOOL_NAMES } from "./assigned-mcp-tools.js";
 import { callAssignmentTool } from "../assignment-tools.js";
 import { callMediaTool } from "../media-tools.js";
+import { assertAgentCapability } from "../external-action-gate.js";
 import { dispatchSprint3Tool, SPRINT3_TOOL_NAMES } from "../sprint3-tools.js";
 import { callSprint2Tool, SPRINT2_TOOL_NAMES } from "../sprint2-tools.js";
 import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notifications.js";
@@ -612,6 +613,7 @@ export class PaperclipRunnerToolAuthority {
         const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
         const token = this.#apiToken(context);
         if (!apiUrl || !token) throw new Error("Media tool authentication is unavailable");
+        await assertAgentCapability(this.db, { companyId: this.binding.companyId, agentId: this.binding.agentId, permissionKey: "media:generate" });
         return callMediaTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
       }
       case "search_api": return searchRunnerApi(call.arguments);

@@ -2844,6 +2844,7 @@ export * from "./types/voice-sessions.js";
 export * from "./validators/voice-sessions.js";
 
 export * from "./agent-appearance.js";
+export * from "./agent-capabilities.js";
 export * from "./lpc-character.js";
 export * from "./office-layout.js";
 export * from "./validators/office.js";

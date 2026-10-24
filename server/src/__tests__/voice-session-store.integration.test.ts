@@ -9,7 +9,7 @@ import { documentService } from "../services/documents.js";
 import { applyConnectorSkills, prepareConnectorSkillDelivery, resolveConnectorAssignments } from "../services/connector-runtime.js";
 import { VOICE_RESULT_NOTIFICATION } from "@paperclipai/shared";
 import { createHash, createHmac, randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { chatActions, instanceUserRoles, principalPermissionGrants, environments, chatVoiceInboundCalls, chatVoicePhoneLines, chatVoiceReports, heartbeatRuns, toolProfileBindings, chatVoiceCallbacks, crmPhoneCallbacks, contacts, agentWakeupRequests, issueThreadInteractions, issueQuestionResponseDeliveries, issueComments, agents, chatConversations, chatDeliveries, chatEndpoints, chatPublications, chatVoiceReplies, chatVoiceSessions, chatVoiceToolCalls, companies, companyMemberships, companySecrets, connectionGrants, connectionGrantMembers, createDb, EMBEDDED_POSTGRES_TEST_TIMEOUT_MS, issues, toolApplications, toolConnections, toolConnectionInstalls } from "@paperclipai/db";
 import { configureSpekoSessionTools } from "../services/voice/speko-tool-setup.js";
@@ -1279,6 +1279,9 @@ const support = await getEmbeddedPostgresTestSupport();
     await instanceSettingsService(db).updateExperimental({ enableChatConnectors: true });
     const [endpoint] = await db.select().from(chatEndpoints).where(eq(chatEndpoints.id, f.endpointId));
     await db.insert(principalPermissionGrants).values({companyId: f.companyId, principalType: "user", principalId: f.callerId, permissionKey: "agents:configure"});
+    // The agent's company grant for calls (channels:call) gates the phone tool on listing and execution.
+    await db.insert(companyMemberships).values({companyId: f.companyId, principalType: "agent", principalId: f.agentId, status: "active", membershipRole: "member"});
+    await db.insert(principalPermissionGrants).values({companyId: f.companyId, principalType: "agent", principalId: f.agentId, permissionKey: "channels:call"});
     await db.transaction(tx => syncSpekoVoiceTools(tx, endpoint, f.callerId));
     await f.service.saveCallbackPreference(f.companyId, f.endpointId, f.request.caller, { phoneNumber: "+12015551234", enabled: true });
     const runId = randomUUID();
@@ -1374,6 +1377,14 @@ const support = await getEmbeddedPostgresTestSupport();
     await f.service.saveCallbackPreference(f.companyId, f.endpointId, f.request.caller, { phoneNumber: "+12015551234", enabled: false });
     expect(await spekoToolsForSession(db, f.gatewaySession)).toHaveLength(0);
     await expect(executeSpekoVoiceTool(db, f.gatewaySession, f.endpointId, {}, randomUUID())).rejects.toMatchObject({ status: 403 });
+    expect(f.transport.createPhoneSession).not.toHaveBeenCalled();
+  });
+  it("hides and refuses Speko phone tools for an agent without the channels:call grant", async () => {
+    const f = await phoneToolFixture();
+    expect(await spekoToolsForSession(db, f.gatewaySession)).toHaveLength(1);
+    await db.delete(principalPermissionGrants).where(and(eq(principalPermissionGrants.companyId, f.companyId), eq(principalPermissionGrants.principalId, f.agentId), eq(principalPermissionGrants.permissionKey, "channels:call")));
+    expect(await spekoToolsForSession(db, f.gatewaySession)).toHaveLength(0);
+    await expect(executeSpekoVoiceTool(db, f.gatewaySession, f.endpointId, {}, randomUUID())).rejects.toMatchObject({ status: 403, details: { code: "agent_capability_disabled" } });
     expect(f.transport.createPhoneSession).not.toHaveBeenCalled();
   });
   it("keeps callback numbers personal and refuses callers from another company", async () => {

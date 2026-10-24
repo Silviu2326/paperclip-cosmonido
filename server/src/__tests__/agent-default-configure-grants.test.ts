@@ -27,6 +27,9 @@ const expectedNewAgentGrantKeys: PermissionKey[] = [
   "tasks:assign",
   "tasks:assign_scope",
   "tasks:manage_active_checkouts",
+  "channels:message",
+  "channels:call",
+  "media:generate",
 ].sort();
 
 describeDatabase("new agent configuration defaults", () => {

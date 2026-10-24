@@ -11,6 +11,7 @@ import { envConfigSchema } from "./secret.js";
 import { trustAuthorizationPolicySchema, trustPresetSchema } from "./trust-policy.js";
 import { agentDesiredSkillSelectionSchema } from "./adapter-skills.js";
 import { objectWithoutDefaults } from "./partial.js";
+import { agentCapabilitiesSchema, agentProfileSchema } from "../agent-capabilities.js";
 
 export const agentPermissionsSchema = z.object({
   // No schema default: the server derives the default (enabled unless the
@@ -90,7 +91,11 @@ export const createAgentSchema = z.object({
   icon: z.enum(AGENT_ICON_NAMES).optional().nullable(),
   appearance: agentAppearanceSchema.optional(),
   reportsTo: z.string().guid().optional().nullable(),
-  capabilities: z.string().optional().nullable(),
+  // Either the free-text capabilities column (legacy) or the structured switches
+  // (messages/calls/video/code) that the server turns into permission grants.
+  capabilities: z.union([z.string(), agentCapabilitiesSchema]).optional().nullable(),
+  // Specialty and sectors, stored in agents.metadata.profile. Optional.
+  profile: agentProfileSchema.optional(),
   desiredSkills: z.array(agentDesiredSkillSelectionSchema).optional(),
   adapterType: agentAdapterTypeSchema,
   runner: z.enum(["auto", "paperclip", "legacy"]).optional(),
@@ -150,10 +155,12 @@ export const createAgentHireSchema = createAgentSchema.extend({
 export type CreateAgentHire = z.infer<typeof createAgentHireSchema>;
 
 export const updateAgentSchema = objectWithoutDefaults(
-  createAgentSchema.omit({ permissions: true, onboardingFirstAgent: true }),
+  createAgentSchema.omit({ permissions: true, onboardingFirstAgent: true, capabilities: true, profile: true }),
 )
   .partial()
   .extend({
+    // The free-text column only; switches change through PUT /agents/:id/capabilities.
+    capabilities: z.string().optional().nullable(),
     permissions: z.never().optional(),
     replaceAdapterConfig: z.boolean().optional(),
     status: z.enum(["paused", "idle", "terminated"]).optional(),

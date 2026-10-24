@@ -16,7 +16,38 @@ export const NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS = [
   "tasks:assign",
   "tasks:assign_scope",
   "tasks:manage_active_checkouts",
+  "channels:message",
+  "channels:call",
+  "media:generate",
 ] as const satisfies readonly PermissionKey[];
+
+const CAPABILITY_KEYS_BY_REQUEST_FIELD = {
+  messages: "channels:message",
+  calls: "channels:call",
+  video: "media:generate",
+} as const satisfies Record<"messages" | "calls" | "video", PermissionKey>;
+
+/**
+ * Grant keys a new standard agent receives at activation. Agents created with explicit
+ * capabilities carry `metadata.requestedCapabilities`; a capability switched off there
+ * gets no grant. Agents without that snapshot keep every default (backward compatible).
+ */
+export function standardAgentGrantKeysFor(metadata: unknown): PermissionKey[] {
+  const record = typeof metadata === "object" && metadata !== null && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : null;
+  const requested = record?.requestedCapabilities;
+  const requestedRecord = typeof requested === "object" && requested !== null && !Array.isArray(requested)
+    ? (requested as Record<string, unknown>)
+    : null;
+  if (!requestedRecord) return [...NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS];
+  const disabled = new Set<PermissionKey>(
+    (Object.keys(CAPABILITY_KEYS_BY_REQUEST_FIELD) as Array<keyof typeof CAPABILITY_KEYS_BY_REQUEST_FIELD>)
+      .filter((field) => requestedRecord[field] !== true)
+      .map((field) => CAPABILITY_KEYS_BY_REQUEST_FIELD[field]),
+  );
+  return NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS.filter((key) => !disabled.has(key));
+}
 
 export function newStandardAgentGrantScope(
   permissionKey: PermissionKey,

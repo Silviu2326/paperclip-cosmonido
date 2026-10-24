@@ -66,6 +66,12 @@ import { stepMotion } from "../onboarding/onboarding-motion";
 import { RuntimeTestCard, type TestState } from "../RuntimeTestCard";
 import { AgentBasicsDialog, AdapterMark } from "./AgentBasicsDialog";
 import {
+  AgentPurposeSection,
+  EMPTY_AGENT_PURPOSE,
+  agentPurposeHireFields,
+  type AgentPurposeValue,
+} from "./AgentPurposeSection";
+import {
   AgentProviderConnection,
   type ProviderConnection,
 } from "./AgentProviderConnection";
@@ -152,6 +158,7 @@ function Setup({
   const [screen, setScreen] = useState<"connect" | "runtime" | "saved">(
     createdAgentId ? "saved" : connectionAdapter ? "connect" : "runtime",
   );
+  const [purpose, setPurpose] = useState<AgentPurposeValue>(EMPTY_AGENT_PURPOSE);
   const [model, setModel] = useState("");
   const efforts = isRunner ? [] : setupEfforts(adapterType, model);
   const [effort, setEffort] = useState("");
@@ -553,6 +560,7 @@ function Setup({
           (forced.forced || managedOnly ? environmentId : null),
         runtimeConfig: { ...buildNewAgentRuntimeConfig({ heartbeatEnabled: false }), ...(aiBinding ? { aiConnection: aiBinding } : {}) },
         budgetMonthlyCents: 0,
+        ...agentPurposeHireFields(purpose),
         ...(connection?.storedSessionId
           ? { storedSessionId: connection.storedSessionId }
           : {}),
@@ -960,6 +968,7 @@ function Setup({
                             )}
                           </div>
                         )}
+                        <AgentPurposeSection value={purpose} onChange={setPurpose} />
                         {!aiBinding && SETUP_LOGIN_HINTS[adapterType] && (
                           <p className="text-sm text-muted-foreground">
                             {SETUP_LOGIN_HINTS[adapterType]}

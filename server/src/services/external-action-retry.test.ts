@@ -7,11 +7,13 @@ import {
   approvals,
   autonomyPolicies,
   companies,
+  companyMemberships,
   conversationMessages,
   conversations,
   createDb,
   externalActions,
   leads,
+  principalPermissionGrants,
   type Db,
 } from "@paperclipai/db";
 import {
@@ -59,6 +61,8 @@ describeEmbeddedPostgres("external action approvals and retry", () => {
     await db.delete(leads);
     await db.delete(autonomyPolicies);
     await db.delete(approvals);
+    await db.delete(principalPermissionGrants);
+    await db.delete(companyMemberships);
     await db.delete(agents);
     await db.delete(companies);
   });
@@ -86,6 +90,9 @@ describeEmbeddedPostgres("external action approvals and retry", () => {
       adapterConfig: {},
       runtimeConfig: {},
     });
+    // The agent needs its company grant for messages (A1 creates it for real agents).
+    await db.insert(companyMemberships).values({ companyId, principalType: "agent", principalId: agentId, status: "active", membershipRole: "member" });
+    await db.insert(principalPermissionGrants).values({ companyId, principalType: "agent", principalId: agentId, permissionKey: "channels:message" });
     await db.insert(autonomyPolicies).values({ companyId, agentId, actionType: "message", level: "send_with_approval" });
     const { conversation } = await recordInboundMessage(db, companyId, {
       channel: "webchat",

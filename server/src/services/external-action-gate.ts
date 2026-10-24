@@ -4,11 +4,14 @@ import type { Db } from "@paperclipai/db";
 import { externalActions } from "@paperclipai/db";
 import {
   AUTONOMY_ACTION_TYPES,
+  EXTERNAL_ACTION_CAPABILITY_PERMISSION,
   type AutonomyActionType,
   type AutonomyLevel,
   type ExternalActionType,
+  type PermissionKey,
 } from "@paperclipai/shared";
-import { conflict, notFound } from "../errors.js";
+import { conflict, forbidden, notFound } from "../errors.js";
+import { accessService } from "./access.js";
 import { logActivity } from "./activity-log.js";
 import { approvalService } from "./approvals.js";
 import { autonomyService } from "./autonomy.js";
@@ -73,6 +76,35 @@ function errorMessage(error: unknown): string {
 
 function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && (error as { code?: string }).code === "23505";
+}
+
+export const AGENT_CAPABILITY_DISABLED_CODE = "agent_capability_disabled";
+
+const CAPABILITY_LABELS: Partial<Record<PermissionKey, string>> = {
+  "channels:message": "send messages",
+  "channels:call": "make calls",
+  "media:generate": "use media tools",
+};
+
+/** 403 with machine code `agent_capability_disabled` for an agent that lacks a company grant. */
+export function agentCapabilityDisabled(permissionKey: PermissionKey) {
+  const label = CAPABILITY_LABELS[permissionKey] ?? "use this capability";
+  return forbidden(
+    `This agent is not allowed to ${label}. Enable it in the agent's capabilities.`,
+    { code: AGENT_CAPABILITY_DISABLED_CODE, permission: permissionKey },
+  );
+}
+
+/**
+ * Enforces an agent's company grant (`principal_permission_grants`, principal = the agent).
+ * Missing grant, missing membership or a failed lookup all deny. Board callers never reach this.
+ */
+export async function assertAgentCapability(
+  db: Db,
+  input: { companyId: string; agentId: string; permissionKey: PermissionKey },
+): Promise<void> {
+  const allowed = await accessService(db).hasPermission(input.companyId, "agent", input.agentId, input.permissionKey);
+  if (!allowed) throw agentCapabilityDisabled(input.permissionKey);
 }
 
 /**
@@ -183,6 +215,15 @@ export async function gateExternalAction(
   db: Db,
   input: GateExternalActionInput,
 ): Promise<GateExternalActionOutput> {
+  // Capability grant first: an agent without the company grant for this action type is denied
+  // before any row is read or written, including idempotent replays. Board actors skip it.
+  const requiredPermission = input.actor.agentId
+    ? (EXTERNAL_ACTION_CAPABILITY_PERMISSION[input.actionType] as PermissionKey | undefined)
+    : undefined;
+  if (input.actor.agentId && requiredPermission) {
+    await assertAgentCapability(db, { companyId: input.companyId, agentId: input.actor.agentId, permissionKey: requiredPermission });
+  }
+
   const existing = await findByIdempotencyKey(db, input.companyId, input.idempotencyKey);
   if (existing) {
     return {

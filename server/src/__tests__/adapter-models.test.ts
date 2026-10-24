@@ -74,6 +74,7 @@ describe("adapter model listing", () => {
     expect(models.some((model) => model.id === "claude-opus-5")).toBe(true);
     expect(models).toContainEqual({ id: "claude-opus-5-5", label: "Claude Opus 5.5" });
     expect(models).toContainEqual({ id: "claude-sonnet-5-5", label: "Claude Sonnet 5.5" });
+    expect(models).toContainEqual({ id: "claude-haiku-5-5", label: "Claude Haiku 5.5" });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -201,7 +202,7 @@ describe("adapter model listing", () => {
     setCursorModelsRunnerForTests(() => ({ status: 1, stdout: "", stderr: "", hasError: true }));
     const models = await listAdapterModels("cursor");
     expect(models.map((model) => model.id)).toEqual(expect.arrayContaining([
-      "composer-2.5", "claude-opus-5-5", "claude-fable-5-1", "claude-sonnet-5",
+      "composer-2.5", "claude-opus-5-5", "claude-fable-5-1", "claude-sonnet-5", "claude-opus-5", "claude-sonnet-5-5", "claude-haiku-5-5",
       "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "grok-4.7", "gemini-3.8-flash", "muse-spark-1.3",
     ]));
   });
@@ -296,7 +297,7 @@ describe("adapter model listing", () => {
     const models = await listAdapterModels("opencode_local");
 
     expect(models).toEqual(opencodeFallbackModels);
-    expect(models.map((model) => model.id)).toEqual(expect.arrayContaining(["openai/gpt-6-astra", "openai/gpt-6.1-sol", "openai/gpt-6-sol", "openai/gpt-6-luna", "openai/gpt-5.6-sol", "openai/gpt-5.6-terra", "openai/gpt-5.6-luna", "anthropic/claude-opus-5-5", "anthropic/claude-opus-5", "anthropic/claude-fable-5-1", "anthropic/claude-sonnet-5-5", "anthropic/claude-sonnet-5", "google/gemini-3.8-flash", "xai/grok-4.7"]));
+    expect(models.map((model) => model.id)).toEqual(expect.arrayContaining(["openai/gpt-6-astra", "openai/gpt-6.1-sol", "openai/gpt-6-sol", "openai/gpt-6-luna", "openai/gpt-5.6-sol", "openai/gpt-5.6-terra", "openai/gpt-5.6-luna", "anthropic/claude-opus-5-5", "anthropic/claude-opus-5", "anthropic/claude-fable-5-1", "anthropic/claude-sonnet-5-5", "anthropic/claude-sonnet-5", "anthropic/claude-haiku-5-5", "anthropic/claude-fable-5", "anthropic/claude-opus-4-8", "google/gemini-3.8-flash", "xai/grok-4.7"]));
   });
 
   it("loads cursor models dynamically and caches them", async () => {

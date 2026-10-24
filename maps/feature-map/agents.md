@@ -20,6 +20,7 @@ Agent access: [companion](../agent-access-map/agents.md).
 - `primary-agent`: choose a personal primary agent for the company, confirm replacement, and inspect its roster/sidebar and task/chat defaults.
 - `lifecycle`: pause/resume or retire an agent while preserving history.
 - `built-in`: configure required agents without treating them as ordinary removable hires.
+- `capabilities`: say what an agent may do (write to people, call, generate video, code flag), its specialty and sectors, and see the approval level of messages and calls; changed by a board user only.
 
 ## How to get to it (user POV)
 
@@ -39,6 +40,14 @@ Use the roster’s organization view; `/org` redirects to the roster in the stre
 
 Open an agent profile and choose **Set as my primary**. Inspect its crown on the
 profile/roster and its position in the Agents sidebar, then open a new task or Chat.
+
+### `capabilities`
+
+No capabilities panel is in the UI yet (planned in phase 2 of the
+[capabilities plan](../../doc/plans/2026-10-24-capacidades-de-agente.md)). Today the
+switches are set on hire or create with `capabilities` and `profile`, and changed with
+`PUT /api/agents/{id}/capabilities` by a board user. Omitted switches mean everything
+stays enabled, as before.
 
 ## Driving it with Playwright and the Paperclip CLI
 
@@ -110,6 +119,17 @@ agent through permitted controls and inspect the unavailable/cleared state.
 Switch company/user to check isolation. Open a task and Chat with a
 valid draft or recent selection; verify those explicit choices take precedence
 over the primary fallback. Opening Chat must not start execution.
+
+### `capabilities`
+
+Automated: [capability service and grant diff](../../server/src/services/agent-capabilities.test.ts)
+covers the grant diff, profile persistence, the activity record and company scope.
+
+Manual: As a board user, `PUT /api/agents/{id}/capabilities` with `messages` off and
+`video` on. Read `GET /api/agents/{id}/capabilities`, confirm the grants match, and
+confirm an agent key gets a denial on the same PUT. Known gap: a pending hire
+created with switches off still receives every default grant at activation until
+the activation path reads `metadata.requestedCapabilities`; verify it after approval.
 
 ## Gotchas
 

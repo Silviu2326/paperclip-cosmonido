@@ -1022,6 +1022,10 @@ export const PERMISSION_KEYS = [
   "tasks:manage_active_checkouts",
   "pipelines:write",
   "joins:approve",
+  // Agent capabilities (see agent-capabilities.ts): what an agent may do with people and media.
+  "channels:message",
+  "channels:call",
+  "media:generate",
 ] as const;
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];
 

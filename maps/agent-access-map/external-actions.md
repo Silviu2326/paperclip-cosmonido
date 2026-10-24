@@ -97,3 +97,19 @@ Evidence: `source-only` - [activity routes](../../server/src/routes/activity.ts)
 Verification: `not-run` - confirm one activity entry per transition for a sent message.
 
 Gaps: no dedicated agent tool for the external action history.
+
+## `capability`
+
+Review: `baseline`.
+
+API: `not-applicable` - enforced inside the gate, the voice tool service, the project tools route, the media studio routes and the native runner; the grants are set through the agent capabilities route, not by this gate.
+
+Agent access: `restricted` - an agent cannot grant itself a capability. Without the grant every gated operation below is refused, and the agent sees `agent_capability_disabled` in the response or tool error.
+
+Policy: applies only to agent actors. Email and message actions need `channels:message`; the call action and the Speko `call_my_phone` tool need `channels:call`; media tools and media studio routes need `media:generate`. The grant is a company permission grant (`principal_permission_grants`, principal = the agent) and a missing membership denies too. The check runs before the idempotency lookup. Board actors and the action types booking, stage change, proposal, publish and review link are unchanged. Media tools are not listed to an agent without the grant and are refused when called.
+
+Evidence: `source-only` - [gate](../../server/src/services/external-action-gate.ts), [voice tools](../../server/src/services/voice/speko-agent-tools.ts), [project tools route](../../server/src/routes/project-tools.ts), [media studio routes](../../server/src/routes/media-studio.ts), [runner tool authority](../../server/src/services/native-runtime/paperclip-runner-tool-authority.ts), [gate tests](../../server/src/services/external-action-gate.test.ts), [media capability tests](../../server/src/__tests__/media-agent-capability.test.ts).
+
+Verification: `not-run` - as an agent without grants, request a message, a call and a media tool; confirm 403 `agent_capability_disabled`, no external action row and no delivery. Grant each key and confirm the same request reaches the existing autonomy logic.
+
+Gaps: the native runner still advertises media tools in its synchronous tool list to agents without `media:generate`; the call is refused at execution, so the listing is not filtered. Any future outbound path that does not call the gate bypasses this check. The Speko assigned-resource instructions are not gated by `channels:call`. Existing agents need the A1 backfill of grants before they keep their current access.

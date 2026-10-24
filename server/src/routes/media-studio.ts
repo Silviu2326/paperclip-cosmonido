@@ -6,6 +6,7 @@ import { assets, companyFileVersions } from "@paperclipai/db";
 import { mediaProjectCreateSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema, mediaQueueQuerySchema, mediaPriorityUpdateSchema } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import { logActivity } from "../services/activity-log.js";
+import { assertAgentCapability } from "../services/external-action-gate.js";
 import { mediaStudioService } from "../services/media-studio.js";
 import { resolveGoalIdForIssue } from "../services/assignment-costs.js";
 import { projectToolContext } from "../services/project-tool-context.js";
@@ -16,6 +17,17 @@ import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo }
 
 export function mediaStudioRoutes(db: Db) {
   const router = Router(); const service = mediaStudioService(db);
+  // Agent actors need the company's media:generate grant for every media studio route. Board callers are unchanged.
+  // The router is mounted at the API root, so only media paths are gated here.
+  router.use(async (req, _res, next) => {
+    if (req.actor.type !== "agent" || !/media-(projects|jobs|queue)/.test(req.path)) return next();
+    try {
+      await assertAgentCapability(db, { companyId: req.actor.companyId!, agentId: req.actor.agentId!, permissionKey: "media:generate" });
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
   async function getProject(req: any, res: any, id: string, write = false) {
     const project = await getAccessibleResource(req, res, service.getProject(id), "Media project not found");
     if (!project) return null;

@@ -1,6 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { agents, autonomyPolicies, companies, createDb, type Db } from "@paperclipai/db";
+import { eq } from "drizzle-orm";
+import {
+  agents,
+  autonomyPolicies,
+  companies,
+  companyMemberships,
+  createDb,
+  externalActions,
+  principalPermissionGrants,
+  type Db,
+} from "@paperclipai/db";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "../__tests__/helpers/embedded-postgres.js";
 import {
   approveExternalAction,
@@ -27,12 +37,21 @@ describePostgres("external action gate", () => {
     await database?.cleanup();
   });
 
-  async function fixture() {
+  /** Agent with an active membership. `grants` are its company permission grants (default: messages only). */
+  async function fixture(grants: string[] = ["channels:message"]) {
     const companyId = randomUUID();
     const agentId = randomUUID();
     await db.insert(companies).values({ id: companyId, name: "Gate", issuePrefix: `G${companyId.slice(0, 7)}` });
     await db.insert(agents).values({ id: agentId, companyId, name: "Seller", adapterType: "codex_local" });
+    await db.insert(companyMemberships).values({ companyId, principalType: "agent", principalId: agentId, status: "active", membershipRole: "member" });
+    for (const permissionKey of grants) {
+      await db.insert(principalPermissionGrants).values({ companyId, principalType: "agent", principalId: agentId, permissionKey });
+    }
     return { companyId, agentId };
+  }
+
+  async function actionCount(companyId: string) {
+    return (await db.select().from(externalActions).where(eq(externalActions.companyId, companyId))).length;
   }
 
   function spyExecutor(value: Record<string, unknown> = { sent: true }) {
@@ -202,5 +221,69 @@ describePostgres("external action gate", () => {
     });
     expect(rejected.status).toBe("rejected");
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  describe("agent capability grants", () => {
+    it("denies an agent without channels:message before any row or execution", async () => {
+      const f = await fixture([]);
+      const execute = spyExecutor();
+
+      await expect(gateExternalAction(db, input(f, execute, "no-grant-email"))).rejects.toMatchObject({
+        status: 403,
+        message: "This agent is not allowed to send messages. Enable it in the agent's capabilities.",
+        details: { code: "agent_capability_disabled", permission: "channels:message" },
+      });
+      expect(execute).not.toHaveBeenCalled();
+      expect(await actionCount(f.companyId)).toBe(0);
+    });
+
+    it("denies a 'message' action from an agent with only a different grant", async () => {
+      const f = await fixture(["channels:call"]);
+      const execute = spyExecutor();
+
+      await expect(
+        gateExternalAction(db, { ...input(f, execute, "wrong-grant-message"), actionType: "message" }),
+      ).rejects.toMatchObject({ status: 403, details: { code: "agent_capability_disabled" } });
+      expect(execute).not.toHaveBeenCalled();
+    });
+
+    it("lets an agent with channels:message through to the existing autonomy logic", async () => {
+      const f = await fixture(["channels:message"]);
+      await db.insert(autonomyPolicies).values({ companyId: f.companyId, agentId: f.agentId, actionType: "email", level: "send_direct" });
+
+      const execute = spyExecutor({ messageId: "granted" });
+      const out = await gateExternalAction(db, input(f, execute, "granted-email"));
+      expect(out.mode).toBe("direct");
+      expect(out.action.status).toBe("executed");
+      expect(execute).toHaveBeenCalledTimes(1);
+    });
+
+    it("requires channels:call for a 'call' action", async () => {
+      const denied = await fixture(["channels:message"]);
+      const execute = spyExecutor();
+      await expect(
+        gateExternalAction(db, { ...input(denied, execute, "call-denied"), actionType: "call" }),
+      ).rejects.toMatchObject({ status: 403, message: expect.stringContaining("make calls"), details: { code: "agent_capability_disabled" } });
+      expect(execute).not.toHaveBeenCalled();
+
+      const allowed = await fixture(["channels:call"]);
+      const out = await gateExternalAction(db, { ...input(allowed, spyExecutor(), "call-allowed"), actionType: "call" });
+      expect(out.action.actionType).toBe("call");
+    });
+
+    it("leaves action types outside the capability map unchanged for agents without grants", async () => {
+      const f = await fixture([]);
+      const out = await gateExternalAction(db, { ...input(f, spyExecutor(), "booking-no-grant"), actionType: "booking" });
+      expect(out.mode).toBe("draft");
+      expect(out.action.status).toBe("pending");
+    });
+
+    it("never checks grants for board actors", async () => {
+      const f = await fixture([]);
+      const execute = spyExecutor({ ok: "board" });
+      const out = await gateExternalAction(db, input({ companyId: f.companyId }, execute, "board-no-grant"));
+      expect(out.mode).toBe("direct");
+      expect(execute).toHaveBeenCalledTimes(1);
+    });
   });
 });

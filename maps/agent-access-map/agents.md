@@ -217,6 +217,40 @@ Gaps: No agent mutation path for another person's preference. Live human/agent
 access is unverified; UI fixture callbacks do not establish persistence or task
 and Chat default resolution.
 
+## `capabilities`
+
+Review: `baseline`.
+
+API: `present` — representative operation IDs:
+
+- `GET /api/agents/{id}/capabilities`.
+- `PUT /api/agents/{id}/capabilities` (body: `capabilities` and optional `profile`).
+- `POST /api/companies/{companyId}/agent-hires` and `POST /api/companies/{companyId}/agents`
+  accept the same `capabilities` and `profile` on create.
+
+Agent access: `restricted` — GET is readable by an agent with company read access to
+the target. PUT is board-only: an agent key, including the CEO's, cannot change any
+agent's switches, including its own.
+
+Policy: GET uses the same agent read check as the agent detail route. PUT requires a
+board actor with company access and the agent-management permission
+(`agents:create` decision), and the target must belong to that company. Each switch
+is the company grant `channels:message`, `channels:call` or `media:generate`; the
+approval level of messages and calls stays in `autonomy_policies` and is read-only
+here. Changes write an `agent.capabilities_updated` activity with before and after.
+
+Evidence: `source-only` — [routes](../../server/src/routes/agents.ts),
+[service](../../server/src/services/agent-capabilities.ts) and
+[service test](../../server/src/services/agent-capabilities.test.ts).
+
+Verification: `not-run` — as a board user, PUT switches and GET them back; confirm the
+grants and the activity record. Assert that an agent key gets a denial on PUT for
+itself and for another agent, and that a foreign-company agent returns not found.
+
+Gaps: Pending hires receive every default grant at activation until the activation
+path reads `metadata.requestedCapabilities`. The capability switches are not enforced
+yet on the message, call or video paths; this entry only records the grants.
+
 ## `grok-bot`
 
 Review: `baseline`.

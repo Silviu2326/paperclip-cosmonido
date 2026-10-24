@@ -7,6 +7,8 @@ import { projectToolContext } from "../services/project-tool-context.js";
 import { callProjectTool, projectToolDefinitions } from "../services/project-tools.js";
 import { assertCompanyAccess } from "./authz.js";
 import { forbidden } from "../errors.js";
+import { accessService } from "../services/access.js";
+import { agentCapabilityDisabled } from "../services/external-action-gate.js";
 
 /** Mounted after actor middleware; connection-scoped tokens cannot authenticate here. */
 export function projectToolRoutes(db: Db) {
@@ -18,10 +20,13 @@ export function projectToolRoutes(db: Db) {
     const send = (result: unknown) => res.json({ jsonrpc: "2.0", id, result });
     if (method === "initialize") return send({ protocolVersion: "2025-03-26", capabilities: { tools: { listChanged: false } }, serverInfo: { name: "paperclip-project-tools", version: "1" } });
     if (method === "notifications/initialized") return res.status(202).end();
-    const definitions = [...projectToolDefinitions(context.issue.workMode, true), ...assignmentToolDefinitions(context.issue.workMode), ...mediaToolDefinitions(context.issue.workMode), ...sprint3ToolDefinitions(context.issue.workMode)];
+    // Media tools need the agent's media:generate grant. Without it they are neither listed nor callable.
+    const mediaAllowed = !context.run.agentId || await accessService(db).hasPermission(context.run.companyId, "agent", context.run.agentId, "media:generate");
+    const definitions = [...projectToolDefinitions(context.issue.workMode, true), ...assignmentToolDefinitions(context.issue.workMode), ...(mediaAllowed ? mediaToolDefinitions(context.issue.workMode) : []), ...sprint3ToolDefinitions(context.issue.workMode)];
     if (method === "tools/list") return send({ tools: definitions });
     if (method !== "tools/call") return res.json({ jsonrpc: "2.0", id, error: { code: -32601, message: "Method not found" } });
     try {
+      if (!mediaAllowed && MEDIA_TOOL_NAMES.includes(params?.name)) throw agentCapabilityDisabled("media:generate");
       if (!definitions.some(tool => tool.name === params?.name)) throw forbidden("Tool is unavailable in this mode");
       const apiUrl = process.env.PAPERCLIP_API_URL;
       if (!apiUrl) throw new Error("Paperclip API origin is unavailable");

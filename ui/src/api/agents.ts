@@ -35,6 +35,10 @@ import type {
   AgentConfigRevision,
   ClearAgentErrorResponse,
   AgentApiKeyScope,
+  AgentCapabilities,
+  AgentCapabilitiesResponse,
+  AgentProfile,
+  UpdateAgentCapabilities,
 } from "@paperclipai/shared";
 import { isUuidLike, normalizeAgentUrlKey } from "@paperclipai/shared";
 import { ApiError, api } from "./client";
@@ -79,6 +83,12 @@ export interface OrgNode {
 export interface AgentHireResponse {
   agent: Agent;
   approval: Approval | null;
+}
+
+/** Optional purpose fields of `POST /companies/:id/agent-hires`. Omit both to keep every capability enabled. */
+export interface AgentHireCapabilityFields {
+  capabilities?: AgentCapabilities;
+  profile?: Pick<AgentProfile, "specialty" | "sectors">;
 }
 
 export interface AgentPermissionUpdate {
@@ -159,6 +169,10 @@ export const agentsApi = {
     api.post<Agent>(`/companies/${companyId}/agents`, data),
   hire: (companyId: string, data: Record<string, unknown>) =>
     api.post<AgentHireResponse>(`/companies/${companyId}/agent-hires`, data),
+  capabilities: (id: string, companyId?: string) =>
+    api.get<AgentCapabilitiesResponse>(agentPath(id, companyId, "/capabilities")),
+  updateCapabilities: (id: string, body: UpdateAgentCapabilities, companyId?: string) =>
+    api.put<AgentCapabilitiesResponse>(agentPath(id, companyId, "/capabilities"), body),
   update: (id: string, data: Record<string, unknown>, companyId?: string) =>
     api.patch<Agent>(agentPath(id, companyId), data),
   updatePermissions: (id: string, data: AgentPermissionUpdate, companyId?: string) =>

@@ -2556,6 +2556,13 @@
       "when": 1792886400000,
       "tag": "0366_s95_productization_workflows",
       "breakpoints": true
+    },
+    {
+      "idx": 367,
+      "version": "7",
+      "when": 1792972800000,
+      "tag": "0367_agent_capability_grants_backfill",
+      "breakpoints": true
     }
   ]
 }

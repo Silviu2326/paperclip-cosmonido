@@ -103,6 +103,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { RunTranscriptView, type TranscriptMode } from "../components/transcript/RunTranscriptView";
 import { AgentToolsTab } from "./AgentToolsTab";
+import { AgentCapabilitiesPanel } from "../components/agent-capabilities/AgentCapabilitiesPanel";
 import { AgentChannelsPanel } from "../components/chat/AgentChannelsPanel";
 import {
   appendCapped,
@@ -1491,6 +1492,7 @@ export function AgentDetail() {
             content="permissions"
           />
           <AgentAutonomyLink agentId={agent.id} />
+          {resolvedCompanyId && <AgentCapabilitiesPanel agentId={agent.id} companyId={resolvedCompanyId} />}
         </div>
       )}
 

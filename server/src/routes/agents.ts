@@ -1,8 +1,9 @@
 import { cancellationRequestId } from "../services/native-runtime/native-cancellation-request.js";
-import { agentHarnessType, type AgentRunnerChoice } from "@paperclipai/shared";
+import { agentHarnessType, type AgentCapabilities, type AgentRunnerChoice } from "@paperclipai/shared";
 import { resolveNewAgentRunnerForCompany } from "../services/agent-runner-selection.js";
 import { agentEnvironmentTestService } from "../services/agent-environment-test.js";
 import { createAgentLifecycle } from "../services/agent-lifecycle.js";
+import { agentCapabilitiesService, capabilityMetadataForCreate } from "../services/agent-capabilities.js";
 import { productizationEntitlementsService } from "../services/productization/entitlements.js";
 
 import { agentIdentityService } from "../services/agent-identity.js";
@@ -69,6 +70,7 @@ import {
   resolveAgentInstructionCandidateSchema,
   updateAgentInstructionsBundleSchema,
   updateAgentPermissionsSchema,
+  updateAgentCapabilitiesSchema,
   updateAgentInstructionsPathSchema,
   wakeAgentSchema,
   updateAgentSchema,
@@ -581,6 +583,7 @@ export function agentRoutes(
   const entitlements=productizationEntitlementsService(db);
   const access = accessService(db);
   const approvalsSvc = approvalService(db);
+  const capabilitiesSvc = agentCapabilitiesService(db);
   const budgets = budgetService(db);
   const environmentsSvc = environmentService(db);
   const { resolveAdapterTestEnvironmentId, resolveAdapterTestExecutionContext, assertAdapterTestEnvironmentForCompany, testManagedEnvironment } = agentEnvironmentTestService(db, options.pluginWorkerManager);
@@ -4235,8 +4238,17 @@ export function agentRoutes(
       // This intent flag is consumed below and must never reach agent create.
       inheritRuntimeFrom,
       runner: hireRunner,
+      // `capabilities` is either the legacy free-text column or the structured switches.
+      capabilities: hireCapabilitiesField,
+      profile: hireProfile,
       ...hireInput
     } = req.body;
+    const hireCapabilityRequest = typeof hireCapabilitiesField === "object" && hireCapabilitiesField !== null
+      ? hireCapabilitiesField as AgentCapabilities
+      : undefined;
+    if (!hireCapabilityRequest && hireCapabilitiesField !== undefined) hireInput.capabilities = hireCapabilitiesField;
+    // Switches and profile are stored in metadata; the grants follow at activation.
+    hireInput.metadata = capabilityMetadataForCreate(hireInput.metadata, hireCapabilityRequest, hireProfile);
 
     const hiredAgentId = randomUUID();
     const requestedHireConfig = (hireInput.adapterConfig ?? {}) as Record<string, unknown>;
@@ -4435,6 +4447,15 @@ export function agentRoutes(
         throw error;
       }
       await entitlements.commit(hireReservation);
+      if (hireCapabilityRequest && !requiresApproval) {
+        // Active hires already received the default grants at creation; align them with the switches.
+        await capabilitiesSvc.syncGrants(
+          companyId,
+          createdAgent.id,
+          hireCapabilityRequest,
+          req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+        );
+      }
       const onboardingFirstAgentBundle = await resolveOnboardingFirstAgentBundle({
         onboardingFirstAgent: hireOnboardingFirstAgent,
         actorType: req.actor.type,
@@ -4598,8 +4619,16 @@ export function agentRoutes(
       // seed the chief-of-staff persona; it never reaches the insert values.
       onboardingFirstAgent: createOnboardingFirstAgent,
       runner: createRunner,
+      // `capabilities` is either the legacy free-text column or the structured switches.
+      capabilities: createCapabilitiesField,
+      profile: createProfile,
       ...createInput
     } = req.body;
+    const createCapabilityRequest = typeof createCapabilitiesField === "object" && createCapabilitiesField !== null
+      ? createCapabilitiesField as AgentCapabilities
+      : undefined;
+    if (!createCapabilityRequest && createCapabilitiesField !== undefined) createInput.capabilities = createCapabilitiesField;
+    createInput.metadata = capabilityMetadataForCreate(createInput.metadata, createCapabilityRequest, createProfile);
     const agentId = randomUUID();
     const requestedCreateConfig = (createInput.adapterConfig ?? {}) as Record<string, unknown>;
     assertProviderTraceSettingTransition(req, createInput.runtimeConfig);
@@ -4700,6 +4729,14 @@ export function agentRoutes(
       throw error;
     }
     await entitlements.commit(createReservation);
+    if (createCapabilityRequest) {
+      await capabilitiesSvc.syncGrants(
+        companyId,
+        createdAgent.id,
+        createCapabilityRequest,
+        req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+      );
+    }
     const onboardingFirstAgentBundle = await resolveOnboardingFirstAgentBundle({
       onboardingFirstAgent: createOnboardingFirstAgent,
       actorType: req.actor.type,
@@ -4755,6 +4792,41 @@ export function agentRoutes(
     }
 
     res.status(201).json(redactAgentRowForResponse(agent));
+  });
+
+  // Capabilities (messages / calls / video grants, profile, code flag) and their approval levels.
+  router.get("/agents/:id/capabilities", async (req, res) => {
+    const id = req.params.id as string;
+    const agent = await getAccessibleResource(req, res, svc.getById(id), "Agent not found");
+    if (!agent) return;
+    if (!(await assertAgentReadAllowed(req, res, agent))) return;
+    res.json(await capabilitiesSvc.get(agent.companyId, agent.id));
+  });
+
+  // Board only: an agent must not be able to widen its own messaging, calling or video rights.
+  router.put("/agents/:id/capabilities", validate(updateAgentCapabilitiesSchema), async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await getAccessibleResource(req, res, svc.getById(id), "Agent not found");
+    if (!existing) return;
+    assertBoard(req);
+    await assertBoardCanManageAgentsForCompany(req, existing.companyId);
+
+    const actor = getActorInfo(req);
+    const view = await capabilitiesSvc.apply(
+      existing.companyId,
+      existing.id,
+      req.body.capabilities,
+      req.body.profile,
+      {
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        agentApiKeyId: actor.agentApiKeyId,
+        userId: req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+      },
+    );
+    res.json(view);
   });
 
   router.patch("/agents/:id/permissions", validate(updateAgentPermissionsSchema), async (req, res) => {
