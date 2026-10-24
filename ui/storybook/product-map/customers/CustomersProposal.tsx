@@ -80,23 +80,35 @@ export function Pill({ color, children, strong = false }: { color: string; child
   );
 }
 
-export function Stat({ label, value, hint, color, icon: Icon, index }: { label: string; value: string; hint: string; color: string; icon: typeof Users; index: number }) {
+/** Summary card: accent-tinted border and glow, a small colour tab on top, and the unit set apart from the number. */
+export function Stat({ label, value, unit, hint, color, icon: Icon, index }: { label: string; value: string; unit?: string; hint: string; color: string; icon: typeof Users; index: number }) {
   const tokens = useMotionTokens();
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: tokens.base, ease: tokens.easeOut, delay: index * tokens.stagger }}
-      className="relative overflow-hidden rounded-xl border border-border p-4"
-      style={{ background: `linear-gradient(135deg, ${tint(color, 16)}, transparent 70%)` }}
+      className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-4"
+      style={{
+        borderColor: `color-mix(in oklab, ${color} 30%, var(--border))`,
+        background: `radial-gradient(120% 130% at 0% 0%, ${tint(color, 13)}, transparent 55%), var(--card)`,
+      }}
     >
-      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-md" style={{ background: tint(color, 30), color: readable(color) }}>
-          <Icon className="h-3.5 w-3.5" />
+      <span aria-hidden="true" className="absolute left-4 top-0 h-0.5 w-8 rounded-b-full" style={{ background: color }} />
+      <div className="flex items-center gap-2.5 text-xs font-medium text-muted-foreground">
+        <span
+          aria-hidden="true"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+          style={{ background: `linear-gradient(135deg, ${tint(color, 34)}, ${tint(color, 16)})`, boxShadow: `inset 0 0 0 1px ${tint(color, 32)}`, color: readable(color) }}
+        >
+          <Icon className="h-4 w-4" />
         </span>
         {label}
       </div>
-      <p className="mt-2 text-2xl font-semibold tabular-nums">{value}</p>
+      <p className="flex items-baseline gap-1.5">
+        <span className="text-3xl font-semibold leading-none tracking-tight tabular-nums">{value}</span>
+        {unit && value !== "—" ? <span className="text-sm font-medium text-muted-foreground">{unit}</span> : null}
+      </p>
       <p className="text-xs text-muted-foreground">{hint}</p>
     </motion.div>
   );
@@ -437,10 +449,10 @@ export function CustomersProposal({ customers: initialCustomers, initialQuery = 
 
       {customers.length === 0 ? <EmptyState onCreate={() => setCreateOpen(true)} /> : <>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Stat index={0} label="Ingresos recurrentes" value={`${euros(monthly)}/mes`} hint={`${services.length} servicios activos`} color={MINT} icon={Repeat} />
+          <Stat index={0} label="Ingresos recurrentes" value={euros(monthly)} unit="/mes" hint={`${services.length} servicios activos`} color={MINT} icon={Repeat} />
           <Stat index={1} label="Propuestas abiertas" value={euros(proposals.reduce((sum, proposal) => sum + proposal.amountCents, 0))} hint={`${proposals.length} en curso`} color={SKY} icon={FileText} />
-          <Stat index={2} label="Necesitan atención" value={String(attention.length)} hint="Salud baja o mensajes sin responder" color={YELLOW} icon={AlertTriangle} />
-          <Stat index={3} label="Trabajo en curso" value={String(tasks)} hint="Tareas abiertas para clientes" color={LILAC} icon={CheckCircle2} />
+          <Stat index={2} label="Necesitan atención" value={String(attention.length)} unit={`de ${active.length} clientes`} hint="Salud baja o sin responder" color={YELLOW} icon={AlertTriangle} />
+          <Stat index={3} label="Trabajo en curso" value={String(tasks)} unit={tasks === 1 ? "tarea" : "tareas"} hint="Abiertas para clientes" color={LILAC} icon={CheckCircle2} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
