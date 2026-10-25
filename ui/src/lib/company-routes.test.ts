@@ -7,6 +7,27 @@ import {
 } from "./company-routes";
 
 describe("company routes", () => {
+  it.each([
+    "assignments", "context", "office", "productization", "business-builder",
+    "portable-catalog", "outcome-metrics", "media-templates", "media-queue",
+    "product-accounts", "product-billing", "notifications", "product-security",
+    "language-settings", "public-api", "customers", "contacts", "contact-import",
+    "leads", "lead-forms", "opportunities", "conversations", "schedule",
+    "crm-phone", "crm-sync", "agency", "public-catalog", "playbooks",
+    "proposals", "service-agreements", "autonomy", "channels-settings",
+    "webchat-settings", "cases", "pipelines", "status", "status-cards",
+    "review-queue", "learnings", "budgets", "runs", "plugins",
+  ])("keeps /%s navigation scoped to the selected company", (root) => {
+    const relative = `/${root}/detail?view=all#section`;
+    expect(isBoardPathWithoutPrefix(relative)).toBe(true);
+    expect(extractCompanyPrefixFromPath(relative)).toBeNull();
+    expect(applyCompanyPrefix(relative, "rev")).toBe(`/REV${relative}`);
+    expect(toCompanyRelativePath(`/REV${relative}`)).toBe(relative);
+    expect(applyCompanyPrefix(`/REV${relative}`, "REV")).toBe(`/REV${relative}`);
+    // A link already belonging to another company must keep its owner.
+    expect(applyCompanyPrefix(`/OTHER${relative}`, "REV")).toBe(`/OTHER${relative}`);
+  });
+
   it("keeps public Dot consent outside company-prefixed routes", () => {
     const path = `/dot-connect/pcmcp_request_${"a".repeat(43)}`;
     expect(extractCompanyPrefixFromPath(path)).toBeNull();

@@ -20,6 +20,7 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 import { Link } from "@/lib/router";
 import { cn, formatDate, relativeTime } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
 
 /**
  * The agent-scoped side panels shown beside an agent chat: every task the
@@ -33,6 +34,15 @@ const ARTIFACT_PAGE_SIZE = 100;
 const ARTIFACT_MAX_PAGES = 5;
 
 export type AgentTaskSortField = "updated" | "created" | "status" | "title";
+const taskGroups = {
+  all: null,
+  active: ["backlog", "todo", "in_progress", "in_review"],
+  blocked: ["blocked"],
+  finished: ["done", "cancelled"],
+} as const;
+type TaskGroup = keyof typeof taskGroups;
+const inTaskGroup = (task: Issue, group: TaskGroup) =>
+  group === "all" || (taskGroups[group] as readonly string[]).includes(task.status);
 
 const SORT_OPTIONS: ReadonlyArray<[AgentTaskSortField, string]> = [
   ["updated", "Last updated"],
@@ -114,7 +124,9 @@ export function AgentTasksPanel({
   /** The conversation issue itself, which is not one of the agent's tasks. */
   excludeIssueId?: string;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
+  const [group, setGroup] = useState<TaskGroup>("all");
   const [filters, setFilters] = useState<IssueFilterState>(defaultIssueFilterState);
   const [sortField, setSortField] = useState<AgentTaskSortField>("updated");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -137,12 +149,13 @@ export function AgentTasksPanel({
     const needle = query.trim().toLowerCase();
     const scoped = (tasksQuery.data ?? []).filter((task) => {
       if (task.id === excludeIssueId) return false;
+      if (!inTaskGroup(task, group)) return false;
       if (!needle) return true;
       return task.title.toLowerCase().includes(needle)
         || (task.identifier ?? "").toLowerCase().includes(needle);
     });
     return sortAgentTasks(applyIssueFilters(scoped, filters), sortField, sortDir);
-  }, [tasksQuery.data, excludeIssueId, query, filters, sortField, sortDir]);
+  }, [tasksQuery.data, excludeIssueId, query, filters, sortField, sortDir, group]);
 
   const activeFilterCount = countActiveIssueFilters(filters);
   const total = (tasksQuery.data ?? []).filter((task) => task.id !== excludeIssueId).length;
@@ -151,6 +164,15 @@ export function AgentTasksPanel({
 
   return (
     <section className="flex flex-col gap-3" aria-label="Agent tasks">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("chatWorkspace.taskProgress")}>
+        {(Object.keys(taskGroups) as TaskGroup[]).map(value => (
+          <Button key={value} size="sm" variant={group === value ? "secondary" : "ghost"}
+            aria-pressed={group === value} onClick={() => setGroup(value)}>
+            {t(`chatWorkspace.groups.${value}`)}{tasksQuery.data && ` (${tasksQuery.data.filter(task => task.id !== excludeIssueId && inTaskGroup(task, value)).length})`}
+          </Button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{t("chatWorkspace.agentScope")}</p>
       <div className="flex items-center gap-1">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -288,6 +310,8 @@ async function listAgentArtifacts(companyId: string, agentId: string) {
 }
 
 export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string; agentId: string }) {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState("");
   const artifactsQuery = useQuery({
     queryKey: queryKeys.artifacts.byAgent(companyId, agentId),
     queryFn: () => listAgentArtifacts(companyId, agentId),
@@ -296,10 +320,16 @@ export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string;
   if (artifactsQuery.isPending) return <PanelMessage>Loading artifacts…</PanelMessage>;
   if (artifactsQuery.isError) return <PanelMessage tone="error">Could not load this agent's artifacts.</PanelMessage>;
   const { artifacts, truncated } = artifactsQuery.data;
+  const needle = query.trim().toLocaleLowerCase();
+  const visible = artifacts.filter(artifact => !needle ||
+    `${artifact.title} ${artifact.issue.identifier ?? ""} ${artifact.mediaKind}`.toLocaleLowerCase().includes(needle));
   if (artifacts.length === 0) return <PanelMessage>This agent hasn't produced any artifacts yet.</PanelMessage>;
   return (
     <section className="flex flex-col gap-2" aria-label="Agent artifacts">
-      {artifacts.map((artifact) => <AgentArtifactCard key={artifact.id} artifact={artifact} />)}
+      <Input value={query} onChange={event => setQuery(event.target.value)}
+        aria-label={t("chatWorkspace.searchArtifacts")} placeholder={t("chatWorkspace.searchArtifacts")} />
+      {visible.length === 0 && <PanelMessage>{t("chatWorkspace.noArtifacts")}</PanelMessage>}
+      {visible.map((artifact) => <AgentArtifactCard key={artifact.id} artifact={artifact} />)}
       {truncated ? (
         <p className="px-1 text-xs text-muted-foreground">Showing this agent's {artifacts.length} most recent artifacts.</p>
       ) : null}

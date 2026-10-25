@@ -6,6 +6,10 @@ Estado de superficie: Existente con trabajo local reciente
 Fase de ampliación: F2
 Alcance: Ampliación candidata; seleccionar por piloto
 
+## Estado de implementación (2026-10-22)
+
+La integración local reúne el acceso a contexto y archivos/artefactos y contiene superficies relacionadas con medios. Esto no implica duplicar el almacén, que cada medio tenga versionado común, ni que una referencia de contexto conceda acceso. Quedan por comprobar versiones, permisos, audiencia y asociación con la tarea; véase el [registro de implementación](../../2026-10-22-implementacion-ux-simplificada.md).
+
 [Plan maestro](../../2026-10-21-plan-maestro-producto.md) · [Arquitectura global](../2026-10-21-arquitectura-global.md) · [Contratos](../2026-10-21-contratos-datos-acceso.md) · [Validación](../2026-10-21-validacion-lanzamiento.md)
 
 ## Punto de partida y rutas

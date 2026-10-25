@@ -1,0 +1,22 @@
+import { VoiceEngineError, codeFromStatus } from "../../../core/errors.js";
+import type { SttProvider, SttProviderContext, SttProviderDefinition, SttModelDescriptor, TranscriptionRequest, TranscriptionResult } from "../../types.js";
+
+export const GOOGLE_STT_MODELS: SttModelDescriptor[] = [{ provider:"google", id:"chirp_3", name:"Chirp 3", tier:"flagship", languages:[], latency:"standard", supportsBatch:true, supportsStreaming:false, supportsWordTimestamps:true, supportsDiarization:true, supportsLanguageDetection:true, supportsKeywords:false, supportsTranslation:false, supportsEndOfTurn:false, notes:"Official Chirp 3 docs; checked 2026-10-22. REST recognize supported; streaming is gRPC only." }];
+export function createGoogleSttProvider(ctx: SttProviderContext): SttProvider {
+ const project=ctx.credentials.projectId, location=ctx.credentials.location, key=ctx.credentials.apiKey, token=ctx.credentials.accessToken;
+ if(!project||!location||(!key&&!token)) throw new VoiceEngineError("Google requires projectId, location, and apiKey or accessToken",{code:"auth",provider:"google"});
+ return { id:"google",name:"Google Cloud Speech-to-Text",capabilities:{batch:true,streaming:false,wordTimestamps:true,diarization:true,languageDetection:true,keywords:false,translation:false,endOfTurn:false,inputFormats:["wav","flac","mp3","ogg","webm"],streamEncodings:[],languages:[],maxFileBytes:10_000_000},listModels:async()=>GOOGLE_STT_MODELS,defaultModel:()=>"chirp_3",async transcribe(r:TranscriptionRequest):Promise<TranscriptionResult>{
+ const started=Date.now(); if(!("data" in r.audio)) throw new VoiceEngineError("Google recognize requires inline audio bytes",{code:"unsupported",provider:"google"});
+ const model=r.model??"chirp_3", audio=r.audio.data; const headers:Record<string,string>={"content-type":"application/json"}; if(key) headers["x-goog-api-key"]=key; else headers.authorization=`Bearer ${token}`;
+ const language=r.language&&r.language!=="auto"?[r.language]:r.languageHints?.length?r.languageHints:["auto"];
+ const config={autoDecodingConfig:{},languageCodes:language,model,features:{enableWordTimeOffsets:!!r.wordTimestamps,enableAutomaticPunctuation:r.punctuation!==false,...(r.diarization?.enabled?{diarizationConfig:{maxSpeakerCount:r.diarization.maxSpeakers??6}}:{})}};
+ const encoded=btoa(Array.from(audio,x=>String.fromCharCode(x)).join(""));
+ let response:Response; try { response=await ctx.fetch(`https://${location}-speech.googleapis.com/v2/projects/${project}/locations/${location}/recognizers/_:recognize`,{method:"POST",headers,signal:r.signal,body:JSON.stringify({config,content:encoded})}); } catch(e){ throw new VoiceEngineError("Google request failed",{code:r.signal?.aborted?"aborted":"provider_unavailable",provider:"google",cause:e}); }
+ if(!response.ok) {const retry=response.headers.get("retry-after"); throw new VoiceEngineError(`Google returned HTTP ${response.status}`,{code:codeFromStatus(response.status),provider:"google",status:response.status,retryAfterMs:retry?Number(retry)*1000:undefined});}
+ const raw=await response.json() as any, results=raw.results??[], text=results.map((x:any)=>x.alternatives?.[0]?.transcript??"").join(" "), words:any[]=[]; let offset=0; let detected:string|undefined;
+ for(const result of results){ const alt=result.alternatives?.[0]??{}; detected=detected??result.languageCode; for(const w of alt.words??[]) {const start=duration(w.startOffset),end=duration(w.endOffset); words.push({text:w.word,startMs:start+offset,endMs:end+offset,...(w.speakerLabel?{speaker:w.speakerLabel}:{})});} offset=duration(result.resultEndOffset); }
+ return {text,language:detected??(language[0]==="auto"?undefined:language[0]),words:words.length?words:undefined,provider:"google",model,usage:{provider:"google",model,operation:"transcribe",unit:"second",units:offset/1000,estimatedCents:null,pricingSource:"Google pricing varies by SKU; not estimated"},requestId:raw.metadata?.requestId,latencyMs:Date.now()-started,raw};
+ }};
+}
+function duration(v:string|undefined):number { return v?parseFloat(v)*1000:0; }
+export const googleSttProvider: SttProviderDefinition={id:"google",name:"Google Cloud Speech-to-Text",docsUrl:"https://docs.cloud.google.com/speech-to-text/v2/docs/chirp-model",credentialEnv:{apiKey:["GOOGLE_CLOUD_API_KEY"],accessToken:["GOOGLE_OAUTH_ACCESS_TOKEN"],projectId:["GOOGLE_CLOUD_PROJECT"],location:["GOOGLE_CLOUD_LOCATION"]},requiredCredentials:["projectId","location"],create:createGoogleSttProvider};

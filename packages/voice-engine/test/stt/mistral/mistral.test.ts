@@ -1,0 +1,3 @@
+import { expect, it } from "vitest";
+import { createMistralSttProvider } from "../../../src/stt/providers/mistral/index.js";
+it("sends multipart audio and requests word timestamps",async()=>{let form:FormData|undefined;const p=createMistralSttProvider({credentials:{apiKey:"k"},fetch:async(_u,i)=>{form=i?.body as FormData;return new Response(JSON.stringify({text:"hi",words:[{text:"hi",start:0.1,end:0.3,speaker_id:2}]}));}});const out=await p.transcribe({audio:{data:new Uint8Array([2]),mimeType:"audio/wav"},wordTimestamps:true});expect(form?.get("timestamp_granularities[]")).toBe("word");expect(out.words?.[0]).toMatchObject({startMs:100,endMs:300,speaker:"2"});});

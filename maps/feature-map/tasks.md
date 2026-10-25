@@ -6,6 +6,8 @@ navigation: {"section":"Tasks and conversations","sectionOrder":20,"order":10}
 
 People create, assign, organize, discuss, and finish tasks. A task retains its owner, project, priority, history, and outputs as it moves through the work lifecycle.
 
+UX integration note: Tareas remains a direct work entry point; the expected result and review are optional task context. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Implementation: [new task](../../ui/src/components/NewIssueDialog.tsx), [task list](../../ui/src/pages/Issues.tsx), [task detail](../../ui/src/pages/IssueDetail.tsx).
 
 Agent access: [companion](../agent-access-map/tasks.md).
@@ -22,11 +24,11 @@ Agent access: [companion](../agent-access-map/tasks.md).
 
 ### `new-task`
 
-Use New task from the global launcher, task list, or project task view.
+Use New task from the global launcher, Tareas list, or project task view.
 
 ### `task-list`
 
-Open `/issues` or a project’s Issues view; legacy `/tasks` links redirect.
+Open Tareas (`/issues`) or a project’s Issues view; legacy `/tasks` links redirect.
 
 ### `task-detail`
 

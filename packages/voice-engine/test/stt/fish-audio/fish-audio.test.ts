@@ -1,0 +1,3 @@
+import { expect, it } from "vitest";
+import { createFishAudioSttProvider } from "../../../src/stt/providers/fish-audio/index.js";
+it("maps Fish Audio segment timestamps and speaker",async()=>{let request:any;const p=createFishAudioSttProvider({credentials:{apiKey:"k"},fetch:async(_u,i)=>{request=JSON.parse(String(i?.body));return new Response(JSON.stringify({text:"hello",segments:[{text:"hello",start:0.2,end:0.7,speaker_id:1}]}));}});const out=await p.transcribe({audio:{data:new Uint8Array([1,2]),mimeType:"audio/wav"},language:"en",wordTimestamps:true});expect(request.language).toBe("en");expect(out.segments?.[0]).toMatchObject({startMs:200,endMs:700,speaker:"1"});});

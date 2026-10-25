@@ -1,0 +1,7 @@
+import { describe, expect, it } from "vitest";
+import { createSonioxSttProvider } from "../../../src/stt/providers/soniox/index.js";
+
+describe("Soniox STT", () => {
+  it("uploads and polls async transcription", async () => { const calls: string[] = []; let polls = 0; const fetcher = (async (input: RequestInfo | URL) => { const url = String(input); calls.push(url); if (url.endsWith("/files")) return Response.json({ id: "f1" }); if (url.endsWith("/transcriptions")) return Response.json({ id: "t1", status: "queued" }); if (url.endsWith("/transcript")) return Response.json({ text: "hi", tokens: [{ text: "hi", start_ms: 0, end_ms: 300 }] }); if (++polls === 1) return Response.json({ id: "t1", status: "processing" }); return Response.json({ id: "t1", status: "completed", model: "stt-async-v5" }); }) as typeof fetch; const p = createSonioxSttProvider({ credentials: { apiKey: "k" }, fetch: fetcher }); const r = await p.transcribe({ audio: { data: new Uint8Array([1]), mimeType: "audio/wav" }, languageHints: ["es"] }); expect(r.text).toBe("hi"); expect(calls).toContain("https://api.soniox.com/v1/transcriptions/t1/transcript"); });
+  it("maps authentication failures", async () => { const p = createSonioxSttProvider({ credentials: { apiKey: "x" }, fetch: (async () => new Response("{}", { status: 401 })) as typeof fetch }); await expect(p.transcribe({ audio: { url: "https://a" } })).rejects.toMatchObject({ code: "auth" }); });
+});

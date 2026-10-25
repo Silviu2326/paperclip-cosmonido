@@ -1,0 +1,18 @@
+# STT provider group B notes
+
+Checked against official vendor documentation on 2026-10-22.
+
+## Verified details and discrepancies
+
+- AssemblyAI confirms batch `POST /v2/upload`, `POST /v2/transcript`, and transcript polling, raw `authorization` key (no Bearer), and v3 WebSocket `wss://streaming.assemblyai.com/v3/ws`. Current model docs call the family Universal-3 Pro; pricing material has had Universal-3.5/3.6 naming conflicts. This implementation uses `universal-3-pro` for batch per current model docs and `universal-3-6-pro` for streaming per the assigned brief/pricing reference. The current examples use `speech_models` on batch and singular `speech_model` on streaming. URLs: https://www.assemblyai.com/docs/getting-started/models, https://www.assemblyai.com/docs/coding-agent-prompts, https://www.assemblyai.com/docs/speech-to-text/universal-streaming, https://www.assemblyai.com/pricing.md.
+- Soniox confirms REST `https://api.soniox.com/v1`, files `POST /files`, transcription create/poll/transcript routes, and active `stt-async-v5` / `stt-rt-v5`. Realtime URL is `wss://stt-rt.soniox.com/transcribe-websocket`. Unlike the research assumption, API key in the start JSON is deprecated; use Authorization Bearer at the WebSocket handshake. It requires a keepalive control message within 40 seconds and an empty text frame to finish. URLs: https://soniox.com/docs/api-reference/stt/websocket-api, https://soniox.com/docs/api-reference/stt/transcriptions/create_transcription, https://soniox.com/docs/stt/models.
+- Speechmatics current batch API uses `transcription_config.model` (the old `operating_point` is deprecated), `additional_vocab`, and a multipart `data_file` plus JSON `config`, then `GET /v2/jobs/{id}` and `/transcript?format=json-v2`. Default cloud region used here is `eu1`; deployments are regional. URLs: https://docs.speechmatics.com/api-ref/batch/create-a-new-job, https://docs.speechmatics.com/api-ref/batch/get-a-job, https://docs.speechmatics.com/api-ref/realtime.
+- Gladia live init is officially `POST https://api.gladia.io/v2/live`; the docs surfaced confirm it returns a WebSocket `url`, but search did not expose a stable full payload schema for every realtime message or batch result. Research's `POST /v2/upload` then `/v2/pre-recorded` flow was used as directed, with response-field fallbacks. Solaria-1 is the documented live default; no price is included. URLs: https://docs.gladia.io/api-reference/v2/live/init, https://docs.gladia.io/api-reference/v2/pre-recorded/init, https://docs.gladia.io/api-reference/v2/upload.
+
+## Remaining implementation assumptions
+
+- Polling uses bounded exponential delay, but does not use vendor `Retry-After` between normal status polls. Abort is checked during polling delays and passed to fetch.
+- Speechmatics streaming currently uses bearer handshake and raw `pcm_s16le`; regional real-time domains and exact StartRecognition shape can vary by deployment/account. A `region` credential or `ctx.baseUrl` controls the selected region/base.
+- AssemblyAI `end_of_turn_confidence_threshold` is sent as a URL query option when requested; keyterms use JSON-encoded `keyterms_prompt` on the websocket URL.
+- Gladia's upload response is read as `audio_url` or `url`; polling uses `result_url` or `/v2/pre-recorded/{id}`. Live audio is sent as binary frames and the provider session is closed by WebSocket close. These shapes need adjustment if the current account schema differs.
+- Pricing is recorded only for models where the research had an official public price; estimated request cost stays null because this STT contract reports actual audio seconds and does not have an established per-run price source.

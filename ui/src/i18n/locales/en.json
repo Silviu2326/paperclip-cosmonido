@@ -1,4 +1,15 @@
 {
+  "chatWorkspace": {
+    "context": "Conversation context",
+    "mode": { "standard": "Work", "ask": "Ask", "planning": "Plan", "skill_test": "Skill test" },
+    "sessionScope": "Conversation with this agent in the current company. Visible history does not indicate which messages the model receives on each turn.",
+    "newSession": "A session was started with /new. History and files remain available; messages before the reset are excluded from automatic replay.",
+    "taskProgress": "Filter work by status",
+    "agentScope": "This agent's work across the company. A finished task does not mean its deliverables have been reviewed.",
+    "groups": { "all": "All", "active": "Open", "blocked": "Blocked", "finished": "Finished" },
+    "searchArtifacts": "Search deliverables by title, task or type",
+    "noArtifacts": "No deliverables match this search."
+  },
   "app": {
     "noCompanies": {
       "title": "Create your first organization",

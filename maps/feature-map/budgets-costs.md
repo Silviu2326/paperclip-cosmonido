@@ -60,3 +60,7 @@ Scope: ui
 Storybook: Mount BudgetIncidentCard with entered raised limit, invalid limit, keep-paused, applying, authorized/blocked and error states wired through actual host. Existing matrix handlers are no-ops.
 Production: POST /companies/{id}/budget-incidents/{id}/resolve must authorize scope-specific raise, persist resolution and resume eligible work while retaining overlapping budget/manual holds.
 Sources: Source: [BudgetIncidentCard.tsx](../../ui/src/components/BudgetIncidentCard.tsx), [Costs.tsx](../../ui/src/pages/Costs.tsx), [budgets.ts](../../ui/src/api/budgets.ts), [costs.ts](../../server/src/routes/costs.ts), [budgets.ts](../../server/src/services/budgets.ts). Tests: [budgets-service.test.ts](../../server/src/__tests__/budgets-service.test.ts), [Costs.test.tsx](../../ui/src/pages/Costs.test.tsx)
+
+## Result costs in the simplified workspace
+
+The Costs tab labelled By task reuses the existing assignment cost report. It links to the task's result through the compatible assignment URL. Private task titles and IDs are omitted for readers without task access; company financial totals remain complete and hidden attribution is included in unattributed costs. This does not change billing or budget hard stops. See the [implementation record](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).

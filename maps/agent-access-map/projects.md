@@ -9,6 +9,8 @@ Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.
 
+The UX integration presents customer context as optional. The project baseline below does not review any new customer-link API or agent binding from that integration; the existing entries remain source-only and live access remains unverified.
+
 ## `lifecycle`
 
 Review: `baseline`.

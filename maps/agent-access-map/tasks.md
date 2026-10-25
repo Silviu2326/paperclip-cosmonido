@@ -11,6 +11,8 @@ Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.
 
+The UX integration adds optional task outcome/review presentation. The existing issue API and permission notes below remain source-only; any new outcome/review API or agent binding in the integration is not enumerated or verified by this companion.
+
 ## `create`
 
 Review: `baseline`.
@@ -156,3 +158,12 @@ remaining operations before qualifying the whole capability.
 
 Gaps: The server governs whether a reported result becomes done/review/blocked.
 Generic lifecycle PATCH uses existing REST authorization, checkout and approval rules.
+
+## UX integration access notes (2026-10-22)
+
+Source reviewed in the local integration; no live agent qualification is claimed.
+
+- The board's result-bearing task form uses the existing board-only `POST /api/companies/{companyId}/assignments` transaction. Native create_task continues using ordinary issue creation; the UI does not add agent authority.
+- `GET /api/issues/{id}/assignment` checks company and task privacy before resolving the result, and checks a related root before returning its metadata. Agent requests retain the current-task context boundary. Legacy assignment detail/update/cancel also enforce root readability.
+- Assignment lists and `GET /api/companies/{companyId}/issues?review=pending` apply read predicates before pagination. Task-side edits, cancellation and reopening synchronize the existing result record without accepting a deliverable.
+- SQL integration tests remain unexecuted on this Windows host; route denial tests and source review are separate evidence.

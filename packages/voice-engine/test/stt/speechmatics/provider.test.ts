@@ -1,0 +1,7 @@
+import { describe, expect, it } from "vitest";
+import { createSpeechmaticsSttProvider } from "../../../src/stt/providers/speechmatics/index.js";
+
+describe("Speechmatics STT", () => {
+  it("submits multipart job config and gets transcript", async () => { const calls: Array<[string, RequestInit | undefined]> = []; const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => { const url = String(input); calls.push([url, init]); if (url.endsWith("/v2/jobs/")) return Response.json({ id: "j1", status: "done", duration: 1 }); if (url.includes("/transcript?")) return Response.json({ results: [{ type: "word", start_time: 0, end_time: 0.3, alternatives: [{ content: "hello", confidence: 0.9 }] }] }); return Response.json({ id: "j1", status: "done", duration: 1 }); }) as typeof fetch; const p = createSpeechmaticsSttProvider({ credentials: { apiKey: "k" }, fetch: fetcher }); const r = await p.transcribe({ audio: { data: new Uint8Array([1]), mimeType: "audio/wav" }, language: "en", keywords: ["hello"] }); expect(r.text).toBe("hello"); expect(calls[0][1]?.body).toBeInstanceOf(FormData); });
+  it("maps auth failures", async () => { const p = createSpeechmaticsSttProvider({ credentials: { apiKey: "x" }, fetch: (async () => new Response("{}", { status: 401 })) as typeof fetch }); await expect(p.transcribe({ audio: { data: new Uint8Array([1]), mimeType: "audio/wav" } })).rejects.toMatchObject({ code: "auth" }); });
+});

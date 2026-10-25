@@ -9,6 +9,8 @@ setup from either Apps or a task that needs access. A saved draft, a completed
 provider login, a usable connection, and a resumed task are separate checkpoints.
 Chat channels additionally require an endpoint and linked sender identity.
 
+UX integration note: Apps remains the connection destination within simplified navigation. Moving its entry does not change provider setup, identity, or permission requirements. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Agent access: [companion](../agent-access-map/connection-setup.md).
 
 ## Sub-features

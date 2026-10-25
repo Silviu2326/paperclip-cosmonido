@@ -1,4 +1,15 @@
 {
+  "chatWorkspace": {
+    "context": "Contexto de esta conversación",
+    "mode": { "standard": "Trabajo", "ask": "Consulta", "planning": "Planificación", "skill_test": "Prueba de habilidad" },
+    "sessionScope": "Conversación compartida con este agente dentro de la empresa actual. El historial visible no indica qué mensajes recibe el modelo en cada turno.",
+    "newSession": "Se inició una sesión con /new. El historial y los archivos se conservan; los mensajes anteriores al reinicio quedan fuera de la reproducción automática.",
+    "taskProgress": "Filtrar trabajo por estado",
+    "agentScope": "Trabajo de este agente en toda la empresa. Una tarea finalizada no implica que su entrega haya sido revisada.",
+    "groups": { "all": "Todas", "active": "Abiertas", "blocked": "Bloqueadas", "finished": "Finalizadas" },
+    "searchArtifacts": "Buscar entregables por título, tarea o tipo",
+    "noArtifacts": "No hay entregables que coincidan con esta búsqueda."
+  },
   "app": {
     "noCompanies": {
       "title": "Crea tu primera empresa",

@@ -6,6 +6,10 @@ Estado de superficie: Existente
 Fase de ampliación: F2
 Alcance: Ampliación candidata; seleccionar por piloto
 
+## Estado de implementación (2026-10-22)
+
+La integración local muestra el cliente como contexto opcional del proyecto. Crear y usar un proyecto interno sin cliente sigue siendo un caso requerido. La persistencia y los límites de acceso por cliente necesitan verificación específica; véase el [registro de implementación](../../2026-10-22-implementacion-ux-simplificada.md).
+
 [Plan maestro](../../2026-10-21-plan-maestro-producto.md) · [Arquitectura global](../2026-10-21-arquitectura-global.md) · [Contratos](../2026-10-21-contratos-datos-acceso.md) · [Validación](../2026-10-21-validacion-lanzamiento.md)
 
 ## Punto de partida y rutas

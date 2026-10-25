@@ -756,10 +756,10 @@ export function TaskSidePanel({
     );
   } else if (activeTab.payload.kind === "agent-tasks") {
     content = conversationAgentId ? (
-      <AgentTasksPanel companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
+      <AgentTasksPanel key={`${issue.companyId}:${conversationAgentId}`} companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
     ) : null;
   } else if (activeTab.payload.kind === "artifacts" && conversationAgentId) {
-    content = <AgentArtifactsPanel companyId={issue.companyId} agentId={conversationAgentId} />;
+    content = <AgentArtifactsPanel key={`${issue.companyId}:${conversationAgentId}`} companyId={issue.companyId} agentId={conversationAgentId} />;
   } else if (activeTab.payload.kind === "artifacts") {
     content = <TextAttachmentContext.Provider value={(id, title) => {
       markInteracted();

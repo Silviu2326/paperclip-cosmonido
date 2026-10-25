@@ -6,6 +6,8 @@ navigation: {"section":"Tasks and conversations","sectionOrder":20,"order":70}
 
 People read and revise task documents, annotate specific content, open attached files, and inspect the outputs an agent hands back. The Artifacts explorer at `/artifacts` provides another route to the same work, and it is also where the company files (Entrada) live.
 
+UX integration note: context files and media are surfaced alongside the existing task and artifact paths; this does not imply a second asset store or broader access. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Implementation: [task documents](../../ui/src/components/IssueDocumentsSection.tsx), [document panel](../../ui/src/components/task-side-panel/TaskDocumentPanel.tsx), [artifacts explorer](../../ui/src/pages/artifacts/ArtifactsExplorer.tsx) and its [components](../../ui/src/components/artifacts/explorer/). The explorer is the only Artifacts page.
 
 Agent access: [companion](../agent-access-map/documents-artifacts.md).
