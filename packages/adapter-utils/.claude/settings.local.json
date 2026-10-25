@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:\\Users\\usuario\\Downloads\\infiniverse-mvp-v0.3-turn-engine\\paperclip\\packages\\adapter-utils/scripts/paperclip-issue-update.sh:*)",
+      "Bash(C:\\Users\\usuario\\Downloads\\infiniverse-mvp-v0.3-turn-engine\\paperclip\\packages\\adapter-utils/scripts/paperclip:*)",
+      "Bash(curl:*)",
+      "Bash(env)",
+      "Bash(env:*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\usuario\\.paperclip\\instances\\default\\companies\\company-1",
+      "C:\\Users\\usuario\\.paperclip\\instances\\default\\companies\\company-1\\acp-engine\\agents\\agent-1",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-3OxRvc\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-4iYW7C\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-51cD1P\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-CNh3hU\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-SXitN8\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-Y0fvGq\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-Y4ViqL\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-aQZGhO\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-c7aFP6\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-mLyAzp\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-ou33R1\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-p4ce0r\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-qLWVqa\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-rZYrtO\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-uD5139\\state",
+      "C:\\Users\\usuario\\AppData\\Local\\Temp\\paperclip-acpx-skills-v9Npl8\\state"
+    ],
+    "defaultMode": "default"
+  }
+}
