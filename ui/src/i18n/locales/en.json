@@ -313,6 +313,22 @@
     "resuming": "Resuming…",
     "theAssignee": "the assignee"
   },
+  "artifactPicker": {
+    "add": "Attach existing",
+    "title": "Choose artifacts",
+    "description": "Search Entrada files or Salida artifacts to attach to this task.",
+    "inbox": "Entrada",
+    "outbox": "Salida",
+    "search": "Search by name",
+    "searchHint": "Enter at least two characters to search.",
+    "empty": "No matching artifacts.",
+    "noneSelected": "No existing artifacts selected.",
+    "selectedTitle": "Existing artifacts",
+    "remove": "Remove artifact",
+    "addSelected": "Attach {{count}}",
+    "attachFailed": "{{count}} artifact(s) could not be attached.",
+    "source": { "company_file": "Entrada", "attachment": "Attachment", "work_product": "Work product", "document": "Document" }
+  },
   "issueAttachments": {
     "browseGallery": "Browse gallery",
     "browseNamed": "Browse {{name}} in gallery",
@@ -2922,6 +2938,7 @@
         "preview": "Quick view",
         "download": "Download",
         "copyLink": "Copy link",
+        "createTask": "Create task from artifact",
         "goTask": "Go to task",
         "moveToInbox": "Move to Inbox…",
         "replace": "Replace with new version",

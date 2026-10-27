@@ -10,6 +10,7 @@ import {
 } from "./productization-messages";
 
 export const DEFAULT_LOCALE = "es" as const;
+const REQUIRED_LOCALES = ["en", "es"] as const;
 
 // Spanish is the default; English is the validation reference. Other locale
 // dictionaries stay in separate chunks until i18next requests that language.
@@ -19,13 +20,15 @@ const localeModules = import.meta.glob("./locales/*.json", {
 
 export const localeMessages: Record<string, unknown> = { en, es };
 
-if (!(DEFAULT_LOCALE in localeMessages)) {
-  throw new Error(`Missing default locale messages for ${DEFAULT_LOCALE}`);
+for (const locale of REQUIRED_LOCALES) {
+  if (!(locale in localeMessages)) {
+    throw new Error(`Missing required locale messages for ${locale}`);
+  }
 }
 
-for (const [locale, messages] of Object.entries(localeMessages)) {
+for (const locale of REQUIRED_LOCALES) {
   try {
-    assertValidLocaleMessages(messages);
+    assertValidLocaleMessages(localeMessages[locale]);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Invalid ${locale} locale messages: ${message}`);
@@ -109,13 +112,14 @@ export async function loadLocaleMessages(locale: SupportedLocale): Promise<Messa
   const loader = localeModules["./locales/" + locale + ".json"];
   if (!loader) throw new Error("Missing locale messages for " + locale);
   const loading = loader().then((messages) => {
-    assertValidLocaleMessages(messages);
+    const localizedWithSpanishFallback = mergeMissingMessages(messages as MessageTree, es as MessageTree);
+    assertValidLocaleMessages(localizedWithSpanishFallback);
     const merged = mergeMissingMessages(
-      messages as MessageTree,
+      localizedWithSpanishFallback,
       productizationByLocale[locale] ?? productizationMessagesEn,
     );
     assertValidLocaleMessages(merged, englishMessages);
-    localeMessages[locale] = messages;
+    localeMessages[locale] = localizedWithSpanishFallback;
     mergedLocaleMessages[locale] = merged;
     return merged;
   }).catch((error: unknown) => {

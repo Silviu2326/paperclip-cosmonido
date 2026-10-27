@@ -234,6 +234,7 @@ When adding endpoints:
 - Use company selection context for company-scoped pages
 - Surface failures clearly; do not silently ignore API errors
 - Form and wizard footers: keep Save & exit (or Cancel/Back) left and the primary action right in the same vertically aligned row. Each step owns the entire footer; never append Save & exit as a separate row. See `DESIGN.md`.
+- Translate new or changed UI copy into English (`ui/src/i18n/locales/en.json`) and Spanish (`ui/src/i18n/locales/es.json`) only. Do not update the other locale files for routine changes; missing translations use the Spanish fallback. Keep the English and Spanish key sets synchronized.
 
 ## 10. Pull Request Requirements
 

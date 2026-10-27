@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import type { IssueWorkMode } from "@paperclipai/shared";
+import type { AttachIssueArtifact, IssueWorkMode } from "@paperclipai/shared";
 
 interface NewIssueDefaults {
   status?: string;
@@ -18,6 +18,7 @@ interface NewIssueDefaults {
   assigneeUserId?: string;
   title?: string;
   description?: string;
+  attachments?: Array<AttachIssueArtifact & { title: string }>;
   /** Open the created task after submission; disabled unless the caller opts in. */
   navigateOnCreate?: boolean;
 }

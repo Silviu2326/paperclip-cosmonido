@@ -2223,6 +2223,14 @@ export type CreateIssueAttachmentMetadata = z.infer<
   typeof createIssueAttachmentMetadataSchema
 >;
 
+export const attachIssueArtifactSchema = z.object({
+  source: z.enum(["company_file", "attachment", "work_product", "document"]),
+  id: z.string().guid(),
+  versionId: z.string().guid().optional(),
+}).strict();
+
+export type AttachIssueArtifact = z.infer<typeof attachIssueArtifactSchema>;
+
 export const ISSUE_DOCUMENT_FORMATS = ["markdown"] as const;
 
 export const issueDocumentFormatSchema = z.enum(ISSUE_DOCUMENT_FORMATS);

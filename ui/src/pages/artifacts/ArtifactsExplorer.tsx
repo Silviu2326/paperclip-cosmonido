@@ -8,11 +8,13 @@ import { useNavigate } from "@/lib/router";
 import { companyFilesApi, type CompanyFile, type CompanyFileFolderNode } from "@/api/company-files";
 import type { ResourceMemberships } from "@paperclipai/shared";
 import { useCompany } from "@/context/CompanyContext";
+import { useDialogActions } from "@/context/DialogContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompanyFileUploads } from "@/hooks/useCompanyFileUploads";
 import { useExplorerStarMutation, useResourceMemberships } from "@/hooks/useResourceMemberships";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { ArtifactDropzone } from "@/components/artifacts/ArtifactDropzone";
+import { artifactSelectionFromExplorer } from "@/components/artifacts/ArtifactAttachmentPicker";
 import { ArtifactUploadContent } from "@/components/artifacts/ArtifactUploadControls";
 import { ArtifactFullscreenDialog } from "@/components/artifacts/explorer/ArtifactFullscreenDialog";
 import {
@@ -104,6 +106,7 @@ interface MenuState {
 export function ArtifactsExplorer() {
   const { t: tr } = useTranslation();
   const { selectedCompanyId } = useCompany();
+  const { openNewIssue } = useDialogActions();
   const companyId = selectedCompanyId ?? "";
   const { setBreadcrumbs } = useBreadcrumbs();
   const navigate = useNavigate();
@@ -376,6 +379,27 @@ export function ArtifactsExplorer() {
         copyLink();
       },
       toggleFavorite,
+      createTask: (item: ExplorerItem) => {
+        if (item.kind !== "file") return;
+        const raw = item.raw as CompanyFile | CompanyArtifact;
+        let projectId: string | undefined;
+        let versionId: string | null | undefined;
+        if (item.box === "in") {
+          const file = raw as CompanyFile;
+          projectId = file.audienceKind === "project" ? file.audienceId ?? undefined : undefined;
+          versionId = versionPick?.fileId === file.id
+            ? versionsQuery.data?.find((version) => version.versionNumber === versionPick.versionNumber)?.id
+            : file.currentVersionId;
+        } else {
+          projectId = (raw as CompanyArtifact).project?.id;
+        }
+        openNewIssue({
+          title: item.name,
+          ...(projectId ? { projectId } : {}),
+          attachments: [artifactSelectionFromExplorer(item, versionId)],
+          navigateOnCreate: true,
+        });
+      },
       goTask: (item: ExplorerItem) => {
         const href = (item.raw as CompanyArtifact).href;
         if (href) navigate(href);
@@ -405,7 +429,7 @@ export function ArtifactsExplorer() {
         else inbox.openDeleteFile(item.raw as CompanyFile);
       },
     }),
-    [companyId, copyLink, downloadArchive, flash, inbox, nav, navigate, openItem, showProperties, toggleAgentVisible, toggleFavorite, tr],
+    [companyId, copyLink, downloadArchive, flash, inbox, nav, navigate, openItem, openNewIssue, showProperties, toggleAgentVisible, toggleFavorite, tr, versionPick, versionsQuery.data],
   );
 
   const handleKey = useExplorerKeyboard({
@@ -436,6 +460,11 @@ export function ArtifactsExplorer() {
       label: tr("artifacts.explorer.ctx.download"),
       onSelect: () => downloadFile(selected.downloadPath, selected.name),
     };
+    const createTask: ArtifactPreviewAction = {
+      id: "create-task",
+      label: tr("artifacts.explorer.ctx.createTask"),
+      onSelect: () => menuActions.createTask(selected),
+    };
     const copy: ArtifactPreviewAction = { id: "copy", label: tr("artifacts.explorer.ctx.copyLink"), onSelect: copyLink };
     const favorite: ArtifactPreviewAction = {
       id: "favorite",
@@ -458,6 +487,7 @@ export function ArtifactsExplorer() {
         : [];
       return [
         open,
+        createTask,
         download,
         ...createVideo,
         { id: "replace", label: tr("artifacts.explorer.ctx.replace"), onSelect: () => menuActions.replaceVersion(selected) },
@@ -470,6 +500,7 @@ export function ArtifactsExplorer() {
     }
     return [
       open,
+      createTask,
       download,
       { id: "task", label: tr("artifacts.explorer.ctx.goTask"), onSelect: () => menuActions.goTask(selected) },
       { id: "inbox", label: tr("artifacts.explorer.ctx.moveToInbox"), onSelect: () => menuActions.moveToInbox(selected) },

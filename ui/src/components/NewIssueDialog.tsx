@@ -42,6 +42,7 @@ import { Paperclip, FileText, Flag, PauseCircle, ListTree, X, ShieldAlert, Folde
 import { cn } from "../lib/utils";
 import type { MentionOption } from "./MarkdownEditor";
 import { TaskChatComposer } from "./task-chat/TaskChatComposer";
+import { ArtifactAttachmentPicker, type SelectedIssueArtifact } from "./artifacts/ArtifactAttachmentPicker";
 import { ComposerWorktreePicker } from "./task-chat/ComposerWorktreePicker";
 import { TaskChatPresentationProvider } from "./task-chat/presentation-mode";
 import { mergeComposerRunSettings, type ComposerRunSettings } from "./task-chat/composer-run-settings";
@@ -320,6 +321,7 @@ export function NewIssueDialog() {
   const { isMobile } = useSidebar();
   const [composerSettings, setComposerSettings] = useState<ComposerRunSettings | null>(null);
   const [stagedFiles, setStagedFiles] = useState<StagedIssueFile[]>([]);
+  const [selectedArtifacts, setSelectedArtifacts] = useState<SelectedIssueArtifact[]>([]);
   const [isFileDragOver, setIsFileDragOver] = useState(false);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const executionWorkspaceDefaultProjectId = useRef<string | null>(null);
@@ -439,9 +441,10 @@ export function NewIssueDialog() {
     mutationFn: async ({
       companyId,
       stagedFiles: pendingStagedFiles,
+      artifactAttachments: pendingArtifacts,
       navigateOnCreate,
       ...data
-    }: { companyId: string; stagedFiles: StagedIssueFile[]; navigateOnCreate?: boolean } & Record<string, unknown>) => {
+    }: { companyId: string; stagedFiles: StagedIssueFile[]; artifactAttachments: SelectedIssueArtifact[]; navigateOnCreate?: boolean } & Record<string, unknown>) => {
       const {
         acceptanceCriteria,
         expectedDeliverable,
@@ -491,6 +494,14 @@ export function NewIssueDialog() {
           }
         } catch {
           failures.push(stagedFile.file.name);
+        }
+      }
+
+      for (const artifact of pendingArtifacts) {
+        try {
+          await issuesApi.attachArtifact(companyId, issue.id, artifact);
+        } catch {
+          failures.push(artifact.title);
         }
       }
 
@@ -657,6 +668,7 @@ export function NewIssueDialog() {
     setComposerSettings(null);
     setIsPrivate(false);
     createIssue.reset();
+    setSelectedArtifacts(newIssueDefaults.attachments ?? []);
     if (newIssueDefaults.parentId) {
       const nextWorkMode = isIssueWorkMode(newIssueDefaults.workMode) ? newIssueDefaults.workMode : "standard";
       const defaultProjectId = newIssueDefaults.projectId ?? "";
@@ -829,6 +841,7 @@ export function NewIssueDialog() {
     setIsPrivate(false);
 
     setStagedFiles([]);
+    setSelectedArtifacts([]);
     setIsFileDragOver(false);
 
     executionWorkspaceDefaultProjectId.current = null;
@@ -898,6 +911,7 @@ export function NewIssueDialog() {
     const createData = {
       companyId: effectiveCompanyId,
       stagedFiles,
+      artifactAttachments: selectedArtifacts,
       ...(currentTitle ? { title: currentTitle } : {}),
       description: currentDescription || undefined,
       status,
@@ -1333,6 +1347,32 @@ export function NewIssueDialog() {
                         {worktreesError ? t("newIssue.worktreeFailed")
                           : t("newIssue.worktreeUnavailable")}
                       </p>
+                    ) : null}
+                    {effectiveCompanyId ? (
+                      <div className="mx-4 mb-3 space-y-2 rounded-lg border border-border/70 p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs font-medium text-muted-foreground">{t("artifactPicker.selectedTitle")}</span>
+                          <ArtifactAttachmentPicker
+                            companyId={effectiveCompanyId}
+                            disabled={createIssue.isPending}
+                            onAdd={(items) => setSelectedArtifacts((current) => {
+                              const known = new Set(current.map((item) => `${item.source}:${item.id}:${item.versionId ?? "current"}`));
+                              return [...current, ...items.filter((item) => !known.has(`${item.source}:${item.id}:${item.versionId ?? "current"}`))];
+                            })}
+                          />
+                        </div>
+                        {selectedArtifacts.length === 0 ? <p className="text-xs text-muted-foreground">{t("artifactPicker.noneSelected")}</p> : null}
+                        {selectedArtifacts.map((artifact) => (
+                          <div key={`${artifact.source}:${artifact.id}:${artifact.versionId ?? "current"}`} className="flex items-center gap-2 rounded-md border border-border/70 px-3 py-2">
+                            <Paperclip className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            <span className="min-w-0 flex-1 truncate text-sm">{artifact.title}</span>
+                            <Button type="button" variant="ghost" size="icon-xs" disabled={createIssue.isPending} title={t("artifactPicker.remove")}
+                              onClick={() => setSelectedArtifacts((current) => current.filter((item) => item !== artifact))}>
+                              <X className="size-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     ) : null}
                     {stagedFiles.length > 0 ? (
                       <div className="mt-4 space-y-3 rounded-lg border border-border/70 p-3">

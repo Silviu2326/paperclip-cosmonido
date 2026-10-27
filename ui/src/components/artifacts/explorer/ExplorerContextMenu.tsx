@@ -26,6 +26,7 @@ export interface ExplorerMenuActions {
   copyLink: (item: ExplorerItem) => void;
   toggleFavorite: (item: ExplorerItem) => void;
   goTask: (item: ExplorerItem) => void;
+  createTask: (item: ExplorerItem) => void;
   moveToInbox: (item: ExplorerItem) => void;
   replaceVersion: (item: ExplorerItem) => void;
   move: (item: ExplorerItem) => void;
@@ -98,6 +99,7 @@ export function buildContextMenuEntries(
     open,
     { type: "item", id: "preview", label: t("artifacts.explorer.ctx.preview"), shortcut: "Espacio", onSelect: () => actions.preview(item) },
     { type: "item", id: "download", label: t("artifacts.explorer.ctx.download"), shortcut: "Ctrl+S", onSelect: () => actions.download(item) },
+    { type: "item", id: "create-task", label: t("artifacts.explorer.ctx.createTask"), onSelect: () => actions.createTask(item) },
     { type: "item", id: "copy", label: t("artifacts.explorer.ctx.copyLink"), onSelect: () => actions.copyLink(item) },
     favorite,
     separator("sep-1"),

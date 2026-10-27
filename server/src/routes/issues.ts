@@ -17,6 +17,7 @@ import { setIssueTitle } from "../services/issue-title.js";
 import { setIssueTitleSchema } from "@paperclipai/shared";
 import { resolveConfirmationFromComment } from "../services/confirmation-comment-resolution.js";
 import { createIssueReadTiming } from "../services/issue-read-timing.js";
+import { attachIssueArtifact, getIssueArtifactSourceIssueId } from "../services/issue-artifact-attachments.js";
 import { isNativeWorkspaceExportRepairCause } from "@paperclipai/shared";
 import { resumeNativeWorkspaceAfterOwnerStop } from "../services/native-runtime/native-workspace-owner-recovery.js";
 import { retryNativeWorkspaceExport } from "../services/native-runtime/native-workspace-export-retry.js";
@@ -86,6 +87,7 @@ import {
   companySearchExtractQuerySchema,
   companySearchQuerySchema,
   createIssueAttachmentMetadataSchema,
+  attachIssueArtifactSchema,
   createIssueThreadInteractionSchema,
   createIssueWorkProductSchema,
   createIssueLabelSchema,
@@ -19487,6 +19489,84 @@ export function issueRoutes(
         artifactWorkProductId: _artifactWorkProductId,
         ...attachmentResponse
       } = attachment;
+      res.status(201).json(withContentPath(attachmentResponse));
+    },
+  );
+
+  router.post(
+    "/companies/:companyId/issues/:issueId/attachments/from-artifact",
+    validate(attachIssueArtifactSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      const issueId = req.params.issueId as string;
+      assertCompanyAccess(req, companyId);
+      const issue = await getAccessibleResource(req, res, svc.getById(issueId), "Issue not found");
+      if (!issue) return;
+      if (issue.companyId !== companyId) {
+        res.status(422).json({ error: "Issue does not belong to company" });
+        return;
+      }
+      if (!(await assertAgentIssueMutationAllowed(req, res, issue))) return;
+      if (!(await assertDeliverableMutationAllowedByRunContext(req, res, issue))) return;
+
+      const source = req.body as z.infer<typeof attachIssueArtifactSchema>;
+      const sourceIssueId = await getIssueArtifactSourceIssueId(db, companyId, source);
+      if (sourceIssueId) {
+        const sourceIssue = await getAccessibleResource(req, res, svc.getById(sourceIssueId), "Artifact not found");
+        if (!sourceIssue || !(await assertIssueReadAllowed(req, res, sourceIssue))) return;
+        if (sourceIssue.companyId !== companyId) {
+          res.status(404).json({ error: "Artifact not found" });
+          return;
+        }
+      }
+      const actor = getActorInfo(req);
+      const attachment = await attachIssueArtifact(db, storage, {
+        companyId,
+        issueId,
+        source,
+        actor: { agentId: actor.agentId, userId: actor.actorType === "user" ? actor.actorId : null, runId: actor.runId },
+      });
+      await logActivity(db, {
+        companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        agentApiKeyId: actor.agentApiKeyId,
+        action: "issue.attachment_added",
+        entityType: "issue",
+        entityId: issueId,
+        issueId,
+        details: {
+          attachmentId: attachment.id,
+          originalFilename: attachment.originalFilename,
+          contentType: attachment.contentType,
+          byteSize: attachment.byteSize,
+          source: source.source,
+          sourceId: source.id,
+        },
+      });
+      if (attachment.artifactWorkProductId) {
+        await logActivity(db, {
+          companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: actor.runId,
+          agentApiKeyId: actor.agentApiKeyId,
+          action: "issue.work_product_created",
+          entityType: "issue",
+          entityId: issueId,
+          issueId,
+          details: {
+            workProductId: attachment.artifactWorkProductId,
+            type: "artifact",
+            provider: "paperclip",
+            source: "artifact_attachment_import",
+          },
+        });
+      }
+      const { artifactWorkProductId: _artifactWorkProductId, ...attachmentResponse } = attachment;
       res.status(201).json(withContentPath(attachmentResponse));
     },
   );

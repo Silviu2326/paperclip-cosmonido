@@ -313,6 +313,22 @@
     "resuming": "Reanudando…",
     "theAssignee": "el responsable"
   },
+  "artifactPicker": {
+    "add": "Adjuntar existente",
+    "title": "Elegir artefactos",
+    "description": "Busca archivos de Entrada o artefactos de Salida para adjuntarlos a esta tarea.",
+    "inbox": "Entrada",
+    "outbox": "Salida",
+    "search": "Buscar por nombre",
+    "searchHint": "Escribe al menos dos caracteres para buscar.",
+    "empty": "No hay artefactos que coincidan.",
+    "noneSelected": "No se han seleccionado artefactos existentes.",
+    "selectedTitle": "Artefactos existentes",
+    "remove": "Quitar artefacto",
+    "addSelected": "Adjuntar {{count}}",
+    "attachFailed": "No se pudieron adjuntar {{count}} artefactos.",
+    "source": { "company_file": "Entrada", "attachment": "Adjunto", "work_product": "Entregable", "document": "Documento" }
+  },
   "issueAttachments": {
     "browseGallery": "Explorar galería",
     "browseNamed": "Explorar {{name}} en la galería",
@@ -2922,6 +2938,7 @@
         "preview": "Vista rápida",
         "download": "Descargar",
         "copyLink": "Copiar enlace",
+        "createTask": "Crear tarea desde artefacto",
         "goTask": "Ir a la tarea",
         "moveToInbox": "Pasar a Entrada…",
         "replace": "Reemplazar por versión nueva",

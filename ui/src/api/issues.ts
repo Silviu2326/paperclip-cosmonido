@@ -1,4 +1,4 @@
-import type { SetIssueTitle } from "@paperclipai/shared";
+import type { AttachIssueArtifact, SetIssueTitle } from "@paperclipai/shared";
 import type { ExecutionReconciliation } from "@paperclipai/shared";
 import type {
   AcceptedPlanDecompositionSummary,
@@ -604,6 +604,14 @@ export const issuesApi = {
       `/companies/${companyId}/issues/${issueId}/attachments`,
       form,
     );
+  },
+  attachArtifact: (companyId: string, issueId: string, input: AttachIssueArtifact) => {
+    const { source, id, versionId } = input;
+    return api.post<IssueAttachment>(`/companies/${companyId}/issues/${issueId}/attachments/from-artifact`, {
+      source,
+      id,
+      ...(versionId ? { versionId } : {}),
+    });
   },
   deleteAttachment: (id: string) => api.delete<{ ok: true }>(`/attachments/${id}`),
   // --- Privacy / sharing (PAP-16066) -------------------------------------
