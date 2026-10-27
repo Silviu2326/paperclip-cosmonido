@@ -1,6 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { AttachIssueArtifact } from "@paperclipai/shared";
-import { assets, companyFileVersions, companyFiles, documents, issueAttachments, issueWorkProducts, issues } from "@paperclipai/db";
+import { assets, companyFileVersions, companyFiles, documents, issueAttachments, issueDocuments, issueWorkProducts, issues } from "@paperclipai/db";
 import type { Db } from "@paperclipai/db";
 import { notFound, unprocessable } from "../errors.js";
 import { MAX_ATTACHMENT_BYTES, formatAttachmentSize } from "../attachment-types.js";
@@ -20,8 +20,9 @@ async function sourceIssueId(db: Db, companyId: string, input: AttachIssueArtifa
     return row.issueId;
   }
   if (input.source === "document") {
-    const row = await db.select({ issueId: documents.issueId }).from(documents)
-      .where(and(eq(documents.companyId, companyId), eq(documents.id, input.id)))
+    const row = await db.select({ issueId: issueDocuments.issueId }).from(issueDocuments)
+      .innerJoin(documents, and(eq(documents.id, issueDocuments.documentId), eq(documents.companyId, issueDocuments.companyId)))
+      .where(and(eq(issueDocuments.companyId, companyId), eq(issueDocuments.documentId, input.id)))
       .then((rows) => rows[0] ?? null);
     if (!row) throw notFound("Artifact not found");
     return row.issueId;
@@ -60,18 +61,20 @@ async function resolveSource(db: Db, companyId: string, target: { projectId: str
         eq(companyFileVersions.id, versionId),
       )).then((rows) => rows[0] ?? null);
     if (!version || version.asset.companyId !== companyId) throw notFound("File version not found");
-    return { asset: version.asset, name: file.name, sourceIssueId: null };
+    return { kind: "asset" as const, asset: version.asset, name: file.name, sourceIssueId: null };
   }
 
   if (input.source === "document") {
-    const row = await db.select({ issueId: documents.issueId, title: documents.title, format: documents.format, body: documents.latestBody })
-      .from(documents).where(and(eq(documents.companyId, companyId), eq(documents.id, input.id)))
+    const row = await db.select({ issueId: issueDocuments.issueId, title: documents.title, format: documents.format, body: documents.latestBody })
+      .from(issueDocuments)
+      .innerJoin(documents, and(eq(documents.id, issueDocuments.documentId), eq(documents.companyId, issueDocuments.companyId)))
+      .where(and(eq(issueDocuments.companyId, companyId), eq(issueDocuments.documentId, input.id)))
       .then((rows) => rows[0] ?? null);
     if (!row) throw notFound("Artifact not found");
     if (row.format !== "markdown") throw unprocessable("Only Markdown documents can be attached");
     const name = (row.title?.trim() || "document").replace(/[\\/]/g, "-");
     const filename = name.toLowerCase().endsWith(".md") ? name : `${name}.md`;
-    return { bytes: Buffer.from(row.body, "utf8"), contentType: "text/markdown", name: filename, sourceIssueId: row.issueId };
+    return { kind: "bytes" as const, bytes: Buffer.from(row.body, "utf8"), contentType: "text/markdown", name: filename, sourceIssueId: row.issueId };
   }
 
   let attachmentId = input.id;
@@ -92,7 +95,7 @@ async function resolveSource(db: Db, companyId: string, target: { projectId: str
     .where(and(...attachmentConditions))
     .then((rows) => rows[0] ?? null);
   if (!row || row.asset.companyId !== companyId) throw notFound("Artifact not found");
-  return { asset: row.asset, name: row.asset.originalFilename ?? "attachment", sourceIssueId: sourceIssueId ?? row.issueId };
+  return { kind: "asset" as const, asset: row.asset, name: row.asset.originalFilename ?? "attachment", sourceIssueId: sourceIssueId ?? row.issueId };
 }
 
 async function readAssetBytes(storage: StorageService, companyId: string, asset: SourceAsset) {
@@ -121,14 +124,14 @@ export async function attachIssueArtifact(db: Db, storage: StorageService, input
     .then((rows) => rows[0] ?? null);
   if (!issue) throw notFound("Task not found");
   const resolved = await resolveSource(db, input.companyId, issue, input.source);
-  const bytes = "bytes" in resolved ? resolved.bytes : await readAssetBytes(storage, input.companyId, resolved.asset);
+  const bytes = resolved.kind === "bytes" ? resolved.bytes : await readAssetBytes(storage, input.companyId, resolved.asset);
   if (bytes.length > MAX_ATTACHMENT_BYTES) throw unprocessable(`File is larger than the ${formatAttachmentSize(MAX_ATTACHMENT_BYTES)} limit`);
   if (bytes.length === 0) throw unprocessable("File is empty");
   const stored = await storage.putFile({
     companyId: input.companyId,
     namespace: `issues/${issue.id}`,
     originalFilename: resolved.name,
-    contentType: "asset" in resolved ? resolved.asset.contentType : resolved.contentType,
+    contentType: resolved.kind === "asset" ? resolved.asset.contentType : resolved.contentType,
     body: bytes,
   });
   try {
