@@ -5,7 +5,7 @@ import { useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ALL_AGENT_CAPABILITIES_ENABLED, AGENT_SPECIALTY_PRESETS } from "@paperclipai/shared";
+import { ALL_AGENT_CAPABILITIES_ENABLED, AGENT_SPECIALTY_PRESETS, defaultAgentWorkPermissions } from "@paperclipai/shared";
 import { i18n } from "../../i18n";
 import { DEFAULT_LOCALE } from "../../i18n/locales";
 import {
@@ -79,15 +79,43 @@ describe("AgentPurposeSection", () => {
     expect(latest.capabilities).toEqual(AGENT_SPECIALTY_PRESETS.sales.capabilities);
     expect(toggle("messages")?.getAttribute("aria-checked")).toBe("true");
     expect(toggle("calls")?.getAttribute("aria-checked")).toBe("true");
-    expect(toggle("video")?.getAttribute("aria-checked")).toBe("false");
+    expect(toggle("mediaEdit")).toBeNull();
 
     click(card("video_content"));
-    expect(toggle("video")?.getAttribute("aria-checked")).toBe("true");
-    expect(toggle("messages")?.getAttribute("aria-checked")).toBe("false");
+    expect(toggle("mediaEdit")?.getAttribute("aria-checked")).toBe("true");
+    expect(toggle("messages")).toBeNull();
 
-    click(toggle("code"));
-    expect(latest.capabilities.code).toBe(true);
-    expect(toggle("code")?.getAttribute("aria-checked")).toBe("true");
+    click(card("software"));
+    expect(toggle("code")).toBeNull();
+    expect(container.querySelector('[data-testid="agent-work-permission-workspaceRead"]')).not.toBeNull();
+    expect((container.querySelector('[data-testid="agent-work-permission-workspaceRead"]') as HTMLButtonElement).disabled).toBe(true);
+    click(container.querySelector('[data-testid="agent-work-permission-tasksCreate"]'));
+    expect(latest.workPermissions?.tasksCreate).toBe(false);
+  });
+
+  it.each([
+    ["customer_care", ["messages", "calls"]],
+    ["sales", ["messages", "calls"]],
+    ["video_content", ["mediaAnalyze", "mediaEdit", "mediaCreateVideo"]],
+    ["software", []],
+    ["operations", []],
+    ["custom", ["messages", "calls", "mediaAnalyze", "mediaEdit", "mediaCreateVideo"]],
+  ])("shows only the available permissions for %s", (specialty, expected) => {
+    render(<Harness />);
+    click(card(specialty as string));
+    const keys = [...container.querySelectorAll('[data-testid^="agent-capability-"]')].map((node) => node.getAttribute("data-testid")!.replace("agent-capability-", ""));
+    expect(keys.sort()).toEqual([...expected].sort());
+    expect(container.textContent).toContain("Permisos del agente");
+  });
+
+  it("clears incompatible permissions when switching categories", () => {
+    render(<Harness />);
+    click(card("sales"));
+    click(card("software"));
+    expect(latest.capabilities.messages).toBe(false);
+    expect(latest.capabilities.calls).toBe(false);
+    expect(latest.messageChannels).toEqual([]);
+    expect(toggle("messages")).toBeNull();
   });
 
   it("shows the autonomy note with a link to Autonomía under the messaging and calls switches", () => {
@@ -109,7 +137,7 @@ describe("AgentPurposeSection", () => {
     click(card("operations"));
     expect(agentPurposeHireFields(latest)).toEqual({
       capabilities: AGENT_SPECIALTY_PRESETS.operations.capabilities,
-      profile: { specialty: "operations", sectors: [] },
+      profile: { specialty: "operations", sectors: [], messageChannels: [], workPermissions: defaultAgentWorkPermissions("operations") },
     });
   });
 });

@@ -24,8 +24,10 @@ export const NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS = [
 const CAPABILITY_KEYS_BY_REQUEST_FIELD = {
   messages: "channels:message",
   calls: "channels:call",
-  video: "media:generate",
-} as const satisfies Record<"messages" | "calls" | "video", PermissionKey>;
+  mediaAnalyze: "media:analyze",
+  mediaEdit: "media:edit",
+  mediaCreateVideo: "media:create_video",
+} as const satisfies Record<"messages" | "calls" | "mediaAnalyze" | "mediaEdit" | "mediaCreateVideo", PermissionKey>;
 
 /**
  * Grant keys a new standard agent receives at activation. Agents created with explicit
@@ -41,12 +43,27 @@ export function standardAgentGrantKeysFor(metadata: unknown): PermissionKey[] {
     ? (requested as Record<string, unknown>)
     : null;
   if (!requestedRecord) return [...NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS];
-  const disabled = new Set<PermissionKey>(
-    (Object.keys(CAPABILITY_KEYS_BY_REQUEST_FIELD) as Array<keyof typeof CAPABILITY_KEYS_BY_REQUEST_FIELD>)
+  const legacyVideo = requestedRecord.video === true;
+  const requestedMedia = {
+    mediaAnalyze: requestedRecord.mediaAnalyze ?? legacyVideo,
+    mediaEdit: requestedRecord.mediaEdit ?? legacyVideo,
+    mediaCreateVideo: requestedRecord.mediaCreateVideo ?? legacyVideo,
+  };
+  const disabled = new Set<PermissionKey>([
+    ...(["messages", "calls"] as const)
       .filter((field) => requestedRecord[field] !== true)
       .map((field) => CAPABILITY_KEYS_BY_REQUEST_FIELD[field]),
-  );
-  return NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS.filter((key) => !disabled.has(key));
+    ...(["mediaAnalyze", "mediaEdit", "mediaCreateVideo"] as const)
+      .filter((field) => requestedMedia[field] !== true)
+      .map((field) => CAPABILITY_KEYS_BY_REQUEST_FIELD[field]),
+    "media:generate",
+  ]);
+  return [
+    ...NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS.filter((key) => !disabled.has(key)),
+    ...(["mediaAnalyze", "mediaEdit", "mediaCreateVideo"] as const)
+      .filter((field) => requestedMedia[field] === true)
+      .map((field) => CAPABILITY_KEYS_BY_REQUEST_FIELD[field]),
+  ];
 }
 
 export function newStandardAgentGrantScope(

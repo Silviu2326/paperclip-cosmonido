@@ -192,4 +192,30 @@ describeEmbeddedPostgres("contactService and identityService", () => {
     const found = await contactSvc.list(companyId, { q: "marta@x", limit: 25 });
     expect(found.items.map((row) => row.displayName)).toEqual(["Marta"]);
   });
+
+  it("includes linked customers on each list page without duplicating people or leaking companies", async () => {
+    const companyId = await createCompany();
+    const otherCompanyId = await createCompany();
+    const firstCustomer = (await customerSvc.create(companyId, { name: "Cliente A", kind: "organization", tags: [] }, { actor })).customer;
+    const secondCustomer = (await customerSvc.create(companyId, { name: "Cliente B", kind: "organization", tags: [] }, { actor })).customer;
+    const person = (await contactSvc.create(companyId, { displayName: "Persona vinculada", consents: {} }, { actor })).contact;
+    const unlinked = (await contactSvc.create(companyId, { displayName: "Sin cliente", consents: {} }, { actor })).contact;
+    await contactSvc.create(otherCompanyId, { displayName: "Persona ajena", consents: {} }, { actor });
+    await contactSvc.link(companyId, firstCustomer.id, person.id, { isPrimary: true }, { actor });
+    await contactSvc.link(companyId, secondCustomer.id, person.id, {}, { actor });
+
+    const page = await contactSvc.list(companyId, { limit: 1 });
+    expect(page.items).toHaveLength(1);
+    expect(page.nextCursor).not.toBeNull();
+    const next = await contactSvc.list(companyId, { limit: 1, cursor: page.nextCursor! });
+    const items = [...page.items, ...next.items];
+    expect(new Set(items.map((item) => item.id)).size).toBe(2);
+    expect(items.find((item) => item.id === person.id)).toMatchObject({ customers: [
+      { id: firstCustomer.id, name: "Cliente A" }, { id: secondCustomer.id, name: "Cliente B" },
+    ] });
+    expect(items.find((item) => item.id === unlinked.id)).toMatchObject({ customers: [] });
+    const other = await contactSvc.list(otherCompanyId, { limit: 25 });
+    expect(other.items).toHaveLength(1);
+    expect(other.items[0]).toMatchObject({ displayName: "Persona ajena", customers: [] });
+  });
 });

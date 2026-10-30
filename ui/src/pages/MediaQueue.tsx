@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, CircleAlert, Film, ListVideo } from "lucide-react";
+import { ArrowDown, ArrowUp, CircleAlert, Film, ListVideo, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NativeSelect } from "@/components/ui/select";
@@ -10,6 +10,35 @@ import { mediaQueueApi } from "../api/media-queue";
 import type { MediaQueueJob } from "@paperclipai/shared";
 
 const priorityOptions = [0, 25, 50, 75, 100];
+
+function CancelJobAction({ job, onChanged }: { job: MediaQueueJob; onChanged: () => void }) {
+  const { t } = useTranslation();
+  const cancel = useMutation({ mutationFn: () => mediaQueueApi.cancel(job.id), onSuccess: onChanged });
+  const canCancel = job.status === "queued" || (job.kind === "motor_video_render" && job.status === "running");
+  const cancelling = cancel.isPending || job.status === "cancel_requested";
+  const finalizing = job.status === "finalizing";
+
+  if (!canCancel && !cancelling && !finalizing && !cancel.error) return null;
+
+  return (
+    <div className="flex flex-col items-start gap-2">
+      {cancelling ? (
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" />{t("uxFiles.cancellingJob", { defaultValue: "Cancelling job…" })}
+        </p>
+      ) : finalizing ? (
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" />{t("uxFiles.finalizingJob", { defaultValue: "Saving output…" })}
+        </p>
+      ) : canCancel ? (
+        <Button size="sm" variant="outline" aria-label={`${t("uxFiles.cancelJob", { defaultValue: "Cancel job" })} ${job.id}`} onClick={() => cancel.mutate()} disabled={cancel.isPending}>
+          {t("uxFiles.cancelJob", { defaultValue: "Cancel job" })}
+        </Button>
+      ) : null}
+      {cancel.error ? <p role="alert" className="text-sm text-destructive">{cancel.error.message}</p> : null}
+    </div>
+  );
+}
 
 function JobRow({ job, companyId, onChanged }: { job: MediaQueueJob; companyId: string; onChanged: () => void }) {
   const [priority, setPriority] = useState(String(job.priority));
@@ -30,6 +59,7 @@ function JobRow({ job, companyId, onChanged }: { job: MediaQueueJob; companyId: 
             {priorityOptions.map((value) => <option key={value} value={value}>{value}</option>)}
           </NativeSelect>
           <Button size="sm" variant="outline" onClick={() => save.mutate()} disabled={save.isPending || Number(priority) === job.priority}>Guardar</Button>
+          <CancelJobAction job={job} onChanged={onChanged} />
         </div>
         {save.error ? <p role="alert" className="basis-full text-sm text-destructive">{save.error.message}. Actualiza la cola antes de volver a intentarlo.</p> : null}
       </CardContent>
@@ -45,7 +75,13 @@ export function MediaQueue() {
   const cursor = cursorStack.at(-1);
   const queryClient = useQueryClient();
   const queryKey = ["media-queue", selectedCompanyId, cursor];
-  const queue = useQuery({ queryKey, queryFn: () => mediaQueueApi.list(selectedCompanyId!, { cursor }), enabled: Boolean(selectedCompanyId), staleTime: 5_000 });
+  const queue = useQuery({
+    queryKey,
+    queryFn: () => mediaQueueApi.list(selectedCompanyId!, { cursor }),
+    enabled: Boolean(selectedCompanyId),
+    staleTime: 5_000,
+    refetchInterval: (query) => query.state.data && (query.state.data.jobs.length > 0 || query.state.data.running.length > 0) ? 2_000 : false,
+  });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["media-queue", selectedCompanyId] });
 
   if (!selectedCompany || !selectedCompanyId) return <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 p-4 sm:p-6"><Card><CardHeader><CardTitle>{t("uxFiles.production", { defaultValue: "Production" })}</CardTitle><CardDescription>{t("uxFiles.selectCompany", { defaultValue: "Select a company to see its production jobs." })}</CardDescription></CardHeader></Card></main>;
@@ -56,7 +92,7 @@ export function MediaQueue() {
       {queue.isLoading ? <p role="status" className="text-sm text-muted-foreground">Cargando trabajos…</p> : null}
       <section className="flex flex-col gap-3" aria-label="Trabajo en ejecución">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><Film className="size-5" />En ejecución</h2>
-        {queue.data?.running.length ? queue.data.running.map((job) => <Card key={job.id}><CardContent className="flex items-center gap-3 pt-5"><Film className="size-5 text-muted-foreground" /><div><p className="font-medium">{job.kind.replaceAll("_", " ")}</p><p className="break-all text-sm text-muted-foreground">Job {job.id} · iniciado {job.startedAt ? new Date(job.startedAt).toLocaleString() : "ahora"}</p></div></CardContent></Card>) : <p className="text-sm text-muted-foreground">No hay ningún trabajo en ejecución.</p>}
+        {queue.data?.running.length ? queue.data.running.map((job) => <Card key={job.id}><CardContent className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><Film className="size-5 shrink-0 text-muted-foreground" /><div><p className="font-medium">{job.kind.replaceAll("_", " ")}</p><p className="break-all text-sm text-muted-foreground">Job {job.id} · iniciado {job.startedAt ? new Date(job.startedAt).toLocaleString() : "ahora"}</p></div></div><CancelJobAction job={job} onChanged={refresh} /></CardContent></Card>) : <p className="text-sm text-muted-foreground">No hay ningún trabajo en ejecución.</p>}
       </section>
       <section className="flex flex-col gap-3" aria-label="Trabajos pendientes">
         <h2 className="flex items-center gap-2 text-lg font-semibold"><ListVideo className="size-5" />Pendientes</h2>

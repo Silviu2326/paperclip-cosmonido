@@ -61,6 +61,7 @@
 }
 
 :root {
+  --conversation-preview-height: 36rem;
   --sidebar-active-marker-color: #e8752b;
   --sidebar-active-marker-width: 3px;
   --media-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);

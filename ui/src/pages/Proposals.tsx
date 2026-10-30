@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import type { Proposal, ProposalScopeItem, ProposalStatus } from "@paperclipai/shared";
-import { Link, useLocation, useParams } from "@/lib/router";
+import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { proposalsApi } from "@/api/proposals";
+import { crmApi } from "@/api/crm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/select";
+import { ProposalEditorDialog } from "@/components/crm/ProposalEditorDialog";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -53,25 +55,38 @@ function StatusBadge({ status }: { status: ProposalStatus }) {
 
 export function Proposals() {
   const { selectedCompanyId } = useCompany();
+  return <ProposalList key={selectedCompanyId ?? "none"} companyId={selectedCompanyId ?? ""} />;
+}
+
+function ProposalList({ companyId }: { companyId: string }) {
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const location = useLocation();
+  const navigate = useNavigate();
   const customerId = new URLSearchParams(location.search).get("customerId");
+  const opportunityId = new URLSearchParams(location.search).get("opportunityId");
   const [status, setStatus] = useState<ProposalStatus>();
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("newest");
+  const [creating, setCreating] = useState(false);
+  const linkedOpportunity = useQuery({ queryKey: ["sales-opportunity", companyId, opportunityId], queryFn: () => crmApi.opportunities.get(opportunityId!), enabled: !!companyId && !!opportunityId });
   useEffect(() => { setBreadcrumbs([{ label: t("uxCrm.proposals", { defaultValue: "Proposals" }) }]); }, [setBreadcrumbs, t]);
-  const query = useQuery({
-    queryKey: ["proposals", selectedCompanyId, status],
-    queryFn: () => proposalsApi.list(selectedCompanyId!, { status }),
-    enabled: !!selectedCompanyId,
+  const query = useInfiniteQuery({
+    queryKey: ["proposals", companyId, status, customerId, opportunityId, search],
+    queryFn: ({ pageParam }) => proposalsApi.page(companyId, { status, customerId: customerId ?? undefined, opportunityId: opportunityId ?? undefined, q: search.trim() || undefined, cursor: pageParam, limit: 50 }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled: !!companyId,
   });
-  if (!selectedCompanyId) return <EmptyState icon={FileText} message={t("goals.selectOrg")} />;
-  if (query.isLoading) return <PageSkeleton variant="list" />;
-  if (query.error) return <p role="alert" className="text-sm text-destructive">{query.error.message}</p>;
-  const proposals = (query.data ?? []).filter((proposal) => !customerId || proposal.customerId === customerId);
+  if (!companyId) return <EmptyState icon={FileText} message={t("goals.selectOrg")} />;
+  const proposals = query.data?.pages.flatMap((page) => page.items) ?? [];
+  if (sort === "name") proposals.sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
+        <Input className="w-full sm:w-56" placeholder={t("salesWorkspace.searchProposals")} aria-label={t("salesWorkspace.searchProposals")} value={search} onChange={(event) => setSearch(event.target.value)} />
+        <NativeSelect aria-label={t("salesWorkspace.sortLoaded")} value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">{t("salesWorkspace.newest")}</option><option value="name">{t("salesWorkspace.byName")}</option></NativeSelect>
         <Select value={status ?? "all"} onValueChange={(value) => setStatus(value === "all" ? undefined : (value as ProposalStatus))}>
           <SelectTrigger className="w-full sm:w-auto">
             <SelectValue placeholder={t("proposals.filterStatus", { defaultValue: "Filtrar por estado" })} />
@@ -83,8 +98,10 @@ export function Proposals() {
             ))}
           </SelectContent>
         </Select>
+        <Button onClick={() => setCreating(true)}>{t("salesWorkspace.newProposal")}</Button>
       </div>
-      {!proposals.length ? (
+      {(customerId || opportunityId) && <div className="flex flex-wrap gap-2">{opportunityId && <Button variant="outline" asChild><Link to={`/sales/opportunities?opportunityId=${opportunityId}`}>{t("salesWorkspace.openOpportunity")}</Link></Button>}<Button variant="ghost" asChild><Link to="/sales/proposals">{t("salesWorkspace.allProposals")}</Link></Button></div>}
+      {query.isLoading ? <PageSkeleton variant="list" /> : query.error ? <div className="flex flex-col gap-2"><p role="alert" className="text-sm text-destructive">{query.error.message}</p><Button variant="outline" onClick={() => void query.refetch()}>{t("salesWorkspace.retry")}</Button></div> : !proposals.length ? (
         <EmptyState icon={FileText} message={status
           ? t("proposals.noStatusResults", { defaultValue: "No hay propuestas con este estado." })
           : customerId
@@ -106,6 +123,11 @@ export function Proposals() {
           </CardContent>
         </Card>
       ))}
+      {query.hasNextPage && <Button variant="outline" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>{t("salesWorkspace.loadMore")}</Button>}
+      {proposals.length > 0 && <p className="text-xs text-muted-foreground">{t(query.hasNextPage ? "salesWorkspace.partialResults" : "salesWorkspace.resultCount", { count: proposals.length })}</p>}
+      {creating && opportunityId && linkedOpportunity.isLoading && <PageSkeleton variant="detail" />}
+      {creating && opportunityId && (linkedOpportunity.error || (linkedOpportunity.data && linkedOpportunity.data.companyId !== companyId)) && <p role="alert" className="text-sm text-destructive">{linkedOpportunity.error?.message ?? t("salesWorkspace.notFound")}</p>}
+      {creating && (!opportunityId || linkedOpportunity.data?.companyId === companyId) && <ProposalEditorDialog companyId={companyId} customerId={customerId ?? undefined} opportunity={linkedOpportunity.data} onClose={() => setCreating(false)} onSaved={(proposal) => navigate(`/sales/proposals/${proposal.id}`)} />}
     </div>
   );
 }
@@ -114,6 +136,9 @@ export function ProposalDetail() {
   const { id = "" } = useParams();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { selectedCompanyId } = useCompany();
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
   const query = useQuery({ queryKey: ["proposal", id], queryFn: () => proposalsApi.get(id), enabled: !!id });
   const revisions = useQuery({ queryKey: ["proposal-revisions", id], queryFn: () => proposalsApi.revisions(id), enabled: !!id });
   useEffect(() => {
@@ -123,11 +148,12 @@ export function ProposalDetail() {
     ]);
   }, [setBreadcrumbs, query.data?.title, t]);
   if (query.isLoading) return <PageSkeleton variant="detail" />;
-  if (query.error || !query.data) return <p role="alert" className="text-sm text-destructive">{query.error?.message ?? t("proposals.notFound", { defaultValue: "Propuesta no encontrada" })}</p>;
+  if (query.error || !query.data || query.data.companyId !== selectedCompanyId) return <p role="alert" className="text-sm text-destructive">{query.error?.message ?? t("proposals.notFound", { defaultValue: "Propuesta no encontrada" })}</p>;
   const proposal = query.data;
   const canRevise = proposal.status !== "accepted" && proposal.status !== "rejected";
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">{proposal.opportunityId && <Button variant="outline" asChild><Link to={`/sales/opportunities?opportunityId=${proposal.opportunityId}`}>{t("salesWorkspace.openOpportunity")}</Link></Button>}{proposal.customerId && <Button variant="outline" asChild><Link to={`/customers/${proposal.customerId}`}>{t("salesWorkspace.customer")}</Link></Button>}</div>
       <WhyDidTheAgentDoThis companyId={proposal.companyId} kind="proposal" actionId={proposal.id} />
       <Card>
         <CardHeader>
@@ -159,11 +185,12 @@ export function ProposalDetail() {
           <AcceptanceBlock proposal={proposal} />
           <div className="flex flex-wrap gap-2">
             {proposal.status === "draft" && <SendDialog proposal={proposal} />}
-            {canRevise && <ReviseDialog proposal={proposal} />}
+            {canRevise && <Button variant="outline" onClick={() => setEditing(true)}>{t("salesWorkspace.editProposal")}</Button>}
             <PublicLinkButton proposal={proposal} />
           </div>
         </CardContent>
       </Card>
+      {editing && <ProposalEditorDialog key={proposal.id} companyId={proposal.companyId} proposal={proposal} onClose={() => setEditing(false)} onSaved={(saved) => navigate(`/sales/proposals/${saved.id}`)} />}
       <Card>
         <CardHeader>
           <CardTitle>{t("proposals.revisions", { defaultValue: "Revisiones" })}</CardTitle>
@@ -335,102 +362,6 @@ function SendDialog({ proposal }: { proposal: Proposal }) {
             </DialogFooter>
           </form>
         )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** One line per scope item: "Título | precio unitario en euros". */
-function parseScopeLines(text: string): ProposalScopeItem[] {
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [title = "", price = ""] = line.split("|").map((part) => part.trim());
-      const unit = Number(price.replace(",", "."));
-      return {
-        title,
-        unitPriceCents: price && Number.isFinite(unit) ? Math.round(unit * 100) : null,
-      };
-    });
-}
-
-function ReviseDialog({ proposal }: { proposal: Proposal }) {
-  const { t } = useTranslation();
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const initialScope = proposal.scope.map((item) => `${item.title}${item.unitPriceCents != null ? ` | ${(item.unitPriceCents / 100).toFixed(2)}` : ""}`).join("\n");
-  const revise = useMutation({
-    mutationFn: (input: Parameters<typeof proposalsApi.revise>[1]) => proposalsApi.revise(proposal.id, input),
-    onSuccess: async (next) => {
-      await qc.invalidateQueries({ queryKey: ["proposals"] });
-      await qc.invalidateQueries({ queryKey: ["proposal-revisions"] });
-      setOpen(false);
-      window.location.assign(`/sales/proposals/${next.id}`);
-    },
-  });
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>{t("proposals.revise", { defaultValue: "Nueva revisión" })}</Button>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("proposals.reviseTitle", { defaultValue: "Nueva revisión" })}</DialogTitle>
-          <DialogDescription>{t("proposals.reviseDescription", { defaultValue: "Si la propuesta ya se envió, se crea una revisión nueva y la enviada no cambia." })}</DialogDescription>
-        </DialogHeader>
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            const title = String(form.get("title") ?? "").trim();
-            const scopeText = String(form.get("scope") ?? "");
-            const scope = parseScopeLines(scopeText);
-            const price = Number(String(form.get("price") ?? "0").replace(",", "."));
-            const deposit = String(form.get("deposit") ?? "").trim();
-            const validUntil = String(form.get("validUntil") ?? "").trim();
-            const terms = String(form.get("terms") ?? "");
-            revise.mutate({
-              title: title || undefined,
-              scope: scope.length ? scope : undefined,
-              priceCents: Math.round(price * 100),
-              depositCents: deposit ? Math.round(Number(deposit.replace(",", ".")) * 100) : null,
-              validUntil: validUntil ? new Date(validUntil) : null,
-              terms: terms.trim() ? terms : null,
-              currency: proposal.currency,
-            });
-          }}
-        >
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-title">{t("common.title", { defaultValue: "Título" })}</Label>
-            <Input id="revise-title" name="title" defaultValue={proposal.title} maxLength={300} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-scope">{t("proposals.scopeLines", { defaultValue: "Alcance (una línea por concepto: título | precio unitario)" })}</Label>
-            <Textarea id="revise-scope" name="scope" defaultValue={initialScope} required />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-price">{t("proposals.priceAmount", { defaultValue: "Precio total" })} ({proposal.currency})</Label>
-            <Input id="revise-price" name="price" type="number" min="0" step="0.01" defaultValue={(proposal.priceCents / 100).toFixed(2)} required />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-deposit">{t("proposals.depositAmount", { defaultValue: "Señal (opcional)" })} ({proposal.currency})</Label>
-            <Input id="revise-deposit" name="deposit" type="number" min="0" step="0.01" defaultValue={proposal.depositCents ? (proposal.depositCents / 100).toFixed(2) : ""} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-valid">{t("proposals.validUntil", { defaultValue: "Válida hasta" })}</Label>
-            <Input id="revise-valid" name="validUntil" type="date" defaultValue={proposal.validUntil ? String(proposal.validUntil).slice(0, 10) : ""} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="revise-terms">{t("proposals.terms", { defaultValue: "Condiciones" })}</Label>
-            <Textarea id="revise-terms" name="terms" defaultValue={proposal.terms ?? ""} />
-          </div>
-          {revise.error && <p role="alert" className="text-sm text-destructive">{revise.error.message}</p>}
-          <DialogFooter className="flex-row justify-between sm:justify-between">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("common.cancel", { defaultValue: "Cancelar" })}</Button>
-            <Button type="submit" disabled={revise.isPending}>{t("proposals.createRevision", { defaultValue: "Crear revisión" })}</Button>
-          </DialogFooter>
-        </form>
       </DialogContent>
     </Dialog>
   );

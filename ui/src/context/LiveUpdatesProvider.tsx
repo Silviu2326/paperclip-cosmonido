@@ -1298,6 +1298,15 @@ function invalidateActivityQueries(
       !!currentActor.agentId &&
       actorId === currentActor.agentId);
 
+  if (entityType === "conversation" || entityType === "conversation_message") {
+    queryClient.invalidateQueries({ queryKey: queryKeys.conversations.list(companyId) });
+    // Some provider receipts only identify the message; refresh active threads too.
+    queryClient.invalidateQueries({ queryKey: ["conversations", "detail"] });
+  }
+  if (entityType === "customer_channel_account") {
+    queryClient.invalidateQueries({ queryKey: ["customer-channels", companyId] });
+  }
+
   if (action?.startsWith("ai_connection.") || action?.startsWith("connection_grant.")) {
     queryClient.invalidateQueries({ queryKey: ["ai-connections", companyId] });
   }

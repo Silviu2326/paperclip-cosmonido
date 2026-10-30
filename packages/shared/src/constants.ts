@@ -1026,6 +1026,9 @@ export const PERMISSION_KEYS = [
   "channels:message",
   "channels:call",
   "media:generate",
+  "media:analyze",
+  "media:edit",
+  "media:create_video",
 ] as const;
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];
 

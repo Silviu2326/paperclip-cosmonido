@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Contact } from "@paperclipai/shared";
 import { crmApi } from "../../api/crm";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CustomerDuplicateNotice, duplicateCandidatesFromError } from "./CustomerDuplicateNotice";
+import { SalesCustomerPicker } from "./SalesCustomerPicker";
 
 interface ContactCandidate {
   record: Contact;
@@ -20,6 +21,7 @@ export function ContactCreateDialog({
   onOpenChange,
   companyId,
   customerId,
+  contact,
   onCreated,
 }: {
   open: boolean;
@@ -27,6 +29,7 @@ export function ContactCreateDialog({
   companyId: string;
   /** When set, the new contact is linked to this customer by the server. */
   customerId?: string;
+  contact?: Contact;
   onCreated?: (contact: Contact) => void;
 }) {
   const { t } = useTranslation();
@@ -35,14 +38,27 @@ export function ContactCreateDialog({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("");
+  const [chosenCustomerId, setChosenCustomerId] = useState("");
+  const linkedCustomerId = customerId ?? chosenCustomerId;
   const [candidates, setCandidates] = useState<ContactCandidate[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setDisplayName(contact?.displayName ?? "");
+    setEmail(contact?.primaryEmail ?? "");
+    setPhone(contact?.primaryPhone ?? "");
+    setTitle(contact?.title ?? "");
+    setCandidates([]);
+    setError(null);
+  }, [open, contact]);
 
   function reset() {
     setDisplayName("");
     setEmail("");
     setPhone("");
     setTitle("");
+    setChosenCustomerId("");
     setCandidates([]);
     setError(null);
   }
@@ -52,24 +68,33 @@ export function ContactCreateDialog({
     onOpenChange(false);
   }
 
-  const create = useMutation({
-    mutationFn: (force: boolean) =>
+  const save = useMutation({
+    mutationFn: (force: boolean) => contact
+      ? crmApi.contacts.update(contact.id, {
+        displayName: displayName.trim(),
+        primaryEmail: email.trim() || null,
+        primaryPhone: phone.trim() || null,
+        title: title.trim() || null,
+      })
+      :
       crmApi.contacts.create(companyId, {
         displayName: displayName.trim(),
         primaryEmail: email.trim() || null,
         primaryPhone: phone.trim() || null,
         title: title.trim() || null,
         consents: {},
-        ...(customerId ? { customerId } : {}),
+        ...(linkedCustomerId ? { customerId: linkedCustomerId } : {}),
         force,
       }),
-    onSuccess: (contact) => {
+    onSuccess: (savedContact) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list(companyId) });
-      if (customerId) {
-        void queryClient.invalidateQueries({ queryKey: ["crm-customer-contacts", customerId] });
+      if (linkedCustomerId) {
+        void queryClient.invalidateQueries({ queryKey: ["crm-customer-contacts", linkedCustomerId] });
       }
+      void queryClient.invalidateQueries({ queryKey: queryKeys.contacts.detail(savedContact.id) });
+      void queryClient.invalidateQueries({ queryKey: [...queryKeys.contacts.detail(savedContact.id), "customers"] });
       close();
-      onCreated?.(contact);
+      onCreated?.(savedContact);
     },
     onError: (err) => {
       const found = duplicateCandidatesFromError(err);
@@ -78,12 +103,12 @@ export function ContactCreateDialog({
         setError(null);
         return;
       }
-      setError(t("crm.contacts.createError"));
+      setError(t(contact ? "uxCrm.people.editError" : "crm.contacts.createError", { defaultValue: contact ? "Could not save this person." : undefined }));
     },
   });
 
   const forceCreate = candidates.length > 0;
-  const canSubmit = displayName.trim().length > 0 && !create.isPending;
+  const canSubmit = displayName.trim().length > 0 && !save.isPending;
 
   return (
     <Dialog
@@ -92,16 +117,17 @@ export function ContactCreateDialog({
         if (!next) close();
       }}
     >
-      <DialogContent className="sm:max-w-lg p-0 gap-0">
+      <DialogContent className="sm:max-w-lg max-h-dvh overflow-y-auto p-0 gap-0">
         <DialogHeader className="px-4 py-3 border-b border-border">
-          <DialogTitle className="text-sm font-medium">{t("crm.contacts.createTitle")}</DialogTitle>
+          <DialogTitle className="text-sm font-medium">{contact ? t("uxCrm.people.editTitle", { defaultValue: "Edit person" }) : t("crm.contacts.createTitle")}</DialogTitle>
         </DialogHeader>
 
         <form
           className="space-y-4 px-4 py-4"
           onSubmit={(event) => {
+            if (event.target !== event.currentTarget) return;
             event.preventDefault();
-            if (canSubmit) create.mutate(forceCreate);
+            if (canSubmit) save.mutate(forceCreate);
           }}
         >
           <div className="space-y-1.5">
@@ -156,6 +182,14 @@ export function ContactCreateDialog({
             />
           </div>
 
+          {!contact && !customerId && open && (
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">{t("crm.contacts.customerOptional")}</p>
+              <SalesCustomerPicker companyId={companyId} value={chosenCustomerId} onChange={setChosenCustomerId} />
+              <p className="text-xs text-muted-foreground">{t("crm.contacts.customerHint")}</p>
+            </div>
+          )}
+
           <CustomerDuplicateNotice
             title={t("crm.contacts.duplicatesTitle")}
             hint={t("crm.contacts.duplicatesHint")}
@@ -176,8 +210,10 @@ export function ContactCreateDialog({
               {t("crm.contacts.cancel")}
             </Button>
             <Button type="submit" size="sm" disabled={!canSubmit}>
-              {create.isPending
+              {save.isPending
                 ? t("crm.contacts.creating")
+                : contact
+                  ? t("uxCrm.people.save", { defaultValue: "Save changes" })
                 : forceCreate
                   ? t("crm.contacts.createAnyway")
                   : t("crm.contacts.create")}

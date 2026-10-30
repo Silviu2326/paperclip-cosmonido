@@ -16,6 +16,7 @@ import {
   type ExternalActionResult,
   type ExternalActionRow,
 } from "../external-action-gate.js";
+import { assertAgentMessageChannel } from "../agent-capabilities.js";
 import {
   activityActor,
   conversationService,
@@ -112,6 +113,13 @@ export function conversationMessageService(db: Db) {
    */
   async function buildDelivery(companyId: string, msg: MessageRow, actor: ConversationActor) {
   const parent = await loadConversation(companyId, msg.conversationId);
+  if (actor.agentId) {
+    await assertAgentMessageChannel(db, {
+      companyId,
+      agentId: actor.agentId,
+      channel: parent.channel as ConversationChannel,
+    });
+  }
   const transport = transportForChannel(parent.channel);
   if (!transport) throw conflict(`No transport is active for channel ${parent.channel}`);
 
@@ -130,6 +138,15 @@ export function conversationMessageService(db: Db) {
   };
 
   const deliver = async (): Promise<ExternalActionResult> => {
+    // Recheck at execution time too: an approved action or process-restart retry
+    // must not retain a channel permission that the board has since revoked.
+    if (actor.agentId) {
+      await assertAgentMessageChannel(db, {
+        companyId,
+        agentId: actor.agentId,
+        channel: parent.channel as ConversationChannel,
+      });
+    }
     const reservation = await entitlements.reserveForCompany({
       companyId,
       metric: "messages",

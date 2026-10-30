@@ -42,3 +42,9 @@ describe("codex engine availability", () => {
     expect(result.unavailableReason).toContain("not available");
   });
 });
+
+describe("operator filesystem restrictions", () => {
+  it("uses the enforcing CLI path even when task configuration requested ACP", async () => {
+    await expect(resolveCodexExecutionEngineForRun({ config: { engine: "acp", paperclipCodeAccess: "read_only" } } as never)).resolves.toMatchObject({ engine: "cli", explicit: true });
+  });
+});

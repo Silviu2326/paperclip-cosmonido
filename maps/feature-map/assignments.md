@@ -12,7 +12,7 @@ Agent access: [companion](../agent-access-map/assignments.md).
 - `create`: create an assignment with criteria, responsible agent, expected deliverable and budget.
 - `review`: submit and resolve a specific deliverable version; request changes with a reason. Resolution uses a full-precision PostgreSQL CAS and refuses deleted/purging file targets; accepting an immutable file version leaves newer versions unreviewed.
 - `context`: manage current company/project context and inspect which files a task used.
-- `media`: ingest, transcribe, edit, render and dub a media asset with durable jobs.
+- `media`: ingest, transcribe, edit, render and dub media assets with durable jobs; create new structured videos from authorized assets with Motor Video.
 - `costs`: inspect assignment costs, descendant attribution and explicitly unattributed usage.
 - `dashboard`: inspect current work, human decisions, reviews and today/week costs independently.
 - `content-team`: install the optional content-and-video team and its four skills.
@@ -28,9 +28,10 @@ Preconditions: use a disposable company with two agents/projects, a short video 
 1. Create twice with the same retry key and verify one assignment/root task. Reject foreign-company agent/project IDs.
 2. Produce a work product and submit its exact updatedAt timestamp as the version. An agent cannot resolve it. Request changes, verify the reason comment and reopened task, then submit the new version and accept as a human. A stale version must return409 without accepting newer content.
 3. Read context from one project; deny another project's file and agent-hidden folders. Expired files are absent by default and appear only with explicit includeExpired. Inspect recorded reads from the root and descendants.
-4. Detect silence, remove a range, burn transcript subtitles and export9:16. Poll the real job and play the resulting video. Retry its key and verify one job/cost receipt. Missing provider credentials must return422 before paid work starts.
-5. Attribute a child task's cost to its assignment. Company totals equal attributed plus unattributed totals. Fail one dashboard section and verify other cards remain usable.
-6. Install the optional team from the catalog and inspect its role/skill references and produce-video-series task template.
+4. Detect silence, remove a range, burn transcript subtitles and export 9:16. Poll the real job and play the resulting video. Retry its key and verify one job/cost receipt. Missing provider credentials must return 422 before paid work starts.
+5. Create a `motor_video` project from the active task, submit a specification that references authorized Paperclip assets, and inspect the completed work product. Retry its key and confirm one job; an unowned asset, pending image generation node, or generated speech must be rejected. Cancel a queued job and an active render, then confirm only the render accepts live cancellation. This journey requires the operator-provisioned Motor Video runtime.
+6. Attribute a child task's cost to its assignment. Company totals equal attributed plus unattributed totals. Fail one dashboard section and verify other cards remain usable.
+7. Install the optional team from the catalog and inspect its role/skill references and produce-video-series task template.
 
 Targeted evidence: [assignment integration](../../server/src/__tests__/assignment-services.integration.test.ts), [costs](../../server/src/__tests__/assignment-costs.test.ts), [dashboard isolation](../../server/src/__tests__/assignment-dashboard.test.ts), [tool modes](../../server/src/__tests__/product-tool-catalog.test.ts), [UI cards](../../ui/src/components/AssignmentDashboard.test.tsx).
 

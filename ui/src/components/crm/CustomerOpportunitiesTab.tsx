@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "@/lib/router";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
 import { Button } from "@/components/ui/button";
@@ -9,16 +10,19 @@ import { CUSTOMER_OPPORTUNITIES_KEY, OpportunityCreateDialog } from "./Opportuni
 
 /** Opportunities of one customer, with a create action that preselects the customer. */
 export function CustomerOpportunitiesTab({ companyId, customerId }: { companyId: string; customerId: string }) {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: [CUSTOMER_OPPORTUNITIES_KEY, companyId, customerId],
-    queryFn: () => crmApi.opportunities.list(companyId, { customerId, limit: 100 }),
+    queryFn: ({ pageParam }) => crmApi.opportunities.list(companyId, { customerId, limit: 100, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
     enabled: Boolean(companyId && customerId),
   });
 
-  const items = query.data?.items ?? [];
+  const items = query.data?.pages.flatMap((page) => page.items) ?? [];
 
   return (
     <div className="space-y-4">
@@ -48,7 +52,7 @@ export function CustomerOpportunitiesTab({ companyId, customerId }: { companyId:
             <tbody>
               {items.map((item) => (
                 <tr key={item.id} className="border-t border-border">
-                  <td className="p-2">{item.title}</td>
+                  <td className="p-2"><Link className="font-medium hover:underline" to={`/sales/opportunities?opportunityId=${item.id}`}>{item.title}</Link></td>
                   <td className="p-2">{item.stageKey ? t(`crm.opportunities.stages.${item.stageKey}`) : "-"}</td>
                   <td className="p-2">{formatOpportunityAmount(item.amountCents, item.currency) ?? "-"}</td>
                   <td className="p-2">{item.nextAction ?? t("crm.opportunities.noNextAction")}</td>
@@ -64,7 +68,9 @@ export function CustomerOpportunitiesTab({ companyId, customerId }: { companyId:
         onOpenChange={setCreateOpen}
         companyId={companyId}
         customerId={customerId}
+        onCreated={(item) => navigate(`/sales/opportunities?opportunityId=${item.id}`)}
       />
+      {query.hasNextPage && <Button variant="outline" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>{t("salesWorkspace.loadMore")}</Button>}
     </div>
   );
 }

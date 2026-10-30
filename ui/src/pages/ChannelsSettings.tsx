@@ -14,6 +14,10 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SettingsScopeHeader } from "@/components/product-settings/SettingsScopeHeader";
+import { Link } from "@/lib/router";
+import { SecretBindingPicker } from "@/components/SecretBindingPicker";
+import { secretsApi } from "@/api/secrets";
+import { queryKeys } from "@/lib/queryKeys";
 import {
   channelsApi,
   type ApprovedTemplate,
@@ -72,19 +76,22 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export function ChannelsSettings() {
+export function ChannelsSettings({ embedded = false, initialKind }: { embedded?: boolean; initialKind?: ChannelKind } = {}) {
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState<DraftState>(EMPTY_DRAFT);
+  const [showForm, setShowForm] = useState(!!initialKind);
+  const [draft, setDraft] = useState<DraftState>(() => initialKind ? {
+    ...EMPTY_DRAFT, kind: initialKind,
+    provider: initialKind === "telegram" ? "telegram" : initialKind === "sms" ? "twilio" : "meta",
+  } : EMPTY_DRAFT);
   const [formError, setFormError] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { ok: boolean; detail: string }>>({});
 
   useEffect(() => {
-    setBreadcrumbs([{ label: t("nav.settings") }, { label: t("channels.title") }]);
-  }, [setBreadcrumbs, t]);
+    if (!embedded) setBreadcrumbs([{ label: t("nav.settings") }, { label: t("channels.title") }]);
+  }, [setBreadcrumbs, t, embedded]);
 
   const queryKey = ["customer-channels", selectedCompanyId] as const;
   const { data: accounts, isLoading, error } = useQuery({
@@ -94,6 +101,21 @@ export function ChannelsSettings() {
   });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey });
+  const secrets = useQuery({
+    queryKey: queryKeys.secrets.list(selectedCompanyId ?? ""),
+    queryFn: () => secretsApi.list(selectedCompanyId!),
+    enabled: !!selectedCompanyId && showForm,
+  });
+
+  function secretField(field: "verifySecretName" | "challengeSecretName" | "tokenSecretName") {
+    const secret = secrets.data?.find((item) => item.name === draft[field]);
+    return <SecretBindingPicker
+      label={t(`channels.fields.${field}`)}
+      value={secret ? { secretId: secret.id } : null}
+      allowVersionSelector={false}
+      onChange={(_value, selected) => update(field, selected?.name ?? "")}
+    />;
+  }
 
   const createMutation = useMutation({
     mutationFn: (input: CreateChannelAccountInput) => channelsApi.create(selectedCompanyId!, input),
@@ -159,13 +181,13 @@ export function ChannelsSettings() {
 
   return (
     <div className="space-y-6">
-      <SettingsScopeHeader
+      {!embedded && <SettingsScopeHeader
         scope="apps"
         scopeName={selectedCompany?.name}
         backTarget="apps"
         description={t("uxSettings.channels.scope", { defaultValue: "These are the customer-facing accounts (WhatsApp, Messenger, Instagram, Telegram, SMS) this company uses to talk to customers. They are not the chat connections of your agents, which are managed in Apps." })}
         links={[{ to: "/apps/webchat", label: t("uxSettings.channels.webchatLink", { defaultValue: "Web chat widget" }) }]}
-      />
+      />}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">{t("channels.title")}</h1>
@@ -184,6 +206,7 @@ export function ChannelsSettings() {
       {showForm && (
         <Card className="p-4">
           <form className="space-y-4" onSubmit={submit}>
+            <p className="text-sm text-muted-foreground">{t("channels.hints.prepareSecrets")} <Link className="underline" to="/company/settings/secrets" target="_blank">{t("channels.hints.openSecrets")}</Link></p>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="channel-provider">{t("channels.fields.provider")}</Label>
@@ -223,18 +246,15 @@ export function ChannelsSettings() {
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor="channel-verify">{t("channels.fields.verifySecretName")}</Label>
-                <Input id="channel-verify" value={draft.verifySecretName} onChange={(e) => update("verifySecretName", e.target.value)} required />
+                {secretField("verifySecretName")}
               </div>
               {draft.provider === "meta" && (
                 <div className="space-y-1">
-                  <Label htmlFor="channel-challenge">{t("channels.fields.challengeSecretName")}</Label>
-                  <Input id="channel-challenge" value={draft.challengeSecretName} onChange={(e) => update("challengeSecretName", e.target.value)} required />
+                  {secretField("challengeSecretName")}
                 </div>
               )}
               <div className="space-y-1">
-                <Label htmlFor="channel-token">{t("channels.fields.tokenSecretName")}</Label>
-                <Input id="channel-token" value={draft.tokenSecretName} onChange={(e) => update("tokenSecretName", e.target.value)} required />
+                {secretField("tokenSecretName")}
                 <p className="text-xs text-muted-foreground">{t("channels.hints.secretNames")}</p>
               </div>
             </div>
@@ -248,7 +268,7 @@ export function ChannelsSettings() {
               <Button type="button" variant="outline" onClick={() => { setShowForm(false); setFormError(null); }}>
                 {t("channels.cancel")}
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending || !draft.verifySecretName || !draft.tokenSecretName || (draft.provider === "meta" && !draft.challengeSecretName)}>
                 {createMutation.isPending ? t("channels.saving") : t("channels.save")}
               </Button>
             </div>

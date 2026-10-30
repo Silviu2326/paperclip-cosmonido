@@ -9,7 +9,33 @@ export const mediaOperationSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("export"), aspect: z.enum(["9:16", "16:9"]), cropMode: z.literal("center") }),
   z.object({ type: z.literal("replace_audio"), assetId: id }),
 ]);
-export const mediaProjectCreateSchema = z.object({ assetId: id.optional(), companyFileId: id.optional(), goalId: id.optional(), issueId: id.optional() }).refine(input => Boolean(input.assetId) !== Boolean(input.companyFileId), "Provide exactly one of assetId or companyFileId");
+export const mediaProjectCreateSchema = z.object({
+  creationType: z.enum(["source", "motor_video"]).default("source"),
+  assetId: id.optional(),
+  companyFileId: id.optional(),
+  goalId: id.optional(),
+  issueId: id.optional(),
+}).superRefine((input, ctx) => {
+  const hasSource = Boolean(input.assetId) || Boolean(input.companyFileId);
+  const hasBothSources = Boolean(input.assetId) && Boolean(input.companyFileId);
+  if (input.creationType === "source" && (!hasSource || hasBothSources)) {
+    ctx.addIssue({ code: "custom", message: "Provide exactly one of assetId or companyFileId" });
+  }
+  if (input.creationType === "motor_video" && hasSource) {
+    ctx.addIssue({ code: "custom", message: "A motor-video project must not have a source asset" });
+  }
+});
+export const mediaMotorVideoRenderSchema = z.object({
+  idempotencyKey: z.string().min(1).max(200),
+  primary: z.boolean().default(false),
+  spec: z.record(z.string(), z.unknown()).superRefine((value, ctx) => {
+    let encoded: string;
+    try { encoded = JSON.stringify(value); } catch { encoded = ""; }
+    if (!encoded || encoded.length > 1_000_000) {
+      ctx.addIssue({ code: "custom", message: "Video specification must be valid JSON up to 1 MB" });
+    }
+  }),
+});
 export const mediaDetectSilencesSchema = z.object({ thresholdDb: z.number().min(-90).max(0).default(-35), minDurationMs: z.number().positive().max(60000).default(800) });
 export const mediaDetectFillersSchema = z.object({ words: z.array(z.string().trim().min(1)).min(1).max(100) });
 export const mediaOperationsSchema = z.object({ operations: z.array(mediaOperationSchema).min(1).max(100) });

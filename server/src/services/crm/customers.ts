@@ -69,6 +69,9 @@ export function customerService(db: Db) {
     }
 
     if (email) {
+      const directMatches = await executor.select().from(customers)
+        .where(and(active, sql`lower(${customers.contactEmail}) = ${email}`)).limit(MAX_CANDIDATES);
+      for (const row of directMatches) add(row, "contact_email");
       const rows = await executor
         .select({ customer: customers })
         .from(contactIdentities)
@@ -167,7 +170,7 @@ export function customerService(db: Db) {
         const candidates = await findDuplicatesIn(txDb, companyId, {
           name: input.name,
           domain,
-          contactEmail: options.contactEmail ?? null,
+          contactEmail: options.contactEmail ?? input.contactEmail ?? null,
         });
         if (candidates.length > 0 && !options.force) {
           throw new CrmDuplicateError(candidates);
@@ -180,6 +183,15 @@ export function customerService(db: Db) {
             kind: input.kind,
             name: input.name,
             domain,
+            contactName: input.contactName ?? null,
+            contactEmail: input.contactEmail ?? null,
+            phone: input.phone ?? null,
+            address: input.address ?? null,
+            city: input.city ?? null,
+            postalCode: input.postalCode ?? null,
+            country: input.country ?? null,
+            legalName: input.legalName ?? null,
+            taxId: input.taxId ?? null,
             tags: input.tags ?? [],
             ownerUserId: input.ownerUserId ?? null,
             ownerAgentId: input.ownerAgentId ?? null,
@@ -227,6 +239,15 @@ export function customerService(db: Db) {
         if (input.ownerAgentId !== undefined) patch.ownerAgentId = input.ownerAgentId;
         if (input.health !== undefined) patch.health = input.health;
         if (input.notes !== undefined) patch.notes = input.notes;
+        if (input.contactName !== undefined) patch.contactName = input.contactName;
+        if (input.contactEmail !== undefined) patch.contactEmail = input.contactEmail;
+        if (input.phone !== undefined) patch.phone = input.phone;
+        if (input.address !== undefined) patch.address = input.address;
+        if (input.city !== undefined) patch.city = input.city;
+        if (input.postalCode !== undefined) patch.postalCode = input.postalCode;
+        if (input.country !== undefined) patch.country = input.country;
+        if (input.legalName !== undefined) patch.legalName = input.legalName;
+        if (input.taxId !== undefined) patch.taxId = input.taxId;
         if (input.status !== undefined) {
           patch.status = input.status;
           patch.archivedAt = input.status === "archived" ? (existing.archivedAt ?? new Date()) : null;

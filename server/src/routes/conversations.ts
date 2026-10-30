@@ -11,6 +11,7 @@ import { validate } from "../middleware/validate.js";
 import type { EmailChannelService } from "../services/email-channels.js";
 import {
   conversationListQuerySchema,
+  conversationMessageQuerySchema,
   conversationService,
   type ConversationActor,
 } from "../services/conversations/conversations.js";
@@ -118,7 +119,17 @@ export function conversationRoutes(db: Db, email?: EmailChannelService) {
     if (!conversation) return;
     await projectEmailConversations(db, conversation.companyId);
     const fresh = (await convs.getById(conversation.companyId, id)) ?? conversation;
-    res.json({ ...fresh, messages: await convs.messages(id) });
+    const page = await convs.messagePage(conversation.companyId, id, { limit: 50 });
+    res.json({ ...fresh, messages: page.items, nextMessageCursor: page.nextCursor });
+  });
+
+  router.get("/conversations/:id/messages", async (req, res) => {
+    const id = req.params.id as string;
+    const conversation = await getAccessibleResource(req, res, convs.findById(id), "Conversation not found");
+    if (!conversation) return;
+    const parsed = conversationMessageQuerySchema.safeParse(req.query);
+    if (!parsed.success) throw badRequest("Invalid message pagination", parsed.error.issues);
+    res.json(await convs.messagePage(conversation.companyId, id, parsed.data));
   });
 
   router.post("/conversations/:id/messages", validate(createConversationMessageSchema), async (req, res) => {

@@ -219,6 +219,8 @@ describe("Sidebar", () => {
     await flushReact();
     expect(container.querySelector('a[href="/customers"]')).toBeNull();
     expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
+    expect(container.querySelectorAll('a[href="/agents/catalog"]')).toHaveLength(1);
+    expect(container.querySelector('a[href="/agents/catalog"]')?.textContent).toContain("Catálogo de agentes");
     toggle("expandAria");
     await flushReact();
     expect(container.querySelector('a[href="/customers"]')).not.toBeNull();

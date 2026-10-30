@@ -3,11 +3,12 @@ import { z } from "zod";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { assets, companyFileVersions } from "@paperclipai/db";
-import { mediaProjectCreateSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema, mediaQueueQuerySchema, mediaPriorityUpdateSchema } from "@paperclipai/shared";
+import { mediaProjectCreateSchema, mediaMotorVideoRenderSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema, mediaQueueQuerySchema, mediaPriorityUpdateSchema } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import { logActivity } from "../services/activity-log.js";
-import { assertAgentCapability } from "../services/external-action-gate.js";
+import { assertAgentMediaAction, type AgentMediaAction } from "../services/external-action-gate.js";
 import { mediaStudioService } from "../services/media-studio.js";
+import { motorVideoAssetIds } from "../services/media-studio/motor-video.js";
 import { resolveGoalIdForIssue } from "../services/assignment-costs.js";
 import { projectToolContext } from "../services/project-tool-context.js";
 import { companyFilesService } from "../services/company-files.js";
@@ -17,17 +18,11 @@ import { assertBoard, assertCompanyAccess, getAccessibleResource, getActorInfo }
 
 export function mediaStudioRoutes(db: Db) {
   const router = Router(); const service = mediaStudioService(db);
-  // Agent actors need the company's media:generate grant for every media studio route. Board callers are unchanged.
-  // The router is mounted at the API root, so only media paths are gated here.
-  router.use(async (req, _res, next) => {
-    if (req.actor.type !== "agent" || !/media-(projects|jobs|queue)/.test(req.path)) return next();
-    try {
-      await assertAgentCapability(db, { companyId: req.actor.companyId!, agentId: req.actor.agentId!, permissionKey: "media:generate" });
-      next();
-    } catch (error) {
-      next(error);
+  async function requireMediaAction(req: any, action: AgentMediaAction) {
+    if (req.actor.type === "agent") {
+      await assertAgentMediaAction(db, { companyId: req.actor.companyId!, agentId: req.actor.agentId!, action });
     }
-  });
+  }
   async function getProject(req: any, res: any, id: string, write = false) {
     const project = await getAccessibleResource(req, res, service.getProject(id), "Media project not found");
     if (!project) return null;
@@ -46,6 +41,7 @@ export function mediaStudioRoutes(db: Db) {
   }
   router.post("/companies/:companyId/media-projects", validate(mediaProjectCreateSchema), async (req, res) => {
     const companyId = req.params.companyId as string; assertCompanyAccess(req, companyId);
+    await requireMediaAction(req, req.body.creationType === "motor_video" ? "createVideo" : "edit");
     const actor = getActorInfo(req);
     const runContext = req.actor.type === "agent" ? await projectToolContext(db, req.actor, true, "Media") : null;
     const runGoalId = runContext ? runContext.issue.goalId ?? await resolveGoalIdForIssue(db, companyId, runContext.issue.id) ?? undefined : undefined;
@@ -53,6 +49,16 @@ export function mediaStudioRoutes(db: Db) {
     if (runContext && ((req.body.issueId && req.body.issueId !== runContext.issue.id)
       || (req.body.goalId && req.body.goalId !== runGoalId))) {
       res.status(403).json({ error: "Media projects must use the active run's issue and goal" }); return;
+    }
+    if (req.body.creationType === "motor_video") {
+      const row = await service.createVideoProject(companyId,
+        { agentId: actor.agentId, userId: actor.actorType === "user" ? actor.actorId : null },
+        { goalId: runContext ? runGoalId : req.body.goalId, issueId: runContext ? runContext.issue.id : req.body.issueId },
+      );
+      if (!row) { res.status(404).json({ error: "Unable to create video project" }); return; }
+      await audit(req, companyId, "media.video_project_created", "media_project", row.id);
+      res.status(201).json(row);
+      return;
     }
     if (runContext && req.body.companyFileId) {
       const files = companyFilesService(db, getStorageService());
@@ -134,6 +140,7 @@ export function mediaStudioRoutes(db: Db) {
     res.json(updated);
   });
   router.post("/media-projects/:id/transcribe", validate(mediaTranscribeSchema), async (req,res) => {
+    await requireMediaAction(req, "analyze");
     const project=await getProject(req,res,req.params.id as string,true); if(!project) return;
     await service.requireProviderCredential(project.companyId,"openai_whisper");
     await service.assertBudget(project.companyId,getActorInfo(req).agentId,{issueId:project.issueId});
@@ -141,27 +148,32 @@ export function mediaStudioRoutes(db: Db) {
     await audit(req,project.companyId,"media.transcription_queued","media_job",job.id);res.status(202).json(job);
   });
   router.post("/media-projects/:id/detect-silences", validate(mediaDetectSilencesSchema), async(req,res)=>{
+    await requireMediaAction(req, "analyze");
     const project=await getProject(req,res,req.params.id as string);if(!project)return;
     const silences=await service.detectProjectSilences(project.companyId,project.id,req.body.thresholdDb,req.body.minDurationMs);
     if(!silences){res.status(404).json({error:"Media project not found"});return;}
     res.json({projectId:project.id,silences});
   });
   router.post("/media-projects/:id/detect-fillers", validate(mediaDetectFillersSchema), async(req,res)=>{
+    await requireMediaAction(req, "analyze");
     const project=await getProject(req,res,req.params.id as string);if(!project)return;
     try { res.json({projectId:project.id,...await service.detectProjectFillers(project.companyId,project.id,req.body.words)}); }
     catch(error) { res.status(422).json({error:error instanceof Error?error.message:"Unable to inspect transcript"}); }
   });
   router.post("/media-projects/:id/operations", validate(mediaOperationsSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     const updated=await service.addOperations(project.companyId,project.id,req.body.operations);if(!updated){res.status(404).json({error:"Media project not found"});return;}
     await audit(req,project.companyId,"media.operations_updated","media_project",project.id,{count:req.body.operations.length});res.json(updated);
   });
   router.post("/media-projects/:id/render", validate(mediaRenderSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     const job=await service.enqueue(project.companyId,project.id,"render",req.body.idempotencyKey,{primary:req.body.primary,aspect:req.body.aspect,cropMode:req.body.cropMode});if(!job){res.status(404).json({error:"Media project not found"});return;}
     await audit(req,project.companyId,"media.render_queued","media_job",job.id);res.status(202).json(job);
   });
   router.post("/media-projects/:id/dub", validate(mediaDubSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     await service.requireProviderCredential(project.companyId,"elevenlabs");
     await service.assertBudget(project.companyId,getActorInfo(req).agentId,{issueId:project.issueId});
@@ -179,7 +191,31 @@ export function mediaStudioRoutes(db: Db) {
     }
     return new Map(rows.map(row => [row.id, row] as const));
   }
+  router.post("/media-projects/:id/motor-video-render", validate(mediaMotorVideoRenderSchema), async (req, res) => {
+    await requireMediaAction(req, "createVideo");
+    const project = await getProject(req, res, req.params.id as string, true);
+    if (!project) return;
+    if (project.creationType !== "motor_video") { res.status(409).json({ error: "Motor-video render requires a video creation project" }); return; }
+    let assetIds: string[];
+    try { assetIds = motorVideoAssetIds(req.body.spec); }
+    catch (error) { res.status(422).json({ error: error instanceof Error ? error.message : "Invalid video specification" }); return; }
+    const supportedMotorVideoTypes = new Set([
+      "image/png", "image/jpeg", "image/webp", "video/mp4", "video/webm",
+      "audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/aac", "audio/mp4", "audio/ogg",
+    ]);
+    if (assetIds.length && !await loadInputAssets(req, res, project.companyId, assetIds,
+      (contentType) => supportedMotorVideoTypes.has(contentType), "a supported audio, video or image asset")) return;
+    await service.assertBudget(project.companyId, getActorInfo(req).agentId, { issueId: project.issueId });
+    const job = await service.enqueue(project.companyId, project.id, "motor_video_render", req.body.idempotencyKey, {
+      spec: req.body.spec,
+      primary: req.body.primary,
+    });
+    if (!job) { res.status(404).json({ error: "Media project not found" }); return; }
+    await audit(req, project.companyId, "media.motor_video_render_queued", "media_job", job.id);
+    res.status(202).json(job);
+  });
   router.post("/media-projects/:id/stop-motion", validate(mediaStopMotionSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     if(req.body.goalId&&req.body.goalId!==project.goalId){res.status(422).json({error:"goalId must match the media project goal"});return;}
     const frames=await loadInputAssets(req,res,project.companyId,req.body.frameAssetIds,type=>["image/png","image/jpeg","image/webp"].includes(type),"a PNG, JPEG or WebP image");if(!frames)return;
@@ -188,6 +224,7 @@ export function mediaStudioRoutes(db: Db) {
     await audit(req,project.companyId,"media.stop_motion_queued","media_job",job.id);res.status(202).json(job);
   });
   router.post("/media-projects/:id/dub-multivoice", validate(mediaDubMultivoiceSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     await service.requireProviderCredential(project.companyId,"elevenlabs");
     await service.assertBudget(project.companyId,getActorInfo(req).agentId,{issueId:project.issueId});
@@ -195,6 +232,7 @@ export function mediaStudioRoutes(db: Db) {
     await audit(req,project.companyId,"media.dub_multivoice_queued","media_job",job.id);res.status(202).json(job);
   });
   router.post("/media-projects/:id/voiceover", validate(mediaVoiceoverSchema), async(req,res)=>{
+    await requireMediaAction(req, "edit");
     const project=await getProject(req,res,req.params.id as string,true);if(!project)return;
     if(req.body.script) {
       if(req.body.script.length>5000){res.status(422).json({error:"A voiceover script must not exceed 5000 characters; split longer scripts into dub_multivoice segments"});return;}
@@ -204,6 +242,28 @@ export function mediaStudioRoutes(db: Db) {
     await service.assertBudget(project.companyId,getActorInfo(req).agentId,{issueId:project.issueId});
     const job=await service.enqueue(project.companyId,project.id,"voiceover",req.body.idempotencyKey,{script:req.body.script,voiceAssetId:req.body.voiceAssetId,voiceId:req.body.voiceId,language:req.body.language,duckingDb:req.body.duckingDb,primary:req.body.primary});if(!job){res.status(404).json({error:"Media project not found"});return;}
     await audit(req,project.companyId,"media.voiceover_queued","media_job",job.id);res.status(202).json(job);
+  });
+  router.post("/media-jobs/:id/cancel", async (req, res) => {
+    const current = await getAccessibleResource(req, res, service.getJob(req.params.id as string), "Media job not found");
+    if (!current) return;
+    assertCompanyAccess(req, current.companyId);
+    const project = await service.getProject(current.projectId);
+    if (!project || project.companyId !== current.companyId) { res.status(404).json({ error: "Media job not found" }); return; }
+    if (req.actor.type === "agent") {
+      const context = await projectToolContext(db, req.actor, true, "Media");
+      if (context.run.companyId !== current.companyId || context.issue.id !== project.issueId) {
+        res.status(404).json({ error: "Media job not found" });
+        return;
+      }
+      await requireMediaAction(req, current.kind === "motor_video_render" ? "createVideo" : current.kind === "transcribe" ? "analyze" : "edit");
+    }
+    const updated = await service.cancelJob(current.companyId, current.id);
+    if (!updated) { res.status(404).json({ error: "Media job not found" }); return; }
+    if (updated.status !== current.status) {
+      const action = updated.status === "cancel_requested" ? "media.job_cancel_requested" : "media.job_cancelled";
+      await audit(req, current.companyId, action, "media_job", current.id, { kind: current.kind });
+    }
+    res.json(updated);
   });
   router.get("/media-jobs/:id", async(req,res)=>{
     const row=await getAccessibleResource(req,res,service.getJob(req.params.id as string),"Media job not found");

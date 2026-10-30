@@ -19,7 +19,7 @@ const schemas = {
     limit: z.number().int().min(1).max(100).optional(),
     cursor: z.string().regex(/^\d{1,9}$/).optional(),
   }),
-  conversation_get: z.object({ conversationId: uuid }),
+  conversation_get: z.object({ conversationId: uuid, before: uuid.optional() }),
   message_draft: z.object({ conversationId: uuid, body }),
   message_send: z.union([
     z.object({ messageId: uuid }),
@@ -89,7 +89,9 @@ export async function callConversationTool(input: ConversationToolCall) {
       return api("GET", `/companies/${input.companyId}/conversations${qs ? `?${qs}` : ""}`);
     }
     case "conversation_get":
-      return api("GET", `/conversations/${args.conversationId}`);
+      return api("GET", args.before
+        ? `/conversations/${args.conversationId}/messages?${new URLSearchParams({ before: String(args.before) })}`
+        : `/conversations/${args.conversationId}`);
     case "message_draft":
       return api("POST", `/conversations/${args.conversationId}/messages`, {
         body: args.body,

@@ -54,17 +54,17 @@ Gaps: Live provider and native-agent qualification is not implied by catalog dec
 
 Review: `baseline`.
 
-API: `present` - POST /api/companies/{companyId}/media-projects; GET /api/media-projects/{id}; POST /api/media-projects/{id}/transcribe|detect-silences|detect-fillers|operations|render|dub; GET /api/media-jobs/{id}; GET /api/companies/{companyId}/media-jobs?goalId={goalId}.
+API: `present` - POST /api/companies/{companyId}/media-projects (source or `creationType: motor_video`); GET /api/media-projects/{id}; POST /api/media-projects/{id}/transcribe|detect-silences|detect-fillers|operations|render|dub|motor-video-render; POST /api/media-jobs/{id}/cancel; GET /api/media-jobs/{id}; GET /api/companies/{companyId}/media-jobs?goalId={goalId}.
 
-Agent access: `available` - media_ingest/transcribe/detect_silences/detect_fillers/cut/subtitle/export/dub/get_project/get_job use authenticated APIs. Mutations require Standard/skill-test mode; asset, issue, company and budget boundaries and paid-provider credentials apply.
+Agent access: `available` - media_ingest/transcribe/detect_silences/detect_fillers/cut/subtitle/export/dub/get_project/get_job use authenticated APIs. Motor Video creation uses authenticated agent REST or native `call_api`: create a `motor_video` project then POST `motor-video-render` with a validated spec and stable idempotency key. Authenticated REST cancellation is task-scoped; queued jobs can be cancelled, and an active render can be cancelled only for Motor Video. Mutations require Standard/skill-test mode; asset, issue, company and budget boundaries and paid-provider credentials apply. Per-action grants gate analyze, edit and create-video; legacy `media:generate` temporarily covers all three.
 
-Policy: Active run identity, current assignment, company/resource authorization, work mode and existing approvals/budgets remain required where applicable.
+Policy: Active run identity, current assignment, company/resource authorization, work mode and existing approvals/budgets remain required where applicable. Project/job reads stay ACL-scoped without a generation grant. Cancellation uses the owning task's media action grant; active cancellation moves Motor Video through `cancel_requested` and `finalizing` is no longer cancellable. Motor Video accepts only same-company, actor-readable assets, explicit durations and bounded supported media types; pending image generation and generated speech are rejected. `PAPERCLIP_MOTOR_VIDEO_ENTRY` and runtime dependencies are operator provisioned; see [rendering configuration](../../doc/media-video-rendering.md).
 
-Evidence: `source-only` - [routes](../../server/src/routes/media-studio.ts).
+Evidence: `source-only` - [routes](../../server/src/routes/media-studio.ts), [worker](../../server/src/services/media-studio.ts), [Motor Video adapter](../../server/src/services/media-studio/motor-video.ts), [runtime setup](../../doc/media-video-rendering.md) and generated migrations `0368_media_projects_motor_video`, `0369_media_job_cancellation`. Migrations are not applied to a live instance; no live render evidence yet.
 
-Verification: `not-run` - follow the paired disposable-company journey with a real permitted agent and assert the relevant denied company, project, mode or human resolver. Unit/API fixtures are separate evidence.
+Verification: `not-run` - follow the paired disposable-company journey with a real permitted agent; assert allowed/denied analyze, edit and create-video grants, foreign/private asset denial, idempotent render, unsupported spec rejection, queued cancellation, active Motor Video cancellation, and 409 for cancelling another running media kind. Inspect task work product, final status and quota settlement. Unit/API fixtures are separate evidence.
 
-Gaps: Live provider and native-agent qualification is not implied by catalog declarations; use current run results for acceptance.
+Gaps: Apply both pending media migrations, provision the Motor Video CLI/runtime, and run the paired journey with an installed engine. Live provider and native-agent qualification is not implied by catalog declarations.
 
 ## `costs`
 

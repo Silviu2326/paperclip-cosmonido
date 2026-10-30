@@ -20,6 +20,7 @@ import {
   startEmbeddedPostgresTestDatabase,
 } from "../../__tests__/helpers/embedded-postgres.js";
 import { recordInboundMessage } from "./inbound.js";
+import { conversationService } from "./conversations.js";
 import { conversationMessageService, registerConversationTransport } from "./messages.js";
 import { ExternalActionUncertainError } from "../external-action-gate.js";
 import type { ConversationTransport, OutboundMessage } from "./transports/types.js";
@@ -103,6 +104,57 @@ describeEmbeddedPostgres("conversation inbox", () => {
       body: "Hola, quiero un presupuesto",
     });
   }
+
+  it("pages through more than 100 conversations without a phantom final page", async () => {
+    const { companyId } = await setup();
+    await db.insert(conversations).values(Array.from({ length: 125 }, (_, index) => ({
+      companyId, channel: "webchat", subject: `Conversation ${index}`,
+      lastMessageAt: new Date(Date.UTC(2026, 0, 1, 0, index)),
+    })));
+    const service = conversationService(db);
+    const ids: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await service.list(companyId, { limit: 25, cursor });
+      ids.push(...page.items.map((item) => item.id));
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor);
+    expect(ids).toHaveLength(125);
+    expect(new Set(ids).size).toBe(125);
+  });
+
+  it("opens the newest messages and reads all older history, including tied timestamps", async () => {
+    const { companyId } = await setup();
+    const [conversation] = await db.insert(conversations).values({ companyId, channel: "webchat" }).returning();
+    const rows = Array.from({ length: 550 }, (_, index) => ({
+      id: randomUUID(), companyId, conversationId: conversation!.id,
+      direction: "inbound", actorKind: "contact", body: `Message ${index}`,
+      createdAt: new Date(Date.UTC(2026, 0, 1, 0, Math.floor(index / 3))),
+    }));
+    await db.insert(conversationMessages).values(rows);
+    const service = conversationService(db);
+    const first = await service.messagePage(companyId, conversation!.id, { limit: 50 });
+    expect(first.items.some((item) => item.body === "Message 549")).toBe(true);
+    // Arriving messages must not shift any of the older-page boundaries.
+    await db.insert(conversationMessages).values({
+      companyId, conversationId: conversation!.id, direction: "inbound", actorKind: "contact", body: "New arrival",
+      createdAt: new Date(Date.UTC(2026, 1, 1)),
+    });
+    let items = first.items;
+    let cursor = first.nextCursor;
+    while (cursor) {
+      const page = await service.messagePage(companyId, conversation!.id, { limit: 50, before: cursor });
+      items = [...page.items, ...items];
+      cursor = page.nextCursor;
+    }
+    expect(items).toHaveLength(550);
+    expect(new Set(items.map((item) => item.id)).size).toBe(550);
+    const expected = rows.toSorted((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id));
+    expect(items.map((item) => item.id)).toEqual(expected.map((item) => item.id));
+    const [other] = await db.insert(conversations).values({ companyId, channel: "webchat" }).returning();
+    await expect(service.messagePage(companyId, other!.id, { limit: 50, before: items[0]!.id })).rejects.toThrow("Invalid message cursor");
+    expect((await service.messagePage(randomUUID(), conversation!.id, { limit: 50 })).items).toEqual([]);
+  });
 
   it("records an inbound message once per (provider, provider message id)", async () => {
     const { companyId } = await setup();

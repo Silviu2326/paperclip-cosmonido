@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown, FileText, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown, type LucideIcon } from "lucide-react";
 import type { Customer } from "@paperclipai/shared";
 import { Link, useNavigate } from "@/lib/router";
 import { useTranslation } from "@/i18n";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { accentTint } from "@/lib/accent";
 import type { CustomerSort, CustomerSortKey } from "@/lib/customers-list";
 import { cn } from "@/lib/utils";
+import { CustomersActionsMenu } from "./CustomersActionsMenu";
+import { CrmQuickActions } from "./CrmQuickActions";
 import { AccentPill, MUTED, PartyAvatar, formatShortDate, useHealthMeta } from "./CustomerListParts";
 
 function Th({ children, align = "left", className, sort }: {
@@ -73,11 +75,14 @@ function domainOf(customer: Customer, fallbackPerson: string, fallbackNone: stri
 }
 
 /** Customers as a table. A row opens the customer's page; the buttons on its right act without leaving the list. */
-export function CustomersTable({ customers, sort, onSort, onRestore, restoringId }: {
+export function CustomersTable({ customers, sort, onSort, onRestore, onEdit, onAddContact, onArchive, restoringId }: {
   customers: Customer[];
   sort: CustomerSort;
   onSort: (key: CustomerSortKey) => void;
   onRestore: (customer: Customer) => void;
+  onEdit: (customer: Customer) => void;
+  onAddContact: (customer: Customer) => void;
+  onArchive: (customer: Customer) => void;
   restoringId: string | null;
 }) {
   const { t } = useTranslation();
@@ -100,7 +105,7 @@ export function CustomersTable({ customers, sort, onSort, onRestore, restoringId
           const health = healthMeta(customer.health);
           const accent = archived ? MUTED : health.color;
           return (
-            <tr key={customer.id} onClick={() => navigate(`/customers/${customer.id}`)} className={cn(tableRow, archived && "opacity-70")}>
+            <tr key={customer.id} tabIndex={0} aria-label={t("uxCrm.customers.openCustomer", { name: customer.name, defaultValue: "Open {{name}}" })} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); navigate(`/customers/${customer.id}`); } }} onClick={() => navigate(`/customers/${customer.id}`)} className={cn(tableRow, "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset", archived && "opacity-70")}>
               <td className={tableCell} style={{ boxShadow: `inset 3px 0 0 ${accentTint(accent, 70)}` }}>
                 <div className="flex items-center gap-3">
                   <PartyAvatar name={customer.name} size="sm" />
@@ -127,19 +132,8 @@ export function CustomersTable({ customers, sort, onSort, onRestore, restoringId
               <td className={cn(tableCell, "hidden text-xs text-muted-foreground md:table-cell")}>{formatShortDate(customer.createdAt)}</td>
               <td className={cn(tableCell, "pr-2")}>
                 <div className="flex items-center justify-end gap-0.5">
-                  {archived ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={restoringId === customer.id}
-                      onClick={(event) => { event.stopPropagation(); onRestore(customer); }}
-                    >
-                      {t("crm.customers.restore")}
-                    </Button>
-                  ) : (
-                    <RowLink icon={FileText} label={t("uxCrm.list.actionProposal", { name: customer.name, defaultValue: "Nueva propuesta para {{name}}" })} to={`/sales/proposals?customerId=${encodeURIComponent(customer.id)}`} />
-                  )}
-                  <RowLink icon={ArrowRight} label={t("uxCrm.list.actionOpen", { name: customer.name, defaultValue: "Abrir {{name}}" })} to={`/customers/${customer.id}`} />
+                  {!archived && <CrmQuickActions target={{ kind: "customer", customer }} onEdit={() => onEdit(customer)} onAddContact={() => onAddContact(customer)} />}
+                  <CustomersActionsMenu customer={customer} busy={restoringId === customer.id} onEdit={() => onEdit(customer)} onAddContact={() => onAddContact(customer)} onArchive={() => onArchive(customer)} onRestore={() => onRestore(customer)} onProposal={() => navigate(`/sales/proposals?customerId=${encodeURIComponent(customer.id)}`)} />
                 </div>
               </td>
             </tr>

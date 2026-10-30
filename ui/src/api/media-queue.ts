@@ -9,4 +9,5 @@ export const mediaQueueApi = {
   },
   updatePriority: (companyId: string, jobId: string, input: { priority: number; expectedUpdatedAt: string }) =>
     api.patch<MediaQueueJob>(`/companies/${companyId}/media-jobs/${jobId}/priority`, input),
+  cancel: (jobId: string) => api.post<MediaQueueJob>(`/media-jobs/${jobId}/cancel`, {}),
 };

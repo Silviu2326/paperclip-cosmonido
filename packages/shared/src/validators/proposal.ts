@@ -55,6 +55,8 @@ export const proposalListQuerySchema = z.object({
   status: proposalStatusSchema.optional(),
   opportunityId: z.string().uuid().optional(),
   customerId: z.string().uuid().optional(),
+  q: z.string().trim().max(300).optional(),
+  cursor: z.string().max(1000).optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
 });
 

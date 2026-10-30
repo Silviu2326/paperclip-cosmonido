@@ -13,14 +13,14 @@ Agent access: [companion](../agent-access-map/customer-channels.md).
 
 - `accounts`: connect a provider account, record its identifiers and secret names, and test the connection.
 - `inbound`: a signed webhook from the provider creates or appends to a conversation for the matching account. A failed signature is refused.
-- `outbound`: a reply goes to the provider transport registered at startup. Messenger and Instagram replies outside the 24-hour window are refused; WhatsApp may use an approved template.
+- `outbound`: a reply goes to the provider transport registered at startup. Agent profiles can restrict outbound replies to selected conversation channel types; the server checks the allowlist before staging and again before delivery. Messenger and Instagram replies outside the 24-hour window are refused; WhatsApp may use an approved template.
 - `delivery`: provider status callbacks update delivery state. An uncertain send is never resent automatically.
 
 ## How to get to it (user POV)
 
 ### `channel-settings`
 
-Open `/channels-settings`. Add an account for a provider, check its status, and run Test connection. Removal of an account is served by the API; the page does not offer it yet.
+Open `/apps/channels`, or choose a channel in `/conversations` to configure it inside the inbox. Choose existing company secrets or create them from the shared secret picker; account records still store only their names. Add an account, check its status, and run Test connection. The inbox also shows the provider callback URL and setup instructions. A passing credential probe does not prove inbound delivery. Removal of an account is served by the API; the page does not offer it yet.
 
 ### `provider-webhook`
 
@@ -35,8 +35,9 @@ Preconditions: disposable company, a test account per provider or signed fixture
 3. Post the same fixture with a wrong signature; verify 401 and no message.
 4. Send a reply on a Messenger conversation older than 24 hours; verify it is refused with a clear reason.
 5. Replay a delivery status callback; verify the delivery state changes once.
+6. Configure an agent to send only on email; verify its WhatsApp send is denied while a permitted email send still follows the configured autonomy level. Revoke a channel after an action is approved and verify the send/retry is denied.
 
-Targeted evidence: [channels](../../server/src/services/conversations/transports/channels.test.ts).
+Targeted evidence: [channel transports](../../server/src/services/conversations/transports/channels.test.ts), [conversation sends](../../server/src/services/conversations/messages.ts).
 
 ## Gotchas
 

@@ -1,4 +1,231 @@
 {
+  "crmQuick": {
+    "contact": "Contact",
+    "assignAgent": "Assign to an agent",
+    "contactTitle": "Contact {{name}}",
+    "contactDescription": "Choose an available way to reach this person.",
+    "loadingContacts": "Loading linked contacts…",
+    "contactsError": "Could not load linked contacts. You can still use the customer's saved details.",
+    "noContactDetails": "No email address or phone number is available.",
+    "addContact": "Add contact",
+    "editRecord": "Edit record",
+    "taskTitle": "Work for {{name}}",
+    "taskInstructionsPlaceholder": "Add instructions for the agent.",
+    "crmRecordLabel": "CRM record",
+    "primary": "primary",
+    "customerDetails": "Customer details"
+  },
+  "agentWorkPermissions": {
+    "sandboxUnavailable": "This environment cannot start the Codex filesystem sandbox. This restriction is unavailable here; the agent will not start without applying it.",
+    "legacy": "This agent keeps its previous access. These limits activate only when you save changes.",
+    "groups": {
+      "code": "Code and workspace",
+      "tasks": "Tasks",
+      "projects": "Projects",
+      "documents": "Documents and files"
+    },
+    "codeScope": "The switches below control the workspace tools supplied by Paperclip.",
+    "unsupportedAdapter": "This adapter does not have the controlled Paperclip workspace enabled. These switches do not restrict its own tools and are therefore disabled.",
+    "commandsUnavailable": "This server lacks the isolation required to run workspace commands.",
+    "additionalChecks": "These permissions restrict Paperclip actions. Company, privacy, assignment and approval checks still apply; external tools retain their own permissions.",
+    "codexAccess": "Codex CLI filesystem access",
+    "adapterDefault": "Keep the current adapter configuration",
+    "readOnly": "Read only",
+    "workspaceWrite": "Read and write within the workspace",
+    "codexScope": "Codex will use its CLI engine with the selected sandbox and no permission escalation. Advanced arguments are omitted so they cannot override the limit. Commands remain available inside that sandbox; this adapter cannot disable them separately. This change applies when the agent next starts.",
+    "options": {
+      "workspaceRead": {
+        "title": "Read workspace files",
+        "hint": "Allows listing and reading files through Paperclip workspace tools."
+      },
+      "workspaceWrite": {
+        "title": "Write workspace files",
+        "hint": "Allows modifying files and preparing repositories through Paperclip."
+      },
+      "workspaceExecute": {
+        "title": "Run workspace commands",
+        "hint": "Allows running programs in the controlled workspace. Requires read and write access."
+      },
+      "tasksRead": {
+        "title": "Read tasks",
+        "hint": "Allows reading tasks and history through Paperclip APIs and tools."
+      },
+      "tasksCreate": {
+        "title": "Create tasks",
+        "hint": "Allows creating tasks. Selecting another person or agent as assignee also requires assignment permission."
+      },
+      "tasksUpdate": {
+        "title": "Update tasks",
+        "hint": "Allows changing status, posting comments and updating dependencies."
+      },
+      "tasksAssign": {
+        "title": "Assign tasks",
+        "hint": "Allows selecting or changing assignees, subject to existing assignment controls."
+      },
+      "projectsRead": {
+        "title": "Read projects",
+        "hint": "Allows reading accessible company projects."
+      },
+      "projectsManage": {
+        "title": "Manage projects",
+        "hint": "Allows creating, updating and deleting projects within existing permissions."
+      },
+      "documentsRead": {
+        "title": "Read documents and files",
+        "hint": "Allows reading documents, attachments and company files through Paperclip."
+      },
+      "documentsWrite": {
+        "title": "Write documents and files",
+        "hint": "Allows writing documents, managing files and registering deliverables."
+      }
+    }
+  },
+  "agentCatalog": {
+    "roles": {
+      "account-manager": {
+        "name": "Account manager",
+        "description": "Collects client requests, coordinates deliveries and follows up on commitments."
+      },
+      "editor": {
+        "name": "Content editor",
+        "description": "Edits and improves written content before final review."
+      },
+      "reviewer": {
+        "name": "Content reviewer",
+        "description": "Reviews content quality and identifies changes needed before delivery."
+      },
+      "writer": {
+        "name": "Content writer",
+        "description": "Writes content from client briefs and context."
+      },
+      "content-strategist": {
+        "name": "Content strategist",
+        "description": "Turns communication goals into ideas and briefs for the production team."
+      },
+      "copywriter": {
+        "name": "Copywriter",
+        "description": "Prepares copy and scripts for content and video pieces."
+      },
+      "video-editor": {
+        "name": "Video editor",
+        "description": "Edits video pieces following the script and team instructions."
+      },
+      "content-lead": {
+        "name": "Content lead",
+        "description": "Organizes content planning and coordinates regular reviews."
+      },
+      "ceo": {
+        "name": "Chief executive officer",
+        "description": "Prioritizes company goals and coordinates the team’s work."
+      },
+      "cto": {
+        "name": "Chief technology officer",
+        "description": "Coordinates engineering work, architecture decisions and development delivery."
+      },
+      "qa": {
+        "name": "Quality assurance specialist",
+        "description": "Reviews product changes and verifies their quality before completion."
+      },
+      "senior-coder": {
+        "name": "Senior developer",
+        "description": "Implements and reviews code changes to deliver product improvements."
+      },
+      "ux-designer": {
+        "name": "User experience designer",
+        "description": "Designs screens and reviews product usability and experience quality."
+      },
+      "speko-company-phone-agent": {
+        "name": "Speko phone receptionist",
+        "description": "Answers calls, clarifies requests and delegates work to the right agent through Speko."
+      },
+      "escalation-agent": {
+        "name": "Escalation specialist",
+        "description": "Identifies cases that need a human decision and coordinates follow-up."
+      },
+      "support-agent": {
+        "name": "Customer support agent",
+        "description": "Drafts customer replies and follows up on conversations."
+      },
+      "qualifier": {
+        "name": "Lead qualification specialist",
+        "description": "Qualifies new sales opportunities and gathers the information needed to move forward."
+      },
+      "scheduler": {
+        "name": "Meeting coordinator",
+        "description": "Coordinates meeting bookings and follow-up with sales prospects."
+      },
+      "sdr": {
+        "name": "Sales development representative",
+        "description": "Handles new opportunities, drafts replies and follows up with prospects."
+      },
+      "cmo": {
+        "name": "Chief marketing officer",
+        "description": "Coordinates company marketing priorities and activities."
+      }
+    },
+    "teams": {
+      "core-exec-team": {
+        "name": "Core leadership team"
+      },
+      "product-design": {
+        "name": "Product design"
+      },
+      "product-engineering": {
+        "name": "Product engineering"
+      },
+      "speko-company-phone-agent": {
+        "name": "Speko phone reception"
+      },
+      "agency-content": {
+        "name": "Content agency"
+      },
+      "content-and-video": {
+        "name": "Content and video"
+      },
+      "content-machine": {
+        "name": "Content operations"
+      },
+      "customer-care": {
+        "name": "Customer care"
+      },
+      "sales-inbound": {
+        "name": "Inbound sales"
+      }
+    },
+    "technicalDetails": "Skill references",
+    "categories": {
+      "company-defaults": "Leadership and management",
+      "product": "Product",
+      "software-development": "Software development",
+      "communications": "Communications",
+      "content": "Content and video",
+      "customer-care": "Customer care",
+      "sales": "Sales"
+    },
+    "title": "Agent catalog",
+    "agents": "Agents",
+    "myAgents": "My agents",
+    "description": "Install prepared agents with their instructions and skills. Choose one from the catalog and review its configuration before adding it to your company.",
+    "search": "Search agents, roles or teams",
+    "category": "Category",
+    "allCategories": "All categories",
+    "loading": "Loading available agents…",
+    "empty": "No agents match these filters.",
+    "install": "Install agent",
+    "installTitle": "Install catalog agent",
+    "installHint": "Only the selected agent will be installed, along with the package skills. If it already exists, a different name will be used.",
+    "preparing": "Preparing the agent configuration…",
+    "retry": "Retry",
+    "adapter": "Execution environment",
+    "chooseAdapter": "Choose an available environment",
+    "connectionHint": "Installation keeps its instructions. Review its AI connection and permissions in its profile before assigning work.",
+    "installed": "{{name}} has been installed in your company.",
+    "close": "Close",
+    "openAgent": "Open agent",
+    "installing": "Installing…",
+    "chooseCompany": "Select a company to browse and install agents.",
+    "invalidSelection": "The preview does not contain only the selected agent. Review the package in the team catalog."
+  },
   "app": {
     "noCompanies": {
       "title": "Create your first organization",
@@ -327,7 +554,12 @@
     "remove": "Remove artifact",
     "addSelected": "Attach {{count}}",
     "attachFailed": "{{count}} artifact(s) could not be attached.",
-    "source": { "company_file": "Entrada", "attachment": "Attachment", "work_product": "Work product", "document": "Document" }
+    "source": {
+      "company_file": "Entrada",
+      "attachment": "Attachment",
+      "work_product": "Work product",
+      "document": "Document"
+    }
   },
   "issueAttachments": {
     "browseGallery": "Browse gallery",
@@ -9043,6 +9275,70 @@
     "configured": "agent configured, offline",
     "online": "agent online"
   },
+  "agentCaps": {
+    "permissionsTitle": "Agent permissions",
+    "permissionsHint": "Enable only what the agent needs for its work. Available options depend on the agent type.",
+    "enabledCount": "{{count}} permissions enabled",
+    "legacyPermissionsNote": "This agent retains permissions from an earlier configuration. Saving will match them to this type. Choose Custom to combine functions.",
+    "operationsScopeTitle": "Internal Paperclip work",
+    "operationsScopeHint": "This type offers no communication, code or media permissions. Dedicated task, project and document controls are not connected yet; current Paperclip permissions apply.",
+    "codeScopeNote": "This option describes its purpose. Read, write and execution limits depend on the adapter and workspace; they cannot be configured here yet.",
+    "purposeTitle": "What is this agent for?",
+    "specialtyRequired": "Choose a category to continue.",
+    "customerCareLabel": "Customer care",
+    "customerCareDescription": "Responds to people and customers through configured channels.",
+    "salesLabel": "Sales",
+    "salesDescription": "Works with prospects, follows up, and can make calls.",
+    "videoContentLabel": "Video and content",
+    "videoContentDescription": "Creates and edits video and other media.",
+    "softwareLabel": "Code and development",
+    "softwareDescription": "Works with code and repositories.",
+    "operationsLabel": "Operations",
+    "operationsDescription": "Handles internal work without contacting customers.",
+    "customLabel": "Custom",
+    "customDescription": "Choose each capability yourself.",
+    "messagesTitle": "Messages",
+    "messagesHint": "Can write to people and customers through selected channels.",
+    "callsTitle": "Calls",
+    "callsHint": "Can make phone calls.",
+    "mediaActionsTitle": "Media actions",
+    "mediaActionsHint": "Choose which media operations this agent can run.",
+    "mediaAnalyzeTitle": "Analyze media",
+    "mediaAnalyzeHint": "Transcribe audio or video and detect silences and filler words.",
+    "mediaEditTitle": "Edit media",
+    "mediaEditHint": "Cut, subtitle, dub, add voiceover, and export existing content.",
+    "mediaCreateVideoTitle": "Create videos",
+    "mediaCreateVideoHint": "Create videos from a specification and available assets with motor-video.",
+    "codeTitle": "Code and repositories",
+    "codeHint": "Works with code and repositories.",
+    "autonomyNote": "By default, the agent prepares drafts. Change its approval level in Autonomy.",
+    "openAutonomy": "Open Autonomy",
+    "levelSendWithApproval": "With approval",
+    "levelSendDirect": "Direct",
+    "levelDraftOnly": "Draft only",
+    "autonomyMessages": "Messages",
+    "autonomyEmail": "Email",
+    "autonomyCalls": "Calls",
+    "panelTitle": "Capabilities",
+    "panelHint": "Choose what this agent is for and what it can do. Changes apply when you save.",
+    "loading": "Loading capabilities…",
+    "loadError": "Couldn’t load this agent’s capabilities.",
+    "retry": "Retry",
+    "saveError": "Couldn’t save capabilities.",
+    "saved": "Capabilities saved.",
+    "saving": "Saving…",
+    "save": "Save capabilities",
+    "autonomyTitle": "Effective autonomy",
+    "autonomyHint": "Approval levels are earned through testing and changed in Autonomy.",
+    "readOnly": "Read only: board access is required to change capabilities.",
+    "forbidden": "You don’t have permission to change this agent’s capabilities."
+  },
+  "agentMessageChannels": {
+    "title": "Messaging channels",
+    "hint": "The agent can send messages only through selected channels. The channel connection must also be configured.",
+    "email": "Email",
+    "webchat": "Web chat"
+  },
   "agentChatSidebar": {
     "chats": "Chats",
     "chatWithAgent": "Chat with an agent",
@@ -11021,6 +11317,22 @@
       "fieldName": "Name",
       "fieldKind": "Type",
       "fieldDomain": "Domain",
+      "fieldNotes": "Notes",
+      "fieldContactName": "Contact person (optional)",
+      "fieldPhone": "Phone (optional)",
+      "fieldAddress": "Address (optional)",
+      "fieldCity": "City (optional)",
+      "fieldPostalCode": "Postal code (optional)",
+      "fieldCountry": "Country (optional)",
+      "fieldLegalName": "Legal name (optional)",
+      "fieldTaxId": "Tax ID / VAT number (optional)",
+      "optionalDetailsHint": "Only the name is required. Add any contact, address or billing details you have.",
+      "editTitle": "Edit customer",
+      "edit": "Edit details",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "updateError": "Could not update the customer.",
+      "fieldNotesPlaceholder": "What the customer needs, services agreed, and other useful context.",
       "fieldContactEmail": "Contact email (optional)",
       "fieldContactEmailHint": "Used to find existing records with the same contact.",
       "cancel": "Cancel",
@@ -11047,7 +11359,6 @@
       "archive": "Archive",
       "restore": "Restore",
       "archivedBadge": "Archived",
-      "updateError": "Could not update the customer.",
       "contactsEmpty": "No contacts linked yet.",
       "linkContact": "Link contact",
       "chooseContact": "Choose a contact",
@@ -11076,6 +11387,13 @@
       "loadingMore": "Loading...",
       "selectCompany": "Select a company to see its contacts.",
       "createTitle": "New contact",
+      "customerOptional": "Customer (optional)",
+      "customerHint": "Link this person to a customer. Search for an existing customer or create a new one.",
+      "noLinkedCustomers": "This person is not linked to any customers yet.",
+      "linkCustomer": "Link customer",
+      "unlinkCustomerName": "Unlink from {{name}}",
+      "customersLoadError": "Could not load this person's customers.",
+      "customerLinkError": "Could not change the customer link. Please try again.",
       "fieldDisplayName": "Name",
       "fieldEmail": "Email",
       "fieldPhone": "Phone",
@@ -11453,14 +11771,17 @@
       "loadMore": "Load more",
       "noSubject": "No subject",
       "lastActivity": "Last activity {{when}}",
-      "unassigned": "Unassigned"
+      "unassigned": "Unassigned",
+      "firstMessage": "No conversations yet. Connect a channel above and send a first message to see it here."
     },
     "thread": {
       "title": "Thread",
       "empty": "No messages yet.",
       "inbound": "Contact",
       "outbound": "Us",
-      "draftLabel": "Draft"
+      "draftLabel": "Draft",
+      "loadOlder": "Load older messages",
+      "loadError": "Could not update the history. Loaded messages are still available; try loading older messages again."
     },
     "composer": {
       "placeholder": "Write a reply…",
@@ -11496,6 +11817,49 @@
       "generic": "Something went wrong. Try again.",
       "send": "The message could not be sent.",
       "draft": "The draft could not be saved."
+    },
+    "setup": {
+      "title": "Set up your conversation inbox",
+      "manageTitle": "Your conversation channels",
+      "description": "Choose the channels your customers use. Connect one to start; you can add the others later.",
+      "manage": "Configure channels",
+      "later": "Continue later",
+      "viewInbox": "Go to inbox",
+      "connect": "Connect {{channel}}",
+      "configure": "Configure {{channel}}",
+      "retry": "Try again",
+      "loadError": "Some connection settings could not be loaded. Retry to check their status.",
+      "emailHelp": "Connect or create a mailbox using the email setup. Your existing mailboxes are listed here; their configuration is saved when you return.",
+      "emailAccount": "Email account",
+      "testHelp": "This opens the real visitor widget. Open the chat, send a message, then open its conversation below and reply. Test messages stay in your inbox and may start the configured automatic agent replies.",
+      "openTest": "Test web chat",
+      "closeTest": "Close test",
+      "testTitle": "Visitor web chat test",
+      "providerTestHelp": "After saving the account, test its credentials. Configure this callback URL in the provider to receive messages. It must be publicly reachable over HTTPS.",
+      "receiveHelp": "To verify the inbox, send a message from a connected channel and reply from the conversation. Verified credentials alone do not prove that inbound messages or replies are being delivered.",
+      "state": {
+        "enabled": "Enabled",
+        "verified": "Credentials verified",
+        "pending": "Setup pending",
+        "attention": "Needs attention",
+        "disconnected": "Not connected",
+        "loading": "Checking connection…",
+        "unavailable": "Could not check connection"
+      },
+      "hint": {
+        "webchat": "Receive messages from your website. Start here if you do not have a provider account.",
+        "email": "Connect or create a mailbox for email conversations.",
+        "whatsapp": "Connect your WhatsApp Business account.",
+        "messenger": "Connect the Facebook page customers message.",
+        "instagram": "Connect your professional Instagram account.",
+        "telegram": "Connect a bot for customer messages.",
+        "sms": "Connect a Twilio number for text messages."
+      },
+      "webhook": {
+        "meta": "Subscribe the app to the selected account’s message events. Use the verification-token secret for the URL challenge and the App Secret to verify signed events.",
+        "telegram": "Register this URL as the bot webhook. Set secret_token to the value of your verification secret; the bot token is the sending credential.",
+        "twilio": "Set this URL as the incoming-message webhook (POST) and status callback. The verification secret must contain your Twilio Auth Token."
+      }
     }
   },
   "channels": {
@@ -11545,6 +11909,8 @@
     },
     "hints": {
       "externalAccountId": "WhatsApp phone number ID, Messenger page ID, Instagram account ID, Telegram bot ID, or the Twilio number in E.164 format.",
+      "prepareSecrets": "Choose saved secrets or create them with the + button on each field. Values are stored in the company secret vault.",
+      "openSecrets": "Manage secrets",
       "secretNames": "Enter the name of a company secret. The value is never shown here.",
       "templates": "One per line as name|language, for example reengage|es. Used outside the 24-hour WhatsApp window."
     },
@@ -11629,6 +11995,9 @@
     "context": "Context",
     "createVideo": "Create video",
     "production": "Production",
+    "cancelJob": "Cancel job",
+    "cancellingJob": "Cancelling job…",
+    "finalizingJob": "Saving output…",
     "createVideoFromFile": "Create video from this file",
     "selectCompany": "Select a company to see its production jobs.",
     "refreshQueue": "Refresh queue",
@@ -12001,5 +12370,100 @@
   "agencyPage": {
     "title": "Managed installations",
     "pageDescription": "Manage the separate companies you operate for customers, their packages and public branding."
+  },
+  "salesWorkspace": {
+    "pipeline": "Sales pipeline",
+    "newLead": "New lead",
+    "editLead": "Edit lead",
+    "newProposal": "New proposal",
+    "editProposal": "Edit proposal",
+    "editOpportunity": "Edit opportunity",
+    "convertLead": "Create opportunity from lead",
+    "convertDescription": "The contact and customer will be linked and an opportunity created. Its details will open when complete.",
+    "name": "Name",
+    "company": "Company",
+    "email": "Email",
+    "phone": "Phone",
+    "message": "Message",
+    "priority": "Priority",
+    "language": "Language",
+    "owner": "Owner",
+    "everyone": "All owners",
+    "unassigned": "Unassigned",
+    "savedOwner": "Saved owner",
+    "ownersError": "Could not load all owners.",
+    "customer": "Customer",
+    "searchCustomers": "Search customers",
+    "selectedCustomer": "Selected customer",
+    "customersError": "Could not load customers. Try again.",
+    "newCustomer": "Create customer",
+    "loadMore": "Load more",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save changes",
+    "edit": "Edit",
+    "title": "Title",
+    "stage": "Stage",
+    "amount": "Amount",
+    "currency": "Currency",
+    "probability": "Probability (%)",
+    "expectedClose": "Expected close date",
+    "nextAction": "Next action",
+    "nextActionAt": "Follow-up date",
+    "conflictHint": "If someone else changed this record, close and reopen it to load the current version.",
+    "opportunity": "Opportunity",
+    "notSet": "Not set",
+    "notFound": "The record was not found in this company.",
+    "openOpportunity": "Open opportunity",
+    "allProposals": "View all proposals",
+    "additionalData": "Additional lead data",
+    "lostReason": "Loss reason",
+    "closeLost": "Mark as lost",
+    "view": "View",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "open": "Open",
+    "won": "Won",
+    "lost": "Lost",
+    "clearFilters": "Reset filters",
+    "searchOpportunities": "Search opportunities",
+    "searchProposals": "Search proposals",
+    "resultCount": "{{count}} records loaded",
+    "partialResults": "{{count}} records loaded. More results are available; displayed counts and amounts are partial.",
+    "recordActivity": "Record activity",
+    "activityKind": "Activity type",
+    "summary": "Note or outcome",
+    "addCommitment": "Add commitment",
+    "commitment": "What needs to be done",
+    "who": "Who is responsible",
+    "dueAt": "Due date",
+    "proposalDescription": "Save a draft before sending it. Changes to a sent proposal create a new revision.",
+    "opportunityOptional": "Linked opportunity (optional)",
+    "noOpportunity": "No linked opportunity",
+    "scope": "Proposal items",
+    "concept": "Item",
+    "description": "Description",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "removeLine": "Remove item",
+    "addLine": "Add item",
+    "total": "Total price",
+    "deposit": "Deposit (optional)",
+    "validUntil": "Valid until",
+    "terms": "Terms",
+    "createDraft": "Create draft",
+    "sortLoaded": "Sort loaded results",
+    "newest": "Most recent",
+    "byName": "Name (A–Z)",
+    "byFollowUp": "Next follow-up",
+    "selectedCount": "{{count}} leads selected",
+    "assignSelected": "Assign selected",
+    "unassignSelected": "Unassign selected",
+    "triageSelected": "Triage selected new leads",
+    "discardSelected": "Discard selected leads",
+    "selectLoaded": "Select loaded leads",
+    "selectLead": "Select {{name}}",
+    "actionFailed": "Could not complete the action.",
+    "bulkResult": "Completed: {{succeeded}}. Failed: {{failed}}. Failed records remain selected for retry."
   }
 }

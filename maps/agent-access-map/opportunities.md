@@ -18,11 +18,43 @@ Verification: `not-run` - create twice with one key as an agent and confirm one 
 
 Gaps: the idempotency reference has no unique index, so two concurrent requests with one key can create two rows.
 
+## `edit`
+
+Review: `baseline`.
+
+API: `present` - GET/PATCH /api/opportunities/{id}.
+
+Agent access: `partial` - existing authenticated REST; no new dedicated tool is added by the board editor.
+
+Policy: company/resource checks; PATCH requires expectedVersion. The editor pins the version present when it opens, including across background refreshes.
+
+Evidence: `source-only` for agent access - [editor](../../ui/src/components/crm/OpportunityCreateDialog.tsx), [routes](../../server/src/routes/crm.ts).
+
+Verification: `not-run` for live agent authorization; component regressions pass for forecast/follow-up fields and the loaded version.
+
+Gaps: primary-contact selection remains API-only.
+
+## `follow-up`
+
+Review: `baseline`.
+
+API: `present` - GET/POST /api/companies/{companyId}/crm/activities; GET/POST /api/companies/{companyId}/commitments; POST /api/commitments/{id}/resolve.
+
+Agent access: `partial` - existing REST paths and CRM tools; this board flow adds no agent authority.
+
+Policy: same-company subject checks, original audit attribution and idempotency keys; no outgoing customer communication is triggered by recording an activity.
+
+Evidence: `source-only` for agent access - [follow-up](../../ui/src/components/crm/SalesFollowUp.tsx), [CRM routes](../../server/src/routes/crm.ts).
+
+Verification: `not-run` for live agent authorization; component regressions pass for activity and dated commitment creation.
+
+Gaps: no live agent proof for this combined board flow.
+
 ## `pipeline`
 
 Review: `baseline`.
 
-API: `present` - GET /api/companies/{companyId}/opportunities?customerId=&stageKey=&limit=.
+API: `present` - GET /api/companies/{companyId}/opportunities?customerId=&stageKey=&status=&q=&ownerId=&cursor=&limit=. ownerId=unassigned selects records with neither a human nor an agent responsible; the forecast accepts the same owner filter.
 
 Agent access: `partial` - there is no dedicated pipeline read tool; the REST list is reachable with the agent's company-scoped key but is not in the native API catalog.
 

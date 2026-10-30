@@ -182,7 +182,9 @@ export function opportunityService(db: Db) {
       }
       if (query.stageKey) conditions.push(eq(opportunities.stageKey, query.stageKey));
       if (query.customerId) conditions.push(eq(opportunities.customerId, query.customerId));
-      if (query.ownerId) {
+      if (query.ownerId === "unassigned") {
+        conditions.push(isNull(opportunities.ownerUserId), isNull(opportunities.ownerAgentId));
+      } else if (query.ownerId) {
         conditions.push(
           or(eq(opportunities.ownerUserId, query.ownerId), sql`${opportunities.ownerAgentId}::text = ${query.ownerId}`)!,
         );

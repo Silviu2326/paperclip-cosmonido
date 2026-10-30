@@ -43,8 +43,15 @@ export function buildCodexExecArgs(
   const search = asBoolean(record.search, false);
   const fastModeRequested = asBoolean(record.fastMode, false);
   const fastModeApplied = fastModeRequested && isCodexLocalFastModeSupported(model);
-  const { extraArgs, explicitSandbox, bypass } = resolveCodexLocalCliPolicy(record, options);
+  const controlledAccess = record.paperclipCodeAccess === "read_only" || record.paperclipCodeAccess === "workspace_write" ? record.paperclipCodeAccess : null;
+  const { extraArgs, explicitSandbox, bypass } = controlledAccess
+    ? { extraArgs: [] as string[], explicitSandbox: true, bypass: false }
+    : resolveCodexLocalCliPolicy(record, options);
   const args = ["exec", "--json"];
+  if (controlledAccess) {
+    args.push("--sandbox", controlledAccess === "read_only" ? "read-only" : "workspace-write", "-c", 'approval_policy="never"');
+    args.push("-c", "sandbox_workspace_write.writable_roots=[]", "-c", "sandbox_workspace_write.exclude_tmpdir_env_var=true", "-c", "sandbox_workspace_write.exclude_slash_tmp=true");
+  }
   if (!bypass && !explicitSandbox) {
     args.push("-c", 'sandbox_mode="workspace-write"');
     args.push("-c", `sandbox_workspace_write.network_access=${options.networkAccess !== false}`);

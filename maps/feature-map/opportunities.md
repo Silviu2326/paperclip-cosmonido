@@ -12,6 +12,8 @@ Agent access: [companion](../agent-access-map/opportunities.md).
 ## Sub-features
 
 - `create`: a new opportunity for a customer with title, stage, optional amount and currency, optional next action. A retry key keeps repeated submits from creating duplicates.
+- `edit`: edit title, customer, amount, currency, responsible person/agent, probability, expected close and dated next action with the loaded version.
+- `follow-up`: record notes, calls, meetings and outcomes, create dated commitments and resolve existing commitments from the detail sheet.
 - `pipeline`: the board groups opportunities by stage; the list view shows the same records as a table.
 - `stage-change`: moving an opportunity to another stage is an external action. A board user applies it immediately; an agent may only get a pending action, which leaves the stage unchanged until approved.
 - `close`: mark an opportunity won or lost with a reason.
@@ -22,11 +24,15 @@ Agent access: [companion](../agent-access-map/opportunities.md).
 
 ### `pipeline-board`
 
-Open `/opportunities`. Choose Board or List. Drag or move a card to another stage. A notice says when the change waits for approval.
+Open `/sales` to land on `/sales/opportunities` in Board view. Empty boards retain all stages and creation controls. Choose Board or List, search or filter by owner/status. Load more follows the server cursor; counts and currency-separated stage totals are explicitly partial while more pages exist. Drag or move a card to another stage; moving to Lost asks for a reason. Pending approval remains visible.
 
 ### `create-opportunity`
 
-On `/opportunities`, choose New opportunity, pick the customer, enter the title and stage, optionally the amount and next action, and submit. The same action is on the customer's Opportunities tab with the customer already chosen.
+Choose New opportunity globally or within an open stage. Search and page through customers, or create one inside the picker. Enter amount, currency, probability, expected close, responsible person/agent and dated next action. Creation opens the new detail; Edit saves against the version loaded when the form opened. The customer tab preselects its customer and links each opportunity to this same detail.
+
+### `opportunity-detail`
+
+Open `/sales/opportunities?opportunityId={id}` directly, including a record outside the loaded board page. Edit its fields, record activity, add/resolve commitments, change stage, or create a structured proposal. Related proposals link to their detail; proposal detail links back to this opportunity and its customer.
 
 ### `customer-opportunities`
 
@@ -42,6 +48,8 @@ Preconditions: disposable company with one customer and one agent. Embedded data
 4. As a board user move a card to Proposal; verify the change is direct (no pending notice).
 5. As an agent under the default draft-only autonomy, request the same move; verify a 202 pending action and an unchanged stage.
 6. Send a stage change with a stale expected version and verify 409 `version_conflict`.
+7. Edit probability, expected close and follow-up date, reload, and verify the forecast includes the persisted fields. Add a note and a dated commitment, then resolve it.
+8. Create a proposal from the opportunity, edit item quantities/descriptions, save and send via link; inspect revision history and navigate back to the same opportunity.
 
 Targeted evidence: [opportunities service](../../server/src/services/crm/opportunities.test.ts), [crm agent tools](../../server/src/services/crm/crm-tools.test.ts), [external action gate](../../server/src/services/external-action-gate.test.ts), [create dialog](../../ui/src/components/crm/OpportunityCreateDialog.test.tsx).
 
@@ -50,4 +58,4 @@ Targeted evidence: [opportunities service](../../server/src/services/crm/opportu
 - The sales pipeline does not enforce transitions unless transitions are configured; any stage is reachable.
 - The retry key for creation is generated when the dialog opens. A new dialog starts a new opportunity by design.
 - A pending agent stage change is not a stage change. Check the action, not the card, before reporting success.
-- The create dialog covers the main fields only; owner, primary contact and expected close date are set through the API.
+- Primary contact is retained but is still selected through the API; owner, forecast fields and follow-up date are editable on the board.

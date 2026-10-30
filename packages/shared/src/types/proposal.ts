@@ -51,6 +51,11 @@ export interface Proposal {
   updatedAt: Date | string;
 }
 
+export interface ProposalPage {
+  items: Proposal[];
+  nextCursor: string | null;
+}
+
 /** What the public page shows: never the company internals, never other revisions. */
 export interface PublicProposalView {
   title: string;

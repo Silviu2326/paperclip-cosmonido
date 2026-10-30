@@ -425,6 +425,7 @@ function Setup({
           : {}),
       };
     }
+    if (adapterType === "codex_local" && purpose.codeAdapterAccess) Object.assign(config, { engine: "cli", paperclipCodeAccess: purpose.codeAdapterAccess });
     return config;
   }
   function preparedConfig(nextConnection = connection) {
@@ -513,6 +514,7 @@ function Setup({
       created ||
       !ready ||
       !name.trim() ||
+      !purpose.specialty ||
       testState === "running" ||
       testState === "fail" ||
       (connectionAdapter && !connection)
@@ -968,7 +970,7 @@ function Setup({
                             )}
                           </div>
                         )}
-                        <AgentPurposeSection value={purpose} onChange={setPurpose} />
+                        <AgentPurposeSection workPermissionSupport={{ workspace: false, commands: false, codexFilesystem: adapterType === "codex_local" && runner === "legacy" }} value={purpose} onChange={setPurpose} />
                         {!aiBinding && SETUP_LOGIN_HINTS[adapterType] && (
                           <p className="text-sm text-muted-foreground">
                             {SETUP_LOGIN_HINTS[adapterType]}
@@ -1253,6 +1255,7 @@ function Setup({
                         disabled={
                           !ready ||
                           busy ||
+                          !purpose.specialty ||
                           testState === "fail" ||
                           Boolean(connectionAdapter && !connection)
                         }

@@ -3,6 +3,8 @@ import { SALES_STAGE_KEYS, type Opportunity, type SalesStageKey } from "@papercl
 import { useTranslation } from "@/i18n";
 import { cn } from "../../lib/utils";
 import { NativeSelect } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { salesOwnerValue } from "@/lib/sales";
 
 export function formatOpportunityAmount(amountCents: number | null, currency: string | null) {
   if (amountCents === null) return null;
@@ -25,10 +27,12 @@ interface BoardProps {
   disabled?: boolean;
   onOpen: (opportunity: Opportunity) => void;
   onMove: (opportunity: Opportunity, stageKey: SalesStageKey) => void;
+  onCreate?: (stageKey: SalesStageKey) => void;
+  ownerNames?: Record<string, string>;
 }
 
 /** Kanban by sales stage. Drag a card onto a column, or pick the stage on the card (keyboard path). */
-export function OpportunityBoard({ items, disabled, onOpen, onMove }: BoardProps) {
+export function OpportunityBoard({ items, disabled, onOpen, onMove, onCreate, ownerNames }: BoardProps) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -49,6 +53,8 @@ export function OpportunityBoard({ items, disabled, onOpen, onMove }: BoardProps
             disabled={disabled}
             onOpen={onOpen}
             onMove={onMove}
+            onCreate={onCreate}
+            ownerNames={ownerNames}
           />
         ))}
       </div>
@@ -62,15 +68,23 @@ function StageColumn({
   disabled,
   onOpen,
   onMove,
+  onCreate,
+  ownerNames,
 }: {
   stageKey: SalesStageKey;
   items: Opportunity[];
   disabled?: boolean;
   onOpen: (opportunity: Opportunity) => void;
   onMove: (opportunity: Opportunity, stageKey: SalesStageKey) => void;
+  onCreate?: (stageKey: SalesStageKey) => void;
+  ownerNames?: Record<string, string>;
 }) {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({ id: stageKey, disabled });
+  const totals = new Map<string, number>();
+  for (const item of items) {
+    if (item.amountCents !== null && item.currency) totals.set(item.currency, (totals.get(item.currency) ?? 0) + item.amountCents);
+  }
   return (
     <section
       ref={setNodeRef}
@@ -84,9 +98,11 @@ function StageColumn({
         <span>{t(`crm.opportunities.stages.${stageKey}`)}</span>
         <span className="text-muted-foreground">{items.length}</span>
       </header>
+      {Array.from(totals, ([currency, amount]) => <p key={currency} className="px-1 text-xs text-muted-foreground">{formatOpportunityAmount(amount, currency)}</p>)}
+      {onCreate && stageKey !== "won" && stageKey !== "lost" && <Button size="sm" variant="outline" onClick={() => onCreate(stageKey)}>{t("crm.opportunities.create.title")}</Button>}
       {items.length === 0 && <p className="px-1 text-sm text-muted-foreground">{t("crm.opportunities.columnEmpty")}</p>}
       {items.map((item) => (
-        <OpportunityCard key={item.id} opportunity={item} disabled={disabled} onOpen={onOpen} onMove={onMove} />
+        <OpportunityCard key={item.id} opportunity={item} disabled={disabled} onOpen={onOpen} onMove={onMove} ownerNames={ownerNames} />
       ))}
     </section>
   );
@@ -97,11 +113,13 @@ function OpportunityCard({
   disabled,
   onOpen,
   onMove,
+  ownerNames,
 }: {
   opportunity: Opportunity;
   disabled?: boolean;
   onOpen: (opportunity: Opportunity) => void;
   onMove: (opportunity: Opportunity, stageKey: SalesStageKey) => void;
+  ownerNames?: Record<string, string>;
 }) {
   const { t } = useTranslation();
   const { setNodeRef, attributes, listeners, transform, isDragging } = useDraggable({
@@ -109,7 +127,7 @@ function OpportunityCard({
     disabled,
   });
   const amount = formatOpportunityAmount(opportunity.amountCents, opportunity.currency);
-  const owner = opportunity.ownerUserId ?? opportunity.ownerAgentId;
+  const owner = ownerNames?.[salesOwnerValue(opportunity.ownerUserId, opportunity.ownerAgentId)];
   const overdue = isNextActionOverdue(opportunity);
   return (
     <article
@@ -133,8 +151,9 @@ function OpportunityCard({
           {overdue && ` · ${t("crm.opportunities.overdue", { defaultValue: "Overdue" })}`}
         </span>
         <span className="text-xs text-muted-foreground">
-          {owner ? `${t("crm.opportunities.owner")}: ${owner}` : t("crm.opportunities.noOwner")}
+          {owner ?? t(opportunity.ownerUserId || opportunity.ownerAgentId ? "salesWorkspace.savedOwner" : "salesWorkspace.unassigned")}
         </span>
+        {opportunity.nextActionAt && <span className="text-xs text-muted-foreground">{new Date(opportunity.nextActionAt).toLocaleString()}</span>}
       </button>
       <label className="flex flex-col gap-1 text-xs text-muted-foreground">
         {t("crm.opportunities.moveTo")}

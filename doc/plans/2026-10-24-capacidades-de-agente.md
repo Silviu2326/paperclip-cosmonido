@@ -1,6 +1,6 @@
 # Capacidades y especialidad de los agentes al crearlos
 
-Estado: propuesta para decidir. Fecha: 2026-10-24.
+Estado: propuesta en implementación. Fecha de actualización: 2026-10-27.
 
 ## Objetivo
 
@@ -79,3 +79,38 @@ Esquema o permisos compartidos en `packages/shared`, servidor, interfaz y client
 1. Fase 0 (modelos), sin desplegar hasta que lo indiques.
 2. Fase 1 (permisos y cumplimiento en servidor) con pruebas y migración de agentes existentes.
 3. Fase 2 (asistente de creación y panel de capacidades).
+
+## Primera entrega de mensajes por canal (2026-10-27)
+
+- `agents.metadata.profile.messageChannels` guarda una allowlist opcional para los canales de conversación saliente con transporte en Paperclip: email, WhatsApp, Messenger, Instagram, Telegram, webchat y SMS. Voz queda bajo el permiso de llamadas.
+- Los presets iniciales permiten email, WhatsApp y webchat para atención al cliente; email y WhatsApp para ventas; las demás especialidades empiezan sin canales de mensajería.
+- El envío comprueba la allowlist antes de crear una acción pendiente y justo antes de entregar. Una aprobación o reintento no conserva un permiso que el tablero haya revocado.
+- Si el campo no existe, el agente conserva el comportamiento anterior. Una lista vacía deniega todos los canales de conversación.
+- El primer agente, el alta normal y el panel de capacidades comparten el selector; los textos nuevos se mantienen en inglés y español.
+- Esta entrega cubre el servicio de conversaciones CRM. Los conectores nativos de chat siguen ligados al agente asignado al endpoint y no forman parte de esta allowlist.
+
+## Medios por acción y Motor Video (2026-10-27)
+
+- Los permisos de medios se separan en `media:analyze`, `media:edit` y `media:create_video`; la interfaz los guarda como `mediaAnalyze`, `mediaEdit` y `mediaCreateVideo`. `video` se mantiene como agregado compatible.
+- El grant antiguo `media:generate` sigue autorizando las tres acciones para agentes ya configurados. Al guardar capacidades granulares, Paperclip reemplaza el grant general por los grants seleccionados. Las hires pendientes conservan las opciones al activarse.
+- Los proyectos de vídeo generados pueden no tener archivo fuente. El render se encola como trabajo durable y enlaza el MP4 a la tarea como artefacto de medios.
+- La cola permite cancelar cualquier trabajo pendiente. Un render Motor Video en curso acepta cancelación y pasa por `cancel_requested`; al empezar la publicación pasa a `finalizing` y ya no se cancela. Los demás procesadores no admiten cancelación activa.
+- Paperclip ejecuta el CLI instalado de Motor Video en un proceso sin shell, con recursos de almacenamiento autorizados y rutas locales controladas. El despliegue debe provisionar el CLI, Remotion, un navegador y FFmpeg; consulta [configuración del render](../media-video-rendering.md).
+- Las especificaciones requieren duración explícita y assets de Paperclip accesibles. No se admiten nodos de generación de imagen ni voz sintetizada hasta conectar proveedores y permisos separados. La música determinista local del motor sí se admite.
+- La migración `0368_media_projects_motor_video` está generada, pero aún no aplicada ni verificada en una instancia. La integración tampoco tiene prueba de render en la VPS; el runtime debe desplegarse y configurarse antes de habilitar la acción.
+- Los textos de esta entrega se mantienen únicamente en inglés y español.
+
+## 2026-10-28: permisos por tipo de agente
+
+El formulario compartido agrupa los permisos por especialidad. Atención al cliente y Ventas comparten mensajes y llamadas; Vídeo y contenido ofrece acciones de medios; Código ofrece su indicador de función con aviso sobre los límites del adaptador; Operaciones muestra su alcance actual sin controles sin implementar. Personalizado permite combinar las opciones. La interfaz y el servidor usan el mismo catálogo al contratar y guardar. Los agentes anteriores conservan sus permisos hasta una edición explícita; la interfaz avisa si guardar retirará permisos ajenos al tipo seleccionado. No se realiza una migración automática.
+
+
+## 2026-10-29: ejecución de permisos de Código y Operaciones
+
+- `metadata.profile.workPermissions` añade restricciones explícitas sobre tareas, proyectos, documentos/archivos y herramientas de workspace. La ausencia conserva los permisos anteriores; no hay migración automática ni nuevas concesiones. Se mantienen los permisos de compañía, privacidad, aprobaciones y asignación existentes.
+- Los formularios de contratación, onboarding y edición guardan las mismas opciones. Los tipos de agente limitan las opciones disponibles; los guardados explícitos normalizan la política al tipo. El onboarding restaura estas opciones desde su borrador.
+- La API aplica la política a rutas de recursos y llamadas MCP, y el Runner la comprueba antes de ejecutar sus herramientas directas. Las escrituras de metadatos de agentes no pueden eliminar ni ampliar las políticas del operador. Los comandos arbitrarios de workspace requieren lectura, escritura y ejecución para evitar eludir los controles de archivos; las lecturas de ficheros para publicar entregables también requieren permiso de lectura.
+- Codex legado admite `codeAdapterAccess: read_only | workspace_write`: se selecciona el motor CLI, se impide la ampliación de sandbox, se eliminan argumentos avanzados y raíces de escritura adicionales que podrían anular la política. Se comprueba el arranque del sandbox con un comando fijo sin modelo antes de ejecutar el agente y en el test del entorno. Cambiar de adaptador a uno incompatible bloquea la ejecución hasta que el operador ajuste la política. El límite de Codex se aplica al siguiente arranque; no modifica procesos que ya están ejecutándose.
+- Los interruptores de workspace controlan herramientas proporcionadas por Paperclip, actualmente el bridge controlado de Dot. La interfaz muestra su disponibilidad y la de ejecución de comandos. Las herramientas propias de otros adaptadores y los servicios externos mantienen sus controles independientes. Codex puede ejecutar comandos dentro de su sandbox; no se ofrece una garantía de desactivar comandos propios de Codex por separado.
+- La prueba real en contenedores efímeros sin red, sin secretos de instancia y sin montajes de producción detectó que el runtime actual de la VPS no admite iniciar el sandbox de Codex (restricciones de namespaces/montajes de Docker). La prueba con Landlock también falló. No se ha debilitado la configuración del servicio activo. Antes de usar esos modos en producción hay que provisionar un entorno de ejecución compatible; la comprobación falla sin volver a bypass.
+- Validación: 106 pruebas locales correctas y seis integraciones omitidas en Windows; las 31 pruebas del servidor, incluidas esas seis, pasaron en un contenedor Linux con PostgreSQL aislado. TypeScript del servidor, UI y adaptador Codex sin errores; controles visuales e interacción verificados en móvil y escritorio. La compilación completa de UI queda bloqueada por un import ajeno a esta entrega: falta `components/inbox/ConversationSetup`, importado por `ConversationInbox.tsx`. Estos cambios de permisos todavía no están desplegados.

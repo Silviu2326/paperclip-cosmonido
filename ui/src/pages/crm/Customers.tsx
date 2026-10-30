@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CustomerCreateDialog } from "../../components/crm/CustomerCreateDialog";
 import { CustomerCard, CustomersTable } from "../../components/crm/CustomersTable";
+import { ContactCreateDialog } from "../../components/crm/ContactCreateDialog";
 import { LILAC, MINT, SKY, StatCard, YELLOW } from "../../components/crm/CustomerListParts";
 import { ServicesDialog, isRunningAgreement, useServiceAgreements } from "../../components/crm/ServicesDialog";
 
@@ -51,6 +52,8 @@ export function Customers() {
   const [layout, setLayout] = useState<Layout>("table");
   const [sort, setSort] = useState<CustomerSort>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [contactCustomer, setContactCustomer] = useState<Customer | null>(null);
   const [servicesOpen, setServicesOpen] = useState(false);
 
   useEffect(() => {
@@ -98,6 +101,10 @@ export function Customers() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.customers.list(companyId) });
     },
+  });
+  const archive = useMutation({
+    mutationFn: (customer: Customer) => crmApi.customers.update(customer.id, { status: "archived" }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.customers.list(companyId) }); },
   });
 
   const loaded = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
@@ -291,6 +298,9 @@ export function Customers() {
                 sort={sort}
                 onSort={(key) => setSort((current) => nextCustomerSort(current, key))}
                 onRestore={(customer) => restore.mutate(customer)}
+                onArchive={(customer) => archive.mutate(customer)}
+                onEdit={setEditingCustomer}
+                onAddContact={setContactCustomer}
                 restoringId={restore.isPending ? restore.variables?.id ?? null : null}
               />
             </div>
@@ -302,7 +312,7 @@ export function Customers() {
         </>
       )}
 
-      {restore.error && <p className="text-sm text-destructive">{t("crm.customers.updateError")}</p>}
+      {(restore.error || archive.error) && <p role="alert" className="text-sm text-destructive">{t("crm.customers.updateError")}</p>}
 
       {query.hasNextPage && (
         <div className="flex justify-center">
@@ -319,6 +329,8 @@ export function Customers() {
 
       <ServicesDialog open={servicesOpen} onOpenChange={setServicesOpen} agreements={runningAgreements} customers={activeCustomers} />
       <CustomerCreateDialog open={createOpen} onOpenChange={setCreateOpen} companyId={selectedCompanyId} initialName={q || undefined} />
+      <CustomerCreateDialog open={!!editingCustomer} onOpenChange={(open) => { if (!open) setEditingCustomer(null); }} companyId={selectedCompanyId} customer={editingCustomer ?? undefined} />
+      <ContactCreateDialog open={!!contactCustomer} onOpenChange={(open) => { if (!open) setContactCustomer(null); }} companyId={selectedCompanyId} customerId={contactCustomer?.id} />
     </div>
   );
 }

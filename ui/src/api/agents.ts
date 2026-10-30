@@ -88,7 +88,7 @@ export interface AgentHireResponse {
 /** Optional purpose fields of `POST /companies/:id/agent-hires`. Omit both to keep every capability enabled. */
 export interface AgentHireCapabilityFields {
   capabilities?: AgentCapabilities;
-  profile?: Pick<AgentProfile, "specialty" | "sectors">;
+  profile?: Pick<AgentProfile, "specialty" | "sectors" | "messageChannels" | "workPermissions" | "codeAdapterAccess">;
 }
 
 export interface AgentPermissionUpdate {

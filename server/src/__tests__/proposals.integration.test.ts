@@ -3,11 +3,17 @@ import express from "express";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { and, eq } from "drizzle-orm";
-import { agents, companies, createDb, documents, proposals } from "@paperclipai/db";
+import { agents, companies, createDb, customers, documents, proposals } from "@paperclipai/db";
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from "./helpers/embedded-postgres.js";
 import { proposalService, type ProposalServiceDeps } from "../services/proposals.js";
 import { proposalRoutes, publicProposalRoutes } from "../routes/proposals.js";
 import { errorHandler } from "../middleware/index.js";
+import { leadIntakeService } from "../services/leads/intake.js";
+import { leadService } from "../services/leads/leads.js";
+import { opportunityService } from "../services/crm/opportunities.js";
+import { opportunityForecastService } from "../services/crm/opportunity-forecast.js";
+import { crmActivityService } from "../services/crm/activities.js";
+import { commitmentService } from "../services/crm/commitments.js";
 
 const pgSupport = await getEmbeddedPostgresTestSupport();
 const describePg = pgSupport.supported ? describe : describe.skip;
@@ -224,6 +230,78 @@ describePg("proposal service and routes (embedded postgres)", () => {
     expect(listed).toHaveLength(1);
     expect(listed[0]!.revision).toBe(2);
     expect(await svc.list(randomUUID())).toHaveLength(0);
+  });
+
+  it("persists the lead → opportunity → proposal journey, follow-up and forecast", async () => {
+    const c = await company("Sales journey");
+    const seller = await agent(c.id, "Seller");
+    const actor = { actorType: "user" as const, actorId: "board-user", agentId: null, runId: null };
+    const intake = await leadIntakeService(db).ingest(c.id, { source: "manual", sourceRef: randomUUID(), payload: { name: "Ana", company: "Acme", email: "ana@acme.test" } });
+    await leadService(db).update(intake.lead.id, { assignedAgentId: seller.id, assignedUserId: null }, actor);
+    const conversionKey = randomUUID();
+    const converted = await leadService(db).convert(intake.lead.id, { createOpportunity: true, opportunityTitle: "Acme pilot", idempotencyKey: conversionKey }, actor);
+    const replay = await leadService(db).convert(intake.lead.id, { createOpportunity: true, opportunityTitle: "Acme pilot", idempotencyKey: conversionKey }, actor);
+    expect(replay.lead.opportunityId).toBe(converted.lead.opportunityId);
+    const opps = opportunityService(db);
+    const original = (await opps.findById(converted.lead.opportunityId!))!;
+    expect(original.ownerAgentId).toBe(seller.id);
+    expect((await opps.list(c.id, { ownerId: "unassigned" })).items).toHaveLength(0);
+    expect((await opportunityForecastService(db).forecast(c.id, { periodDays: 90, ownerId: "unassigned" })).coverage.openOpportunities).toBe(0);
+    const nextActionAt = new Date(Date.now() + 86_400_000).toISOString();
+    const updated = await opps.update(c.id, original.id, { expectedVersion: original.version, amountCents: 100_000, currency: "EUR", probability: 60, expectedCloseAt: new Date(Date.now() + 30 * 86_400_000).toISOString(), nextAction: "Send offer", nextActionAt, ownerAgentId: seller.id, ownerUserId: null });
+    expect(updated.nextActionAt?.toISOString()).toBe(nextActionAt);
+    expect(updated.probability).toBe(60);
+    const forecast = await opportunityForecastService(db).forecast(c.id, { periodDays: 90, ownerId: seller.id });
+    expect(forecast.coverage.included).toBe(1);
+    expect(forecast.totals.weightedCents).toBe(60_000);
+    const note = await crmActivityService(db).log(c.id, { subjectKind: "opportunity", subjectId: original.id, kind: "note", summary: "Buyer confirmed scope" });
+    expect(note.subjectId).toBe(original.id);
+    const commitment = await commitmentService(db).create(c.id, { opportunityId: original.id, customerId: original.customerId, who: "us", what: "Send offer", dueAt: nextActionAt });
+    expect(commitment.what).toBe("Send offer");
+    const draft = await service().createFromOpportunity(c.id, draftInput(randomUUID(), { opportunityId: original.id }), { agentId: seller.id });
+    expect(draft.customerId).toBe(original.customerId);
+    expect(draft.opportunityId).toBe(original.id);
+    const sent = await service().send(draft.id, { via: "link" }, { agentId: seller.id });
+    expect(sent.proposal.status).toBe("sent");
+    expect((await service().publicView(draft.publicToken!)).title).toBe(draft.title);
+  });
+
+  it("rejects cross-company and mismatched proposal subjects without creating a draft", async () => {
+    const mine = await company("Mine subjects");
+    const theirs = await company("Foreign subjects");
+    const [mineCustomer, otherCustomer] = await db.insert(customers).values([
+      { companyId: mine.id, name: "Mine", kind: "organization" },
+      { companyId: theirs.id, name: "Other", kind: "organization" },
+    ]).returning();
+    const opportunity = await opportunityService(db).create(theirs.id, { customerId: otherCustomer.id, title: "Foreign deal", stageKey: "new" });
+    const svc = service();
+    await expect(svc.createFromOpportunity(mine.id, draftInput(randomUUID(), { opportunityId: opportunity.id }), {})).rejects.toMatchObject({ status: 404 });
+    await expect(svc.createFromOpportunity(mine.id, draftInput(randomUUID(), { customerId: otherCustomer.id }), {})).rejects.toMatchObject({ status: 404 });
+    await expect(svc.createFromOpportunity(theirs.id, draftInput(randomUUID(), { opportunityId: opportunity.id, customerId: mineCustomer.id }), {})).rejects.toMatchObject({ status: 422 });
+    expect(await svc.list(mine.id)).toEqual([]);
+  });
+
+  it("paginates latest revisions without omissions at equal timestamps and applies filters before pagination", async () => {
+    const c = await company("Proposal pages");
+    const svc = service();
+    const drafts = await Promise.all(["Alpha", "Bravo", "Charlie", "Delta", "Echo"].map((title) => svc.createFromOpportunity(c.id, draftInput(randomUUID(), { title }), {})));
+    const sent = await svc.send(drafts[0].id, { via: "link" }, {});
+    const revision = await svc.revise(sent.proposal.id, { title: "Alpha revised" }, {});
+    await db.update(proposals).set({ updatedAt: new Date("2026-10-29T12:00:00.123Z") }).where(eq(proposals.companyId, c.id));
+    const found = [];
+    let cursor: string | undefined;
+    do {
+      const page = await svc.listPage(c.id, { cursor, limit: 2 });
+      found.push(...page.items);
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor);
+    expect(found).toHaveLength(5);
+    expect(new Set(found.map((item) => item.proposalKey)).size).toBe(5);
+    expect(found.find((item) => item.proposalKey === revision.proposalKey)?.id).toBe(revision.id);
+    const filtered = await svc.listPage(c.id, { q: "Alpha revised", status: "draft", limit: 1 });
+    expect(filtered.items.map((item) => item.id)).toEqual([revision.id]);
+    expect((await svc.listPage(randomUUID())).items).toEqual([]);
+    await expect(svc.listPage(c.id, { cursor: "bad-cursor" })).rejects.toMatchObject({ status: 400 });
   });
 
   describe("routes", () => {

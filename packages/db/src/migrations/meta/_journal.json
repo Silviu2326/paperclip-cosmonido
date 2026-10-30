@@ -2563,6 +2563,27 @@
       "when": 1792972800000,
       "tag": "0367_agent_capability_grants_backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 368,
+      "version": "7",
+      "when": 1793131414161,
+      "tag": "0368_media_projects_motor_video",
+      "breakpoints": true
+    },
+    {
+      "idx": 369,
+      "version": "7",
+      "when": 1793131875978,
+      "tag": "0369_media_job_cancellation",
+      "breakpoints": true
+    },
+    {
+      "idx": 370,
+      "version": "7",
+      "when": 1793293549209,
+      "tag": "0370_calm_black_bird",
+      "breakpoints": true
     }
   ]
 }

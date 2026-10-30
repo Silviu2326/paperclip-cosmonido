@@ -21,7 +21,7 @@ Agent access: [companion](../agent-access-map/autonomous-sales.md).
 
 ## How to get to it (user POV)
 
-Open `/playbooks` to create a draft, edit its steps and publish it; `/playbooks/:id` shows recent runs. Open `/autonomy` for the agent × action matrix, run the bench, raise when the bench passed and revoke with a reason. Open `/proposals` and `/proposals/:id` for revisions, acceptance evidence and payment; the public page is `/api/public/proposals/:token/view`. Open `/service-agreements` for periods and renewals. Inicio shows "Necesita tu decisión (comercial)". The proposal detail page carries the "Por qué hizo esto" panel. Personal preferences hold the daily brief card.
+Open `/playbooks` to create a draft, edit its steps and publish it; `/playbooks/:id` shows recent runs. Open `/autonomy` for the agent × action matrix, run the bench, raise when the bench passed and revoke with a reason. Open `/sales/proposals` to search and page through proposals, create a draft for a customer or opportunity, then `/sales/proposals/:id` to edit structured line items, send, inspect revisions, acceptance evidence and payment. Sent revisions remain immutable. Opportunities also offer New proposal and link to their proposals. The public page is `/api/public/proposals/:token/view`. Open `/service-agreements` for periods and renewals. Inicio shows "Necesita tu decisión (comercial)". The proposal detail page carries the "Por qué hizo esto" panel. Personal preferences hold the daily brief card.
 
 ## Driving it with Playwright and the Paperclip CLI
 

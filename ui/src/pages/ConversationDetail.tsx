@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import type { Conversation, ConversationMessagePage } from "@paperclipai/shared";
 import { MessagesSquare } from "lucide-react";
 import { Link, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
@@ -24,11 +25,19 @@ export function ConversationDetail() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const { data: conversation, isLoading, error } = useQuery({
-    queryKey: queryKeys.conversations.detail(conversationId ?? ""),
-    queryFn: () => conversationsApi.get(conversationId!),
-    enabled: !!conversationId,
+  const history = useInfiniteQuery({
+    queryKey: [...queryKeys.conversations.detail(conversationId ?? ""), "thread"],
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam }): Promise<ConversationMessagePage & { conversation: Conversation | null }> => {
+      if (pageParam) return { ...await conversationsApi.messages(conversationId!, pageParam), conversation: null };
+      const detail = await conversationsApi.get(conversationId!);
+      return { conversation: detail, items: detail.messages, nextCursor: detail.nextMessageCursor };
+    },
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+    enabled: !!conversationId && !!selectedCompanyId,
   });
+  const conversation = history.data?.pages[0]?.conversation;
+  const messages = [...new Map(history.data?.pages.toReversed().flatMap((page) => page.items).map((message) => [message.id, message])).values()];
 
   useEffect(() => {
     setBreadcrumbs([
@@ -72,12 +81,12 @@ export function ConversationDetail() {
   if (!selectedCompanyId || !conversationId) {
     return <EmptyState icon={MessagesSquare} message={t("conversations.title")} />;
   }
-  if (isLoading) return <PageSkeleton variant="list" />;
-  if (error || !conversation) {
+  if (history.isLoading) return <PageSkeleton variant="list" />;
+  if (!conversation) {
     return <EmptyState icon={MessagesSquare} message={t("conversations.detail.notFound")} />;
   }
 
-  const uncertain = conversation.messages.filter((m) => m.deliveryStatus === "uncertain");
+  const uncertain = messages.filter((m) => m.deliveryStatus === "uncertain");
 
   return (
     <div className="space-y-4">
@@ -126,15 +135,21 @@ export function ConversationDetail() {
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium">{t("conversations.thread.title")}</h2>
+        {history.hasNextPage && (
+          <Button variant="outline" size="sm" disabled={history.isFetching} onClick={() => void history.fetchNextPage()}>
+            {t("conversations.thread.loadOlder")}
+          </Button>
+        )}
+        {history.error && <p role="alert" className="text-sm text-destructive">{t("conversations.thread.loadError")}</p>}
         <ConversationThread
-          messages={conversation.messages}
+          messages={messages}
           busy={busy}
           onSend={sendDraft}
           onReconcile={(messageId) => reconcile(messageId)}
         />
       </section>
 
-      <ConversationComposer conversationId={conversation.id} onChanged={refresh} />
+      <ConversationComposer key={conversation.id} conversationId={conversation.id} onChanged={refresh} />
     </div>
   );
 }

@@ -45,8 +45,8 @@ export function CustomersNavigation() {
 export function SalesNavigation() {
   const { t } = useTranslation();
   return <SectionNavigation tabs={[
+    { value: "opportunities", to: "/sales/opportunities", label: t("salesWorkspace.pipeline"), matches: onOrUnder("/sales/opportunities") },
     { value: "leads", to: "/sales/leads", label: t("uxCrm.leads", { defaultValue: "Leads" }), matches: onOrUnder("/sales/leads") },
-    { value: "opportunities", to: "/sales/opportunities", label: t("uxCrm.opportunities", { defaultValue: "Opportunities" }), matches: onOrUnder("/sales/opportunities") },
     { value: "proposals", to: "/sales/proposals", label: t("uxCrm.proposals", { defaultValue: "Proposals" }), matches: onOrUnder("/sales/proposals") },
     { value: "forms", to: "/sales/forms", label: t("uxCrm.forms", { defaultValue: "Lead forms" }), matches: onOrUnder("/sales/forms") },
   ]} />;

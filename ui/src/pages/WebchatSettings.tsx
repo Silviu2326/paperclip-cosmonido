@@ -19,7 +19,7 @@ import { ConversationDispatchSettings } from "@/features/productization/Conversa
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 const EMPTY_SETTINGS: WebchatSettingsData = { active: false, greeting: null, brandColor: null };
 
-export function WebchatSettings() {
+export function WebchatSettings({ embedded = false }: { embedded?: boolean } = {}) {
   const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const identity = useAccountIdentity();
@@ -33,8 +33,8 @@ export function WebchatSettings() {
   const [copyFailed, setCopyFailed] = useState(false);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: t("webchat.title") }]);
-  }, [setBreadcrumbs, t]);
+    if (!embedded) setBreadcrumbs([{ label: t("webchat.title") }]);
+  }, [setBreadcrumbs, t, embedded]);
 
   const settingsQuery = useQuery({
     queryKey: ["webchat-settings", companyId],
@@ -106,13 +106,13 @@ export function WebchatSettings() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <SettingsScopeHeader
+      {!embedded && <SettingsScopeHeader
         scope="apps"
         scopeName={selectedCompany?.name}
         backTarget="apps"
         description={t("uxSettings.webchat.scope", { defaultValue: "The web chat widget is how visitors of your website talk to this company. Its appearance, automatic replies and embed code are set here; other customer channels are in Channels." })}
         links={[{ to: "/apps/channels", label: t("uxSettings.webchat.channelsLink", { defaultValue: "Customer channels" }) }]}
-      />
+      />}
       <p className="text-sm text-muted-foreground">{t("webchat.description")}</p>
       {loadError && <p className="text-sm text-destructive">{loadError}</p>}
 

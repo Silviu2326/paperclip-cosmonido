@@ -2346,3 +2346,26 @@ reservation per attempt. Failed downloads and package fallback keep the full
 reservation. Successfully linked small imports refund unused measured work.
 Completed bindings do not reset company credits; waiting jobs retry on refill.
 The company_skill_import_budgets table stores no credentials or source contents.
+
+
+## Customer conversation inbox setup and history
+
+The company-scoped Conversations inbox expands channel setup when no channel is
+configured. It reuses existing web-chat settings, customer-channel account APIs
+and the resumable email setup. Account status is read from the server after
+reload; missing configuration, failed reads and empty filtered results are distinct.
+Customer-channel credentials are selected or created with the existing secret
+picker and persisted as company-secret names only. The UI supplies callback URLs
+and provider instructions; credential verification never certifies message delivery.
+The optional web-chat test embeds the real public visitor widget: its messages
+are real conversations and retain normal agent dispatch and sending governance.
+
+Conversation lists follow cursor pages without a 100-row UI ceiling. GET
+`/api/conversations/:id` returns the latest 50 messages, chronologically ordered,
+and `nextMessageCursor`. GET `/api/conversations/:id/messages?before=:messageId`
+returns older `items` and `nextCursor`, defaulting to 50 and allowing up to 100
+messages per page. All pages enforce conversation company access. Cursors are
+scoped to that conversation and compare the database timestamp and UUID together;
+new arrivals do not shift older message boundaries. `conversation_get` accepts
+`before` for the same read path. Conversation and message activity refresh the
+open inbox and thread.

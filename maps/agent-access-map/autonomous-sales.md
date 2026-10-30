@@ -54,11 +54,11 @@ Gaps: Effect handlers for Sprint 2 subjects are injected later; unknown effects 
 
 Review: `baseline`.
 
-API: `present` - GET/POST /api/companies/{companyId}/proposals; GET /api/proposals/{id}; GET /api/proposals/{id}/revisions; POST /api/proposals/{id}/revise|send; public GET /api/public/proposals/{token}; GET /api/public/proposals/{token}/view; POST /api/public/proposals/{token}/accept|reject; POST /api/public/stripe/webhook.
+API: `present` - GET/POST /api/companies/{companyId}/proposals; GET /api/companies/{companyId}/proposals/page (items/nextCursor, latest revisions, status/customer/opportunity/title filters); GET /api/proposals/{id}; GET /api/proposals/{id}/revisions; POST /api/proposals/{id}/revise|send; public GET /api/public/proposals/{token}; GET /api/public/proposals/{token}/view; POST /api/public/proposals/{token}/accept|reject; POST /api/public/stripe/webhook. The original list retains its array response.
 
 Agent access: `available` - proposal_create, proposal_send and proposal_get use the authenticated API in Standard mode. A sent revision is immutable; changes create a new revision.
 
-Policy: Company scoping, Stripe secrets per company (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET), signed webhook or 401.
+Policy: Company scoping, Stripe secrets per company (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET), signed webhook or 401. Draft creation validates referenced opportunity/customer membership in the company and rejects mismatched subjects; an opportunity supplies its customer when omitted.
 
 Evidence: `source-only` - [routes](../../server/src/routes/proposals.ts).
 

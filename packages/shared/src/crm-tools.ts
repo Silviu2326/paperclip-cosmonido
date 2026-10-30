@@ -52,7 +52,7 @@ export const CRM_TOOL_DESCRIPTIONS: Record<CrmToolName, string> = {
   commitment_create: "Record a commitment made by us or by the customer.",
   commitment_resolve: "Mark a commitment as kept, missed or cancelled.",
   conversation_list: "List conversations by status with pagination.",
-  conversation_get: "Get one conversation with its recent messages.",
+  conversation_get: "Get one conversation with its latest messages and nextMessageCursor. Pass that cursor as before to read a page of older messages (items and nextCursor).",
   message_draft: "Draft an outbound message without sending it.",
   message_send: "Send an outbound message (goes through the external action gate).",
   message_reply: "Reply in an existing conversation (goes through the external action gate).",

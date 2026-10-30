@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { createWriteStream } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -16,10 +16,20 @@ import { budgetService } from "./budgets.js";
 import { resolveGoalIdForIssue } from "./assignment-costs.js";
 import { mediaStudioProviders } from "./media-studio-providers.js";
 import { productizationEntitlementsService, type ProductReservationRef } from "./productization/entitlements.js";
+import { estimateMotorVideoDurationSeconds, motorVideoAssetIds, renderWithMotorVideo } from "./media-studio/motor-video.js";
 import { conflict, unprocessable } from "../errors.js";
 
 const activeCompanies = new WeakMap<object, Set<string>>();
+const activeJobControllers = new WeakMap<object, Map<string, AbortController>>();
 const recoveryStarted = new WeakSet<object>();
+const MOTOR_VIDEO_MAX_INPUT_BYTES = 512 * 1024 * 1024;
+const ACTIVE_MEDIA_JOB_STATUSES = ["running", "cancel_requested", "finalizing"] as const;
+class MediaJobCancelledError extends Error {
+  constructor() {
+    super("Media job was cancelled");
+    this.name = "MediaJobCancelledError";
+  }
+}
 type MediaStudioService = ReturnType<typeof createMediaStudioService>;
 type MediaTranscriptSnapshot = { text: string; language: string | null; duration: number | null; words: Array<{ text: string; start: number; end: number }> };
 const serviceCache = new WeakMap<object, MediaStudioService>();
@@ -34,6 +44,7 @@ export function mediaStudioService(db: Db): MediaStudioService {
 
 function createMediaStudioService(db: Db) {
   const runningCompanies = activeCompanies.get(db as object) ?? new Set<string>();
+  const runningJobs = activeJobControllers.get(db as object) ?? new Map<string, AbortController>();
   const providers = mediaStudioProviders(db);
   const entitlements = productizationEntitlementsService(db);
   function receiptPricing(value: { source: string; unit: string; units: number; centsPerUnit: number | null; estimatedCents: number | null; coverage: string } | undefined, status: "reported" | "estimated" | "unpriced") {
@@ -44,6 +55,7 @@ function createMediaStudioService(db: Db) {
     };
   }
   activeCompanies.set(db as object, runningCompanies);
+  activeJobControllers.set(db as object, runningJobs);
   async function budgetBlock(companyId: string, agentId: string | null, issueId: string | null) {
     let projectId: string | null = null;
     if (issueId) {
@@ -91,31 +103,59 @@ function createMediaStudioService(db: Db) {
     await workProductService(db).createForIssue(jobIssueId, companyId, { type: "media", provider: "paperclip", externalId: outputAsset.id, title: `${label} video ${project.id}`, status: "ready_for_review", isPrimary: Boolean(job.input.primary), metadata: { attachmentId: attachment.id, assetId: outputAsset.id, mediaProjectId: project.id, contentType: outputAsset.contentType, byteSize: outputAsset.byteSize, contentPath, openPath: contentPath, downloadPath: `${contentPath}?download=1`, originalFilename: outputAsset.originalFilename } });
     return outputAsset;
   }
+  async function markProjectCancelledIfIdle(companyId: string, projectId: string) {
+    const [active] = await db.select({ id: mediaJobs.id }).from(mediaJobs)
+      .where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.projectId, projectId), inArray(mediaJobs.status, ["queued", ...ACTIVE_MEDIA_JOB_STATUSES])))
+      .limit(1);
+    if (!active) {
+      await db.update(mediaProjects).set({ status: "cancelled", updatedAt: new Date() })
+        .where(and(eq(mediaProjects.id, projectId), eq(mediaProjects.companyId, companyId)));
+    }
+  }
   async function runQueue(companyId: string): Promise<void> {
     if (runningCompanies.has(companyId)) return;
     runningCompanies.add(companyId);
     try {
       for (;;) {
-        const [candidate] = await db.select().from(mediaJobs).where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"), sql`not exists (select 1 from media_jobs running where running.company_id = ${companyId} and running.status = 'running')`)).orderBy(desc(mediaJobs.priority), asc(mediaJobs.createdAt), asc(mediaJobs.id)).limit(1);
+        const [candidate] = await db.select().from(mediaJobs).where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"), sql`not exists (select 1 from media_jobs running where running.company_id = ${companyId} and running.status in ('running', 'cancel_requested', 'finalizing'))`)).orderBy(desc(mediaJobs.priority), asc(mediaJobs.createdAt), asc(mediaJobs.id)).limit(1);
         if (!candidate) return;
         // If a board reprioritizes after selection but before claim, retry against the new order.
         const [job] = await db.update(mediaJobs).set({ status: "running", startedAt: new Date(), updatedAt: new Date() }).where(and(eq(mediaJobs.id, candidate.id), eq(mediaJobs.status, "queued"), eq(mediaJobs.priority, candidate.priority))).returning();
         if (!job) continue;
+        const controller = new AbortController();
+        runningJobs.set(job.id, controller);
         let videoReservation: ProductReservationRef | null = null;
         let videoQuotaUncertain = false;
         let videoQuotaSettled = false;
         try {
+          const assertMotorVideoNotCancelled = async () => {
+            if (controller.signal.aborted) throw new MediaJobCancelledError();
+            const [current] = await db.select({ status: mediaJobs.status }).from(mediaJobs)
+              .where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.companyId, companyId))).limit(1);
+            if (current?.status === "cancel_requested") {
+              controller.abort();
+              throw new MediaJobCancelledError();
+            }
+          };
           const [project] = await db.select().from(mediaProjects).where(and(eq(mediaProjects.id, job.projectId), eq(mediaProjects.companyId, companyId))).limit(1);
           if (!project) throw new Error("Media project no longer exists");
-          const [source] = await db.select().from(assets).where(and(eq(assets.id, typeof job.input.sourceAssetId==="string"?job.input.sourceAssetId:project.sourceAssetId), eq(assets.companyId, companyId))).limit(1);
-          if (!source) throw new Error("Source asset no longer exists");
+          const motorVideoJob = job.kind === "motor_video_render";
+          if (motorVideoJob !== (project.creationType === "motor_video")) throw new Error("Media job does not match its project type");
+          const sourceAssetId = typeof job.input.sourceAssetId === "string" ? job.input.sourceAssetId : project.sourceAssetId;
+          const [source] = sourceAssetId
+            ? await db.select().from(assets).where(and(eq(assets.id, sourceAssetId), eq(assets.companyId, companyId))).limit(1)
+            : [];
+          if (!motorVideoJob && !source) throw new Error("Source asset no longer exists");
+          if (motorVideoJob && source) throw new Error("Video creation project cannot have a source asset");
           const storage = getStorageService(); const folder = await mkdtemp(join(tmpdir(), "paperclip-media-job-"));
           try {
             const inputPath = join(folder, "input"), outputPath = join(folder, "render.mp4");
-            await pipeline((await storage.getObject(companyId, source.objectKey)).stream, createWriteStream(inputPath));
+            if (source) await pipeline((await storage.getObject(companyId, source.objectKey)).stream, createWriteStream(inputPath));
             if(await videoMinutesNeedMeasurement(companyId)) {
               let durationSeconds:number;
-              if(job.kind==="stop_motion") {
+              if (motorVideoJob) {
+                durationSeconds = estimateMotorVideoDurationSeconds(job.input.spec);
+              } else if(job.kind==="stop_motion") {
                 const frameCount=Array.isArray(job.input.frameAssetIds)?job.input.frameAssetIds.length:0;
                 const frameDuration=job.input.frameDurationSeconds;
                 if(!Number.isSafeInteger(frameCount)||frameCount<1||typeof frameDuration!=="number"||!Number.isFinite(frameDuration)||frameDuration<=0) throw unprocessable("Video duration is unavailable for quota admission.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
@@ -127,6 +167,78 @@ function createMediaStudioService(db: Db) {
               if(!Number.isFinite(durationSeconds)||durationSeconds<=0) throw unprocessable("Video duration is unavailable for quota admission.",{code:"plan_gate_data_incomplete",metric:"video_minutes"});
               const minutes=durationSeconds/60;
               videoReservation=await entitlements.reserveForCompany({companyId,metric:"video_minutes",quantity:minutes,idempotencyKey:`media-video-minutes:${job.id}`,requestFingerprint:`${companyId}:${job.id}:${minutes.toFixed(7)}`});
+            }
+            if (motorVideoJob) {
+              const block = await budgetBlock(companyId, project.createdByAgentId, project.issueId);
+              if (block) throw new Error(block.reason);
+              const spec = job.input.spec;
+              const assetIds = motorVideoAssetIds(spec);
+              const rows = assetIds.length
+                ? await db.select().from(assets).where(and(eq(assets.companyId, companyId), inArray(assets.id, assetIds)))
+                : [];
+              if (rows.length !== assetIds.length) throw new Error("A referenced video asset is unavailable in this company");
+              if (rows.reduce((total, row) => total + Number(row.byteSize), 0) > MOTOR_VIDEO_MAX_INPUT_BYTES) {
+                throw unprocessable("Motor-video inputs exceed the 512 MiB per-render limit", { code: "media_input_too_large" });
+              }
+              const assetById = new Map(rows.map(row => [row.id.toLowerCase(), row] as const));
+              const assetPaths = new Map<string, string>();
+              const extensionFor = (contentType: string): string => {
+                const extensions: Record<string, string> = {
+                  "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp",
+                  "video/mp4": "mp4", "video/webm": "webm", "audio/mpeg": "mp3", "audio/mp3": "mp3",
+                  "audio/wav": "wav", "audio/x-wav": "wav", "audio/aac": "aac", "audio/mp4": "m4a", "audio/ogg": "ogg",
+                };
+                const extension = extensions[contentType.toLowerCase()];
+                if (!extension) throw new Error(`Unsupported video asset type: ${contentType}`);
+                return extension;
+              };
+              for (const assetId of assetIds) {
+                const asset = assetById.get(assetId);
+                if (!asset) throw new Error("A referenced video asset is unavailable in this company");
+                const relativePath = `assets/${assetId}.${extensionFor(asset.contentType)}`;
+                const targetPath = join(folder, relativePath);
+                await mkdir(join(folder, "assets"), { recursive: true, mode: 0o700 });
+                await pipeline((await storage.getObject(companyId, asset.objectKey)).stream, createWriteStream(targetPath, { mode: 0o600, flags: "wx" }));
+                assetPaths.set(assetId, relativePath);
+              }
+              await assertMotorVideoNotCancelled();
+              const rendered = await renderWithMotorVideo({
+                spec,
+                folder,
+                assetPaths,
+                signal: controller.signal,
+                onProgress: progress => console.info("Motor-video render progress", { companyId, jobId: job.id, ...progress }),
+              });
+              await assertMotorVideoNotCancelled();
+              const [finalizing] = await db.update(mediaJobs).set({ status: "finalizing", updatedAt: new Date() })
+                .where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "running"))).returning({ id: mediaJobs.id });
+              if (!finalizing) {
+                const [current] = await db.select({ status: mediaJobs.status }).from(mediaJobs)
+                  .where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.companyId, companyId))).limit(1);
+                if (current?.status === "cancel_requested" || controller.signal.aborted) throw new MediaJobCancelledError();
+                throw new Error("Motor-video job changed before output finalization");
+              }
+              if (videoReservation) { await entitlements.commit(videoReservation); videoQuotaSettled = true; videoQuotaUncertain = false; }
+              const outputAsset = await publishVideoOutput({ job, project, companyId, outputPath: rendered.outputPath, label: "Created" });
+              await costService(db).createEvent(companyId, {
+                agentId: project.createdByAgentId,
+                responsibleUserId: project.createdByUserId,
+                usageKind: "media",
+                issueId: project.issueId,
+                goalId: project.goalId,
+                idempotencyKey: `media:${job.id}`,
+                provider: "motor-video",
+                biller: "motor-video",
+                billingType: "unknown",
+                costStatus: "unpriced",
+                pricingProvenance: { source: "unknown", evidence: "Local Motor Video rendering; no provider invoice or compute rate is configured." },
+                model: "motor-video-local",
+                costCents: 0,
+                occurredAt: new Date(),
+              });
+              await db.update(mediaJobs).set({ status: "done", outputAssetId: outputAsset.id, provider: "motor-video", costCents: 0, finishedAt: new Date(), updatedAt: new Date() }).where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.status, "finalizing")));
+              await db.update(mediaProjects).set({ status: "ready", updatedAt: new Date() }).where(and(eq(mediaProjects.id, project.id), eq(mediaProjects.companyId, companyId)));
+              continue;
             }
             if (job.kind === "transcribe") {
               const block = await budgetBlock(companyId, project.createdByAgentId, typeof job.input.issueId === "string" ? job.input.issueId : null);
@@ -273,16 +385,26 @@ function createMediaStudioService(db: Db) {
             await db.update(mediaProjects).set({status:"ready",updatedAt:new Date()}).where(and(eq(mediaProjects.id,project.id),eq(mediaProjects.companyId,companyId)));
           } finally { await rm(folder, { recursive: true, force: true }); }
         } catch (error) {
+          const wasCancelled = error instanceof MediaJobCancelledError || controller.signal.aborted;
           if(videoReservation&&!videoQuotaSettled) {
             try {
-              if(videoQuotaUncertain) await entitlements.markUncertain(videoReservation);
+              if(videoQuotaUncertain && !wasCancelled) await entitlements.markUncertain(videoReservation);
               else await entitlements.releaseAfterConfirmedRollback(videoReservation);
             } catch (settlementError) {
               console.error("Media video quota settlement failed", { companyId, jobId: job.id, settlementError });
             }
           }
-          await db.update(mediaJobs).set({ status: "failed", error: error instanceof Error ? error.message : String(error), finishedAt: new Date(), updatedAt: new Date() }).where(eq(mediaJobs.id, job.id));
-          await db.update(mediaProjects).set({status:"failed",updatedAt:new Date()}).where(and(eq(mediaProjects.id,job.projectId),eq(mediaProjects.companyId,companyId)));
+          if (wasCancelled) {
+            await db.update(mediaJobs).set({ status: "cancelled", error: null, finishedAt: new Date(), updatedAt: new Date() })
+              .where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.companyId, companyId), inArray(mediaJobs.status, ["running", "cancel_requested"])));
+            await markProjectCancelledIfIdle(companyId, job.projectId);
+          } else {
+            await db.update(mediaJobs).set({ status: "failed", error: error instanceof Error ? error.message : String(error), finishedAt: new Date(), updatedAt: new Date() })
+              .where(and(eq(mediaJobs.id, job.id), eq(mediaJobs.companyId, companyId), inArray(mediaJobs.status, ["running", "finalizing"])));
+            await db.update(mediaProjects).set({status:"failed",updatedAt:new Date()}).where(and(eq(mediaProjects.id,job.projectId),eq(mediaProjects.companyId,companyId)));
+          }
+        } finally {
+          if (runningJobs.get(job.id) === controller) runningJobs.delete(job.id);
         }
       }
     } finally { runningCompanies.delete(companyId); }
@@ -290,7 +412,10 @@ function createMediaStudioService(db: Db) {
   if (!recoveryStarted.has(db as object)) {
     recoveryStarted.add(db as object);
     void (async () => {
-      await db.update(mediaJobs).set({ status: "failed", error: "Server restarted while this job was running; provider work may have completed. Check provider and output state before starting a new job.", finishedAt: new Date(), updatedAt: new Date() }).where(eq(mediaJobs.status, "running"));
+      await db.update(mediaJobs).set({ status: "failed", error: "Server restarted while this job was running; provider work may have completed. Check provider and output state before starting a new job.", finishedAt: new Date(), updatedAt: new Date() }).where(inArray(mediaJobs.status, ["running", "finalizing"]));
+      const cancelled = await db.update(mediaJobs).set({ status: "cancelled", error: null, finishedAt: new Date(), updatedAt: new Date() })
+        .where(eq(mediaJobs.status, "cancel_requested")).returning({ companyId: mediaJobs.companyId, projectId: mediaJobs.projectId });
+      await Promise.all(cancelled.map(row => markProjectCancelledIfIdle(row.companyId, row.projectId)));
       const rows = await db.select({ companyId: mediaJobs.companyId }).from(mediaJobs).where(eq(mediaJobs.status, "queued")).groupBy(mediaJobs.companyId);
       await Promise.all(rows.map(row => runQueue(row.companyId)));
     })().catch(error => console.error("Media job recovery failed", error));
@@ -333,6 +458,24 @@ function createMediaStudioService(db: Db) {
       const [row] = await db.insert(mediaProjects).values({ companyId, sourceAssetId: assetId, goalId: effectiveGoalId, issueId: links.issueId, createdByAgentId: actor.agentId ?? null, createdByUserId: actor.userId ?? null }).returning();
       return row;
     },
+    async createVideoProject(companyId: string, actor: { agentId?: string | null; userId?: string | null }, links: { goalId?: string; issueId?: string } = {}) {
+      let linkedIssue: { id: string; goalId: string | null } | undefined;
+      if (links.issueId) {
+        const [row] = await db.select({ id: issues.id, goalId: issues.goalId }).from(issues).where(and(eq(issues.id, links.issueId), eq(issues.companyId, companyId))).limit(1);
+        if (!row) return null;
+        linkedIssue = row;
+      }
+      const effectiveGoalId = linkedIssue
+        ? linkedIssue.goalId ?? await resolveGoalIdForIssue(db, companyId, linkedIssue.id) ?? undefined
+        : links.goalId;
+      if (effectiveGoalId) {
+        const [goal] = await db.select({ id: goals.id }).from(goals).where(and(eq(goals.id, effectiveGoalId), eq(goals.companyId, companyId))).limit(1);
+        if (!goal || (linkedIssue && effectiveGoalId !== goal.id)) return null;
+      }
+      if (linkedIssue && links.goalId && links.goalId !== effectiveGoalId) return null;
+      const [row] = await db.insert(mediaProjects).values({ companyId, sourceAssetId: null, creationType: "motor_video", goalId: effectiveGoalId, issueId: linkedIssue?.id, createdByAgentId: actor.agentId ?? null, createdByUserId: actor.userId ?? null }).returning();
+      return row;
+    },
     async getProject(id: string) {
       const [project] = await db.select().from(mediaProjects).where(eq(mediaProjects.id, id)).limit(1);
       if (!project) return null;
@@ -349,7 +492,7 @@ function createMediaStudioService(db: Db) {
       }
       return { ...project, jobs, transcript };
     },
-    async enqueue(companyId: string, projectId: string, kind: "transcribe" | "render" | "dub" | "stop_motion" | "dub_multivoice" | "voiceover", idempotencyKey: string, input: Record<string, unknown>) {
+    async enqueue(companyId: string, projectId: string, kind: "transcribe" | "render" | "dub" | "stop_motion" | "dub_multivoice" | "voiceover" | "motor_video_render", idempotencyKey: string, input: Record<string, unknown>) {
       const job = await db.transaction(async tx => {
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${companyId}), hashtext(${idempotencyKey}))`);
         const [prior] = await tx.select().from(mediaJobs).where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.idempotencyKey, idempotencyKey))).limit(1);
@@ -360,6 +503,17 @@ function createMediaStudioService(db: Db) {
         }
         const [project] = await tx.select().from(mediaProjects).where(and(eq(mediaProjects.id, projectId), eq(mediaProjects.companyId, companyId))).for("update").limit(1);
         if (!project) return null;
+        if ((kind === "motor_video_render") !== (project.creationType === "motor_video")) throw conflict("Media job kind does not match project type");
+        if (kind === "motor_video_render") {
+          if (!input.spec || typeof input.spec !== "object" || Array.isArray(input.spec)) throw unprocessable("A video specification is required");
+          if (Buffer.byteLength(JSON.stringify(input.spec), "utf8") > 1_000_000) throw unprocessable("Video specification must be no larger than 1 MB");
+          try {
+            motorVideoAssetIds(input.spec);
+            estimateMotorVideoDurationSeconds(input.spec);
+          } catch (error) {
+            throw unprocessable(error instanceof Error ? error.message : "Invalid video specification");
+          }
+        }
         let snapshot=project.operations as Array<Record<string,unknown>>;
         if(kind==="render") {
           const exportOp={type:"export",aspect:input.aspect==="16:9"?"16:9":"9:16",cropMode:"center"};
@@ -386,7 +540,7 @@ function createMediaStudioService(db: Db) {
     },
     async detectProjectSilences(companyId: string, projectId: string, thresholdDb: number, minDurationMs: number) {
       const [project] = await db.select().from(mediaProjects).where(and(eq(mediaProjects.id, projectId), eq(mediaProjects.companyId, companyId))).limit(1);
-      if (!project) return null;
+      if (!project?.sourceAssetId) return null;
       const [source] = await db.select().from(assets).where(and(eq(assets.id, project.sourceAssetId), eq(assets.companyId, companyId))).limit(1);
       if (!source) return null;
       const folder = await mkdtemp(join(tmpdir(), "paperclip-media-detect-"));
@@ -395,7 +549,7 @@ function createMediaStudioService(db: Db) {
     },
     async detectProjectFillers(companyId: string, projectId: string, words: string[]) {
       const [project] = await db.select().from(mediaProjects).where(and(eq(mediaProjects.id, projectId), eq(mediaProjects.companyId, companyId))).limit(1);
-      if (!project) return null;
+      if (!project?.sourceAssetId) return null;
       if (!project.transcriptDocumentId) throw new Error("Transcribe this media project before detecting filler words");
       const [transcript] = await db.select().from(documents).where(and(eq(documents.id, project.transcriptDocumentId), eq(documents.companyId, companyId))).limit(1);
       if (!transcript) throw new Error("The transcript document is unavailable");
@@ -408,6 +562,32 @@ function createMediaStudioService(db: Db) {
       const [job] = await db.select().from(mediaJobs).where(eq(mediaJobs.id, id)).limit(1);
       return job ?? null;
     },
+    async cancelJob(companyId: string, jobId: string) {
+      const result = await db.transaction(async tx => {
+        const [current] = await tx.select().from(mediaJobs)
+          .where(and(eq(mediaJobs.id, jobId), eq(mediaJobs.companyId, companyId))).for("update").limit(1);
+        if (!current) return null;
+        if (current.status === "queued") {
+          const [cancelled] = await tx.update(mediaJobs).set({ status: "cancelled", error: null, finishedAt: new Date(), updatedAt: new Date() })
+            .where(and(eq(mediaJobs.id, jobId), eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued"))).returning();
+          return { job: cancelled ?? current, changed: Boolean(cancelled) };
+        }
+        if (current.kind === "motor_video_render" && current.status === "running") {
+          const [requested] = await tx.update(mediaJobs).set({ status: "cancel_requested", updatedAt: new Date() })
+            .where(and(eq(mediaJobs.id, jobId), eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "running"))).returning();
+          return { job: requested ?? current, changed: Boolean(requested) };
+        }
+        if (current.status === "running") throw conflict("This media job cannot be cancelled after it starts");
+        return { job: current, changed: false };
+      });
+      if (!result) return null;
+      if (result.job.status === "cancel_requested") {
+        runningJobs.get(jobId)?.abort(new MediaJobCancelledError());
+      } else if (result.changed && result.job.status === "cancelled") {
+        await markProjectCancelledIfIdle(companyId, result.job.projectId);
+      }
+      return result.job;
+    },
     async getJobsForGoal(companyId: string, goalId: string, scope: { issueId?: string | null } = {}) {
       const conditions = [eq(mediaProjects.companyId, companyId), eq(mediaProjects.goalId, goalId)];
       if (scope.issueId) conditions.push(eq(mediaProjects.issueId, scope.issueId));
@@ -419,7 +599,7 @@ function createMediaStudioService(db: Db) {
     },
     async listQueue(companyId: string, input: { limit: number; cursor?: { priority: number; createdAt: string; id: string } }) {
       const runningRows = await db.select({ job: mediaJobs, createdAtVersion: sql<string>`to_char(${mediaJobs.createdAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`, updatedAtVersion: sql<string>`to_char(${mediaJobs.updatedAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')` }).from(mediaJobs)
-        .where(and(eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "running")))
+        .where(and(eq(mediaJobs.companyId, companyId), inArray(mediaJobs.status, [...ACTIVE_MEDIA_JOB_STATUSES])))
         .orderBy(asc(mediaJobs.startedAt), asc(mediaJobs.id)).limit(1);
       const running = runningRows.map(row => ({ ...row.job, createdAt: row.createdAtVersion, updatedAt: row.updatedAtVersion }));
       const conditions = [eq(mediaJobs.companyId, companyId), eq(mediaJobs.status, "queued")];

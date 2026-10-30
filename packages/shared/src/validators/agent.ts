@@ -94,7 +94,7 @@ export const createAgentSchema = z.object({
   // Either the free-text capabilities column (legacy) or the structured switches
   // (messages/calls/video/code) that the server turns into permission grants.
   capabilities: z.union([z.string(), agentCapabilitiesSchema]).optional().nullable(),
-  // Specialty and sectors, stored in agents.metadata.profile. Optional.
+  // Specialty, sectors and optional outbound channel allowlist, stored in agents.metadata.profile.
   profile: agentProfileSchema.optional(),
   desiredSkills: z.array(agentDesiredSkillSelectionSchema).optional(),
   adapterType: agentAdapterTypeSchema,

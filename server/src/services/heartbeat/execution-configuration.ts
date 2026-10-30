@@ -1,3 +1,4 @@
+import { applyAgentCodeAccess } from "../agent-code-access.js";
 import { withSkillActor } from "../skill-access.js";
 import type { AuthorizationActor } from "../authorization.js";
 import { eq, sql } from "drizzle-orm";
@@ -158,6 +159,7 @@ export async function prepareHeartbeatExecutionConfiguration(db: Db, input: Hear
       secretsSvc,
       trustPreset,
     }));
+  applyAgentCodeAccess(agent.metadata, agent.adapterType, resolvedConfig);
   onFailureSecretsResolved(() => collectRunFailureSecretValues(resolvedConfig.env, secretKeys));
   if (aiBinding) {
     try {
@@ -297,6 +299,8 @@ export async function prepareHeartbeatExecutionConfiguration(db: Db, input: Hear
     resolve: () => resolveAssignedConnectionInstructionsForRun(db, { companyId: agent.companyId, agentId: agent.id, runId: run.id }),
     context, config: connectorDelivery.config, native: agent.adapterType === "paperclip_runner",
   }));
+  applyAgentCodeAccess(agent.metadata, agent.adapterType, runtimeConfig);
+  applyAgentCodeAccess(agent.metadata, agent.adapterType, resolvedConfig);
   const agentIdentity = supportsManagedAgentIdentity(agent.adapterType, agent.adapterConfig, run.runtimeMode === "native" ? run.driverKind : undefined)
     ? await time("configuration_agent_identity", () => agentIdentityService(db).ensureAgentIdentity(agent.companyId, agent.id))
     : undefined;

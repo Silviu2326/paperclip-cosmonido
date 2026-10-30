@@ -6,10 +6,12 @@ import { queryKeys } from "../../lib/queryKeys";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CustomerDuplicateNotice, duplicateCandidatesFromError } from "./CustomerDuplicateNotice";
+import { CustomerDetailsFields, customerDetailValues } from "./CustomerDetailsFields";
 
 interface CustomerCandidate {
   record: Customer;
@@ -22,6 +24,7 @@ export function CustomerCreateDialog({
   companyId,
   onCreated,
   initialName,
+  customer,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -29,25 +32,32 @@ export function CustomerCreateDialog({
   onCreated?: (customer: Customer) => void;
   /** Name to start with, e.g. the text that found no match in the list. */
   initialName?: string;
+  customer?: Customer;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [kind, setKind] = useState<CustomerKind>("organization");
-  const [domain, setDomain] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
+  const [notes, setNotes] = useState("");
+  const [details, setDetails] = useState(() => customerDetailValues());
   const [candidates, setCandidates] = useState<CustomerCandidate[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (open && initialName) setName(initialName);
-  }, [open, initialName]);
+    if (!open) return;
+    setName(customer?.name ?? initialName ?? "");
+    setKind(customer?.kind ?? "organization");
+    setNotes(customer?.notes ?? "");
+    setDetails(customerDetailValues(customer));
+    setError(null);
+    setCandidates([]);
+  }, [open, initialName, customer]);
 
   function reset() {
     setName("");
     setKind("organization");
-    setDomain("");
-    setContactEmail("");
+    setNotes("");
+    setDetails(customerDetailValues());
     setCandidates([]);
     setError(null);
   }
@@ -58,17 +68,21 @@ export function CustomerCreateDialog({
   }
 
   const create = useMutation({
-    mutationFn: (force: boolean) =>
-      crmApi.customers.create(companyId, {
+    mutationFn: (force: boolean) => {
+      const data = {
         name: name.trim(),
         kind,
-        tags: [],
-        domain: domain.trim() || null,
-        contactEmail: contactEmail.trim() || null,
-        force,
-      }),
+        tags: customer?.tags ?? [],
+        notes: notes.trim() || null,
+        ...Object.fromEntries(Object.entries(details).map(([key, value]) => [key, value.trim() || null])),
+      };
+      return customer
+        ? crmApi.customers.update(customer.id, data)
+        : crmApi.customers.create(companyId, { ...data, force });
+    },
     onSuccess: (customer) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.customers.list(companyId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.customers.detail(customer.id) });
       close();
       onCreated?.(customer);
     },
@@ -79,7 +93,7 @@ export function CustomerCreateDialog({
         setError(null);
         return;
       }
-      setError(t("crm.customers.createError"));
+      setError(t(customer ? "crm.customers.updateError" : "crm.customers.createError"));
     },
   });
 
@@ -93,9 +107,9 @@ export function CustomerCreateDialog({
         if (!next) close();
       }}
     >
-      <DialogContent className="sm:max-w-lg p-0 gap-0">
+      <DialogContent className="sm:max-w-lg max-h-dvh overflow-y-auto p-0 gap-0">
         <DialogHeader className="px-4 py-3 border-b border-border">
-          <DialogTitle className="text-sm font-medium">{t("crm.customers.createTitle")}</DialogTitle>
+          <DialogTitle className="text-sm font-medium">{t(customer ? "crm.customers.editTitle" : "crm.customers.createTitle")}</DialogTitle>
         </DialogHeader>
 
         <form
@@ -119,7 +133,6 @@ export function CustomerCreateDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="customer-create-kind">{t("crm.customers.fieldKind")}</Label>
               <NativeSelect
@@ -131,33 +144,23 @@ export function CustomerCreateDialog({
                 <option value="person">{t("crm.customers.kindPerson")}</option>
               </NativeSelect>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="customer-create-domain">{t("crm.customers.fieldDomain")}</Label>
-              <Input
-                id="customer-create-domain"
-                value={domain}
-                maxLength={253}
-                onChange={(event) => {
-                  setDomain(event.target.value);
-                  setCandidates([]);
-                }}
-              />
-            </div>
-          </div>
+
+          <p className="text-xs text-muted-foreground">{t("crm.customers.optionalDetailsHint")}</p>
+          <CustomerDetailsFields values={details} onChange={(key, value) => {
+            setDetails((current) => ({ ...current, [key]: value }));
+            setCandidates([]);
+            setError(null);
+          }} />
 
           <div className="space-y-1.5">
-            <Label htmlFor="customer-create-contact-email">{t("crm.customers.fieldContactEmail")}</Label>
-            <Input
-              id="customer-create-contact-email"
-              type="email"
-              value={contactEmail}
-              maxLength={320}
-              onChange={(event) => {
-                setContactEmail(event.target.value);
-                setCandidates([]);
-              }}
+            <Label htmlFor="customer-create-notes">{t("crm.customers.fieldNotes")}</Label>
+            <Textarea
+              id="customer-create-notes"
+              value={notes}
+              maxLength={20000}
+              placeholder={t("crm.customers.fieldNotesPlaceholder")}
+              onChange={(event) => setNotes(event.target.value)}
             />
-            <p className="text-xs text-muted-foreground">{t("crm.customers.fieldContactEmailHint")}</p>
           </div>
 
           <CustomerDuplicateNotice
@@ -185,7 +188,9 @@ export function CustomerCreateDialog({
             </Button>
             <Button type="submit" size="sm" disabled={!canSubmit}>
               {create.isPending
-                ? t("crm.customers.creating")
+                ? t(customer ? "crm.customers.saving" : "crm.customers.creating")
+                : customer
+                  ? t("crm.customers.save")
                 : forceCreate
                   ? t("crm.customers.createAnyway")
                   : t("crm.customers.create")}

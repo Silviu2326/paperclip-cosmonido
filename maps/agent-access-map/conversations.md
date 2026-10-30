@@ -22,11 +22,11 @@ Gaps: the list has no lead filter; lead conversations are found through the lead
 
 Review: `baseline`.
 
-API: `present` - GET /api/conversations/{id}.
+API: `present` - GET /api/conversations/{id} returns the newest 50 messages and nextMessageCursor; GET /api/conversations/{id}/messages?before={messageId}&limit= returns chronological items and nextCursor (default 50, maximum 100 per page).
 
-Agent access: `available` - conversation_get dispatches to this route.
+Agent access: `available` - conversation_get dispatches to the detail route; its optional before argument dispatches to the older-message route. Use nextMessageCursor for the first older page and nextCursor thereafter.
 
-Policy: assertCompanyAccess on the conversation's company.
+Policy: getAccessibleResource and assertCompanyAccess on the conversation's company. A cursor must identify a message in that same company and conversation; it grants no access of its own.
 
 Evidence: `source-only` - [routes](../../server/src/routes/conversations.ts).
 

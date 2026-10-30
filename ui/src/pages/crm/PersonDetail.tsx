@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Mail, MessageCircle, Phone, Star, Users, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Mail, MessageCircle, Phone, Star, Users, type LucideIcon } from "lucide-react";
 import { Link, useParams } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
@@ -11,6 +11,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { PageSkeleton } from "../../components/PageSkeleton";
 import { AccentPill, LILAC, MUTED, PanelCard, PanelTitle, PartyAvatar, SKY, YELLOW, useHealthMeta } from "../../components/crm/CustomerListParts";
 import { cn } from "@/lib/utils";
+import { PersonCustomerLinks } from "../../components/crm/PersonCustomerLinks";
 
 /** A person: contact data, the customers they belong to and their colleagues there. */
 export function PersonDetail() {
@@ -136,22 +137,8 @@ export function PersonDetail() {
         <div className="flex flex-col gap-6">
           <PanelCard>
             <PanelTitle icon={Users} color={LILAC}>{t("nav.customers")}</PanelTitle>
-            {linkedCustomers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{customersQuery.isLoading ? t("crm.contacts.loading") : t("uxCrm.list.noCustomers", { defaultValue: "Todavía no está vinculada a ningún cliente." })}</p>
-            ) : linkedCustomers.map((row) => (
-              <Link
-                key={row.customer.id}
-                to={`/customers/${row.customer.id}`}
-                className="group flex items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <PartyAvatar name={row.customer.name} size="sm" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{row.customer.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{row.role ?? (row.customer.status === "archived" ? t("crm.customers.archivedBadge") : healthMeta(row.customer.health).label)}</span>
-                </span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-opacity duration-(--motion-duration-fast) group-hover:opacity-100" />
-              </Link>
-            ))}
+            <PersonCustomerLinks key={contact.id} companyId={contact.companyId} contactId={contact.id}
+              linked={linkedCustomers} loading={customersQuery.isLoading} loadError={!!customersQuery.error} />
           </PanelCard>
           {colleagues.size > 0 ? (
             <PanelCard>

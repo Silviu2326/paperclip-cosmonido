@@ -49,6 +49,7 @@ const FilesNavigation = lazy(() => import("./pages/artifacts/FilesNavigation").t
 const CustomersNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.CustomersNavigation })));
 const SalesNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.SalesNavigation })));
 const ConversationsNavigation = lazy(() => import("./pages/crm/CrmNavigation").then(module => ({ default: module.ConversationsNavigation })));
+const AgentCatalog = lazy(() => import("./pages/AgentCatalog").then((module) => ({ default: module.AgentCatalog })));
 const Agents = lazy(() => import("./pages/Agents").then((module) => ({ default: module.Agents })));
 
 // Load page implementations only when their route is rendered.
@@ -353,6 +354,7 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
           element={streamlinedUiEnabled ? <Agents /> : <ProductionSurface><ProductionAgents /></ProductionSurface>}
         />
       ))}
+      <Route path="agents/catalog" element={<AgentCatalog />} />
       <Route path="agents/new" element={<NewAgent />} />
       <Route path="agents/:agentId" element={<AgentDetail />} />
       <Route path="agents/:agentId/:tab" element={<AgentDetail />} />
@@ -500,7 +502,7 @@ function boardRoutes(streamlinedUiEnabled: boolean, combinedInboxTasksEnabled: b
         <Route path="customers/:customerId" element={<CustomerDetail />} />
       </Route>
       <Route element={<SalesNavigation />}>
-        <Route path="sales" element={<BoardRouteRedirect to="/sales/leads" />} />
+        <Route path="sales" element={<BoardRouteRedirect to="/sales/opportunities" />} />
         <Route path="sales/leads" element={<Leads />} />
         <Route path="sales/leads/:leadId" element={<LeadDetail />} />
         <Route path="sales/opportunities" element={<Opportunities />} />
@@ -1105,6 +1107,7 @@ export function App() {
           {AGENT_FILTER_TABS.map((tab) => (
             <Route key={tab} path={`agents/${tab}`} element={<UnprefixedBoardRedirect />} />
           ))}
+          <Route path="agents/catalog" element={<UnprefixedBoardRedirect />} />
           <Route path="agents/new" element={<UnprefixedBoardRedirect />} />
           <Route path="agents/:agentId" element={<UnprefixedBoardRedirect />} />
           <Route path="agents/:agentId/:tab" element={<UnprefixedBoardRedirect />} />

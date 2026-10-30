@@ -1,5 +1,13 @@
+import { agentWorkPermissionsSchema } from "@paperclipai/shared";
 import type { AgentRunnerChoice } from "@paperclipai/shared";
 import { agentHarnessType } from "@paperclipai/shared";
+import {
+  AGENT_SPECIALTIES,
+  AGENT_MESSAGE_CHANNELS,
+  agentCapabilitiesSchema,
+  type AgentMessageChannel,
+  type AgentSpecialty,
+} from "@paperclipai/shared";
 import { adaptersApi } from "../api/adapters";
 import { CodexRunnerSelect } from "./CodexRunnerSelect";
 import { healthApi } from "@/api/health";
@@ -132,6 +140,13 @@ import {
   onboardingStepPositionFor,
 } from "./onboarding/Stepper";
 import { AgentPreview } from "./onboarding/AgentPreview";
+import {
+  AgentPurposeSection,
+  EMPTY_AGENT_PURPOSE,
+  agentPurposeForSpecialty,
+  agentPurposeHireFields,
+  type AgentPurposeValue,
+} from "./new-agent/AgentPurposeSection";
 import { ModelSourceTiles, type CredentialMode } from "./onboarding/ModelSourceTiles";
 import { CredentialModeLink } from "./onboarding/CredentialModeLink";
 import { FooterNav, type FooterPrimaryIcon } from "./onboarding/FooterNav";
@@ -163,6 +178,29 @@ function restoreOnboardingAdapterType(savedAdapterType: unknown, provider?: unkn
   return typeof savedAdapterType === "string" && savedAdapterType !== "paperclip_runner"
     ? savedAdapterType
     : "claude_local";
+}
+
+function restoreOnboardingAgentPurpose(value: unknown): AgentPurposeValue {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return EMPTY_AGENT_PURPOSE;
+  const savedPurpose = value as Partial<AgentPurposeValue>;
+  const specialty = AGENT_SPECIALTIES.find((candidate) => candidate === savedPurpose.specialty);
+  if (!specialty) return EMPTY_AGENT_PURPOSE;
+
+  const preset = agentPurposeForSpecialty(specialty as AgentSpecialty);
+  const capabilities = agentCapabilitiesSchema.safeParse(savedPurpose.capabilities);
+  const workPermissions = agentWorkPermissionsSchema.safeParse(savedPurpose.workPermissions);
+  const messageChannels = Array.isArray(savedPurpose.messageChannels)
+    ? [...new Set(savedPurpose.messageChannels.filter((channel): channel is AgentMessageChannel =>
+        AGENT_MESSAGE_CHANNELS.includes(channel as AgentMessageChannel),
+      ))]
+    : preset.messageChannels;
+  return {
+    specialty: specialty as AgentSpecialty,
+    capabilities: capabilities.success ? capabilities.data : preset.capabilities,
+    workPermissions: workPermissions.success ? workPermissions.data : preset.workPermissions,
+    ...([null, "read_only", "workspace_write"].includes(savedPurpose.codeAdapterAccess ?? "") ? { codeAdapterAccess: savedPurpose.codeAdapterAccess } : {}),
+    messageChannels,
+  };
 }
 
 /**
@@ -596,6 +634,9 @@ function OnboardingWizardInner({
     // one.
     (saved?.agentRole as AgentRole) || DEFAULT_AGENT_ROLE,
   );
+  const [agentPurpose, setAgentPurpose] = useState<AgentPurposeValue>(() =>
+    restoreOnboardingAgentPurpose(saved?.agentPurpose),
+  );
   const [adapterType, setAdapterType] = useState<AdapterType>(() =>
     restoreOnboardingAdapterType(saved?.adapterType, saved?.runnerProvider),
   );
@@ -916,7 +957,7 @@ function OnboardingWizardInner({
     if (!effectiveOnboardingOpen) return;
     const state = {
       step, companyName,
-      agentName, agentAppearance, agentRole, adapterType, runner, cwd, model, command, args, url,
+      agentName, agentAppearance, agentRole, agentPurpose, adapterType, runner, cwd, model, command, args, url,
       // The mode, never the key: this blob is localStorage.
       credentialMode, credentialModeChoice,
       createdCompanyId, createdCompanyPrefix, createdAgentId,
@@ -925,7 +966,7 @@ function OnboardingWizardInner({
     onboardingDraftStorage.write(JSON.stringify(state));
   }, [
     effectiveOnboardingOpen, step, companyName,
-    agentName, agentAppearance, agentRole, adapterType, runner, cwd, model, command, args, url,
+    agentName, agentAppearance, agentRole, agentPurpose, adapterType, runner, cwd, model, command, args, url,
     credentialMode, credentialModeChoice,
     createdCompanyId, createdCompanyPrefix, createdAgentId,
     createdCompanyGoalId, createdProjectId, createdIssueRef,
@@ -1563,7 +1604,7 @@ function OnboardingWizardInner({
     setAdapterEnvResult(null);
     adapterEnvResultAppliedStoredLoginRef.current = false;
     if (adapterEnvErrorSelectionRef.current !== adapterSetupSelectionRef.current) setAdapterEnvError(null);
-  }, [step, adapterType, runner, model, command, args, url, credentialMode, apiKey, selectedSavedKey, selectedApiKey?.id, savedSubscription?.id, createdCompanyId, resolvedLoginEnvironmentId, runner === "auto" ? runnerDiscovery.data?.find(item => item.type === "codex_local")?.defaultRunner : undefined]);
+  }, [step, adapterType, runner, model, command, args, url, credentialMode, apiKey, selectedSavedKey, selectedApiKey?.id, savedSubscription?.id, createdCompanyId, resolvedLoginEnvironmentId, agentPurpose.codeAdapterAccess, runner === "auto" ? runnerDiscovery.data?.find(item => item.type === "codex_local")?.defaultRunner : undefined]);
 
   /**
    * Leaving the step puts the row back to a question.
@@ -1649,6 +1690,7 @@ function OnboardingWizardInner({
     setAgentName("");
     setAgentAppearance(randomAgentAppearance());
     setAgentRole(DEFAULT_AGENT_ROLE);
+    setAgentPurpose(EMPTY_AGENT_PURPOSE);
     setAdapterType("claude_local");
     setRunner("auto");
     setModel("");
@@ -1865,6 +1907,10 @@ function OnboardingWizardInner({
           ? runner === "legacy" && DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX
           : defaultCreateValues.dangerouslyBypassSandbox
     });
+    if (adapterType === "codex_local" && agentPurpose.codeAdapterAccess) {
+      config.engine = "cli";
+      config.paperclipCodeAccess = agentPurpose.codeAdapterAccess;
+    }
     if (adapterType === "claude_local" && forceUnsetAnthropicApiKey) {
       const env =
         typeof config.env === "object" &&
@@ -2265,6 +2311,7 @@ function OnboardingWizardInner({
         name: hireName,
         appearance: agentAppearance,
         role: agentRole,
+        ...agentPurposeHireFields(agentPurpose),
         adapterType,
         adapterConfig: hireAdapterConfig,
         ...(adapterType === "codex_local" && runner !== "auto" ? { runner } : {}),
@@ -2688,12 +2735,9 @@ function OnboardingWizardInner({
                 </motion.div>
               )}
 
-              {/* Step 3: the name, and only the name. The role picker went with
-                  the question it was asking — a customer naming their first
-                  agent is describing what it does, and the placeholder carries
-                  the range of answers that fit. Hiring uses the neutral
-                  `general` role; a specific one can be set later, where there
-                  is context to choose it in. */}
+              {/* Step 3: name the first agent and choose its purpose and
+                  messaging channels. The organizational role stays neutral;
+                  this profile describes the work the agent is for. */}
               {step === 3 && (
                 <motion.div key="step-3" {...stepContentMotion} exit={stepHandoff ? stepContentMotion.exit : undefined} className="mx-auto flex w-full flex-col gap-9">
                   <div className="flex flex-col gap-2">
@@ -2714,7 +2758,7 @@ function OnboardingWizardInner({
                       value={agentName}
                       onChange={(e) => setAgentName(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.nativeEvent.isComposing && agentName.trim()) {
+                        if (e.key === "Enter" && !e.nativeEvent.isComposing && agentName.trim() && agentPurpose.specialty) {
                           e.preventDefault();
                           setStep(4);
                         }
@@ -2722,6 +2766,7 @@ function OnboardingWizardInner({
                       autoFocus
                     />
                   </div>
+                  <AgentPurposeSection workPermissionSupport={{ workspace: false, commands: false, codexFilesystem: adapterType === "codex_local" && runner === "legacy" }} value={agentPurpose} onChange={setAgentPurpose} />
                 </motion.div>
               )}
 
@@ -3191,7 +3236,7 @@ function OnboardingWizardInner({
                     step === 1
                       ? !companyName.trim() || loading
                       : step === 3
-                        ? !agentName.trim()
+                        ? !agentName.trim() || !agentPurpose.specialty
                         : step === 4
                           ? connectCta.disabled || loading
                           : loading || launchStateIncomplete

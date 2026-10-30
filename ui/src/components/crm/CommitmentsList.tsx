@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Commitment } from "@paperclipai/shared";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
@@ -20,9 +20,11 @@ export function CommitmentsList({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const queryKey = ["crm", "commitments", companyId, opportunityId ?? null, customerId ?? null];
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey,
-    queryFn: () => crmApi.commitments.list(companyId, { opportunityId, customerId, limit: 50 }),
+    queryFn: ({ pageParam }) => crmApi.commitments.list(companyId, { opportunityId, customerId, cursor: pageParam, limit: 50 }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
     enabled: Boolean(companyId),
   });
   const resolve = useMutation({
@@ -33,7 +35,7 @@ export function CommitmentsList({
 
   if (query.isLoading) return <PageSkeleton variant="list" />;
   if (query.error) return <p className="text-sm text-destructive">{t("crm.commitments.loadError")}</p>;
-  const items = query.data?.items ?? [];
+  const items = query.data?.pages.flatMap((page) => page.items) ?? [];
   if (items.length === 0) return <p className="text-sm text-muted-foreground">{t("crm.commitments.empty")}</p>;
 
   return (
@@ -65,6 +67,7 @@ export function CommitmentsList({
         </li>
       ))}
       {resolve.error && <p className="text-sm text-destructive">{t("crm.commitments.resolveError")}</p>}
+      {query.hasNextPage && <li><Button size="sm" variant="outline" disabled={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>{t("salesWorkspace.loadMore")}</Button></li>}
     </ul>
   );
 }

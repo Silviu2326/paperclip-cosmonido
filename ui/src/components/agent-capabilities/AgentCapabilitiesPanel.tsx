@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AGENT_CAPABILITY_KEYS,
-  AGENT_SPECIALTY_PRESETS,
+  capabilitiesForSpecialty,
+  AGENT_MESSAGE_CHANNELS,
   type AgentCapabilityAutonomyLevel,
   type UpdateAgentCapabilities,
 } from "@paperclipai/shared";
@@ -15,12 +16,18 @@ import { Button } from "../ui/button";
 import {
   AgentCapabilitySwitches,
   AgentSpecialtyCards,
+  agentPurposeForSpecialty,
   type AgentPurposeValue,
 } from "../new-agent/AgentPurposeSection";
 import { autonomyHrefForAgent } from "../team-workspace/TeamWorkspaceLinks";
 
 const AUTONOMY_KEYS = ["message", "email", "call"] as const;
 type AutonomyKey = (typeof AUTONOMY_KEYS)[number];
+const MEDIA_ACTION_KEYS = ["mediaAnalyze", "mediaEdit", "mediaCreateVideo"] as const;
+
+function sameMessageChannels(left: AgentPurposeValue["messageChannels"], right: AgentPurposeValue["messageChannels"]) {
+  return left.length === right.length && AGENT_MESSAGE_CHANNELS.every((channel) => left.includes(channel) === right.includes(channel));
+}
 
 /**
  * Editing panel for what an agent is for and may do. Board users edit; anyone else
@@ -50,12 +57,23 @@ export function AgentCapabilitiesPanel({
   const [justSaved, setJustSaved] = useState(false);
 
   const current: AgentPurposeValue | null =
-    draft ?? (saved ? { specialty: saved.profile?.specialty ?? null, capabilities: saved.capabilities } : null);
+    draft ?? (saved ? {
+      specialty: saved.profile?.specialty ?? null,
+      workPermissions: saved.profile?.workPermissions,
+      codeAdapterAccess: saved.profile?.codeAdapterAccess,
+      capabilities: saved.capabilities,
+      // Profiles created before channel scoping are unrestricted, so show every channel selected.
+      messageChannels: [...(saved.profile?.messageChannels ?? AGENT_MESSAGE_CHANNELS)],
+    } : null);
   const dirty = Boolean(
     saved &&
       current &&
-      (current.specialty !== (saved.profile?.specialty ?? null) ||
-        AGENT_CAPABILITY_KEYS.some((key) => current.capabilities[key] !== saved.capabilities[key])),
+      (current.codeAdapterAccess !== saved.profile?.codeAdapterAccess ||
+        JSON.stringify(current.workPermissions) !== JSON.stringify(saved.profile?.workPermissions) ||
+        current.specialty !== (saved.profile?.specialty ?? null) ||
+        AGENT_CAPABILITY_KEYS.some((key) => current.capabilities[key] !== saved.capabilities[key]) ||
+        MEDIA_ACTION_KEYS.some((key) => current.capabilities[key] !== saved.capabilities[key]) ||
+        !sameMessageChannels(current.messageChannels, saved.profile?.messageChannels ?? [...AGENT_MESSAGE_CHANNELS])),
   );
 
   const save = useMutation({
@@ -79,9 +97,15 @@ export function AgentCapabilitiesPanel({
   function submit() {
     if (!current || !saved || !dirty || !canEdit) return;
     const body: UpdateAgentCapabilities = {
-      capabilities: current.capabilities,
+      capabilities: capabilitiesForSpecialty(current.capabilities, current.specialty ?? "custom"),
       ...(current.specialty
-        ? { profile: { specialty: current.specialty, sectors: saved.profile?.sectors ?? [] } }
+        ? { profile: {
+            specialty: current.specialty,
+            ...(current.codeAdapterAccess !== undefined ? { codeAdapterAccess: current.codeAdapterAccess } : {}),
+            ...(current.workPermissions ? { workPermissions: current.workPermissions } : {}),
+            sectors: saved.profile?.sectors ?? [],
+            messageChannels: current.messageChannels,
+          } }
         : {}),
     };
     save.mutate(body);
@@ -128,21 +152,28 @@ export function AgentCapabilitiesPanel({
           <AgentSpecialtyCards
             value={current.specialty}
             disabled={!canEdit || busy}
-            onSelect={(specialty) =>
-              edit({ specialty, capabilities: { ...AGENT_SPECIALTY_PRESETS[specialty].capabilities } })
-            }
+            onSelect={(specialty) => edit(agentPurposeForSpecialty(specialty))}
           />
           <AgentCapabilitySwitches
             value={current.capabilities}
+            specialty={current.specialty ?? "custom"}
+            workPermissions={current.workPermissions}
+            workPermissionSupport={saved.workPermissionSupport}
+            codeAdapterAccess={current.codeAdapterAccess}
+            onCodeAdapterAccessChange={(codeAdapterAccess) => edit({ ...current, codeAdapterAccess })}
+            onWorkPermissionsChange={(workPermissions) => edit({ ...current, workPermissions })}
             disabled={!canEdit || busy}
             autonomyNote={false}
+            messageChannels={current.messageChannels}
+            onMessageChannelsChange={(messageChannels) => edit({ ...current, messageChannels })}
             onChange={(capabilities) => edit({ ...current, capabilities })}
           />
 
+          {(current.capabilities.messages || current.capabilities.calls) && (current.specialty === null || current.specialty === "custom" || current.specialty === "sales" || current.specialty === "customer_care") && (
           <div className="space-y-2 rounded-xl border border-border p-4" aria-label={t("agentCaps.autonomyTitle", { defaultValue: "Autonomía efectiva" })}>
             <p className="text-sm font-medium">{t("agentCaps.autonomyTitle", { defaultValue: "Autonomía efectiva" })}</p>
             <ul className="space-y-1.5">
-              {autonomyRows.map((row) => (
+              {autonomyRows.filter((row) => row.key === "call" ? current.capabilities.calls : current.capabilities.messages).map((row) => (
                 <li key={row.key} className="flex items-center justify-between gap-3 text-sm">
                   <span>{row.label}</span>
                   <span
@@ -168,6 +199,8 @@ export function AgentCapabilitiesPanel({
               {t("agentCaps.openAutonomy", { defaultValue: "Abrir Autonomía" })}
             </Link>
           </div>
+
+          )}
 
           {readOnly && (
             <p role="status" className="text-xs text-muted-foreground">

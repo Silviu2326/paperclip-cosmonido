@@ -1,0 +1,2 @@
+ALTER TABLE "media_jobs" DROP CONSTRAINT "media_jobs_status_check";--> statement-breakpoint
+ALTER TABLE "media_jobs" ADD CONSTRAINT "media_jobs_status_check" CHECK ("media_jobs"."status" in ('queued', 'running', 'cancel_requested', 'finalizing', 'done', 'failed', 'cancelled'));

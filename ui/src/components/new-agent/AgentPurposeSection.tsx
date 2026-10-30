@@ -1,9 +1,18 @@
+import { AgentWorkPermissionsSection } from "../agent-capabilities/AgentWorkPermissions";
 import { useId } from "react";
+import { Check, Code2, Headphones, Settings2, ShieldCheck, Sparkles, TrendingUp, Workflow } from "lucide-react";
 import {
+  defaultAgentWorkPermissions,
+  type AgentWorkPermissions,
   AGENT_SPECIALTIES,
+  AGENT_SPECIALTY_CAPABILITIES,
+  capabilitiesForSpecialty,
+  AGENT_MESSAGE_CHANNELS,
+  AGENT_SPECIALTY_MESSAGE_CHANNEL_PRESETS,
   AGENT_SPECIALTY_PRESETS,
   ALL_AGENT_CAPABILITIES_ENABLED,
   type AgentCapabilities,
+  type AgentMessageChannel,
   type AgentSpecialty,
 } from "@paperclipai/shared";
 import type { AgentHireCapabilityFields } from "@/api/agents";
@@ -11,6 +20,7 @@ import { useTranslation } from "@/i18n";
 import { Link } from "@/lib/router";
 import { accentReadable, accentTint, brandAccent } from "@/lib/accent";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "../ui/checkbox";
 import { ToggleSwitch } from "../ui/toggle-switch";
 import { TEAM_WORKSPACE_PATHS } from "../team-workspace/TeamWorkspaceLinks";
 
@@ -18,13 +28,26 @@ import { TEAM_WORKSPACE_PATHS } from "../team-workspace/TeamWorkspaceLinks";
 export interface AgentPurposeValue {
   specialty: AgentSpecialty | null;
   capabilities: AgentCapabilities;
+  messageChannels: AgentMessageChannel[];
+  workPermissions?: AgentWorkPermissions;
+  codeAdapterAccess?: "read_only" | "workspace_write" | null;
 }
 
 /** Untouched value: no specialty and every capability on, which is what the server keeps when nothing is sent. */
 export const EMPTY_AGENT_PURPOSE: AgentPurposeValue = {
   specialty: null,
   capabilities: ALL_AGENT_CAPABILITIES_ENABLED,
+  messageChannels: [],
 };
+
+export function agentPurposeForSpecialty(specialty: AgentSpecialty): AgentPurposeValue {
+  return {
+    specialty,
+    workPermissions: defaultAgentWorkPermissions(specialty),
+    capabilities: { ...AGENT_SPECIALTY_PRESETS[specialty].capabilities },
+    messageChannels: [...AGENT_SPECIALTY_MESSAGE_CHANNEL_PRESETS[specialty]],
+  };
+}
 
 /**
  * Body fields for `agentsApi.hire`. Nothing is sent unless the user chose a specialty
@@ -33,10 +56,18 @@ export const EMPTY_AGENT_PURPOSE: AgentPurposeValue = {
 export function agentPurposeHireFields(value: AgentPurposeValue): AgentHireCapabilityFields {
   if (!value.specialty) return {};
   return {
-    capabilities: value.capabilities,
-    profile: { specialty: value.specialty, sectors: [] },
+    capabilities: capabilitiesForSpecialty(value.capabilities, value.specialty),
+    profile: {
+      specialty: value.specialty,
+      ...(value.codeAdapterAccess !== undefined ? { codeAdapterAccess: value.codeAdapterAccess } : {}),
+      ...(value.workPermissions ? { workPermissions: value.workPermissions } : {}),
+      sectors: [],
+      messageChannels: value.messageChannels,
+    },
   };
 }
+
+const SPECIALTY_ICONS = { customer_care: Headphones, sales: TrendingUp, video_content: Sparkles, software: Code2, operations: Workflow, custom: Settings2 };
 
 const SPECIALTY_ACCENT: Record<AgentSpecialty, number> = {
   customer_care: 8,
@@ -94,6 +125,7 @@ export function AgentSpecialtyCards({
         const selected = value === specialty;
         const color = brandAccent(SPECIALTY_ACCENT[specialty]);
         const copy = cards[specialty];
+        const Icon = SPECIALTY_ICONS[specialty];
         return (
           <button
             key={specialty}
@@ -102,15 +134,17 @@ export function AgentSpecialtyCards({
             aria-checked={selected}
             disabled={disabled}
             data-testid={`agent-purpose-card-${specialty}`}
-            onClick={() => onSelect(specialty)}
+            onClick={() => { if (!selected) onSelect(specialty); }}
             className={cn(
-              "flex flex-col items-start gap-1 rounded-xl border p-4 text-start transition-[box-shadow,background] duration-(--motion-duration-fast) hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+              "relative flex flex-col items-start gap-2 rounded-xl border p-3 text-start transition-[box-shadow,background] duration-(--motion-duration-fast) hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
               selected ? "border-transparent ring-2 ring-ring" : "border-border",
             )}
             style={selected ? { background: accentTint(color, 13) } : undefined}
           >
-            <span className="text-sm font-semibold" style={{ color: accentReadable(color) }}>
-              {copy.label}
+            <span className="flex w-full items-center gap-2 text-sm font-semibold" style={{ color: accentReadable(color) }}>
+              <Icon className="size-4 shrink-0" aria-hidden="true" />
+              <span className="flex-1">{copy.label}</span>
+              {selected && <Check className="size-4 shrink-0 text-foreground" aria-hidden="true" />}
             </span>
             <span className="text-xs text-muted-foreground">{copy.description}</span>
           </button>
@@ -120,76 +154,139 @@ export function AgentSpecialtyCards({
   );
 }
 
-/** The four capability switches. The approval level is not editable here; see the autonomy note. */
+/** Shared permission section for onboarding, hiring and editing. */
 export function AgentCapabilitySwitches({
-  value,
-  onChange,
-  disabled,
-  autonomyNote = true,
+  value, onChange, disabled, specialty = "custom", autonomyNote = true,
+  messageChannels, onMessageChannelsChange, workPermissions, onWorkPermissionsChange, workPermissionSupport, codeAdapterAccess, onCodeAdapterAccessChange,
 }: {
   value: AgentCapabilities;
+  workPermissions?: AgentWorkPermissions;
+  workPermissionSupport?: { workspace: boolean; commands: boolean; codexFilesystem?: boolean };
+  codeAdapterAccess?: "read_only" | "workspace_write" | null;
+  onCodeAdapterAccessChange?: (next: "read_only" | "workspace_write" | null) => void;
+  onWorkPermissionsChange?: (next: AgentWorkPermissions) => void;
   onChange: (next: AgentCapabilities) => void;
   disabled?: boolean;
-  /** Shows the calm note and link to Autonomía under the messaging and calls switches. */
+  specialty?: AgentSpecialty;
   autonomyNote?: boolean;
+  messageChannels?: AgentMessageChannel[];
+  onMessageChannelsChange?: (next: AgentMessageChannel[]) => void;
 }) {
   const { t } = useTranslation();
   const idBase = useId();
-  const rows: Array<{ key: keyof AgentCapabilities; title: string; hint: string }> = [
-    {
-      key: "messages",
-      title: t("agentCaps.messagesTitle", { defaultValue: "Mensajes" }),
-      hint: t("agentCaps.messagesHint", { defaultValue: "Puede escribir a personas y clientes (email, WhatsApp, chat)" }),
-    },
-    {
-      key: "calls",
-      title: t("agentCaps.callsTitle", { defaultValue: "Llamadas" }),
-      hint: t("agentCaps.callsHint", { defaultValue: "Puede llamar por teléfono" }),
-    },
-    {
-      key: "video",
-      title: t("agentCaps.videoTitle", { defaultValue: "Vídeo y medios" }),
-      hint: t("agentCaps.videoHint", { defaultValue: "Puede generar y editar vídeo" }),
-    },
-    {
-      key: "code",
-      title: t("agentCaps.codeTitle", { defaultValue: "Código y repositorios" }),
-      hint: t("agentCaps.codeHint", { defaultValue: "Trabaja con código y repositorios" }),
-    },
-  ];
+  const allowed = AGENT_SPECIALTY_CAPABILITIES[specialty];
+  const normalized = capabilitiesForSpecialty(value, specialty);
+  const hasLegacyPermissions = Object.keys(normalized).some((key) => value[key as keyof AgentCapabilities] && !normalized[key as keyof AgentCapabilities]);
+  const enabledCount = allowed.filter((key) => key !== "code" && value[key]).length;
+  const workOptions = ["software", "operations", "custom"].includes(specialty);
+  const communication = allowed.includes("messages");
+  const rows = [
+    ["messages", "messagesTitle", "messagesHint", "Mensajes", "Puede escribir por los canales seleccionados."],
+    ["calls", "callsTitle", "callsHint", "Llamadas", "Puede hacer llamadas telefónicas."],
+    ["code", "codeTitle", "codeHint", "Código y repositorios", "Trabaja con código y repositorios."],
+    ["mediaAnalyze", "mediaAnalyzeTitle", "mediaAnalyzeHint", "Analizar medios", "Transcribir audio o vídeo y detectar silencios y muletillas."],
+    ["mediaEdit", "mediaEditTitle", "mediaEditHint", "Editar medios", "Editar y exportar contenido existente."],
+    ["mediaCreateVideo", "mediaCreateVideoTitle", "mediaCreateVideoHint", "Crear vídeos", "Crear vídeos con los recursos disponibles."],
+  ] as const;
   return (
-    <div className="divide-y divide-border rounded-xl border border-border">
-      {rows.map((row) => {
-        const labelId = `${idBase}-${row.key}`;
-        return (
-          <div key={row.key}>
-            <div className="flex items-start justify-between gap-4 p-4">
-              <div className="min-w-0 space-y-0.5">
-                <p id={labelId} className="text-sm font-medium">{row.title}</p>
-                <p className="text-xs text-muted-foreground">{row.hint}</p>
+    <section className="space-y-4 rounded-xl border border-border bg-card p-4 sm:p-5" aria-labelledby={`${idBase}-title`}>
+      <header className="flex items-start gap-3">
+        <span className="rounded-lg bg-accent p-2 text-accent-foreground"><ShieldCheck className="size-5" aria-hidden="true" /></span>
+        <div className="min-w-0 flex-1 space-y-1">
+          <h3 id={`${idBase}-title`} className="text-base font-semibold">{t("agentCaps.permissionsTitle")}</h3>
+          <p className="text-sm text-muted-foreground">{t("agentCaps.permissionsHint")}</p>
+        </div>
+        {!workOptions && allowed.length > 0 && <span className="shrink-0 rounded-full bg-muted px-2 py-1 text-xs font-medium" aria-label={t("agentCaps.enabledCount", { count: enabledCount })}>{enabledCount}/{allowed.length}</span>}
+      </header>
+      {hasLegacyPermissions && <p role="note" className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">{t("agentCaps.legacyPermissionsNote")}</p>}
+      {allowed.length === 0 && !workOptions ? (
+        <div className="space-y-2 rounded-lg bg-muted p-4">
+          <p className="text-sm font-medium">{t("agentCaps.operationsScopeTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("agentCaps.operationsScopeHint")}</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border">
+          {rows.filter(([key]) => key !== "code" && allowed.includes(key)).map(([key, title, hint, defaultTitle, defaultHint]) => (
+            <div key={key} className="flex items-start justify-between gap-4 py-4">
+              <div className="min-w-0 space-y-1">
+                <label htmlFor={`${idBase}-${key}`} className="block text-sm font-medium">{t(`agentCaps.${title}`, { defaultValue: defaultTitle })}</label>
+                <p className="text-sm text-muted-foreground">{t(`agentCaps.${hint}`, { defaultValue: defaultHint })}</p>
               </div>
-              <ToggleSwitch
-                aria-labelledby={labelId}
-                data-testid={`agent-capability-${row.key}`}
-                checked={value[row.key]}
-                disabled={disabled}
-                onCheckedChange={(checked) => onChange({ ...value, [row.key]: checked })}
-              />
+              <ToggleSwitch id={`${idBase}-${key}`} data-testid={`agent-capability-${key}`} checked={value[key]} disabled={disabled} className="shrink-0"
+                onCheckedChange={(checked) => onChange(capabilitiesForSpecialty({ ...value, [key]: checked }, specialty))} />
             </div>
-            {autonomyNote && row.key === "calls" && (
-              <div className="space-y-2 px-4 pb-4">
-                <p className="text-xs text-muted-foreground">
-                  {t("agentCaps.autonomyNote", { defaultValue: "Al principio solo prepara borradores. Para que envíe con aprobación o directo, súbelo en Autonomía." })}
-                </p>
-                <Link to={TEAM_WORKSPACE_PATHS.autonomy} className="text-xs font-medium text-foreground underline-offset-4 hover:underline">
-                  {t("agentCaps.openAutonomy", { defaultValue: "Abrir Autonomía" })}
-                </Link>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
+          ))}
+        </div>
+      )}
+      {communication && value.messages && messageChannels && onMessageChannelsChange && <AgentMessageChannelOptions value={messageChannels} onChange={onMessageChannelsChange} disabled={disabled} />}
+      {workOptions && onWorkPermissionsChange && <AgentWorkPermissionsSection specialty={specialty} support={workPermissionSupport} codeAdapterAccess={codeAdapterAccess} onCodeAdapterAccessChange={onCodeAdapterAccessChange} value={workPermissions} onChange={onWorkPermissionsChange} disabled={disabled} />}
+      {autonomyNote && communication && (value.messages || value.calls) && (
+        <div className="space-y-2 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">{t("agentCaps.autonomyNote", { defaultValue: "Al principio solo prepara borradores. Para que envíe con aprobación o directo, súbelo en Autonomía." })}</p>
+          <Link to={TEAM_WORKSPACE_PATHS.autonomy} className="text-sm font-medium text-foreground underline underline-offset-4">{t("agentCaps.openAutonomy", { defaultValue: "Abrir Autonomía" })}</Link>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Channel allowlist for agents that can send messages. */
+export function AgentMessageChannelOptions({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: AgentMessageChannel[];
+  onChange: (next: AgentMessageChannel[]) => void;
+  disabled?: boolean;
+}) {
+  const { t } = useTranslation();
+  const idBase = useId();
+  const channelLabels: Record<AgentMessageChannel, string> = {
+    email: t("agentMessageChannels.email", { defaultValue: "Correo" }),
+    whatsapp: "WhatsApp",
+    messenger: "Messenger",
+    instagram: "Instagram",
+    telegram: "Telegram",
+    webchat: t("agentMessageChannels.webchat", { defaultValue: "Chat web" }),
+    sms: "SMS",
+  };
+  const selected = new Set(value);
+
+  function toggle(channel: AgentMessageChannel, checked: boolean | "indeterminate") {
+    const next = new Set(value);
+    if (checked === true) next.add(channel);
+    else next.delete(channel);
+    onChange(AGENT_MESSAGE_CHANNELS.filter((candidate) => next.has(candidate)));
+  }
+
+  return (
+    <fieldset className="space-y-3 border-t border-border pt-4" disabled={disabled}>
+      <legend className="text-sm font-medium">
+        {t("agentMessageChannels.title", { defaultValue: "Canales de mensajería" })}
+      </legend>
+      <p className="text-xs text-muted-foreground">
+        {t("agentMessageChannels.hint", { defaultValue: "Solo podrá enviar mensajes por los canales seleccionados. También necesitas configurar la conexión del canal." })}
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {AGENT_MESSAGE_CHANNELS.map((channel) => {
+          const id = `${idBase}-${channel}`;
+          return (
+            <div key={channel} className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+              <Checkbox
+                id={id}
+                checked={selected.has(channel)}
+                disabled={disabled}
+                onCheckedChange={(checked) => toggle(channel, checked)}
+              />
+              <label htmlFor={id} className="text-sm">
+                {channelLabels[channel]}
+              </label>
+            </div>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 
@@ -198,10 +295,12 @@ export function AgentCapabilitySwitches({
  * Switches only appear after a specialty is chosen (progressive disclosure).
  */
 export function AgentPurposeSection({
+  workPermissionSupport,
   value,
   onChange,
   disabled,
 }: {
+  workPermissionSupport?: { workspace: boolean; commands: boolean; codexFilesystem?: boolean };
   value: AgentPurposeValue;
   onChange: (next: AgentPurposeValue) => void;
   disabled?: boolean;
@@ -212,17 +311,28 @@ export function AgentPurposeSection({
       <h3 className="text-sm font-semibold">
         {t("agentCaps.purposeTitle", { defaultValue: "¿Para qué sirve este agente?" })}
       </h3>
+      {!value.specialty && (
+        <p role="status" className="text-xs text-muted-foreground">
+          {t("agentCaps.specialtyRequired", { defaultValue: "Elige una categoría para continuar." })}
+        </p>
+      )}
       <AgentSpecialtyCards
         value={value.specialty}
         disabled={disabled}
-        onSelect={(specialty) =>
-          onChange({ specialty, capabilities: { ...AGENT_SPECIALTY_PRESETS[specialty].capabilities } })
-        }
+        onSelect={(specialty) => onChange(agentPurposeForSpecialty(specialty))}
       />
       {value.specialty && (
         <AgentCapabilitySwitches
           value={value.capabilities}
+          specialty={value.specialty}
+          workPermissionSupport={workPermissionSupport}
+          codeAdapterAccess={value.codeAdapterAccess}
+          onCodeAdapterAccessChange={(codeAdapterAccess) => onChange({ ...value, codeAdapterAccess })}
+          workPermissions={value.workPermissions}
+          onWorkPermissionsChange={(workPermissions) => onChange({ ...value, workPermissions })}
           disabled={disabled}
+          messageChannels={value.messageChannels}
+          onMessageChannelsChange={(messageChannels) => onChange({ ...value, messageChannels })}
           onChange={(capabilities) => onChange({ ...value, capabilities })}
         />
       )}

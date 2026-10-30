@@ -109,6 +109,24 @@ describeEmbeddedPostgres("customerService", () => {
     expect(page.items.every((row) => row.companyId === companyA)).toBe(true);
   });
 
+  it("persists optional customer details and keeps partial updates company-scoped", async () => {
+    const companyId = await createCompany();
+    const otherCompany = await createCompany();
+    const details = {
+      contactName: "Ana López", contactEmail: "ana@example.com", phone: "+34 612 345 678",
+      address: "Calle Mayor 1", city: "Madrid", postalCode: "28001", country: "España",
+      legalName: "Cliente SL", taxId: "B12345678", notes: "Servicio mensual",
+    };
+    const { customer } = await svc.create(companyId, { name: "Cliente", kind: "organization", tags: [], ...details }, { actor });
+    expect(await svc.getById(customer.id)).toMatchObject(details);
+    expect(await svc.update(otherCompany, customer.id, { phone: "otro" }, { actor })).toBeNull();
+    await svc.update(companyId, customer.id, { phone: null, city: "Sevilla" }, { actor });
+    expect(await svc.getById(customer.id)).toMatchObject({ ...details, phone: null, city: "Sevilla" });
+    expect(await svc.findDuplicates(companyId, { name: "Otro cliente", contactEmail: "ANA@EXAMPLE.COM" }))
+      .toEqual([expect.objectContaining({ record: expect.objectContaining({ id: customer.id }), reasons: ["contact_email"] })]);
+    expect(await svc.findDuplicates(otherCompany, { name: "Otro cliente", contactEmail: "ana@example.com" })).toEqual([]);
+  });
+
   it("paginates by cursor without repeating or skipping rows", async () => {
     const companyId = await createCompany();
     for (let index = 0; index < 5; index += 1) {

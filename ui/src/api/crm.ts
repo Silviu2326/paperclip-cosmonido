@@ -102,7 +102,7 @@ export const crmApi = {
       api.get<CrmPage<Customer>>(withQuery(`/companies/${companyId}/customers`, query)),
     get: (id: string) => api.get<Customer>(`/customers/${id}`),
     // A1 begin
-    create: (companyId: string, data: CreateCustomer & CreateDuplicateOptions & { contactEmail?: string | null }) =>
+    create: (companyId: string, data: CreateCustomer & CreateDuplicateOptions) =>
       api.post<Customer>(`/companies/${companyId}/customers`, data),
     update: (id: string, data: UpdateCustomer) => api.patch<Customer>(`/customers/${id}`, data),
     listContacts: (id: string) => api.get<CustomerLinkedContact[]>(`/customers/${id}/contacts`),

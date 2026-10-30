@@ -1,13 +1,14 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, inArray, isNotNull, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNotNull, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { companies, documentRevisions, documents, proposals } from "@paperclipai/db";
+import { companies, customers, opportunities, documentRevisions, documents, proposals } from "@paperclipai/db";
 import type {
   AcceptProposalPublicInput,
   CreateProposalInput,
   Proposal,
   ProposalAcceptanceEvidence,
   ProposalStatus,
+  ProposalPage,
   PublicProposalView,
   ReviseProposalInput,
 } from "@paperclipai/shared";
@@ -15,6 +16,8 @@ import { conflict, HttpError, notFound, unauthorized, unprocessable } from "../e
 import { createPaymentLink, verifyStripeSignature, type StripePaymentLink } from "./stripe-payment-links.js";
 import { renderProposalMarkdown } from "./proposal-render.js";
 import { secretService } from "./secrets.js";
+import { decodeCrmCursor, encodeCrmCursor } from "./crm/activities.js";
+import { badRequest } from "../errors.js";
 
 /** Sprint 3 WP8: commercial proposals with revisions, light acceptance and deposit payment links. */
 
@@ -212,12 +215,26 @@ export function proposalService(db: Db, deps: ProposalServiceDeps = {}) {
       ));
       if (existing) return toProposal(existing);
 
+      let customerId = input.customerId ?? null;
+      if (input.opportunityId) {
+        const [opportunity] = await tx.select({ customerId: opportunities.customerId }).from(opportunities)
+          .where(and(eq(opportunities.id, input.opportunityId), eq(opportunities.companyId, companyId))).limit(1);
+        if (!opportunity) throw notFound("Opportunity not found");
+        if (customerId && customerId !== opportunity.customerId) throw unprocessable("Customer does not match the opportunity");
+        customerId = opportunity.customerId;
+      }
+      if (customerId) {
+        const [customer] = await tx.select({ id: customers.id }).from(customers)
+          .where(and(eq(customers.id, customerId), eq(customers.companyId, companyId))).limit(1);
+        if (!customer) throw notFound("Customer not found");
+      }
+
       const [row] = await tx.insert(proposals).values({
         companyId,
         proposalKey: input.idempotencyKey,
         revision: 1,
         opportunityId: input.opportunityId ?? null,
-        customerId: input.customerId ?? null,
+        customerId,
         title: input.title,
         scope: input.scope,
         terms: input.terms ?? null,
@@ -462,21 +479,31 @@ export function proposalService(db: Db, deps: ProposalServiceDeps = {}) {
   }
 
   /** Lists the latest revision of each proposal; use listRevisions for the full history. */
-  async function list(companyId: string, query: { status?: ProposalStatus; opportunityId?: string; customerId?: string; limit?: number } = {}): Promise<Proposal[]> {
+  async function listPage(companyId: string, query: { status?: ProposalStatus; opportunityId?: string; customerId?: string; q?: string; cursor?: string; limit?: number } = {}): Promise<ProposalPage> {
     const conditions = [eq(proposals.companyId, companyId)];
     if (query.opportunityId) conditions.push(eq(proposals.opportunityId, query.opportunityId));
     if (query.customerId) conditions.push(eq(proposals.customerId, query.customerId));
-    const rows = await db.select().from(proposals).where(and(...conditions)).orderBy(desc(proposals.updatedAt)).limit(1000);
-    const latest = new Map<string, ProposalRow>();
-    for (const row of rows) {
-      const current = latest.get(row.proposalKey);
-      if (!current || row.revision > current.revision) latest.set(row.proposalKey, row);
+    const latest = db.selectDistinctOn([proposals.proposalKey]).from(proposals).where(and(...conditions))
+      .orderBy(proposals.proposalKey, desc(proposals.revision)).as("latest_proposals");
+    const filters: SQL[] = [];
+    if (query.status) filters.push(eq(latest.status, query.status));
+    if (query.q) filters.push(ilike(latest.title, `%${query.q.replace(/[\\%_]/g, (match) => `\\${match}`)}%`));
+    const timestamp = sql`date_trunc('milliseconds', ${latest.updatedAt})`;
+    if (query.cursor) {
+      const cursor = decodeCrmCursor(query.cursor);
+      if (!UUID_PATTERN.test(cursor.i)) throw badRequest("Invalid cursor");
+      filters.push(or(sql`${timestamp} < ${cursor.t.toISOString()}::timestamptz`, and(sql`${timestamp} = ${cursor.t.toISOString()}::timestamptz`, lt(latest.id, cursor.i)))!);
     }
-    return [...latest.values()]
-      .filter((row) => !query.status || row.status === query.status)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-      .slice(0, query.limit ?? 50)
-      .map(toProposal);
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 200);
+    const rows = await db.select().from(latest).where(and(...filters)).orderBy(desc(timestamp), desc(latest.id)).limit(limit + 1);
+    const items = rows.slice(0, limit);
+    const last = items.at(-1);
+    return { items: items.map(toProposal), nextCursor: rows.length > limit && last ? encodeCrmCursor(last.updatedAt, last.id) : null };
+  }
+
+  /** Retain the original array API for existing agents and integrations. */
+  async function list(companyId: string, query: Parameters<typeof listPage>[1] = {}): Promise<Proposal[]> {
+    return (await listPage(companyId, query)).items;
   }
 
   async function getById(id: string): Promise<Proposal | null> {
@@ -519,6 +546,7 @@ export function proposalService(db: Db, deps: ProposalServiceDeps = {}) {
 
   return {
     createFromOpportunity,
+    listPage,
     revise,
     send,
     markViewed,

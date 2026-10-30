@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { contactIdentities, contacts, customerContacts, customers } from "@paperclipai/db";
 import {
@@ -117,7 +117,21 @@ export function contactService(db: Db) {
         .where(and(...conditions))
         .orderBy(desc(contacts.updatedAt), desc(contacts.id))
         .limit(query.limit + 1);
-      return toPage(rows, query.limit);
+      const page = toPage(rows, query.limit);
+      if (page.items.length === 0) return page;
+      const links = await db
+        .select({ contactId: customerContacts.contactId, id: customers.id, name: customers.name })
+        .from(customerContacts)
+        .innerJoin(customers, and(eq(customers.id, customerContacts.customerId), eq(customers.companyId, companyId)))
+        .where(and(eq(customerContacts.companyId, companyId), inArray(customerContacts.contactId, page.items.map((row) => row.id))))
+        .orderBy(desc(customerContacts.isPrimary), asc(customers.name), asc(customers.id));
+      const byContact = new Map<string, Array<{ id: string; name: string }>>();
+      for (const { contactId, id, name } of links) {
+        const linked = byContact.get(contactId) ?? [];
+        linked.push({ id, name });
+        byContact.set(contactId, linked);
+      }
+      return { ...page, items: page.items.map((contact) => ({ ...contact, customers: byContact.get(contact.id) ?? [] })) };
     },
 
     getById: (id: string) =>

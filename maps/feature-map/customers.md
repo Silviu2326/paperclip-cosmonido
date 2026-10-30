@@ -12,6 +12,7 @@ Agent access: [companion](../agent-access-map/customers.md).
 ## Sub-features
 
 - `customers`: create an organization or person, edit it, archive and restore it; health and tags are kept on the record.
+  The creation dialog requires only a name. Contact person, email, phone, address, city, postal code, country, legal name, tax ID and notes are optional and saved on the customer. Summary shows saved details and offers Edit details using the same form. Domain is no longer offered in this form; the existing API field remains compatible. These contact details do not automatically create a linked contact or grant messaging consent.
 - `contacts`: create and edit contacts with language, preferred channel and per-channel consents; link contacts to a customer with a role and a primary flag.
 - `identity`: an inbound email, phone or chat identifier resolves to one contact. Identifiers are normalized (lowercase emails, E.164 phones) and unique per company and channel.
 - `duplicates`: a create request that matches an existing customer or contact by name, domain or contact email returns a conflict listing the candidates; the user may create anyway.
@@ -20,7 +21,7 @@ Agent access: [companion](../agent-access-map/customers.md).
 
 ### `customer-list`
 
-Open `/customers` from the Business group. Summary cards show active customers, those needing attention, open proposals and running services (the services card opens a popup listing them). Search by name or domain, filter by All, Attention, New or Archived, sort the table by name, health or date, or switch to cards, then choose New customer. Each row has a New proposal button and an Open button; archived rows have Restore. A possible duplicate shows a notice with the matching records; choose Create anyway only when the match is a different entity.
+Open `/customers` from the Business group. Summary cards show active customers, those needing attention, open proposals and running services (the services card opens a popup listing them). Search by name or domain, filter by All, Attention, New or Archived, sort the table by name, health or date, or switch to cards, then choose New customer. Each active row offers Contact (email/phone options from its linked people and saved customer details), Assign to an agent (opens the standard issue dialog with a CRM link), and More actions (edit, new proposal, add person, archive). Archived rows can be restored. A possible duplicate shows a notice with the matching records; choose Create anyway only when the match is a different entity.
 
 ### `customer-detail`
 
@@ -28,13 +29,15 @@ Open `/customers/:customerId`. A header card shows health, tags and the Archive 
 
 ### `contact-list`
 
-Open the People tab next to Customers (`/customers/contacts`) to list and create contacts as a table. Link them to a customer from the customer's Contacts tab. Choosing a person opens `/customers/contacts/:contactId` with their contact data, the customers they belong to and their colleagues. The services page (`/customers/services`) no longer has its own tab; it opens from the services card or its popup.
+Open the People tab next to Customers (`/customers/contacts`) to list and create contacts as a table. Each row shows linked customers and offers Contact (email/phone), Assign to an agent (standard issue dialog with a CRM link), and More actions (edit, manage customer links, archive/restore). Link them to a customer from the customer's Contacts tab or Manage customer links. Choosing a person opens `/customers/contacts/:contactId` with their contact data, the customers they belong to and their colleagues. The services page (`/customers/services`) no longer has its own tab; it opens from the services card or its popup.
+
+Creating a person from People also offers an optional searchable customer picker, including creating a new customer without leaving the form. On the person's detail page, Link customer adds an existing relationship and Unlink removes only that relationship. Each customer name opens its customer record. Both sides refresh after linking or unlinking; a person may belong to multiple customers. API failures remain visible beside these actions.
 
 ## Driving it with Playwright and the Paperclip CLI
 
 Preconditions: disposable company on an isolated embedded database, one agent, two customers that share a domain.
 
-1. Create a customer whose domain matches an existing one; verify the duplicate notice lists the existing customer and that nothing is created until Create anyway is chosen.
+1. Create a customer with just a name, then another with optional contact, address and fiscal details. Reload both and edit details from Summary; verify values persist, omitted fields remain empty and clearing a field saves it as empty. Through the API, create a customer whose domain matches an existing one and verify the duplicate conflict and forced-create flow.
 2. Create a contact, link it to a customer with the primary flag, reload and verify the link and the primary badge persist.
 3. Submit the same customer creation twice through the API with the same retry data; verify the duplicate conflict rather than a second record.
 4. Archive a customer, confirm it leaves the default list, restore it, and verify the status survives reload.

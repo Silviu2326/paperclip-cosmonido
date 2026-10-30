@@ -1,7 +1,8 @@
+import { assertAgentWorkPermissions, workPermissionsForTool } from "../agent-work-permissions.js";
 import { PRODUCT_TOOL_NAMES } from "./assigned-mcp-tools.js";
 import { callAssignmentTool } from "../assignment-tools.js";
 import { callMediaTool } from "../media-tools.js";
-import { assertAgentCapability } from "../external-action-gate.js";
+import { agentMediaActionForTool, assertAgentMediaAction } from "../external-action-gate.js";
 import { dispatchSprint3Tool, SPRINT3_TOOL_NAMES } from "../sprint3-tools.js";
 import { callSprint2Tool, SPRINT2_TOOL_NAMES } from "../sprint2-tools.js";
 import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notifications.js";
@@ -319,6 +320,9 @@ export class PaperclipRunnerToolAuthority {
     callId: string;
     arguments: unknown;
   }): Promise<unknown> {
+    const workPermissions = workPermissionsForTool(call.tool, call.arguments, this.binding.agentId);
+    const policyContext = workPermissions.length ? await this.#boundContext() : undefined;
+    if (policyContext) assertAgentWorkPermissions(policyContext.actor.metadata, workPermissions);
     if (this.binding.firstPartyOnly && (EXTERNAL_WORKSPACE_OPERATIONS.has(call.tool) || call.tool.startsWith("workspace_"))) throw forbidden("Paperclip workspace access is unavailable to this Grok Bot session.");
     if (this.binding.nativeReview) {
       if (call.tool === "resolve_review") return this.#resolveReview(call.arguments);
@@ -371,6 +375,7 @@ export class PaperclipRunnerToolAuthority {
       const input = parsed.data as Record<string, any>;
       if (call.tool.startsWith("workspace_")) {
         const authorize = async () => { const current = await this.#boundContext();
+          assertAgentWorkPermissions(current.actor.metadata, workPermissionsForTool(call.tool, call.arguments, this.binding.agentId));
           if (current.actor.adapterConfig?.dotWorkspaceAccess !== true) throw forbidden("Dot workspace access was disabled");
           await this.binding.assertBridgeAuthority?.();
           if (["workspace_write", "workspace_run"].includes(call.tool) && current.issue.workMode !== "standard") throw forbidden("This work mode cannot change files or run commands");
@@ -477,7 +482,7 @@ export class PaperclipRunnerToolAuthority {
     ) {
       throw new Error("paperclip_runner_tool_not_advertised");
     }
-    const context = await this.#boundContext();
+    const context = policyContext ?? await this.#boundContext();
     const input = record(call.arguments);
     if (call.tool === READ_CHAT_ATTACHMENT_TOOL_NAME) {
       const scope = this.binding.chatAttachmentReadScope;
@@ -613,7 +618,11 @@ export class PaperclipRunnerToolAuthority {
         const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
         const token = this.#apiToken(context);
         if (!apiUrl || !token) throw new Error("Media tool authentication is unavailable");
-        await assertAgentCapability(this.db, { companyId: this.binding.companyId, agentId: this.binding.agentId, permissionKey: "media:generate" });
+        const mediaAction = agentMediaActionForTool(call.tool);
+        if (mediaAction === undefined) throw new Error("Media tool has no action capability mapping");
+        if (mediaAction !== null) {
+          await assertAgentMediaAction(this.db, { companyId: this.binding.companyId, agentId: this.binding.agentId, action: mediaAction });
+        }
         return callMediaTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
       }
       case "search_api": return searchRunnerApi(call.arguments);
@@ -1020,6 +1029,7 @@ export class PaperclipRunnerToolAuthority {
     if (this.binding.firstPartyOnly && (input.files?.length || /\/(?:attachments|assets)\/[^/]+\/content$/.test(path) || /\/file-resources\/content$/.test(path))) {
       throw forbidden("Use this Grok work session's bounded upload or download grant; direct file API access is unavailable.");
     }
+    if (input.files?.some(file => file.path)) assertAgentWorkPermissions((await this.#boundContext()).actor.metadata, ["workspaceRead"]);
     if (!this.binding.dotRuntime) return;
     const current = await this.#boundContext();
     await this.binding.assertBridgeAuthority?.();
@@ -1790,6 +1800,7 @@ export class PaperclipRunnerToolAuthority {
       idempotencyKey,
       input,
       async (tx, context) => {
+        assertAgentWorkPermissions(context.actor.metadata, ["documentsWrite", "workspaceRead"]);
         if (this.binding.dotRuntime) {
           if (!this.binding.workspaceBridge || context.actor.adapterConfig?.dotWorkspaceAccess !== true)
             throw forbidden("Dot workspace access is required to publish workspace files.");

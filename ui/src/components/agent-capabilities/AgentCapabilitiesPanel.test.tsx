@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AgentCapabilitiesResponse } from "@paperclipai/shared";
+import { defaultAgentWorkPermissions, AGENT_MESSAGE_CHANNELS, type AgentCapabilitiesResponse } from "@paperclipai/shared";
 import { ApiError } from "../../api/client";
 import { i18n } from "../../i18n";
 import { DEFAULT_LOCALE } from "../../i18n/locales";
@@ -28,7 +28,15 @@ vi.mock("@/lib/router", () => ({
 
 const savedResponse: AgentCapabilitiesResponse = {
   profile: { specialty: "sales", sectors: ["retail"] },
-  capabilities: { messages: true, calls: false, video: false, code: false },
+  capabilities: {
+    messages: true,
+    calls: false,
+    video: false,
+    mediaAnalyze: false,
+    mediaEdit: false,
+    mediaCreateVideo: false,
+    code: false,
+  },
   autonomy: { message: "draft_only", email: "send_with_approval", call: "send_direct" },
 };
 
@@ -84,12 +92,12 @@ describe("AgentCapabilitiesPanel", () => {
     expect(container.querySelector('[data-testid="agent-purpose-card-sales"]')?.getAttribute("aria-checked")).toBe("true");
     expect(container.querySelector('[data-testid="agent-autonomy-message"]')?.textContent).toBe("Solo borrador");
     expect(container.querySelector('[data-testid="agent-autonomy-email"]')?.textContent).toBe("Con aprobación");
-    expect(container.querySelector('[data-testid="agent-autonomy-call"]')?.textContent).toBe("Directo");
+    expect(container.querySelector('[data-testid="agent-autonomy-call"]')).toBeNull();
     expect(container.querySelector('a[href="/autonomy?agent=agent-1"]')).not.toBeNull();
   });
 
   it("keeps Save disabled until something changes, then saves the changed switches", async () => {
-    mockAgentsApi.updateCapabilities.mockResolvedValue({ ...savedResponse, capabilities: { messages: true, calls: true, video: false, code: false } });
+    mockAgentsApi.updateCapabilities.mockResolvedValue({ ...savedResponse, capabilities: { messages: true, calls: true, video: false, mediaAnalyze: false, mediaEdit: false, mediaCreateVideo: false, code: false } });
     render(<AgentCapabilitiesPanel agentId="agent-1" companyId="company-1" />);
     await flush();
     expect(buttonWithText("Guardar capacidades")?.disabled).toBe(true);
@@ -102,8 +110,8 @@ describe("AgentCapabilitiesPanel", () => {
     expect(mockAgentsApi.updateCapabilities).toHaveBeenCalledWith(
       "agent-1",
       {
-        capabilities: { messages: true, calls: true, video: false, code: false },
-        profile: { specialty: "sales", sectors: ["retail"] },
+        capabilities: { messages: true, calls: true, video: false, mediaAnalyze: false, mediaEdit: false, mediaCreateVideo: false, code: false },
+        profile: { specialty: "sales", sectors: ["retail"], messageChannels: [...AGENT_MESSAGE_CHANNELS] },
       },
       "company-1",
     );
@@ -115,14 +123,15 @@ describe("AgentCapabilitiesPanel", () => {
     render(<AgentCapabilitiesPanel agentId="agent-1" companyId="company-1" />);
     await flush();
     click(container.querySelector('[data-testid="agent-purpose-card-software"]') as HTMLButtonElement);
-    expect(toggle("code")?.getAttribute("aria-checked")).toBe("true");
+    expect(toggle("code")).toBeNull();
+    expect(container.querySelector('[data-testid="agent-work-permission-tasksCreate"]')?.getAttribute("aria-checked")).toBe("true");
     click(buttonWithText("Guardar capacidades"));
     await flush();
     expect(mockAgentsApi.updateCapabilities).toHaveBeenCalledWith(
       "agent-1",
       {
-        capabilities: { messages: false, calls: false, video: false, code: true },
-        profile: { specialty: "software", sectors: ["retail"] },
+        capabilities: { messages: false, calls: false, video: false, mediaAnalyze: false, mediaEdit: false, mediaCreateVideo: false, code: true },
+        profile: { specialty: "software", sectors: ["retail"], messageChannels: [], workPermissions: defaultAgentWorkPermissions("software") },
       },
       "company-1",
     );
@@ -140,7 +149,7 @@ describe("AgentCapabilitiesPanel", () => {
     mockAgentsApi.updateCapabilities.mockRejectedValue(new ApiError("Forbidden", 403, null));
     render(<AgentCapabilitiesPanel agentId="agent-1" companyId="company-1" />);
     await flush();
-    click(toggle("video"));
+    click(toggle("calls"));
     click(buttonWithText("Guardar capacidades"));
     await flush();
     expect(container.querySelector('[role="alert"]')?.textContent).toContain("No tienes permiso");

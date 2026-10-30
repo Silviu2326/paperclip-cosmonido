@@ -16,7 +16,23 @@ Evidence: `source-only` - [routes](../../server/src/routes/leads.ts), [public fo
 
 Verification: `not-run` - submit the same form twice and confirm one lead; import a preview then confirm the import as an agent with REST.
 
-Gaps: no dedicated agent create tool; no UI or endpoint creates lead forms.
+Gaps: no dedicated agent create tool or bulk endpoint. The board manual-intake dialog uses the existing POST; form authoring is separate at `/sales/forms`. Bulk board actions issue bounded per-lead requests through the existing endpoints.
+
+## `edit`
+
+Review: `baseline`.
+
+API: `present` - PATCH /api/leads/{id}.
+
+Agent access: `partial` - REST with the existing company-scoped agent key; no dedicated edit tool.
+
+Policy: existing lead access checks; the board picker lists only the company's human/agent directory and clears the other assignee kind when switching.
+
+Evidence: `source-only` - [editor](../../ui/src/components/crm/LeadEditorDialog.tsx), [routes](../../server/src/routes/leads.ts).
+
+Verification: `not-run` for live agent authorization; component regressions pass for payload preservation and exclusive assignment.
+
+Gaps: no dedicated edit tool; the API has no optimistic version field for lead edits.
 
 ## `triage`
 
@@ -48,7 +64,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/leads.ts), [service](
 
 Verification: `not-run` - convert with one key twice and confirm one customer; convert with another key and confirm 409.
 
-Gaps: the opportunity created by conversion uses the sales pipeline defaults; its gate is the same as opportunity creation.
+Gaps: the opportunity created by conversion uses the sales pipeline defaults and inherits the lead's assignment; its gate is the same as opportunity creation.
 
 ## `discard`
 
@@ -70,7 +86,7 @@ Gaps: no dedicated agent tool.
 
 Review: `baseline`.
 
-API: `present` - GET /api/leads/{id}/activity.
+API: `present` - GET /api/leads/{id}/activity; GET/POST /api/companies/{companyId}/crm/activities with subjectKind=lead.
 
 Agent access: `partial` - readable through REST with the agent key; no dedicated tool.
 

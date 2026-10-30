@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { ArrowRight, Mail, Phone, Plus, Search, Upload, UserRound } from "lucide-react";
+import { Mail, Phone, Plus, Search, Upload, UserRound } from "lucide-react";
 import { Link, useNavigate } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { crmApi } from "../../api/crm";
@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils";
 import { accentTint } from "../../lib/accent";
 import { ContactCreateDialog } from "../../components/crm/ContactCreateDialog";
 import { AccentPill, MUTED, PartyAvatar, SKY } from "../../components/crm/CustomerListParts";
-import { RowLink, TableShell, tableCell, tableRow } from "../../components/crm/CustomersTable";
+import { TableShell, tableCell, tableRow } from "../../components/crm/CustomersTable";
+import { PeopleActionsMenu } from "../../components/crm/PeopleActionsMenu";
 
 type StatusFilter = "active" | "archived" | "all";
 
@@ -132,6 +133,7 @@ export function Contacts() {
               <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">{t("uxCrm.list.colPerson", { defaultValue: "Persona" })}</th>
               <th scope="col" className="hidden px-3 py-2.5 text-left text-xs font-medium text-muted-foreground md:table-cell">{t("uxCrm.list.colRole", { defaultValue: "Cargo" })}</th>
               <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">{t("uxCrm.list.colContact", { defaultValue: "Contacto" })}</th>
+              <th scope="col" className="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground">{t("uxCrm.people.colCustomers", { defaultValue: "Clientes" })}</th>
               <th scope="col" className="px-3 py-2.5 text-right"><span className="sr-only">{t("uxCrm.list.colActions", { defaultValue: "Acciones" })}</span></th>
             </tr>
           </thead>
@@ -154,10 +156,15 @@ export function Contacts() {
                       <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.primaryPhone ?? t("crm.contacts.noPhone")}</span></span>
                     </span>
                   </td>
-                  <td className={cn(tableCell, "pr-2")}>
-                    <div className="flex justify-end">
-                      <RowLink icon={ArrowRight} label={t("uxCrm.list.actionOpen", { name: contact.displayName, defaultValue: "Abrir {{name}}" })} to={`/customers/contacts/${contact.id}`} />
+                  <td className={cn(tableCell, "max-w-64")}>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(contact.customers ?? []).length ? contact.customers!.map((customer) => (
+                        <Link key={customer.id} to={`/customers/${customer.id}`} onClick={(event) => event.stopPropagation()} className="max-w-40 truncate rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:underline">{customer.name}</Link>
+                      )) : <span className="text-xs text-muted-foreground">{t("uxCrm.people.noCustomers", { defaultValue: "No linked customers" })}</span>}
                     </div>
+                  </td>
+                  <td className={cn(tableCell, "pr-2")}>
+                    <PeopleActionsMenu contact={contact} />
                   </td>
                 </tr>
               );

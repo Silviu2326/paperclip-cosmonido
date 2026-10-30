@@ -353,6 +353,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             <div className={primarySidebarStyles.group}>
               {/* Agents: one expandable group with its own heading and "see all" link; each agent is listed once, inside it. */}
               {children ?? <SidebarAgents streamlined />}
+              <SidebarNavItem to="/agents/catalog" label={t("agentCatalog.title")} icon={BookOpen} />
               {preferences.office && (
                 <SidebarAccentProvider accent={SIDEBAR_ACCENTS.business}>
                   <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />
@@ -369,6 +370,7 @@ export function Sidebar({ children }: { children?: ReactNode }) {
             <>
               <SidebarProjects />
               <SidebarAgents />
+              <SidebarNavItem to="/agents/catalog" label={t("agentCatalog.title")} icon={BookOpen} />
               <SidebarSection
                 label={t("sidebar.organizationSection")}
                 collapsible={{ open: organizationOpen, onOpenChange: setOrganizationOpen }}

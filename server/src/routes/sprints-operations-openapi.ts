@@ -5,6 +5,7 @@ import {
   createOpportunitySchema, updateOpportunitySchema, changeOpportunityStageSchema,
   createCommitmentSchema, resolveCommitmentSchema, createCrmActivitySchema,
   createLeadSchema, updateLeadSchema, convertLeadSchema,
+  createProposalSchema, proposalListQuerySchema,
 } from "@paperclipai/shared";
 import { grantAutonomySchema, revokeAutonomySchema, recordShadowOutcomeSchema, runAutonomyBenchSchema } from "@paperclipai/shared";
 import { mediaProjectCreateSchema, mediaTranscribeSchema, mediaDetectSilencesSchema, mediaDetectFillersSchema, mediaOperationsSchema, mediaRenderSchema, mediaDubSchema, mediaStopMotionSchema, mediaDubMultivoiceSchema, mediaVoiceoverSchema } from "@paperclipai/shared";
@@ -58,7 +59,7 @@ const rows: Array<[string, string, string, ProductizationOpenApiRoute["auth"], P
   ["get","/api/contacts/{id}","Read a contact through company-scoped access","authenticated"],
   ["patch","/api/contacts/{id}","Update an existing company contact","authenticated",updateContactSchema],
   ["get","/api/companies/{companyId}/customers","List company customers","authenticated",undefined,boundedQuery],
-  ["post","/api/companies/{companyId}/customers","Create a company customer; possible duplicates return candidates unless force is set","authenticated",createCustomerSchema.extend({force:z.boolean().optional(),contactEmail:z.string().email().max(320).nullable().optional()})],
+  ["post","/api/companies/{companyId}/customers","Create a company customer; possible duplicates return candidates unless force is set","authenticated",createCustomerSchema.extend({force:z.boolean().optional()})],
   ["get","/api/customers/{id}","Read a company customer","authenticated"],
   ["patch","/api/customers/{id}","Update a company customer","authenticated",updateCustomerSchema],
   ["get","/api/customers/{id}/contacts","List contacts linked to a customer","authenticated"],
@@ -135,8 +136,9 @@ const rows: Array<[string, string, string, ProductizationOpenApiRoute["auth"], P
   ["post","/api/playbook-runs/{id}/pause","Pause a playbook run","board",empty],
   ["post","/api/playbook-runs/{id}/resume","Resume a paused playbook run","board",empty],
   ["post","/api/playbook-runs/{id}/cancel","Cancel a playbook run","board",empty],
-  ["get","/api/companies/{companyId}/proposals","List company proposals","authenticated",undefined,boundedQuery],
-  ["post","/api/companies/{companyId}/proposals","Create a proposal draft","authenticated",z.object({customerId:uuid,title:shortText,body:z.string().max(20000),currency:z.string().length(3).optional(),amountMinor:z.number().int().nonnegative().optional()}).strict()],
+  ["get","/api/companies/{companyId}/proposals","List company proposals","authenticated",undefined,proposalListQuerySchema],
+  ["get","/api/companies/{companyId}/proposals/page","List latest proposal revisions with a continuation cursor","authenticated",undefined,proposalListQuerySchema],
+  ["post","/api/companies/{companyId}/proposals","Create a proposal draft","authenticated",createProposalSchema],
   ["get","/api/proposals/{id}","Read a proposal and current revision","authenticated"],
   ["get","/api/proposals/{id}/revisions","List immutable proposal revisions","authenticated"],
   ["post","/api/proposals/{id}/revise","Create a new proposal revision","authenticated",z.object({expectedRevision:z.number().int().positive(),title:shortText.optional(),body:z.string().max(20000).optional()}).strict()],

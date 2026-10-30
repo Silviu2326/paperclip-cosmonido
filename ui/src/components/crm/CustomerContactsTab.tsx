@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ContactCreateDialog } from "./ContactCreateDialog";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function CustomerContactsTab({ companyId, customerId }: { companyId: string; customerId: string }) {
   const { t } = useTranslation();
@@ -30,22 +31,23 @@ export function CustomerContactsTab({ companyId, customerId }: { companyId: stri
   const linkedIds = new Set(linked.map((row) => row.contact.id));
   const options = (allContactsQuery.data?.items ?? []).filter((contact) => !linkedIds.has(contact.id));
 
-  const refresh = () => {
+  const refresh = (contactId: string) => {
     void queryClient.invalidateQueries({ queryKey: linkedKey });
+    void queryClient.invalidateQueries({ queryKey: [...queryKeys.contacts.detail(contactId), "customers"] });
   };
 
   const link = useMutation({
     mutationFn: (contactId: string) =>
       crmApi.customers.linkContact(customerId, { contactId, isPrimary: linked.length === 0 }),
-    onSuccess: () => {
+    onSuccess: (_, contactId) => {
       setChosenContactId("");
-      refresh();
+      refresh(contactId);
     },
   });
 
   const unlink = useMutation({
     mutationFn: (contactId: string) => crmApi.customers.unlinkContact(customerId, contactId),
-    onSuccess: refresh,
+    onSuccess: (_, contactId) => refresh(contactId),
   });
 
   const errorMessage = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);

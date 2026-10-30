@@ -1,4 +1,231 @@
 {
+  "crmQuick": {
+    "contact": "Contactar",
+    "assignAgent": "Encargar a un agente",
+    "contactTitle": "Contactar con {{name}}",
+    "contactDescription": "Elige una forma disponible de contactar.",
+    "loadingContacts": "Cargando contactos vinculados…",
+    "contactsError": "No se pudieron cargar los contactos vinculados. Puedes usar los datos guardados del cliente.",
+    "noContactDetails": "No hay correo electrónico ni teléfono disponible.",
+    "addContact": "Añadir contacto",
+    "editRecord": "Editar datos",
+    "taskTitle": "Trabajo para {{name}}",
+    "taskInstructionsPlaceholder": "Añade instrucciones para el agente.",
+    "crmRecordLabel": "Ficha de CRM",
+    "primary": "principal",
+    "customerDetails": "Datos del cliente"
+  },
+  "agentWorkPermissions": {
+    "sandboxUnavailable": "El entorno no puede iniciar el sandbox de archivos de Codex. Esta restricción no está disponible aquí; el agente no arrancará sin aplicarla.",
+    "legacy": "Este agente conserva su acceso anterior. Solo los cambios que guardes activarán estos límites.",
+    "groups": {
+      "code": "Código y espacio de trabajo",
+      "tasks": "Tareas",
+      "projects": "Proyectos",
+      "documents": "Documentos y archivos"
+    },
+    "codeScope": "Los interruptores de abajo controlan las herramientas del espacio de trabajo que proporciona Paperclip.",
+    "unsupportedAdapter": "Este adaptador no tiene habilitado el espacio de trabajo controlado de Paperclip. Estos interruptores no limitan sus herramientas propias; por eso están deshabilitados.",
+    "commandsUnavailable": "Este servidor no dispone del aislamiento necesario para ejecutar comandos del espacio de trabajo.",
+    "additionalChecks": "Estos permisos restringen acciones de Paperclip. Se mantienen los controles de empresa, privacidad, asignación y aprobación; las herramientas externas conservan sus propios permisos.",
+    "codexAccess": "Acceso a archivos con Codex CLI",
+    "adapterDefault": "Conservar la configuración actual del adaptador",
+    "readOnly": "Solo lectura",
+    "workspaceWrite": "Lectura y escritura en el espacio de trabajo",
+    "codexScope": "Se usará el motor CLI de Codex con el sandbox seleccionado y sin ampliaciones de permisos. Los argumentos avanzados se omiten para que no anulen el límite. Los comandos siguen disponibles dentro de ese sandbox; este adaptador no permite desactivarlos por separado. Este cambio se aplica al siguiente arranque del agente.",
+    "options": {
+      "workspaceRead": {
+        "title": "Leer archivos del espacio de trabajo",
+        "hint": "Permite listar y leer archivos con las herramientas de Paperclip."
+      },
+      "workspaceWrite": {
+        "title": "Escribir archivos del espacio de trabajo",
+        "hint": "Permite modificar archivos y preparar repositorios con Paperclip."
+      },
+      "workspaceExecute": {
+        "title": "Ejecutar comandos del espacio de trabajo",
+        "hint": "Permite ejecutar programas en el espacio controlado. Requiere lectura y escritura."
+      },
+      "tasksRead": {
+        "title": "Consultar tareas",
+        "hint": "Permite consultar tareas e historial mediante la API y herramientas de Paperclip."
+      },
+      "tasksCreate": {
+        "title": "Crear tareas",
+        "hint": "Permite crear tareas. Elegir a otra persona o agente como responsable requiere además permiso de asignación."
+      },
+      "tasksUpdate": {
+        "title": "Actualizar tareas",
+        "hint": "Permite cambiar el estado, añadir comentarios y actualizar dependencias."
+      },
+      "tasksAssign": {
+        "title": "Asignar tareas",
+        "hint": "Permite elegir o cambiar responsables, sujeto a los controles de asignación existentes."
+      },
+      "projectsRead": {
+        "title": "Consultar proyectos",
+        "hint": "Permite consultar los proyectos accesibles de la empresa."
+      },
+      "projectsManage": {
+        "title": "Gestionar proyectos",
+        "hint": "Permite crear, actualizar y eliminar proyectos dentro de los permisos existentes."
+      },
+      "documentsRead": {
+        "title": "Leer documentos y archivos",
+        "hint": "Permite leer documentos, adjuntos y archivos de empresa mediante Paperclip."
+      },
+      "documentsWrite": {
+        "title": "Escribir documentos y archivos",
+        "hint": "Permite escribir documentos, gestionar archivos y registrar entregables."
+      }
+    }
+  },
+  "agentCatalog": {
+    "roles": {
+      "account-manager": {
+        "name": "Responsable de cuentas",
+        "description": "Recoge las solicitudes del cliente, coordina las entregas y hace seguimiento de los compromisos."
+      },
+      "editor": {
+        "name": "Editor de contenido",
+        "description": "Corrige y mejora los textos antes de su revisión final."
+      },
+      "reviewer": {
+        "name": "Revisor de contenido",
+        "description": "Revisa la calidad de las piezas y señala los cambios necesarios antes de entregarlas."
+      },
+      "writer": {
+        "name": "Redactor de contenido",
+        "description": "Redacta piezas a partir de las instrucciones y el contexto del cliente."
+      },
+      "content-strategist": {
+        "name": "Estratega de contenido",
+        "description": "Convierte los objetivos de comunicación en propuestas y guiones para el equipo de producción."
+      },
+      "copywriter": {
+        "name": "Redactor publicitario",
+        "description": "Prepara textos y guiones para las piezas de contenido y vídeo."
+      },
+      "video-editor": {
+        "name": "Editor de vídeo",
+        "description": "Monta y ajusta las piezas de vídeo siguiendo el guion y las indicaciones del equipo."
+      },
+      "content-lead": {
+        "name": "Responsable de contenido",
+        "description": "Organiza la planificación de contenido y coordina su revisión periódica."
+      },
+      "ceo": {
+        "name": "Director general",
+        "description": "Prioriza los objetivos de la empresa y coordina el trabajo del equipo."
+      },
+      "cto": {
+        "name": "Director de tecnología",
+        "description": "Coordina el trabajo técnico, las decisiones de arquitectura y las entregas de desarrollo."
+      },
+      "qa": {
+        "name": "Especialista en calidad",
+        "description": "Revisa los cambios del producto y comprueba su calidad antes de darlos por terminados."
+      },
+      "senior-coder": {
+        "name": "Desarrollador sénior",
+        "description": "Implementa y revisa cambios de código para entregar mejoras del producto."
+      },
+      "ux-designer": {
+        "name": "Diseñador de experiencia de usuario",
+        "description": "Diseña las pantallas y revisa la usabilidad y la calidad de la experiencia del producto."
+      },
+      "speko-company-phone-agent": {
+        "name": "Recepcionista telefónico de Speko",
+        "description": "Recibe llamadas, aclara solicitudes y deriva el trabajo al agente adecuado mediante Speko."
+      },
+      "escalation-agent": {
+        "name": "Especialista en escalaciones",
+        "description": "Identifica los casos que necesitan una decisión humana y coordina su seguimiento."
+      },
+      "support-agent": {
+        "name": "Agente de atención al cliente",
+        "description": "Prepara respuestas a los clientes y mantiene el seguimiento de las conversaciones."
+      },
+      "qualifier": {
+        "name": "Especialista en cualificación comercial",
+        "description": "Evalúa las nuevas oportunidades comerciales y reúne la información necesaria para avanzar."
+      },
+      "scheduler": {
+        "name": "Coordinador de reuniones",
+        "description": "Coordina la reserva de reuniones y su seguimiento con las oportunidades comerciales."
+      },
+      "sdr": {
+        "name": "Representante de desarrollo comercial",
+        "description": "Atiende nuevas oportunidades, prepara respuestas y realiza seguimiento comercial."
+      },
+      "cmo": {
+        "name": "Director de marketing",
+        "description": "Coordina las prioridades y las acciones de marketing de la empresa."
+      }
+    },
+    "teams": {
+      "core-exec-team": {
+        "name": "Equipo de dirección"
+      },
+      "product-design": {
+        "name": "Diseño de producto"
+      },
+      "product-engineering": {
+        "name": "Desarrollo de producto"
+      },
+      "speko-company-phone-agent": {
+        "name": "Atención telefónica con Speko"
+      },
+      "agency-content": {
+        "name": "Agencia de contenido"
+      },
+      "content-and-video": {
+        "name": "Contenido y vídeo"
+      },
+      "content-machine": {
+        "name": "Operaciones de contenido"
+      },
+      "customer-care": {
+        "name": "Atención al cliente"
+      },
+      "sales-inbound": {
+        "name": "Ventas entrantes"
+      }
+    },
+    "technicalDetails": "Referencias de habilidades",
+    "categories": {
+      "company-defaults": "Dirección y gestión",
+      "product": "Producto",
+      "software-development": "Código y desarrollo",
+      "communications": "Comunicación",
+      "content": "Contenido y vídeo",
+      "customer-care": "Atención al cliente",
+      "sales": "Ventas"
+    },
+    "title": "Catálogo de agentes",
+    "agents": "Agentes",
+    "myAgents": "Mis agentes",
+    "description": "Instala agentes preparados con sus instrucciones y habilidades. Elige uno del catálogo y revisa su configuración antes de añadirlo a tu empresa.",
+    "search": "Buscar agentes, funciones o equipos",
+    "category": "Categoría",
+    "allCategories": "Todas las categorías",
+    "loading": "Cargando agentes disponibles…",
+    "empty": "No hay agentes que coincidan con estos filtros.",
+    "install": "Instalar agente",
+    "installTitle": "Instalar agente del catálogo",
+    "installHint": "Se instalará únicamente el agente elegido, junto con las habilidades del paquete. Si ya existe, se creará con otro nombre.",
+    "preparing": "Preparando la configuración del agente…",
+    "retry": "Reintentar",
+    "adapter": "Entorno de ejecución",
+    "chooseAdapter": "Elige un entorno disponible",
+    "connectionHint": "La instalación conserva sus instrucciones. Revisa la conexión de IA y los permisos desde su perfil antes de asignarle trabajo.",
+    "installed": "{{name}} se ha instalado en tu empresa.",
+    "close": "Cerrar",
+    "openAgent": "Abrir agente",
+    "installing": "Instalando…",
+    "chooseCompany": "Selecciona una empresa para ver e instalar agentes.",
+    "invalidSelection": "La vista previa no contiene únicamente el agente elegido. Revisa el paquete desde el catálogo de equipos."
+  },
   "app": {
     "noCompanies": {
       "title": "Crea tu primera empresa",
@@ -327,7 +554,12 @@
     "remove": "Quitar artefacto",
     "addSelected": "Adjuntar {{count}}",
     "attachFailed": "No se pudieron adjuntar {{count}} artefactos.",
-    "source": { "company_file": "Entrada", "attachment": "Adjunto", "work_product": "Entregable", "document": "Documento" }
+    "source": {
+      "company_file": "Entrada",
+      "attachment": "Adjunto",
+      "work_product": "Entregable",
+      "document": "Documento"
+    }
   },
   "issueAttachments": {
     "browseGallery": "Explorar galería",
@@ -9043,6 +9275,70 @@
     "configured": "agente configurado, sin conexión",
     "online": "agente en línea"
   },
+  "agentCaps": {
+    "permissionsTitle": "Permisos del agente",
+    "permissionsHint": "Activa solo lo que necesita para su función. Las opciones disponibles dependen del tipo de agente.",
+    "enabledCount": "{{count}} permisos activos",
+    "legacyPermissionsNote": "Este agente conserva permisos de una configuración anterior. Al guardar se ajustarán a este tipo. Elige Personalizado si necesitas combinar funciones.",
+    "operationsScopeTitle": "Trabajo interno de Paperclip",
+    "operationsScopeHint": "Este tipo no ofrece permisos de comunicación, código o medios. Los controles específicos de tareas, proyectos y documentos están pendientes de conectar; se aplican los permisos actuales de Paperclip.",
+    "codeScopeNote": "Esta opción describe su función. Los límites de lectura, escritura y ejecución dependen del adaptador y del espacio de trabajo; todavía no se configuran aquí.",
+    "purposeTitle": "¿Para qué sirve este agente?",
+    "specialtyRequired": "Elige una categoría para continuar.",
+    "customerCareLabel": "Atención al cliente",
+    "customerCareDescription": "Responde a personas y clientes por los canales configurados.",
+    "salesLabel": "Ventas",
+    "salesDescription": "Atiende oportunidades, hace seguimiento y puede llamar.",
+    "videoContentLabel": "Vídeo y contenido",
+    "videoContentDescription": "Crea y edita vídeo y otros medios.",
+    "softwareLabel": "Código y desarrollo",
+    "softwareDescription": "Trabaja con código y repositorios.",
+    "operationsLabel": "Operaciones",
+    "operationsDescription": "Gestiona trabajo interno sin contactar con clientes.",
+    "customLabel": "Personalizado",
+    "customDescription": "Tú decides cada capacidad.",
+    "messagesTitle": "Mensajes",
+    "messagesHint": "Puede escribir a personas y clientes por los canales seleccionados.",
+    "callsTitle": "Llamadas",
+    "callsHint": "Puede hacer llamadas telefónicas.",
+    "mediaActionsTitle": "Acciones de medios",
+    "mediaActionsHint": "Elige qué operaciones de medios puede ejecutar este agente.",
+    "mediaAnalyzeTitle": "Analizar medios",
+    "mediaAnalyzeHint": "Transcribir audio o vídeo y detectar silencios y muletillas.",
+    "mediaEditTitle": "Editar medios",
+    "mediaEditHint": "Cortar, subtitular, doblar, añadir voz y exportar contenido existente.",
+    "mediaCreateVideoTitle": "Crear vídeos",
+    "mediaCreateVideoHint": "Crear vídeos a partir de una especificación y recursos disponibles con motor-video.",
+    "codeTitle": "Código y repositorios",
+    "codeHint": "Trabaja con código y repositorios.",
+    "autonomyNote": "Al principio solo prepara borradores. Para que envíe con aprobación o directo, súbelo en Autonomía.",
+    "openAutonomy": "Abrir Autonomía",
+    "levelSendWithApproval": "Con aprobación",
+    "levelSendDirect": "Directo",
+    "levelDraftOnly": "Solo borrador",
+    "autonomyMessages": "Mensajes",
+    "autonomyEmail": "Correo",
+    "autonomyCalls": "Llamadas",
+    "panelTitle": "Capacidades",
+    "panelHint": "Elige para qué sirve este agente y qué puede hacer. Los cambios se aplican al guardar.",
+    "loading": "Cargando capacidades…",
+    "loadError": "No se pudieron cargar las capacidades de este agente.",
+    "retry": "Reintentar",
+    "saveError": "No se pudieron guardar las capacidades.",
+    "saved": "Capacidades guardadas.",
+    "saving": "Guardando…",
+    "save": "Guardar capacidades",
+    "autonomyTitle": "Autonomía efectiva",
+    "autonomyHint": "Los niveles de aprobación se ganan con pruebas y se cambian en Autonomía.",
+    "readOnly": "Solo lectura: necesitas acceso de tablero para cambiar las capacidades.",
+    "forbidden": "No tienes permiso para cambiar las capacidades de este agente."
+  },
+  "agentMessageChannels": {
+    "title": "Canales de mensajería",
+    "hint": "El agente solo puede enviar mensajes por los canales seleccionados. También hay que configurar la conexión del canal.",
+    "email": "Correo",
+    "webchat": "Chat web"
+  },
   "agentChatSidebar": {
     "chats": "Chats",
     "chatWithAgent": "Chatea con un agente",
@@ -11021,6 +11317,22 @@
       "fieldName": "Nombre",
       "fieldKind": "Tipo",
       "fieldDomain": "Dominio",
+      "fieldNotes": "Notas",
+      "fieldContactName": "Persona de contacto (opcional)",
+      "fieldPhone": "Teléfono (opcional)",
+      "fieldAddress": "Dirección (opcional)",
+      "fieldCity": "Ciudad (opcional)",
+      "fieldPostalCode": "Código postal (opcional)",
+      "fieldCountry": "País (opcional)",
+      "fieldLegalName": "Razón social (opcional)",
+      "fieldTaxId": "NIF / CIF / identificación fiscal (opcional)",
+      "optionalDetailsHint": "Solo el nombre es obligatorio. Añade los datos de contacto, dirección o facturación que tengas.",
+      "editTitle": "Editar cliente",
+      "edit": "Editar datos",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "updateError": "No se pudo actualizar el cliente.",
+      "fieldNotesPlaceholder": "Qué necesita el cliente, servicios acordados y otro contexto útil.",
       "fieldContactEmail": "Correo de contacto (opcional)",
       "fieldContactEmailHint": "Sirve para buscar registros existentes con el mismo contacto.",
       "cancel": "Cancelar",
@@ -11047,7 +11359,6 @@
       "archive": "Archivar",
       "restore": "Reactivar",
       "archivedBadge": "Archivado",
-      "updateError": "No se pudo actualizar el cliente.",
       "contactsEmpty": "Todavía no hay contactos vinculados.",
       "linkContact": "Vincular contacto",
       "chooseContact": "Elige un contacto",
@@ -11076,6 +11387,13 @@
       "loadingMore": "Cargando...",
       "selectCompany": "Selecciona una empresa para ver sus contactos.",
       "createTitle": "Nuevo contacto",
+      "customerOptional": "Cliente (opcional)",
+      "customerHint": "Vincula esta persona con un cliente. Puedes buscar uno existente o crear uno nuevo.",
+      "noLinkedCustomers": "Todavía no está vinculada a ningún cliente.",
+      "linkCustomer": "Vincular cliente",
+      "unlinkCustomerName": "Desvincular de {{name}}",
+      "customersLoadError": "No se pudieron cargar los clientes de esta persona.",
+      "customerLinkError": "No se pudo cambiar la vinculación con el cliente. Inténtalo de nuevo.",
       "fieldDisplayName": "Nombre",
       "fieldEmail": "Correo",
       "fieldPhone": "Teléfono",
@@ -11453,14 +11771,17 @@
       "loadMore": "Cargar más",
       "noSubject": "Sin asunto",
       "lastActivity": "Última actividad {{when}}",
-      "unassigned": "Sin asignar"
+      "unassigned": "Sin asignar",
+      "firstMessage": "Todavía no hay conversaciones. Conecta un canal arriba y envía un primer mensaje para verlo aquí."
     },
     "thread": {
       "title": "Hilo",
       "empty": "Todavía no hay mensajes.",
       "inbound": "Contacto",
       "outbound": "Nosotros",
-      "draftLabel": "Borrador"
+      "draftLabel": "Borrador",
+      "loadOlder": "Cargar mensajes anteriores",
+      "loadError": "No se pudo actualizar el historial. Los mensajes cargados siguen disponibles; vuelve a intentar cargar los anteriores."
     },
     "composer": {
       "placeholder": "Escribe una respuesta…",
@@ -11496,6 +11817,49 @@
       "generic": "Algo salió mal. Inténtalo de nuevo.",
       "send": "No se pudo enviar el mensaje.",
       "draft": "No se pudo guardar el borrador."
+    },
+    "setup": {
+      "title": "Pon en marcha tu bandeja de conversaciones",
+      "manageTitle": "Tus canales de conversaciones",
+      "description": "Elige los canales que usan tus clientes. Conecta uno para empezar; puedes añadir los demás después.",
+      "manage": "Configurar canales",
+      "later": "Continuar después",
+      "viewInbox": "Ir a la bandeja",
+      "connect": "Conectar {{channel}}",
+      "configure": "Configurar {{channel}}",
+      "retry": "Volver a intentar",
+      "loadError": "No se pudo cargar parte de la configuración. Vuelve a intentarlo para comprobar su estado.",
+      "emailHelp": "Conecta o crea un buzón con el asistente de correo. Aquí aparecen tus buzones existentes; la configuración queda guardada cuando vuelvas.",
+      "emailAccount": "Cuenta de correo",
+      "testHelp": "Esta prueba abre el widget real del visitante. Abre el chat, envía un mensaje y después abre su conversación en la bandeja para responder. Los mensajes de prueba se guardan y pueden iniciar las respuestas automáticas del agente configurado.",
+      "openTest": "Probar chat web",
+      "closeTest": "Cerrar prueba",
+      "testTitle": "Prueba del chat web de visitantes",
+      "providerTestHelp": "Después de guardar la cuenta, prueba sus credenciales. Configura esta URL en el proveedor para recibir mensajes. Debe ser accesible públicamente mediante HTTPS.",
+      "receiveHelp": "Para comprobar la bandeja, envía un mensaje desde un canal conectado y responde desde su conversación. Verificar las credenciales por sí solo no demuestra que lleguen los mensajes ni que se entreguen las respuestas.",
+      "state": {
+        "enabled": "Activado",
+        "verified": "Credenciales verificadas",
+        "pending": "Configuración pendiente",
+        "attention": "Necesita atención",
+        "disconnected": "Sin conectar",
+        "loading": "Comprobando conexión…",
+        "unavailable": "No se pudo comprobar"
+      },
+      "hint": {
+        "webchat": "Recibe mensajes de tu web. Empieza aquí si todavía no tienes una cuenta de proveedor.",
+        "email": "Conecta o crea un buzón para las conversaciones por correo.",
+        "whatsapp": "Conecta tu cuenta de WhatsApp Business.",
+        "messenger": "Conecta la página de Facebook a la que escriben tus clientes.",
+        "instagram": "Conecta tu cuenta profesional de Instagram.",
+        "telegram": "Conecta un bot para los mensajes de clientes.",
+        "sms": "Conecta un número de Twilio para los mensajes de texto."
+      },
+      "webhook": {
+        "meta": "Suscribe la aplicación a los eventos de mensajes de la cuenta elegida. Usa el secreto del token de verificación para el desafío de la URL y el App Secret para verificar los eventos firmados.",
+        "telegram": "Registra esta URL como webhook del bot. Configura secret_token con el valor del secreto de verificación; el token del bot es la credencial de envío.",
+        "twilio": "Configura esta URL para los mensajes entrantes (POST) y las notificaciones de estado. El secreto de verificación debe contener tu Auth Token de Twilio."
+      }
     }
   },
   "channels": {
@@ -11545,6 +11909,8 @@
     },
     "hints": {
       "externalAccountId": "ID del número de WhatsApp, ID de la página de Messenger, ID de la cuenta de Instagram, ID del bot de Telegram o el número de Twilio en formato E.164.",
+      "prepareSecrets": "Elige secretos guardados o créalos con el botón + de cada campo. Los valores se guardan en el almacén de secretos de la empresa.",
+      "openSecrets": "Gestionar secretos",
       "secretNames": "Escribe el nombre de un secreto de la empresa. El valor nunca se muestra aquí.",
       "templates": "Una por línea como nombre|idioma, por ejemplo reactivar|es. Se usan fuera de la ventana de 24 h de WhatsApp."
     },
@@ -11629,6 +11995,9 @@
     "context": "Contexto",
     "createVideo": "Crear vídeo",
     "production": "Producción",
+    "cancelJob": "Cancelar trabajo",
+    "cancellingJob": "Cancelando trabajo…",
+    "finalizingJob": "Guardando resultado…",
     "createVideoFromFile": "Crear vídeo a partir de este archivo",
     "selectCompany": "Selecciona una empresa para ver sus trabajos de producción.",
     "refreshQueue": "Actualizar cola",
@@ -12001,5 +12370,100 @@
   "agencyPage": {
     "title": "Instalaciones gestionadas",
     "pageDescription": "Gestiona las empresas independientes que operas para clientes, sus paquetes y su identidad pública."
+  },
+  "salesWorkspace": {
+    "pipeline": "Pipeline de ventas",
+    "newLead": "Nuevo lead",
+    "editLead": "Editar lead",
+    "newProposal": "Nueva propuesta",
+    "editProposal": "Editar propuesta",
+    "editOpportunity": "Editar oportunidad",
+    "convertLead": "Crear oportunidad desde lead",
+    "convertDescription": "Se vincularán el contacto y el cliente y se creará una oportunidad. Al terminar se abrirá su ficha.",
+    "name": "Nombre",
+    "company": "Empresa",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "message": "Mensaje",
+    "priority": "Prioridad",
+    "language": "Idioma",
+    "owner": "Responsable",
+    "everyone": "Todos los responsables",
+    "unassigned": "Sin asignar",
+    "savedOwner": "Responsable guardado",
+    "ownersError": "No se pudieron cargar todos los responsables.",
+    "customer": "Cliente",
+    "searchCustomers": "Buscar clientes",
+    "selectedCustomer": "Cliente seleccionado",
+    "customersError": "No se pudieron cargar los clientes. Vuelve a intentarlo.",
+    "newCustomer": "Crear cliente",
+    "loadMore": "Cargar más",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar cambios",
+    "edit": "Editar",
+    "title": "Título",
+    "stage": "Etapa",
+    "amount": "Importe",
+    "currency": "Moneda",
+    "probability": "Probabilidad (%)",
+    "expectedClose": "Fecha prevista de cierre",
+    "nextAction": "Siguiente acción",
+    "nextActionAt": "Fecha del seguimiento",
+    "conflictHint": "Si otra persona ha cambiado la ficha, ciérrala y vuelve a abrirla para cargar la versión actual.",
+    "opportunity": "Oportunidad",
+    "notSet": "Sin definir",
+    "notFound": "No se encontró el registro en esta empresa.",
+    "openOpportunity": "Abrir oportunidad",
+    "allProposals": "Ver todas las propuestas",
+    "additionalData": "Otros datos del lead",
+    "lostReason": "Motivo de pérdida",
+    "closeLost": "Marcar como perdida",
+    "view": "Vista",
+    "status": "Estado",
+    "allStatuses": "Todos los estados",
+    "open": "Abiertas",
+    "won": "Ganadas",
+    "lost": "Perdidas",
+    "clearFilters": "Restablecer filtros",
+    "searchOpportunities": "Buscar oportunidades",
+    "searchProposals": "Buscar propuestas",
+    "resultCount": "{{count}} registros cargados",
+    "partialResults": "{{count}} registros cargados. Hay más resultados; los recuentos e importes mostrados son parciales.",
+    "recordActivity": "Registrar actividad",
+    "activityKind": "Tipo de actividad",
+    "summary": "Nota o resultado",
+    "addCommitment": "Añadir compromiso",
+    "commitment": "Qué hay que hacer",
+    "who": "Quién se compromete",
+    "dueAt": "Fecha límite",
+    "proposalDescription": "Guarda un borrador antes de enviarlo. Los cambios en una propuesta enviada crean una nueva revisión.",
+    "opportunityOptional": "Oportunidad vinculada (opcional)",
+    "noOpportunity": "Sin oportunidad vinculada",
+    "scope": "Conceptos de la propuesta",
+    "concept": "Concepto",
+    "description": "Descripción",
+    "quantity": "Cantidad",
+    "unitPrice": "Precio unitario",
+    "removeLine": "Quitar concepto",
+    "addLine": "Añadir concepto",
+    "total": "Precio total",
+    "deposit": "Señal (opcional)",
+    "validUntil": "Válida hasta",
+    "terms": "Condiciones",
+    "createDraft": "Crear borrador",
+    "sortLoaded": "Ordenar resultados cargados",
+    "newest": "Más recientes",
+    "byName": "Nombre (A–Z)",
+    "byFollowUp": "Seguimiento más próximo",
+    "selectedCount": "{{count}} leads seleccionados",
+    "assignSelected": "Asignar selección",
+    "unassignSelected": "Quitar responsable de la selección",
+    "triageSelected": "Clasificar nuevos seleccionados",
+    "discardSelected": "Descartar leads seleccionados",
+    "selectLoaded": "Seleccionar leads cargados",
+    "selectLead": "Seleccionar {{name}}",
+    "actionFailed": "No se pudo completar la acción.",
+    "bulkResult": "Completados: {{succeeded}}. Fallidos: {{failed}}. Los fallidos siguen seleccionados para reintentar."
   }
 }

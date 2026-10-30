@@ -779,3 +779,13 @@ Agents select authorized workspace/repository intent while the harness owns path
 ### Fast responses
 
 A company may use a shared API model to acknowledge accepted human messages across tasks, agent chat and external channels while normal work starts. Acknowledgements retain their platform provenance and cannot satisfy execution or completion requirements. The bounded inference, authorization, sponsorship and independent accounting contract is defined in [fast-responses.md](fast-responses.md).
+
+
+## Customer conversation onboarding and history
+
+Conversations should guide the operator from channel connection to receiving and
+replying to a first message, using saved company settings and existing connection
+governance. Configuration must remain resumable across navigation and reload.
+Connection probes and actual message delivery are separate facts. Conversation
+lists and message history must remain traversable as they grow, opening long
+threads at their newest messages. See [the implementation contract](SPEC-implementation.md#customer-conversation-inbox-setup-and-history).

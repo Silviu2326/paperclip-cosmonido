@@ -488,6 +488,7 @@ export function Agents({ initialView = "list" }: { initialView?: AgentsView } = 
                 <Network className="h-3.5 w-3.5" />
               </Button>
           </div> : null}
+          <Button asChild size="sm" variant="outline"><Link to="/agents/catalog">{t("agentCatalog.title")}</Link></Button>
           <AddTeamButton />
           <Button size="sm" variant="outline" onClick={openNewAgent}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />

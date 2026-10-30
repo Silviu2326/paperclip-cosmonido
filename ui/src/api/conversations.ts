@@ -1,6 +1,7 @@
 import type {
   Conversation,
   ConversationMessage,
+  ConversationMessagePage,
   CreateConversationMessage,
   SetConversationState,
 } from "@paperclipai/shared";
@@ -22,6 +23,7 @@ export interface ConversationFilters {
 
 export interface ConversationDetail extends Conversation {
   messages: ConversationMessage[];
+  nextMessageCursor: string | null;
 }
 
 export interface SendOutcome {
@@ -44,6 +46,8 @@ export const conversationsApi = {
   list: (companyId: string, query?: ConversationFilters) =>
     api.get<CrmPage<Conversation>>(withQuery(`/companies/${companyId}/conversations`, query)),
   get: (id: string) => api.get<ConversationDetail>(`/conversations/${id}`),
+  messages: (id: string, before: string) =>
+    api.get<ConversationMessagePage>(`/conversations/${id}/messages?${new URLSearchParams({ before, limit: "50" })}`),
   create: (companyId: string, data: Record<string, unknown>) =>
     api.post<Conversation>(`/companies/${companyId}/conversations`, data),
   draft: (conversationId: string, data: CreateConversationMessage) =>

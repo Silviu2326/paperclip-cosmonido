@@ -84,6 +84,9 @@ const CAPABILITY_LABELS: Partial<Record<PermissionKey, string>> = {
   "channels:message": "send messages",
   "channels:call": "make calls",
   "media:generate": "use media tools",
+  "media:analyze": "analyze media",
+  "media:edit": "edit media",
+  "media:create_video": "create videos",
 };
 
 /** 403 with machine code `agent_capability_disabled` for an agent that lacks a company grant. */
@@ -105,6 +108,54 @@ export async function assertAgentCapability(
 ): Promise<void> {
   const allowed = await accessService(db).hasPermission(input.companyId, "agent", input.agentId, input.permissionKey);
   if (!allowed) throw agentCapabilityDisabled(input.permissionKey);
+}
+
+export type AgentMediaAction = "analyze" | "edit" | "createVideo";
+
+const MEDIA_TOOL_ACTIONS: Readonly<Record<string, AgentMediaAction | null>> = {
+  media_get_project: null,
+  media_get_job: null,
+  media_transcribe: "analyze",
+  media_detect_silences: "analyze",
+  media_detect_fillers: "analyze",
+  media_ingest: "edit",
+  media_cut: "edit",
+  media_subtitle: "edit",
+  media_export: "edit",
+  media_render: "edit",
+  media_dub: "edit",
+  media_stop_motion: "edit",
+  media_dub_multivoice: "edit",
+  media_voiceover: "edit",
+  media_motor_video_render: "createVideo",
+};
+
+/** Undefined means an unrecognized tool; null is a read-only tool protected by resource ACLs. */
+export function agentMediaActionForTool(toolName: string): AgentMediaAction | null | undefined {
+  return MEDIA_TOOL_ACTIONS[toolName];
+}
+
+const MEDIA_ACTION_PERMISSION: Record<AgentMediaAction, PermissionKey> = {
+  analyze: "media:analyze",
+  edit: "media:edit",
+  createVideo: "media:create_video",
+};
+
+/** Old media:generate grants remain a temporary umbrella for already-configured agents. */
+export async function hasAgentMediaAction(
+  db: Db,
+  input: { companyId: string; agentId: string; action: AgentMediaAction },
+): Promise<boolean> {
+  const access = accessService(db);
+  if (await access.hasPermission(input.companyId, "agent", input.agentId, MEDIA_ACTION_PERMISSION[input.action])) return true;
+  return access.hasPermission(input.companyId, "agent", input.agentId, "media:generate");
+}
+
+export async function assertAgentMediaAction(
+  db: Db,
+  input: { companyId: string; agentId: string; action: AgentMediaAction },
+): Promise<void> {
+  if (!await hasAgentMediaAction(db, input)) throw agentCapabilityDisabled(MEDIA_ACTION_PERMISSION[input.action]);
 }
 
 /**

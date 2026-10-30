@@ -381,22 +381,24 @@ export function ArtifactsExplorer() {
       toggleFavorite,
       createTask: (item: ExplorerItem) => {
         if (item.kind !== "file") return;
-        const raw = item.raw as CompanyFile | CompanyArtifact;
+        const raw = item.raw;
         let projectId: string | undefined;
         let versionId: string | null | undefined;
         if (item.box === "in") {
+          if (!("currentVersionId" in raw)) return;
           const file = raw as CompanyFile;
           projectId = file.audienceKind === "project" ? file.audienceId ?? undefined : undefined;
           versionId = versionPick?.fileId === file.id
             ? versionsQuery.data?.find((version) => version.versionNumber === versionPick.versionNumber)?.id
             : file.currentVersionId;
         } else {
+          if (!("source" in raw)) return;
           projectId = (raw as CompanyArtifact).project?.id;
         }
         openNewIssue({
           title: item.name,
           ...(projectId ? { projectId } : {}),
-          attachments: [artifactSelectionFromExplorer(item, versionId)],
+          attachments: [artifactSelectionFromExplorer({ box: item.box, name: item.name, raw: raw as CompanyFile | CompanyArtifact }, versionId)],
           navigateOnCreate: true,
         });
       },

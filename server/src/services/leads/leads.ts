@@ -315,6 +315,8 @@ export function leadService(db: Db) {
               title: input.opportunityTitle ?? `${companyName ?? displayName} (${lead.source})`,
               stageKey: "new",
               source: lead.source,
+              ownerUserId: lead.assignedUserId,
+              ownerAgentId: lead.assignedAgentId,
             },
             convertActor,
           );

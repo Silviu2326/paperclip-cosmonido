@@ -1,7 +1,15 @@
+import { applyAgentCodeAccess } from "./agent-code-access.js";
+import { existsSync } from "node:fs";
 import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { agents, principalPermissionGrants } from "@paperclipai/db";
 import {
+  AGENT_MESSAGE_CHANNELS,
+  defaultAgentWorkPermissions,
+  workPermissionsForSpecialty,
+  agentWorkPermissionsSchema,
+  AGENT_SPECIALTY_PRESETS,
+  capabilitiesForSpecialty,
   AGENT_CAPABILITY_PERMISSION_KEYS,
   AGENT_SPECIALTIES,
   agentCapabilityGrantKeys,
@@ -10,9 +18,11 @@ import {
   type AgentCapabilityAutonomyLevel,
   type AgentProfile,
   type AgentSpecialty,
+  type AgentMessageChannel,
+  type ConversationChannel,
   type PermissionKey,
 } from "@paperclipai/shared";
-import { notFound } from "../errors.js";
+import { forbidden, notFound } from "../errors.js";
 import { logActivity } from "./activity-log.js";
 import { accessService } from "./access.js";
 import { autonomyService } from "./autonomy.js";
@@ -54,7 +64,47 @@ export function profileFromMetadata(metadata: unknown): AgentProfile | null {
   const sectors = Array.isArray(profile.sectors)
     ? profile.sectors.filter((sector): sector is string => typeof sector === "string")
     : [];
-  return { specialty: profile.specialty, sectors };
+  const hasMessageChannelAllowlist = Object.prototype.hasOwnProperty.call(profile, "messageChannels");
+  const messageChannels = Array.isArray(profile.messageChannels)
+    ? profile.messageChannels.filter((channel): channel is AgentMessageChannel =>
+        typeof channel === "string" && (AGENT_MESSAGE_CHANNELS as readonly string[]).includes(channel),
+      )
+    : [];
+  return {
+    specialty: profile.specialty,
+    ...((profile.codeAdapterAccess === null || profile.codeAdapterAccess === "read_only" || profile.codeAdapterAccess === "workspace_write") ? { codeAdapterAccess: profile.codeAdapterAccess } : {}),
+    ...(profile.workPermissions !== undefined ? { workPermissions: agentWorkPermissionsSchema.parse(profile.workPermissions) } : {}),
+    sectors,
+    ...(hasMessageChannelAllowlist ? { messageChannels } : {}),
+  };
+}
+
+/** Enforces a stored per-channel allowlist; profiles without one keep legacy behavior. */
+export async function assertAgentMessageChannel(
+  db: Db,
+  input: { companyId: string; agentId: string; channel: ConversationChannel },
+): Promise<void> {
+  const agent = await db
+    .select({ metadata: agents.metadata })
+    .from(agents)
+    .where(and(eq(agents.id, input.agentId), eq(agents.companyId, input.companyId)))
+    .then((rows) => rows[0] ?? null);
+  if (!agent) throw notFound("Agent not found");
+  const profile = asRecord(asRecord(agent.metadata)?.profile);
+  // A missing field is a pre-feature profile. Keep its existing company-wide grant behavior.
+  if (!profile || !Object.prototype.hasOwnProperty.call(profile, "messageChannels")) return;
+  const channels = Array.isArray(profile.messageChannels)
+    ? profile.messageChannels.filter((channel): channel is string => typeof channel === "string")
+    : [];
+  if (
+    !(AGENT_MESSAGE_CHANNELS as readonly string[]).includes(input.channel) ||
+    !channels.includes(input.channel)
+  ) {
+    throw forbidden("This agent is not allowed to send messages on this channel.", {
+      code: "agent_channel_disabled",
+      channel: input.channel,
+    });
+  }
 }
 
 /** The `code` flag from `metadata.profile`. Agents without a stored flag keep code enabled. */
@@ -72,15 +122,26 @@ export function codeFromMetadata(metadata: unknown): boolean {
 export function capabilityMetadataForCreate(
   metadata: Record<string, unknown> | null | undefined,
   capabilities: AgentCapabilities | undefined,
-  profile: { specialty: AgentSpecialty; sectors: string[] } | undefined,
+  profile: AgentProfile | undefined,
 ): Record<string, unknown> | null | undefined {
   if (!capabilities && !profile) return metadata;
   const next: Record<string, unknown> = { ...(metadata ?? {}) };
   const previous = profileFromMetadata(next);
+  if (!capabilities && profile) capabilities = { ...AGENT_SPECIALTY_PRESETS[profile.specialty].capabilities };
+  const specialty = profile?.specialty ?? previous?.specialty ?? "custom";
+  if (capabilities) capabilities = capabilitiesForSpecialty(capabilities, specialty);
   const code = capabilities?.code ?? codeFromMetadata(next);
+  const creationWorkPermissions = profile ? workPermissionsForSpecialty(profile.workPermissions ?? defaultAgentWorkPermissions(specialty), specialty) : previous?.workPermissions;
   next.profile = {
+    ...((profile?.codeAdapterAccess !== undefined || previous?.codeAdapterAccess !== undefined) ? { codeAdapterAccess: profile?.codeAdapterAccess !== undefined ? profile.codeAdapterAccess : previous?.codeAdapterAccess } : {}),
+    ...(creationWorkPermissions ? { workPermissions: creationWorkPermissions } : {}),
     specialty: profile?.specialty ?? previous?.specialty ?? "custom",
     sectors: profile?.sectors ?? previous?.sectors ?? [],
+    ...(profile?.messageChannels !== undefined
+      ? { messageChannels: profile.messageChannels }
+      : previous?.messageChannels !== undefined
+        ? { messageChannels: previous.messageChannels }
+        : {}),
     code,
   };
   if (capabilities) {
@@ -88,18 +149,33 @@ export function capabilityMetadataForCreate(
       messages: capabilities.messages,
       calls: capabilities.calls,
       video: capabilities.video,
+      mediaAnalyze: capabilities.mediaAnalyze,
+      mediaEdit: capabilities.mediaEdit,
+      mediaCreateVideo: capabilities.mediaCreateVideo,
     };
   }
   return next;
 }
 
 function capabilitiesFromGrantKeys(granted: Set<string>): AgentCapabilities {
+  const legacyMedia = granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.video);
+  const mediaAnalyze = legacyMedia || granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.mediaAnalyze);
+  const mediaEdit = legacyMedia || granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.mediaEdit);
+  const mediaCreateVideo = legacyMedia || granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.mediaCreateVideo);
   return {
     messages: granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.messages),
     calls: granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.calls),
-    video: granted.has(AGENT_CAPABILITY_PERMISSION_KEYS.video),
+    video: mediaAnalyze || mediaEdit || mediaCreateVideo,
+    mediaAnalyze,
+    mediaEdit,
+    mediaCreateVideo,
     code: false,
   };
+}
+
+function workPermissionSupport(agent: { adapterType: string; adapterConfig: Record<string, unknown> }) {
+  const workspace = agent.adapterType === "paperclip_runner" && agent.adapterConfig.provider === "openai_dot" && agent.adapterConfig.dotWorkspaceAccess === true;
+  return { workspace, commands: workspace && process.platform === "linux" && existsSync("/usr/bin/bwrap"), codexFilesystem: agent.adapterType === "codex_local" && (agent.adapterConfig.command === undefined || agent.adapterConfig.command === "codex") };
 }
 
 export function agentCapabilitiesService(db: Db) {
@@ -145,7 +221,10 @@ export function agentCapabilitiesService(db: Db) {
     agentId: string,
     capabilities: AgentCapabilities,
     grantedByUserId: string | null,
+    specialty?: AgentSpecialty,
   ): Promise<{ added: PermissionKey[]; removed: PermissionKey[] }> {
+    const selectedSpecialty = specialty ?? profileFromMetadata((await loadAgent(companyId, agentId)).metadata)?.specialty;
+    if (selectedSpecialty) capabilities = capabilitiesForSpecialty(capabilities, selectedSpecialty);
     const wanted = new Set<string>(agentCapabilityGrantKeys(capabilities));
     const current = await grantedKeys(companyId, agentId);
     const added: PermissionKey[] = [];
@@ -180,9 +259,10 @@ export function agentCapabilitiesService(db: Db) {
   return {
     /** Grant-backed capabilities, profile and approval levels of one agent. */
     async get(companyId: string, agentId: string): Promise<AgentCapabilitiesResponse> {
-      const { capabilities, profile } = await readCurrent(companyId, agentId);
+      const { capabilities, profile, agent } = await readCurrent(companyId, agentId);
       return {
         profile,
+        workPermissionSupport: workPermissionSupport(agent),
         capabilities,
         autonomy: await autonomyLevels(companyId, agentId),
       };
@@ -196,18 +276,30 @@ export function agentCapabilitiesService(db: Db) {
       companyId: string,
       agentId: string,
       capabilities: AgentCapabilities,
-      profile: { specialty: AgentSpecialty; sectors: string[] } | undefined,
+      profile: AgentProfile | undefined,
       actor: AgentCapabilitiesActor,
     ): Promise<AgentCapabilitiesResponse> {
       const before = await readCurrent(companyId, agentId);
-      const { added, removed } = await syncGrants(companyId, agentId, capabilities, actor.userId ?? null);
+      applyAgentCodeAccess({ profile: { codeAdapterAccess: profile?.codeAdapterAccess !== undefined ? profile.codeAdapterAccess : before.profile?.codeAdapterAccess } }, before.agent.adapterType, { ...before.agent.adapterConfig });
+      const specialty = profile?.specialty ?? before.profile?.specialty ?? "custom";
+      const selectedWorkPermissions = profile?.workPermissions ?? (profile && profile.specialty !== before.profile?.specialty ? defaultAgentWorkPermissions(specialty) : before.profile?.workPermissions);
+      const effectiveWorkPermissions = selectedWorkPermissions ? workPermissionsForSpecialty(selectedWorkPermissions, specialty) : undefined;
+      capabilities = capabilitiesForSpecialty(capabilities, specialty);
+      const { added, removed } = await syncGrants(companyId, agentId, capabilities, actor.userId ?? null, specialty);
 
       const metadata = { ...(asRecord(before.agent.metadata) ?? {}) };
       const nextMetadata: Record<string, unknown> = {
         ...metadata,
         profile: {
+          ...((profile?.codeAdapterAccess !== undefined || before.profile?.codeAdapterAccess !== undefined) ? { codeAdapterAccess: profile?.codeAdapterAccess !== undefined ? profile.codeAdapterAccess : before.profile?.codeAdapterAccess } : {}),
+          ...(effectiveWorkPermissions ? { workPermissions: effectiveWorkPermissions } : {}),
           specialty: profile?.specialty ?? before.profile?.specialty ?? "custom",
           sectors: profile?.sectors ?? before.profile?.sectors ?? [],
+          ...(profile?.messageChannels !== undefined
+            ? { messageChannels: profile.messageChannels }
+            : before.profile?.messageChannels !== undefined
+              ? { messageChannels: before.profile.messageChannels }
+              : {}),
           code: capabilities.code,
         },
       };
@@ -239,6 +331,7 @@ export function agentCapabilitiesService(db: Db) {
 
       return {
         profile: after.profile,
+        workPermissionSupport: workPermissionSupport(after.agent),
         capabilities: after.capabilities,
         autonomy: await autonomyLevels(companyId, agentId),
       };

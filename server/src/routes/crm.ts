@@ -55,7 +55,6 @@ import { commitmentService } from "../services/crm/commitments.js";
 // Creates may carry `force: true` to proceed past duplicate candidates (409 otherwise).
 const customerCreateBodySchema = createCustomerSchema.extend({
   force: z.boolean().optional().default(false),
-  contactEmail: z.string().trim().max(320).optional().nullable(),
 });
 
 const contactCreateBodySchema = createContactSchema.extend({
@@ -109,12 +108,12 @@ export function crmRoutes(db: Db) {
   router.post("/companies/:companyId/customers", validate(customerCreateBodySchema), async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
-    const { force, contactEmail, ...data } = req.body as z.infer<typeof customerCreateBodySchema>;
+    const { force, ...data } = req.body as z.infer<typeof customerCreateBodySchema>;
     try {
       const result = await customers.create(companyId, data, {
         actor: getActorInfo(req),
         force,
-        contactEmail: contactEmail ?? null,
+        contactEmail: data.contactEmail ?? null,
       });
       res.status(result.created ? 201 : 200).json(result.customer);
     } catch (err) {

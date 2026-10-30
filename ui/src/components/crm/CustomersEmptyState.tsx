@@ -1,11 +1,11 @@
 import { motion } from "motion/react";
-import { MessagesSquare, Plus, Upload, Users, type LucideIcon } from "lucide-react";
+import { Plus, Upload, Users, type LucideIcon } from "lucide-react";
 import { Link } from "@/lib/router";
 import { useTranslation } from "@/i18n";
 import { useMotionTokens } from "@/hooks/useMotionTokens";
 import { Button } from "@/components/ui/button";
 import { accentInk, accentReadable, accentTint } from "@/lib/accent";
-import { LILAC, MINT, SKY } from "./CustomerListParts";
+import { MINT, SKY } from "./CustomerListParts";
 
 interface Step {
   icon: LucideIcon;
@@ -17,14 +17,13 @@ interface Step {
   to?: string;
 }
 
-/** First-run screen: what the page will hold and three ways to start. */
+/** First-run screen: what the page will hold and two ways to start. */
 export function CustomersEmptyState({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslation();
   const tokens = useMotionTokens();
   const steps: Step[] = [
     { icon: Plus, title: t("uxCrm.list.emptyStepCreate", { defaultValue: "Crea tu primer cliente" }), text: t("uxCrm.list.emptyStepCreateText", { defaultValue: "Empresa o persona para la que trabajas." }), color: MINT, onClick: onCreate },
     { icon: Upload, title: t("uxCrm.list.emptyStepImport", { defaultValue: "Importa tus contactos" }), text: t("uxCrm.list.emptyStepImportText", { defaultValue: "Desde un CSV; detectamos duplicados." }), color: SKY, to: "/customers/contacts/import" },
-    { icon: MessagesSquare, title: t("uxCrm.list.emptyStepChannel", { defaultValue: "Conecta un canal" }), text: t("uxCrm.list.emptyStepChannelText", { defaultValue: "WhatsApp, email o chat web." }), color: LILAC, to: "/apps/channels" },
   ];
   return (
     <div className="flex flex-col items-center gap-6 rounded-2xl border border-dashed border-border p-10 text-center">
@@ -41,7 +40,7 @@ export function CustomersEmptyState({ onCreate }: { onCreate: () => void }) {
         <h2 className="text-lg font-semibold">{t("uxCrm.list.emptyTitle", { defaultValue: "Aquí vivirán tus clientes" })}</h2>
         <p className="text-sm text-muted-foreground">{t("uxCrm.list.emptyText", { defaultValue: "Con su gente, sus servicios y todo el trabajo que haces para ellos." })}</p>
       </div>
-      <div className="grid w-full max-w-2xl gap-3 sm:grid-cols-3">
+      <div className="grid w-full max-w-2xl gap-3 sm:grid-cols-2">
         {steps.map((step, index) => {
           const body = (
             <>

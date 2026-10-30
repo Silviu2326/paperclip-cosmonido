@@ -47,6 +47,14 @@ export function proposalRoutes(db: Db, deps: ProposalServiceDeps = {}) {
   const router = Router();
   const svc = proposalService(db, deps);
 
+  router.get("/companies/:companyId/proposals/page", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    const parsed = proposalListQuerySchema.safeParse(req.query);
+    if (!parsed.success) return res.status(422).json({ error: "Validation error", details: parsed.error.issues });
+    res.json(await svc.listPage(companyId, parsed.data));
+  });
+
   router.get("/companies/:companyId/proposals", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);

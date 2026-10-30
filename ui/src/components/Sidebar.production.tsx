@@ -246,6 +246,7 @@ export function Sidebar() {
         </SidebarSection>}
         <SidebarNavItem to="/agents/all" label={t("uxNav.team", { defaultValue: "Ver equipo" })} icon={Users} />
         <SidebarAgents streamlined={streamlined} />
+        <SidebarNavItem to="/agents/catalog" label={t("agentCatalog.title")} icon={Package} />
         {preferences.office && <SidebarNavItem to="/office" label={t("nav.office")} icon={Armchair} />}
 
         <SidebarSection label="Company" collapsible={{ open: companyOpen, onOpenChange: setCompanyOpen }}>

@@ -33,6 +33,15 @@ export interface Customer {
   kind: CustomerKind;
   name: string;
   domain: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  legalName?: string | null;
+  taxId?: string | null;
   tags: string[];
   ownerUserId: string | null;
   ownerAgentId: string | null;
@@ -50,6 +59,8 @@ export interface Contact {
   firstName: string | null;
   lastName: string | null;
   displayName: string;
+  /** Included by the company contact list so rows need no per-person requests. */
+  customers?: Array<{ id: string; name: string }>;
   primaryEmail: string | null;
   primaryPhone: string | null;
   title: string | null;
@@ -208,6 +219,12 @@ export interface ConversationMessage {
   sentAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Messages are chronological within a page; the cursor loads older messages. */
+export interface ConversationMessagePage {
+  items: ConversationMessage[];
+  nextCursor: string | null;
 }
 
 export interface CrmAutonomyPolicy {

@@ -11,6 +11,7 @@ import {
 import type {
   Conversation,
   ConversationMessage,
+  ConversationMessagePage,
   CreateConversation,
   SetConversationState,
 } from "@paperclipai/shared";
@@ -38,6 +39,12 @@ export const conversationListQuerySchema = z.object({
   cursor: z.string().regex(/^\d{1,9}$/).optional(),
 });
 export type ConversationListQuery = z.infer<typeof conversationListQuerySchema>;
+
+export const conversationMessageQuerySchema = z.object({
+  before: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+export type ConversationMessageQuery = z.infer<typeof conversationMessageQuerySchema>;
 
 export interface ConversationPage {
   items: Conversation[];
@@ -154,11 +161,11 @@ export function conversationService(db: Db) {
         .from(conversations)
         .where(and(...filters))
         .orderBy(sql`${conversations.lastMessageAt} desc nulls last`, desc(conversations.id))
-        .limit(query.limit)
+        .limit(query.limit + 1)
         .offset(offset);
       return {
-        items: rows.map(toConversation),
-        nextCursor: rows.length === query.limit ? String(offset + query.limit) : null,
+        items: rows.slice(0, query.limit).map(toConversation),
+        nextCursor: rows.length > query.limit ? String(offset + query.limit) : null,
       };
     },
 
@@ -177,15 +184,31 @@ export function conversationService(db: Db) {
       return row ? toConversation(row) : null;
     },
 
-    /** Messages in chronological order. The caller has already checked company access. */
-    async messages(conversationId: string, limit = 500): Promise<ConversationMessage[]> {
+    /** Start at the latest messages, then page backwards without shifting on new arrivals. */
+    async messagePage(companyId: string, conversationId: string, query: ConversationMessageQuery): Promise<ConversationMessagePage> {
+      const filters: SQL[] = [eq(conversationMessages.companyId, companyId), eq(conversationMessages.conversationId, conversationId)];
+      if (query.before) {
+        const [anchor] = await db.select({ id: conversationMessages.id }).from(conversationMessages).where(and(
+          ...filters, eq(conversationMessages.id, query.before),
+        )).limit(1);
+        if (!anchor) throw badRequest("Invalid message cursor for this conversation");
+        // Compare in PostgreSQL to preserve sub-millisecond timestamp precision.
+        filters.push(sql`(${conversationMessages.createdAt}, ${conversationMessages.id}) < (
+          select created_at, id from conversation_messages
+          where id = ${query.before} and company_id = ${companyId} and conversation_id = ${conversationId}
+        )`);
+      }
       const rows = await db
         .select()
         .from(conversationMessages)
-        .where(eq(conversationMessages.conversationId, conversationId))
-        .orderBy(asc(conversationMessages.createdAt), asc(conversationMessages.id))
-        .limit(limit);
-      return rows.map(toConversationMessage);
+        .where(and(...filters))
+        .orderBy(desc(conversationMessages.createdAt), desc(conversationMessages.id))
+        .limit(query.limit + 1);
+      const page = rows.slice(0, query.limit).reverse();
+      return {
+        items: page.map(toConversationMessage),
+        nextCursor: rows.length > query.limit ? page[0]!.id : null,
+      };
     },
 
     async create(companyId: string, input: CreateConversation, actor: ConversationActor): Promise<Conversation> {

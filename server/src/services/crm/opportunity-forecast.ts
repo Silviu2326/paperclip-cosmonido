@@ -19,7 +19,9 @@ export function opportunityForecastService(db: Db) {
         eq(opportunities.status, "open"),
         isNull(opportunities.closedAt),
       ];
-      if (query.ownerId) {
+      if (query.ownerId === "unassigned") {
+        conditions.push(isNull(opportunities.ownerUserId), isNull(opportunities.ownerAgentId));
+      } else if (query.ownerId) {
         conditions.push(
           or(eq(opportunities.ownerUserId, query.ownerId), sql`${opportunities.ownerAgentId}::text = ${query.ownerId}`)!,
         );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, FileText, Repeat, Star, Users } from "lucide-react";
 import type { Customer } from "@paperclipai/shared";
@@ -8,6 +9,9 @@ import { proposalsApi } from "../../api/proposals";
 import { nextPeriodEnd } from "../../pages/ServiceAgreements";
 import { AccentPill, MINT, PanelCard, PanelTitle, PartyAvatar, SKY, YELLOW, formatShortDate } from "./CustomerListParts";
 import { isRunningAgreement, useServiceAgreements } from "./ServicesDialog";
+import { customerDetailFields } from "./CustomerDetailsFields";
+import { CustomerCreateDialog } from "./CustomerCreateDialog";
+import { Button } from "@/components/ui/button";
 
 const OPEN_PROPOSAL_STATUSES = new Set(["draft", "sent", "viewed"]);
 
@@ -22,6 +26,7 @@ function formatMoney(cents: number, currency: string) {
 /** Customer overview: their people, running services and open proposals, with the record's own data beside them. */
 export function CustomerSummary({ customer }: { customer: Customer }) {
   const { t, i18n } = useTranslation();
+  const [editing, setEditing] = useState(false);
   const contacts = useQuery({
     queryKey: ["crm-customer-contacts", customer.id],
     queryFn: () => crmApi.customers.listContacts(customer.id),
@@ -45,7 +50,8 @@ export function CustomerSummary({ customer }: { customer: Customer }) {
       label: t("crm.customers.fieldKind"),
       value: customer.kind === "person" ? t("crm.customers.kindPerson") : t("crm.customers.kindOrganization"),
     },
-    { label: t("crm.customers.fieldDomain"), value: customer.domain ?? t("crm.customers.noDomain") },
+    ...customerDetailFields.flatMap(({ key, label }) => customer[key] ? [{ label: t(label), value: customer[key]! }] : []),
+    ...(customer.notes ? [{ label: t("crm.customers.fieldNotes"), value: customer.notes }] : []),
     { label: t("crm.customers.fieldCreated"), value: formatWhen(customer.createdAt, i18n.language) },
     { label: t("crm.customers.fieldUpdated"), value: formatWhen(customer.updatedAt, i18n.language) },
   ];
@@ -135,10 +141,12 @@ export function CustomerSummary({ customer }: { customer: Customer }) {
           {rows.map((row) => (
             <div key={row.label} className="space-y-0.5">
               <dt className="text-xs text-muted-foreground">{row.label}</dt>
-              <dd className="break-words">{row.value}</dd>
+              <dd className="whitespace-pre-wrap break-words">{row.value}</dd>
             </div>
           ))}
         </dl>
+        <Button variant="outline" className="mt-4" onClick={() => setEditing(true)}>{t("crm.customers.edit")}</Button>
+        <CustomerCreateDialog open={editing} onOpenChange={setEditing} companyId={customer.companyId} customer={customer} />
       </PanelCard>
     </div>
   );

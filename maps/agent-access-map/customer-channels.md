@@ -10,7 +10,7 @@ API: `present` - GET /api/companies/{companyId}/customer-channels; POST /api/com
 
 Agent access: `restricted` - account management is board-only (assertBoard); an agent cannot connect, edit, test or remove a provider account.
 
-Policy: board identity required; the stored record keeps secret names only, never values.
+Policy: board identity required for mutations and tests; the stored record keeps secret names only, never values. The conversation setup reuses these routes and the existing company-secret picker without granting new agent authority.
 
 Evidence: `source-only` - [routes](../../server/src/routes/customer-channels.ts), [accounts service](../../server/src/services/customer-channels/accounts.ts).
 
@@ -32,7 +32,7 @@ Evidence: `source-only` - [routes](../../server/src/routes/channels-inbound.ts),
 
 Verification: `not-run` - post a validly signed fixture and confirm one message; post an invalid signature and confirm 401.
 
-Gaps: external provider configuration (webhook URL, verify token, App Secret) is manual and outside the product.
+Gaps: the inbox displays webhook URLs and provider setup instructions; applying that configuration at the provider remains manual.
 
 ## `outbound`
 
@@ -40,15 +40,15 @@ Review: `baseline`.
 
 API: `present` - POST /api/messages/{id}/send (shared with conversations).
 
-Agent access: `available` - the agent sends through message_send and message_reply like any conversation; the provider transport applies its window and template rules.
+Agent access: `restricted` - the agent sends through message_send and message_reply like any conversation, subject to its `channels:message` grant and optional per-agent channel allowlist.
 
-Policy: gateExternalAction with actionType message; a Messenger or Instagram reply outside the 24-hour window is refused before any call.
+Policy: `gateExternalAction` with actionType `message` or `email` still controls autonomy. When `agents.metadata.profile.messageChannels` is present, the requested conversation channel must be in that allowlist before an action is staged and again immediately before delivery, including approved-action retries. Missing allowlist preserves legacy unrestricted channel behavior. A Messenger or Instagram reply outside the 24-hour window is refused before any call.
 
-Evidence: `source-only` - [transports](../../server/src/services/conversations/transports/meta.ts), [register](../../server/src/services/conversations/transports/register.ts).
+Evidence: `source-only` - [message service](../../server/src/services/conversations/messages.ts), [capability policy](../../server/src/services/agent-capabilities.ts), [transports](../../server/src/services/conversations/transports/meta.ts), [register](../../server/src/services/conversations/transports/register.ts).
 
-Verification: `not-run` - reply outside the window and confirm a refusal with a reason.
+Verification: `not-run` - allow an agent to use email but not WhatsApp; confirm email reaches the existing autonomy gate and WhatsApp is rejected before an external action is staged. Then revoke WhatsApp after approval and confirm execution/retry is rejected. Also reply outside the Messenger/Instagram window and confirm a refusal with a reason.
 
-Gaps: only the first approved WhatsApp template is used, without variables.
+Gaps: only the first approved WhatsApp template is used, without variables. Channel access is selected from Paperclip's supported conversation channel types; an active provider transport/account is still required to deliver a message.
 
 ## `delivery`
 

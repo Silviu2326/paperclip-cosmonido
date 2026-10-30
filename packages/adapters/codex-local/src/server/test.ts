@@ -1,3 +1,4 @@
+import { probeCodexFilesystemSandbox } from "./code-access.js";
 import type {
   AdapterEnvironmentCheck,
   AdapterEnvironmentTestContext,
@@ -405,6 +406,13 @@ export async function testEnvironment(
       checks.push(versionCheck.check);
       configuredModelIsCompatible = versionCheck.compatible;
       detectedCliVersion = versionCheck.detectedVersion;
+    }
+  }
+  if (canRunProbe && configuredModelIsCompatible) {
+    const codeSandbox = await probeCodexFilesystemSandbox({ runId, target, command, cwd, env, access: config.paperclipCodeAccess });
+    if (!codeSandbox.available) {
+      checks.push({ code: "codex_code_sandbox_unavailable", level: "error", message: codeSandbox.detail ?? "Codex filesystem sandbox unavailable." });
+      return { adapterType: "codex_local", status: "fail", checks, testedAt: new Date().toISOString() };
     }
   }
   if (canRunProbe && !configuredModelIsCompatible) {
