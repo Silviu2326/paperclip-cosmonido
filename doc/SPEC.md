@@ -779,3 +779,13 @@ Agents select authorized workspace/repository intent while the harness owns path
 ### Fast responses
 
 A company may use a shared API model to acknowledge accepted human messages across tasks, agent chat and external channels while normal work starts. Acknowledgements retain their platform provenance and cannot satisfy execution or completion requirements. The bounded inference, authorization, sponsorship and independent accounting contract is defined in [fast-responses.md](fast-responses.md).
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

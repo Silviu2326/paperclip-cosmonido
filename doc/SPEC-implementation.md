@@ -2292,3 +2292,13 @@ reservation per attempt. Failed downloads and package fallback keep the full
 reservation. Successfully linked small imports refund unused measured work.
 Completed bindings do not reset company credits; waiting jobs retry on refill.
 The company_skill_import_budgets table stores no credentials or source contents.
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

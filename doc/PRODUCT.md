@@ -307,3 +307,13 @@ and sticky headers help operators scan exports. Rendered and raw view icons
 remain next to download; raw view preserves the original source. The table
 shows up to 500 data rows and 100 columns, with a notice when the preview is
 limited. Download retains the complete file.
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

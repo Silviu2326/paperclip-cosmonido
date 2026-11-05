@@ -17,6 +17,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
+import { ProjectAutopilotPanel } from "../components/ProjectAutopilotPanel";
 import { ProjectProperties, type ProjectConfigFieldKey, type ProjectFieldSaveState } from "../components/ProjectProperties";
 import { InlineEditor } from "../components/InlineEditor";
 import { StatusBadge } from "../components/StatusBadge";
@@ -50,7 +51,7 @@ import {
 
 /* ── Top-level tab types ── */
 
-type ProjectBaseTab = "list" | "plugin-operations" | "workspaces" | "configuration" | "budget";
+type ProjectBaseTab = "autopilot" | "list" | "plugin-operations" | "workspaces" | "configuration" | "budget";
 type ProjectPluginTab = `plugin:${string}`;
 type ProjectTab = ProjectBaseTab | ProjectPluginTab;
 
@@ -63,6 +64,7 @@ function resolveProjectTab(pathname: string, projectId: string): ProjectTab | nu
   const projectsIdx = segments.indexOf("projects");
   if (projectsIdx === -1 || segments[projectsIdx + 1] !== projectId) return null;
   const tab = segments[projectsIdx + 2];
+  if (tab === "autopilot") return "autopilot";
   if (tab === "overview") return "configuration";
   if (tab === "configuration") return "configuration";
   if (tab === "budget") return "budget";
@@ -665,6 +667,7 @@ export function ProjectDetail() {
     if (project?.id) {
       try { cachedTab = localStorage.getItem(`paperclip:project-tab:${project.id}`); } catch {}
     }
+    if (cachedTab === "autopilot") return <Navigate to={`/projects/${canonicalProjectRef}/autopilot`} replace />;
     if (cachedTab === "overview") {
       return <Navigate to={`/projects/${canonicalProjectRef}/configuration`} replace />;
     }
@@ -711,7 +714,9 @@ export function ProjectDetail() {
       navigate(`/projects/${canonicalProjectRef}?tab=${encodeURIComponent(tab)}`);
       return;
     }
-    if (tab === "workspaces") {
+    if (tab === "autopilot") {
+      navigate(`/projects/${canonicalProjectRef}/autopilot`);
+    } else if (tab === "workspaces") {
       navigate(`/projects/${canonicalProjectRef}/workspaces`);
     } else if (tab === "budget") {
       navigate(`/projects/${canonicalProjectRef}/budget`);
@@ -847,6 +852,7 @@ export function ProjectDetail() {
       <Tabs value={activeTab ?? "list"} onValueChange={(value) => handleTabChange(value as ProjectTab)}>
         <PageTabBar
           items={[
+            { value: "autopilot", label: "Autonomía" },
             { value: "list", label: t("projectDetail.tasks") },
 
             ...(project.managedByPlugin ? [{ value: "plugin-operations", label: t("projectDetail.pluginOperations") }] : []),
@@ -865,6 +871,8 @@ export function ProjectDetail() {
       </Tabs>
 
 
+
+      {activeTab === "autopilot" && <ProjectAutopilotPanel project={project} />}
 
       {activeTab === "list" && project?.id && resolvedCompanyId && (
         <ProjectIssuesList projectId={project.id} companyId={resolvedCompanyId} />

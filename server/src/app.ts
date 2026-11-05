@@ -97,6 +97,8 @@ import {
 } from "./services/setup-token-transport-binding.js";
 import { environmentService } from "./services/environments.js";
 import { environmentRuntimeService } from "./services/environment-runtime.js";
+import { projectAutopilotRoutes } from "./routes/project-autopilot.js";
+import { startProjectAutopilotScheduler } from "./services/project-autopilot-scheduler.js";
 import { projectRoutes } from "./routes/projects.js";
 import { issueRoutes } from "./routes/issues.js";
 import { issueTreeControlRoutes } from "./routes/issue-tree-control.js";
@@ -845,6 +847,7 @@ export async function createApp(
   api.use(projectToolRoutes(db));
   api.use(taskWorkspaceRoutes(db));
   api.use(projectRoutes(db));
+  api.use(projectAutopilotRoutes(db));
   api.use(caseRoutes(db, opts.storageService));
   api.use(issueTreeControlRoutes(db, { pluginWorkerManager: workerManager }));
   api.use(fileResourceRoutes(db));
@@ -1428,6 +1431,7 @@ export async function createApp(
   // The shutdown hook runs at most once. It caches the in-flight promise, so a
   // second caller (for example the `exit` handler) awaits the same completion
   // instead of starting a second teardown.
+  const projectAutopilotScheduler = startProjectAutopilotScheduler(db, () => lifecyclePluginsReady && !isWarmStandby() && !isIdleTaskDrainActive());
   let appServicesShutdown: Promise<void> | null = null;
   const shutdownAppServices = (): Promise<void> => {
     if (appServicesShutdown) return appServicesShutdown;
@@ -1435,6 +1439,7 @@ export async function createApp(
       // The scheduler tick queries the database. Stop it here, inside the
       // awaited teardown, so no tick runs after the caller ends the pool.
       scheduler.stop();
+      await projectAutopilotScheduler.stop();
       await agentLifecycle.stop();
       await publicMcpEvents?.stop();
       await dotMcpEvents?.stop(); grokDispatcher.stop();

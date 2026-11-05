@@ -70,6 +70,7 @@ const apiPrefixes: Record<string, string> = {
   "plugin-ui-static.ts": "/api",
   "plugins.ts": "/api",
   "projects.ts": "/api",
+  "project-autopilot.ts": "/api",
   "primary-agent.ts": "/api",
   "public-mcp.ts": "/api",
   "project-tools.ts": "/api",
@@ -939,6 +940,22 @@ describe("openapi routes", () => {
     const base = "/api/companies/{companyId}/agents/{agentId}/dot-binding";
     expect(spec.paths[base].post.requestBody.content["application/json"].schema.properties.replaceBindingId).toMatchObject({ type: "string", format: "uuid" });
     expect(spec.paths[base + "/event-test"].post.requestBody.content["application/json"].schema.properties.bindingId).toMatchObject({ type: "string", format: "uuid" });
+  });
+
+  it("documents project autonomy control and run-bound result contracts", () => {
+    const { spec } = loadSpecRoutes();
+    const root = "/api/projects/{projectId}/autopilot";
+    for (const operation of [spec.paths[root].put, ...["discover", "select", "feedback"].map(suffix => spec.paths[`${root}/${suffix}`].post)]) {
+      expect(operation["x-paperclip-authorization"]).toEqual({ actor: "board" });
+    }
+    for (const suffix of ["plans", "reports"]) {
+      const operation = spec.paths[`${root}/${suffix}`].post;
+      expect(operation["x-paperclip-authorization"]).toEqual({ actor: "agent", heartbeatBound: true, taskBound: true });
+      expect(operation.requestBody.content["application/json"].schema.additionalProperties).toBe(false);
+      expect(operation.responses["422"]).toBeDefined();
+    }
+    const plans = spec.paths[`${root}/plans`].post.requestBody.content["application/json"].schema.properties.plans;
+    expect(plans.minItems).toBe(3); expect(plans.maxItems).toBe(3);
   });
 
   it("documents board-only repository discovery and selection", () => {
