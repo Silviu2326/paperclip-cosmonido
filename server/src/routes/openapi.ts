@@ -1,3 +1,4 @@
+import { autopilotConfigSchema, autopilotPlansSchema, autopilotReportSchema } from "@paperclipai/shared";
 import { createGrokInvitationSchema, configureGrokRoutineSchema, verifyGrokRoutineSchema, recoverGrokRoutineSchema, pairGrokBindingSchema, stopGrokWorkSchema, retryGrokDeliverySchema } from "@paperclipai/shared";
 import { updateFastResponseSchema } from "@paperclipai/shared";
 import { putOfficeLayoutSchema, officeDesignChatSchema, officeLayoutResponseSchema, officeDesignChatResponseSchema } from "@paperclipai/shared";
@@ -512,10 +513,17 @@ function zodToOpenApiSchema(schema: z.ZodTypeAny): JsonSchema {
   }
 
   if (typeName === "array") {
-    return {
+    const jsonSchema: JsonSchema = {
       type: "array",
       items: zodToOpenApiSchema(def.element as z.ZodTypeAny),
     };
+    for (const check of (def.checks as unknown[]) ?? []) {
+      const constraint = checkDef(check);
+      if (constraint?.check === "min_length") jsonSchema.minItems = constraint.minimum;
+      if (constraint?.check === "max_length") jsonSchema.maxItems = constraint.maximum;
+      if (constraint?.check === "length_equals") jsonSchema.minItems = jsonSchema.maxItems = constraint.length;
+    }
+    return jsonSchema;
   }
 
   if (typeName === "record") {
@@ -1415,6 +1423,10 @@ const browserUseOperations = [
 ] as const;
 
 const BOARD_ONLY_OPERATIONS = new Set([
+  "PUT /api/projects/{projectId}/autopilot",
+  "POST /api/projects/{projectId}/autopilot/discover",
+  "POST /api/projects/{projectId}/autopilot/select",
+  "POST /api/projects/{projectId}/autopilot/feedback",
   "GET /api/companies/{companyId}/fast-response",
   "PUT /api/companies/{companyId}/fast-response",
   "GET /api/companies/{companyId}/fast-response/models",
@@ -1790,6 +1802,7 @@ function resolveOperationAuthLevel(
   if (path === "/api/companies/{companyId}/dot-invitations" || path === "/api/companies/{companyId}/grok-invitations"
       || /^\/api\/companies\/\{companyId\}\/agents\/\{agentId\}\/grok-binding(?:\/(?:routine|verify|retry|stop|recover))?$/.test(path)) return "board";
   if (PUBLIC_OPERATIONS.has(key)) return "public";
+  if (/^POST \/api\/projects\/\{projectId\}\/autopilot\/(plans|reports)$/.test(key)) return "agent_run";
   if (key === "POST /api/companies/{companyId}/agent-commentary") return "agent_heartbeat";
   if (key === "POST /api/mcp/project-tools" || key === "POST /api/companies/{companyId}/slack/tasks/{issueId}/tools") return "agent_run";
   if (RUNTIME_TOOLS_OPERATIONS.has(key)) return "runtime_tools";
@@ -5080,6 +5093,31 @@ registry.registerPath({
     403: r.forbidden,
     422: r.unprocessable,
   },
+});
+
+registry.registerPath({
+  method: "get", path: "/api/projects/{projectId}/autopilot", tags: ["projects"],
+  summary: "Read project autonomy plans, progress and evidence",
+  request: { params: z.object({ projectId: z.string().uuid() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+registry.registerPath({
+  method: "put", path: "/api/projects/{projectId}/autopilot", tags: ["projects"],
+  summary: "Configure project autonomy (board with task assignment authority)",
+  request: { params: z.object({ projectId: z.string().uuid() }), body: jsonBody(z.object({ config: autopilotConfigSchema, expectedRevision: z.number().int().positive().optional() }).strict()) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+for (const [suffix, summary, schema] of [
+  ["plans", "Submit the three project autonomy plans from the assigned discovery run", autopilotPlansSchema],
+  ["reports", "Submit implementation, independent review or deployment evidence from the assigned run", autopilotReportSchema],
+  ["discover", "Request a new project autonomy discovery cycle", z.object({}).strict()],
+  ["select", "Select a prepared project autonomy plan", z.object({ planId: z.enum(["essential", "balanced", "ambitious"]) }).strict()],
+  ["feedback", "Save product direction for future autonomy cycles", z.object({ text: z.string().trim().min(1).max(4000) }).strict()],
+] as const) registry.registerPath({
+  method: "post", path: `/api/projects/{projectId}/autopilot/${suffix}`, tags: ["projects"], summary,
+  description: "Company and project access are enforced. Result submissions require the active task-bound assigned agent run. Board actions do not accept agent credentials.",
+  request: { params: z.object({ projectId: z.string().uuid() }), body: jsonBody(schema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 409: r.conflict, 422: r.unprocessable },
 });
 
 registry.registerPath({

@@ -2992,3 +2992,5 @@ export * from "./validators/crm.js";
 export * from "./crm-tools.js";
 export * from "./productization/crm-phone.js";
 export * from "./validators/lead-form.js";
+
+export * from "./autopilot.js";

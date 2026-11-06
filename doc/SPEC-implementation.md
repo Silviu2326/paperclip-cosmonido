@@ -2369,3 +2369,13 @@ scoped to that conversation and compare the database timestamp and UUID together
 new arrivals do not shift older message boundaries. `conversation_get` accepts
 `before` for the same read path. Conversation and message activity refresh the
 open inbox and thread.
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

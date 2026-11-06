@@ -303,3 +303,5 @@ export * from "./conversation_agent_dispatch.js";
 export * from "./productization_public_catalog.js";
 export * from "./productization_agency.js";
 export * from "./productization_copilot_requests.js";
+
+export { projectAutopilots } from "./project_autopilots.js";

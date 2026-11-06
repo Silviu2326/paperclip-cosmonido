@@ -315,3 +315,13 @@ The [product strategy for entrepreneurs, agencies, and commercial teams](plans/2
 The [detailed implementation roadmap and page specifications](plans/2026-10-21-plan-maestro-producto.md) expand that strategy into shared contracts, individual page plans, acceptance criteria, phases, dependencies, and parallel work. These documents describe proposed work and do not change the current implementation contract.
 
 Pilot decisions are independent for entrepreneurs, agencies, and commercial teams. The [F0 case register](plans/2026-10-21-producto/2026-10-21-f0-casos-y-evidencias.md) separates the selected internal business case, missing inputs, and unselected external candidates; internal builder use is distinct from evidence of demand.
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

@@ -15,9 +15,10 @@ const publicError = "Subscription quota is currently unavailable. Check usage wi
 
 /** Managed connections use their own credentials regardless of where agents run.
  * Never silently substitute the control-plane host's login for a remote account. */
-export async function fetchCompanyQuotaWindows(db: Db, companyId: string, userId: string): Promise<ProviderQuotaResult[]> {
+export async function fetchCompanyQuotaWindows(db: Db, companyId: string, userId: string, selected?: { connectionId: string; grantId: string }): Promise<ProviderQuotaResult[]> {
   const service = aiConnectionService(db);
-  const accounts = await service.quotaAccounts(companyId, userId);
+  const accounts = (await service.quotaAccounts(companyId, userId)).filter(row => !selected
+    || (row.connection.id === selected.connectionId && row.grant.id === selected.grantId));
   if (!accounts.length) {
     return ["anthropic", "openai"].map(provider => ({ provider, ok: false,
       accountKey: `unconnected:${companyId}:${provider}`, source: "managed-connection",
@@ -135,6 +136,18 @@ export async function fetchCompanyQuotaWindows(db: Db, companyId: string, userId
 }
 
 const QUOTA_PROVIDER_TIMEOUT_MS = 20_000;
+const localAdapterObservations = new Map<string, { expiresAt: number; result: Promise<ProviderQuotaResult | null> }>();
+
+/** Local-trusted callers only: inspect one unmodified host CLI identity, never a different provider. */
+export function fetchLocalAdapterQuotaWindows(adapterType: string): Promise<ProviderQuotaResult | null> {
+  const cached = localAdapterObservations.get(adapterType);
+  if (cached && cached.expiresAt > Date.now()) return cached.result;
+  const adapter = listServerAdapters().find(item => item.type === adapterType && item.getQuotaWindows);
+  if (!adapter?.getQuotaWindows) return Promise.resolve(null);
+  const result = withQuotaTimeout(adapterType, Promise.resolve().then(() => adapter.getQuotaWindows!())).catch(() => null);
+  localAdapterObservations.set(adapterType, { expiresAt: Date.now() + 60_000, result });
+  return result;
+}
 
 function providerSlugForAdapterType(type: string): string {
   switch (type) {

@@ -789,3 +789,13 @@ governance. Configuration must remain resumable across navigation and reload.
 Connection probes and actual message delivery are separate facts. Conversation
 lists and message history must remain traversable as they grow, opening long
 threads at their newest messages. See [the implementation contract](SPEC-implementation.md#customer-conversation-inbox-setup-and-history).
+
+
+## Project autonomy (2026-11-05)
+
+Projects can opt in to persistent three-plan discovery, bounded implementation,
+independent review and deployment evidence workflows through ordinary assigned
+tasks. Multi-repository work uses existing project workspaces. Company/project
+access, responsible-user authority, budgets, pause/Stop and connector policies
+remain authoritative. See [Project autonomy](PROJECT-AUTOPILOT.md) for the API,
+state transitions, capacity behavior, setup and live qualification boundaries.

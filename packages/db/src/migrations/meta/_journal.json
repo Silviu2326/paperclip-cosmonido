@@ -2584,6 +2584,13 @@
       "when": 1793293549209,
       "tag": "0370_calm_black_bird",
       "breakpoints": true
+    },
+    {
+      "idx": 371,
+      "version": "7",
+      "when": 1794003562477,
+      "tag": "0371_project_autopilots",
+      "breakpoints": true
     }
   ]
 }

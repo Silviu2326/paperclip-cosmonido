@@ -70,6 +70,15 @@ describe("connected account quotas", () => {
     ]);
   });
   afterEach(() => vi.useRealTimers());
+  it("limits autonomy capacity checks to the chosen connection and grant", async () => {
+    mocks.accounts.mockResolvedValue([account("unrelated-account"), account("chosen-account")]);
+    const result = await fetchCompanyQuotaWindows(db, "autopilot-company", "autopilot-user", { connectionId: "chosen-account", grantId: "chosen-account" });
+    expect(result).toHaveLength(1);
+    expect(result[0]?.accountLabel).toBe("chosen-account");
+    expect(mocks.credential).toHaveBeenCalledTimes(1);
+    expect(mocks.credential.mock.calls[0]![0].connection.id).toBe("chosen-account");
+    expect(mocks.adapters).not.toHaveBeenCalled();
+  });
   it("uses the selected account without invoking a local CLI or fallback login", async () => {
     mocks.accounts.mockResolvedValue([account("remote-codex")]);
     const result = await fetchCompanyQuotaWindows(db, "company-1", "user-1");

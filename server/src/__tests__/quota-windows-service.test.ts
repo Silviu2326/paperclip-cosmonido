@@ -6,7 +6,7 @@ vi.mock("../adapters/registry.js", () => ({
 vi.mock("../middleware/logger.js", () => ({ logger: { warn: vi.fn() } }));
 
 import { listServerAdapters } from "../adapters/registry.js";
-import { fetchAllQuotaWindows } from "../services/quota-windows.js";
+import { fetchAllQuotaWindows, fetchLocalAdapterQuotaWindows } from "../services/quota-windows.js";
 import { logger } from "../middleware/logger.js";
 
 describe("fetchAllQuotaWindows", () => {
@@ -17,6 +17,17 @@ describe("fetchAllQuotaWindows", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it("probes only the requested local identity and caches bounded observations", async () => {
+    const codex = vi.fn().mockResolvedValue({ provider: "openai", ok: true, windows: [{ label: "5h", usedPercent: 42, resetsAt: null, valueLabel: null }] });
+    const claude = vi.fn();
+    vi.mocked(listServerAdapters).mockReturnValue([{ type: "autopilot-codex-fixture", getQuotaWindows: codex }, { type: "claude_local", getQuotaWindows: claude }] as never);
+    await Promise.all([fetchLocalAdapterQuotaWindows("autopilot-codex-fixture"), fetchLocalAdapterQuotaWindows("autopilot-codex-fixture")]);
+    expect(codex).toHaveBeenCalledTimes(1); expect(claude).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(60001);
+    await fetchLocalAdapterQuotaWindows("autopilot-codex-fixture");
+    expect(codex).toHaveBeenCalledTimes(2);
   });
 
   it("returns adapter results without waiting for a slower provider to finish forever", async () => {
