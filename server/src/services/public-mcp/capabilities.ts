@@ -50,9 +50,18 @@ export function createMcpApiDispatch(api: Router, parentLocals?: Record<string, 
       try { payload = object(response.json()); } catch { /* Non-JSON upstream errors remain private. */ }
       const details = object(payload.details);
       const safe: Record<string, unknown> = {};
-      for (const key of ["code", "currentRevisionId", "latestRevisionId", "currentVersionId"]) {
+      for (const key of ["code", "currentRevisionId", "latestRevisionId", "currentVersionId", "field", "requiredAction"]) {
         const value = payload[key] ?? details[key];
         if (typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value)) safe[key] = value;
+      }
+      const allowedValues = payload.allowedValues ?? details.allowedValues;
+      if (Array.isArray(allowedValues) && allowedValues.length <= 20
+        && allowedValues.every(value => typeof value === "string" && /^[a-zA-Z0-9_./:-]{1,80}$/.test(value))) {
+        safe.allowedValues = allowedValues;
+      }
+      if (typeof payload.error === "string" && payload.error.includes("Direct agent creation requires board approval")) {
+        safe.code = "MCP_AGENT_HIRE_APPROVAL_REQUIRED";
+        safe.requiredAction = "paperclip_agent_hire_approval";
       }
       throw new McpApiError(response.statusCode, safe);
     }
@@ -67,6 +76,21 @@ export const publicMcpCapabilities: Capability[] = [
     run: async (p, _a, _api, origin) => ({
       user: { id: p.actor.userId, name: p.actor.userName }, companyId: p.grant.companyId, company: p.company,
       scopes: p.grant.scopes, connectionId: p.grant.id, manageUrl: origin + "/assistant-connections",
+      connection: {
+        server: "Paperclip public MCP",
+        catalog: "instance tool catalog",
+        catalogVersion: "0.1.0",
+        scopeCompatibleTools: publicMcpCapabilities.filter(capability =>
+          !capability.configure || p.grant.scopes.includes("paperclip:configure"),
+        ).filter(capability => !capability.write || p.grant.scopes.includes("paperclip:write"))
+          .map(capability => capability.name),
+        limitations: [
+          "This is the direct instance catalog. The central directory broker exposes its original ten tools.",
+          "The listed tools match this grant's scopes; company membership and domain permissions are checked again on every call.",
+          "Approvals, credentials, execution commands and permission policies remain managed in Paperclip.",
+          "Task monitoring requires a client that supports MCP Events; otherwise retrieve current state on demand.",
+        ],
+      },
       execution: "Tasks run through Paperclip scheduling, budgets and approvals. The assistant subscription does not provide agent execution capacity.",
     }),
   },

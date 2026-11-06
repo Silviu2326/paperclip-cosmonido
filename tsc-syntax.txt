@@ -1,0 +1,16 @@
+src/components/BlockedInboxView.test.tsx(213,20): error TS2322: Type '"junta"' is not assignable to type 'IssueBlockedInboxOwnerType'.
+src/components/BlockedInboxView.test.tsx(253,20): error TS2322: Type '"junta"' is not assignable to type 'IssueBlockedInboxOwnerType'.
+src/components/BlockedInboxView.test.tsx(293,30): error TS2322: Type '"junta"' is not assignable to type 'IssueBlockedInboxOwnerType'.
+src/components/IssueBlockedNotice.test.tsx(861,51): error TS2322: Type '"en ejecución"' is not assignable to type '"queued" | "running"'.
+src/components/IssueBlockedNotice.test.tsx(901,9): error TS2322: Type '"en ejecución"' is not assignable to type 'IssueScheduledRetryStatus'.
+src/pages/GoalDetail.tsx(43,14): error TS2304: Cannot find name 't'.
+src/pages/Inbox.test.tsx(276,5): error TS2322: Type '"pendiente"' is not assignable to type '"approved" | "cancelled" | "pending" | "rejected" | "revision_requested"'.
+storybook/support/feature-map/FeatureOverview.tsx(5,21): error TS2307: Cannot find module '../../generated/catalog.json' or its corresponding type declarations.
+storybook/support/feature-map/FeatureOverview.tsx(6,26): error TS2307: Cannot find module '../../generated/feature-index.json' or its corresponding type declarations.
+storybook/support/feature-map/FeatureOverview.tsx(19,62): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(68,60): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(70,39): error TS7006: Parameter 'feature' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(73,41): error TS7006: Parameter 'capability' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(77,14): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(90,21): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(94,35): error TS7006: Parameter 'feature' implicitly has an 'any' type.

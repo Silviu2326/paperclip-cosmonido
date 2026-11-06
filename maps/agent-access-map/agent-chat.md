@@ -5,6 +5,8 @@ Product map: [Agent conversations and project handoff](../feature-map/agent-chat
 Review date: 2026-10-12. Source commit: `f981fa3cc10cb8663a87dec60345fbff46d54d0a`.
 
 This is a source-reviewed baseline of representative operations and known gaps.
+The conversation context summary and task/artifact panel filters are board UI
+presentation over existing reads; they add no agent endpoint or permissions.
 Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.

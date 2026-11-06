@@ -793,14 +793,14 @@ export function TaskSidePanel({
     content = conversationAgentId ? (
       <>
         {agentSwitchMode ? <AgentPanelHeader companyId={issue.companyId} agentId={conversationAgentId} /> : null}
-        <AgentTasksPanel companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
+        <AgentTasksPanel key={`${issue.companyId}:${conversationAgentId}`} companyId={issue.companyId} agentId={conversationAgentId} excludeIssueId={issue.id} />
       </>
     ) : null;
   } else if (activeTab.payload.kind === "artifacts" && conversationAgentId) {
     content = (
       <>
         {agentSwitchMode ? <AgentPanelHeader companyId={issue.companyId} agentId={conversationAgentId} /> : null}
-        <AgentArtifactsPanel companyId={issue.companyId} agentId={conversationAgentId} />
+        <AgentArtifactsPanel key={`${issue.companyId}:${conversationAgentId}`} companyId={issue.companyId} agentId={conversationAgentId} />
       </>
     );
   } else if (activeTab.payload.kind === "artifacts") {

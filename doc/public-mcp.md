@@ -321,8 +321,9 @@ The same authenticated endpoint now supports MCP 2.0 (`2026-07-28`) alongside
 legacy MCP. It advertises `events` through `server/discover` and implements
 `events/list`, `events/subscribe`, and `events/unsubscribe`. MCP 2.0 requests
 include matching `MCP-Protocol-Version`/`Mcp-Method` headers, per-request version
-and client-capability metadata, and `Mcp-Name` for tool calls. Existing
-initialize-based direct clients receive the same expanded tool catalog. The central
+and client-capability metadata, and `Mcp-Name` for tool calls. `server/discover`
+reports whether this server and the requesting client both advertise Events.
+Initialize-based direct clients receive the same expanded tool catalog. The central
 directory broker keeps its original ten-tool connection.
 
 | Event | Required filters | Payload |
@@ -451,7 +452,7 @@ Existing direct requests and grants are unchanged.
 
 ## Expanded direct assistant tools
 
-Direct instance connections expose 37 explicitly registered operations. The central
+Direct instance connections expose 48 explicitly registered operations. The central
 public directory broker retains its original ten tools and rejects expanded calls.
 The existing experimental setting gates both surfaces; sharing a setup link still
 conveys no authority. Consent has one **Write all of your Paperclip data** checkbox,
@@ -462,16 +463,42 @@ write connections do not acquire this scope, including after refresh; reconnect
 with the expanded scopes to approve it.
 Normal Paperclip permissions are required in addition to the connection scope.
 
+`paperclip_connection` identifies the direct-instance catalog version and returns
+the tool names compatible with the grant's scopes. This does not promise that each
+operation will be authorized: company membership, role permissions and domain
+policy are checked again when a tool runs. The directory broker intentionally
+continues to expose its original ten operations. Reconnect from
+`/assistant-connections` to approve a missing scope; refreshing an older grant
+never expands its consent.
+
 - Work (`paperclip:write`): update, finish or block tasks; write Markdown documents;
   register or update deliverables; upload attachments. Assignment and status changes
   can schedule agents. Pending execution reviews must be decided in Paperclip.
 - Configuration (`paperclip:configure`): edit existing agents, model/budget and
   existing connection bindings; edit instructions; create/update projects and choose
-  accessible repositories; create/update organization skills and their files.
-  Credentials, execution commands, policies and agent creation are excluded.
+  accessible repositories; create/update organization skills and their files; create
+  agents through the normal company route; discover, import, refresh and disconnect
+  GitHub skill sources. Company approval gates and skill policy still apply.
+  Credentials, execution commands and permission policies remain excluded.
 - Reads (`paperclip:read`): task/document history, agent instructions, skill files,
   accessible repository choices and attachment downloads. Native domain read
   permissions still apply. Revision IDs from reads are required for content edits.
+
+### Operation coverage and handoffs
+
+| User outcome | Direct MCP | Paperclip handoff |
+| --- | --- | --- |
+| Inspect team, projects, tasks, approvals, deliverables and recorded spend | Read tools, subject to company and cost-read permission | Approval decisions remain in the approval page |
+| Create and configure agents | `paperclip_create_agent`, `paperclip_update_agent`, and setup diagnosis | Company hire approvals, credentials, provider login and execution commands |
+| Create projects and delegate traceable tasks | Project and task tools, with mutation receipts | Resolve any approval or missing setup in Paperclip |
+| Create, import and maintain skills | Skill and GitHub source tools, with policy and revision checks | Enterprise policy administration and inaccessible repository grants |
+| Monitor task changes | MCP Events when the client supports Events | Other clients retrieve current task history and deliverables on demand |
+| Full organization administration | Not exposed as a generic REST bridge | Permission policies, secrets, approval decisions and execution controls |
+
+The connection response names the catalog and the scope-compatible operations.
+The connected client still has its own tool approval and Events support behavior;
+the server cannot infer that support from OAuth consent. The directory broker remains
+a ten-tool compatibility surface and does not become the direct-instance catalog.
 
 `paperclip_search_api` describes the same allowlisted named operations and their
 schemas. `paperclip_call_api` takes an operation identifier and validated arguments.
@@ -504,6 +531,17 @@ The legacy `promptTemplate.legacy.md` entry has no version protection, so MCP
 rejects edits to it with `MCP_LEGACY_INSTRUCTIONS_UNVERSIONED`. Migrate the legacy
 prompt to a managed instruction file in Paperclip first; native runner behavior
 is unchanged.
+
+Skill-source operations scan only HTTPS GitHub repositories. Discovery is read-only;
+installation requires the exact commit returned by discovery and explicit selected
+paths; preview individual files at that commit before installation. Refresh uses the source revision to reject stale changes. Skills can be assigned through an agent configuration update and removed under the normal skill policy. Disconnect requires
+an explicit choice to keep independent copies or delete imported skills. Imports
+reuse normal policy, validation and provenance checks and never execute repository
+content. Agent creation accepts identity, role, reporting line, capability summary,
+desired skills, adapter type and budget; it does not accept credentials, commands,
+permission policies or arbitrary adapter configuration. If the company requires
+board approval, the normal API rejects direct creation and the decision remains in
+Paperclip.
 
 Client-side tool approval remains separate from OAuth consent. For example, a
 noninteractive Codex invocation that forbids tool approvals may read successfully

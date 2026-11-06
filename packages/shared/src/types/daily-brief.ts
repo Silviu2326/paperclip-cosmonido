@@ -5,6 +5,8 @@ export interface DailyBriefPreference {
   id: string;
   companyId: string;
   userId: string;
+  deliveryAgentId: string | null;
+  pendingTaskId: string | null;
   enabled: boolean;
   channel: DailyBriefChannel;
   hourLocal: number;

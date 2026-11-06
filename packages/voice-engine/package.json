@@ -1,0 +1,23 @@
+{
+  "name": "@paperclipai/voice-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone multi-provider voice engine: TTS, voice cloning, voice design, speech-to-speech, unified voice catalog (ElevenLabs, Fish Audio, OpenAI, Azure, Google, MiniMax, Cartesia, Deepgram, PlayHT, Hume).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./providers/*": "./src/providers/*/index.ts",
+    "./integration": "./src/integration/index.ts"
+  },
+  "bin": { "voice-engine": "./src/cli/bin.ts" },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "cli": "node --experimental-strip-types src/cli/bin.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

@@ -1,0 +1,3 @@
+import { expect, it } from "vitest";
+import { createAzureSttProvider } from "../../../src/stt/providers/azure/index.js";
+it("posts Azure multipart fast transcription and maps timestamps",async()=>{let body:FormData|undefined;const p=createAzureSttProvider({credentials:{apiKey:"k",region:"westus"},fetch:async(_u,i)=>{body=i?.body as FormData;return new Response(JSON.stringify({durationMilliseconds:1000,phrases:[{locale:"en-US",text:"Hi",words:[{text:"Hi",offsetMilliseconds:20,durationMilliseconds:300}]}]}));}});const out=await p.transcribe({audio:{data:new Uint8Array([1]),mimeType:"audio/wav"},language:"en-US",wordTimestamps:true});expect(body?.get("definition")).toContain("en-US");expect(out.words?.[0]).toMatchObject({startMs:20,endMs:320});});

@@ -4,6 +4,12 @@ One shared set of workflows, with packages for OpenAI (ChatGPT/Codex) and Claude
 The packages use only individually exposed first-party Paperclip tools. Agent
 impersonation and generic connected-tool execution are not included.
 
+The shared recipes cover team review, company and agent setup, project launch,
+delegation, deliverable review, blocker triage, skill-source maintenance and
+follow-up. They use saved Paperclip state as evidence, preserve approval and
+credential handoffs, and do not claim a run or provider spend that Paperclip has
+not reported.
+
 ## Build
 
 ```sh

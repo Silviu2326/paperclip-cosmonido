@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Artefactos · maqueta</title>
+<meta name="description" content="Maqueta navegable de la página Artefactos como buzón (Entrada / Salida) con aspecto de explorador de archivos.">
+<style>
+:root{
+  --bg:#faf8f3;--fg:#183f35;--card:#fffdf8;--muted:#e7ece2;--muted-fg:#52645e;--border:#c9cec4;--accent:#b86e50;--accent-soft:#f3e4dc;
+  --sel:#e7ece2;--sel-strong:#d7e0d6;--good:#3f8f68;--info:#3b78a8;--warn:#a8741a;
+  --radius:8px;--font:"Instrument Sans","Inter","Segoe UI",system-ui,sans-serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101f1b;--fg:#faf8f3;--card:#172b25;--muted:#1d332c;--muted-fg:#a9b5af;--border:rgb(250 248 243 / 14%);--accent:#d08a6b;--accent-soft:#3a2a22;
+  --sel:#1d332c;--sel-strong:#264238;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101f1b;--fg:#faf8f3;--card:#172b25;--muted:#1d332c;--muted-fg:#a9b5af;--border:rgb(250 248 243 / 14%);--accent:#d08a6b;--accent-soft:#3a2a22;
+  --sel:#1d332c;--sel-strong:#264238;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 var(--font);display:flex;flex-direction:column}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+/* app shell */
+.app{display:flex;flex:1;min-height:0}
+.nav{width:200px;border-right:1px solid var(--border);padding:14px 10px;display:flex;flex-direction:column;gap:2px;background:var(--bg);flex-shrink:0}
+.nav .brand{display:flex;align-items:center;gap:8px;font-weight:700;padding:4px 8px 14px;font-size:15px}
+.nav .brand i{width:22px;height:22px;border-radius:7px;background:var(--fg);display:inline-block}
+.nav a{padding:7px 10px;border-radius:var(--radius);color:var(--muted-fg);text-decoration:none;font-size:13.5px}
+.nav a.on{background:var(--muted);color:var(--fg);font-weight:600}
+.nav .sec{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg);padding:14px 10px 4px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.seg button{padding:6px 12px;font-weight:600;font-size:13px;color:var(--muted-fg)}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.seg button + button{border-left:1px solid var(--border)}
+.tb{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;display:inline-flex;align-items:center;gap:6px;background:var(--card)}
+.tb:hover{background:var(--muted)}
+.tb.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tb.primary:hover{opacity:.9}
+.tb:disabled{opacity:.4;cursor:not-allowed}
+.crumbs{display:flex;align-items:center;gap:4px;flex:1;min-width:200px;padding:0 6px;font-size:13px;overflow:hidden;white-space:nowrap}
+.crumbs button{padding:4px 6px;border-radius:6px;color:var(--muted-fg)}
+.crumbs button:hover{background:var(--muted);color:var(--fg)}
+.crumbs button:last-child{color:var(--fg);font-weight:600}
+.crumbs .sep{color:var(--muted-fg)}
+.search{display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:var(--radius);padding:0 10px;background:var(--card)}
+.search input{border:0;background:none;outline:0;font:inherit;color:inherit;padding:6px 0;width:160px}
+.body{display:flex;flex:1;min-height:0}
+/* tree */
+.tree{width:230px;border-right:1px solid var(--border);overflow:auto;padding:10px 8px;flex-shrink:0}
+.tree .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg);padding:10px 8px 4px}
+.tree .n{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;font-size:13.5px;user-select:none}
+.tree .n:hover{background:var(--muted)}
+.tree .n.on{background:var(--sel-strong);font-weight:600}
+.tree .n .tw{width:12px;color:var(--muted-fg);font-size:10px;text-align:center}
+.tree .n .ic{width:16px;text-align:center}
+.tree .n .cnt{margin-left:auto;font-size:11px;color:var(--muted-fg)}
+.tree .kids{display:none}
+.tree .open > .kids{display:block}
+/* file list */
+.files{flex:1;min-width:0;display:flex;flex-direction:column}
+.list{flex:1;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{position:sticky;top:0;background:var(--bg);text-align:left;font-weight:600;font-size:12px;color:var(--muted-fg);padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--fg)}
+thead th .arrow{font-size:10px;margin-left:4px}
+tbody td{padding:7px 12px;border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+tbody tr{cursor:default}
+tbody tr:hover{background:var(--muted)}
+tbody tr.sel{background:var(--sel-strong)}
+tbody tr.folder td:first-child{font-weight:600}
+td.muted{color:var(--muted-fg)}
+.ic{display:inline-block;width:20px;text-align:center;margin-right:6px}
+/* icons view */
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px}
+.icons .it{border:1px solid transparent;border-radius:var(--radius);padding:8px;text-align:center;cursor:default}
+.icons .it:hover{background:var(--muted)}
+.icons .it.sel{background:var(--sel-strong);border-color:var(--border)}
+.icons .thumb{height:90px;border-radius:6px;background:var(--muted);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:6px;overflow:hidden}
+.icons .nm{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icons .sub{font-size:11px;color:var(--muted-fg)}
+.status{border-top:1px solid var(--border);padding:6px 12px;font-size:12px;color:var(--muted-fg);display:flex;gap:14px}
+.empty{padding:60px 20px;text-align:center;color:var(--muted-fg)}
+/* preview */
+.preview{width:320px;border-left:1px solid var(--border);overflow:auto;flex-shrink:0;display:flex;flex-direction:column}
+.preview.hidden{display:none}
+.pv-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted-fg)}
+.pv-head button{padding:2px 6px;border-radius:4px}
+.pv-head button:hover{background:var(--muted)}
+.pv-frame{margin:12px;height:190px;border-radius:var(--radius);background:var(--muted);display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border);position:relative}
+.pv-frame .big{font-size:56px}
+.pv-frame .tools{position:absolute;right:6px;bottom:6px;display:flex;gap:4px}
+.pv-frame .tools button{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:2px 7px;font-size:11px}
+.pv-frame table{font-size:11px}
+.pv-frame table td,.pv-frame table th{padding:3px 6px;border:1px solid var(--border);text-align:left;white-space:nowrap}
+.pv-frame table th{background:var(--card);position:static;cursor:default}
+.pv-frame .doc{padding:12px 14px;font-size:11px;line-height:1.5;align-self:flex-start;width:100%}
+.pv-frame .doc h4{margin:0 0 6px;font-size:13px}
+.pv-frame .doc p{margin:0 0 6px;color:var(--muted-fg)}
+.pv-frame .img{width:100%;height:100%;background:linear-gradient(135deg,#183f35,#b86e50 70%,#faf8f3);display:flex;align-items:center;justify-content:center;color:#faf8f3;font-weight:700;letter-spacing:.1em}
+.pv-frame .vid{width:100%;height:100%;background:#0b1512;display:flex;align-items:center;justify-content:center;color:#faf8f3;font-size:40px}
+.pv-frame .pdf{width:70%;height:88%;background:#fff;color:#333;border-radius:3px;box-shadow:0 2px 10px rgb(0 0 0 / 20%);padding:12px;font-size:8px;line-height:1.4}
+.pv-frame .pdf b{display:block;font-size:11px;margin-bottom:5px}
+.pv-frame .pdf i{display:block;height:5px;background:#e5e5e5;margin:4px 0;border-radius:2px}
+.pv-frame .code{align-self:flex-start;width:100%;padding:10px 12px;font:11px/1.5 ui-monospace,Consolas,monospace;white-space:pre;color:var(--fg)}
+.pv-frame .code .k{color:var(--info)}.pv-frame .code .s{color:var(--good)}
+.pv-body{padding:0 14px 14px}
+.pv-body h3{margin:4px 0 2px;font-size:15px;word-break:break-all}
+.pv-body .meta{font-size:12px;color:var(--muted-fg);margin-bottom:12px}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font-size:12.5px;margin-bottom:14px}
+.kv b{color:var(--muted-fg);font-weight:500}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.acts .tb{padding:5px 9px;font-size:12.5px}
+.vers{font-size:12.5px}
+.vers .h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:6px}
+.vers div+div{margin-top:3px}
+.vers .cur{font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--muted);color:var(--muted-fg)}
+.pill.in{background:#e0eef8;color:#2c5f86}.pill.out{background:#e2f1e9;color:#2f6e50}
+:root[data-theme="dark"] .pill.in,:root:not([data-theme="light"]) .pill.in{background:#1b2f40;color:#9cc7ea}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]) .pill.in{background:#e0eef8;color:#2c5f86}:root:not([data-theme="dark"]) .pill.out{background:#e2f1e9;color:#2f6e50}}
+/* context menu */
+.ctx{position:fixed;z-index:50;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 24px rgb(0 0 0 / 18%);padding:4px;min-width:200px;display:none;font-size:13px}
+.ctx button{display:block;width:100%;text-align:left;padding:6px 10px;border-radius:5px}
+.ctx button:hover{background:var(--muted)}
+.ctx hr{border:0;border-top:1px solid var(--border);margin:4px 0}
+.ctx .k{float:right;color:var(--muted-fg);font-size:11px}
+/* drop overlay */
+.drop{position:absolute;inset:0;background:rgb(184 110 80 / 10%);border:2px dashed var(--accent);display:none;align-items:center;justify-content:center;font-weight:600;color:var(--accent);pointer-events:none}
+.files{position:relative}
+.files.dragging .drop{display:flex}
+/* note banner */
+.note{font-size:12px;color:var(--muted-fg);padding:6px 14px;border-bottom:1px solid var(--border);background:var(--card)}
+.note b{color:var(--fg)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:var(--radius);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:900px){.nav{display:none}.tree{width:190px}.preview{width:260px}}
+@media(max-width:640px){.tree{display:none}.preview{display:none}}
+</style>
+</head>
+<body>
+<div class="note"><b>Maqueta navegable</b> · datos de ejemplo · cambia Entrada / Salida, abre carpetas, ordena columnas, selecciona archivos, prueba el botón derecho. Nada se guarda.</div>
+<div class="app">
+  <nav class="nav">
+    <div class="brand"><i></i> Cosmonido</div>
+    <a>Panel</a><a>Tareas</a><a>Proyectos</a><a>Rutinas</a><a class="on">Artefactos</a><a>Objetivos</a>
+    <div class="sec">Administración</div>
+    <a>Organización</a><a>Conectores</a><a>Costes</a><a>Ajustes</a>
+  </nav>
+  <div class="main">
+    <div class="toolbar">
+      <div class="seg" id="boxSeg">
+        <button data-box="in" class="on">⇩ Entrada</button>
+        <button data-box="out">⇧ Salida</button>
+      </div>
+      <button class="tb" id="back" title="Atrás">←</button>
+      <button class="tb" id="fwd" title="Adelante">→</button>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="search">🔍 <input id="q" placeholder="Buscar aquí…"></div>
+      <div class="seg" id="viewSeg">
+        <button data-view="list" class="on" title="Lista">☰</button>
+        <button data-view="icons" title="Iconos">▦</button>
+      </div>
+      <button class="tb" id="pvToggle" title="Mostrar u ocultar vista previa">◫ Vista previa</button>
+      <span id="inTools">
+        <button class="tb primary" onclick="toast('Abre el selector de archivos (maqueta)')">↑ Subir</button>
+        <button class="tb" onclick="toast('Nueva carpeta en la carpeta actual (maqueta)')">+ Carpeta</button>
+      </span>
+      <span id="outTools" style="display:none">
+        <button class="tb" id="dlSel" disabled>⤓ Descargar</button>
+      </span>
+    </div>
+    <div class="body">
+      <aside class="tree" id="tree"></aside>
+      <section class="files" id="files">
+        <div class="drop">Suelta para subir a esta carpeta</div>
+        <div class="list" id="list"></div>
+        <div class="status" id="status"></div>
+      </section>
+      <aside class="preview" id="preview"></aside>
+    </div>
+  </div>
+</div>
+<div class="ctx" id="ctx"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- datos de ejemplo ----------
+const IN = {
+  name:"Entrada", kind:"root", children:[
+    {name:"Marca", kind:"folder", children:[
+      f("logo-cosmonido.svg","image",18e3,"2026-09-12","Silviu",["COS-401","COS-412","COS-430"]),
+      f("guia-de-estilo.pdf","pdf",3.4e6,"2026-09-12","Silviu",["COS-401","COS-412","COS-415","COS-430","COS-433"]),
+      f("paleta.png","image",210e3,"2026-09-14","Silviu",["COS-430"]),
+    ]},
+    {name:"Precios", kind:"folder", children:[
+      f("precios-2026.xlsx","sheet",96e3,"2026-10-01","Silviu",["COS-412","COS-415","COS-418","COS-421","COS-424"],2),
+      f("condiciones-comerciales.md","md",6e3,"2026-09-28","Silviu",["COS-412"]),
+    ]},
+    {name:"Legal", kind:"folder", children:[
+      f("contrato-marco.pdf","pdf",2.1e6,"2026-10-03","Silviu",["COS-412","COS-418"]),
+      f("politica-privacidad.docx","doc",88e3,"2026-08-20","Silviu",[]),
+    ]},
+    {name:"Clientes", kind:"folder", children:[
+      {name:"Acme", kind:"folder", children:[
+        f("brief-acme.md","md",9e3,"2026-10-02","Silviu",["COS-412"]),
+        f("web-actual-acme.html","html",120e3,"2026-09-25","Silviu",["COS-412"]),
+        f("notas-reunion-acme.md","md",4e3,"2026-09-28","Silviu",[]),
+      ]},
+      {name:"Globex", kind:"folder", children:[
+        f("brief-globex.md","md",7e3,"2026-10-05","Silviu",["COS-440"]),
+      ]},
+    ]},
+    {name:"Referencias", kind:"folder", children:[
+      f("competencia-2026.csv","csv",42e3,"2026-09-30","Silviu",["COS-405","COS-440"]),
+      f("ejemplo-propuesta-ganadora.pdf","pdf",1.6e6,"2026-09-10","Silviu",["COS-412","COS-440"]),
+      f("inspiracion-landing.png","image",1.1e6,"2026-09-18","Silviu",["COS-430"]),
+    ]},
+    {name:"Briefs", kind:"folder", children:[
+      f("brief-campana-otono.md","md",5e3,"2026-10-06","Silviu",["COS-433","COS-434"]),
+    ]},
+  ]};
+
+const OUT = {
+  name:"Salida", kind:"root", children:[
+    {name:"Proyectos", kind:"folder", children:[
+      {name:"Ventas Q4", kind:"folder", children:[
+        {name:"COS-410 · Brief Acme", kind:"task", children:[
+          o("brief-acme-resumen.md","md",5e3,"2026-10-02","Laura","COS-410"),
+        ]},
+        {name:"COS-412 · Propuesta Acme", kind:"task", children:[
+          o("propuesta-acme-v3.pdf","pdf",1.2e6,"2026-10-09","Laura","COS-412",3),
+          o("propuesta-acme-v2.pdf","pdf",1.1e6,"2026-10-06","Laura","COS-412",2),
+          o("propuesta-acme-v1.pdf","pdf",0.9e6,"2026-10-02","Laura","COS-412",1),
+          o("portada.png","image",340e3,"2026-10-06","Marco","COS-412"),
+          o("desglose-precios.csv","csv",12e3,"2026-10-05","Laura","COS-412"),
+          o("plan.md","md",4e3,"2026-10-02","Laura","COS-412"),
+        ]},
+        {name:"COS-415 · Calendario", kind:"task", children:[
+          o("calendario-octubre.xlsx","sheet",54e3,"2026-10-07","Marco","COS-415"),
+          o("calendario-octubre.png","image",420e3,"2026-10-07","Marco","COS-415"),
+        ]},
+      ]},
+      {name:"Marketing", kind:"folder", children:[
+        {name:"COS-433 · Campaña otoño", kind:"task", children:[
+          o("creatividad-01.png","image",880e3,"2026-10-11","Marco","COS-433"),
+          o("creatividad-02.png","image",910e3,"2026-10-11","Marco","COS-433"),
+          o("creatividad-03.png","image",870e3,"2026-10-11","Marco","COS-433"),
+          o("copys-campana.md","md",8e3,"2026-10-10","Laura","COS-433"),
+          o("spot-15s.mp4","video",14e6,"2026-10-12","Marco","COS-433"),
+        ]},
+        {name:"COS-405 · Informe mercado", kind:"task", children:[
+          o("informe-mercado.html","html",88e3,"2026-10-02","Marco","COS-405"),
+          o("datos-mercado.csv","csv",230e3,"2026-10-01","Marco","COS-405"),
+        ]},
+      ]},
+      {name:"Web", kind:"folder", children:[
+        {name:"COS-430 · Landing", kind:"task", children:[
+          o("PR #42 · Landing nueva","pr",0,"2026-10-01","Dev","COS-430"),
+          o("preview-landing","preview",0,"2026-10-01","Dev","COS-430"),
+          o("landing.html","html",64e3,"2026-10-01","Dev","COS-430"),
+          o("hero.png","image",1.3e6,"2026-09-30","Marco","COS-430"),
+          o("config.json","json",2e3,"2026-09-30","Dev","COS-430"),
+        ]},
+      ]},
+    ]},
+    {name:"Sin proyecto", kind:"folder", children:[
+      {name:"COS-440 · Análisis Globex", kind:"task", children:[
+        o("analisis-globex.md","md",11e3,"2026-10-08","Laura","COS-440"),
+      ]},
+    ]},
+  ]};
+
+function f(name,type,size,date,by,used,ver){return {name,kind:"file",type,size,date,by,used:used||[],ver:ver||1,box:"in"}}
+function o(name,type,size,date,by,task,ver){return {name,kind:"file",type,size,date,by,task,ver:ver||1,box:"out"}}
+
+// ---------- estado ----------
+const state={box:"in",path:[],view:"list",sort:{key:"name",dir:1},sel:null,q:"",pv:true,hist:[],hi:-1,fav:new Set(["logo-cosmonido.svg","propuesta-acme-v3.pdf"])};
+const ICON={image:"🖼",pdf:"📄",sheet:"📊",csv:"📊",md:"📝",html:"🌐",doc:"📃",video:"🎬",json:"{ }",pr:"🔀",preview:"🔗",folder:"📁",task:"📁"};
+const TYPE={image:"Imagen",pdf:"PDF",sheet:"Excel",csv:"CSV",md:"Markdown",html:"HTML",doc:"Word",video:"Vídeo",json:"JSON",pr:"Pull request",preview:"Vista previa",folder:"Carpeta",task:"Tarea"};
+const root=()=>state.box==="in"?IN:OUT;
+function nodeAt(path){let n=root();for(const p of path){n=n.children.find(c=>c.name===p);if(!n)return root()}return n}
+function fmtSize(b){if(!b)return "—";if(b<1e3)return b+" B";if(b<1e6)return Math.round(b/1e3)+" KB";return (b/1e6).toFixed(1).replace(".",",")+" MB"}
+function fmtDate(d){const [y,m,dd]=d.split("-");return `${+dd} ${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][+m-1]}`}
+function allFiles(n,acc=[]){for(const c of n.children||[]){if(c.kind==="file")acc.push(c);else allFiles(c,acc)}return acc}
+
+// ---------- navegación ----------
+function go(path,push=true){
+  state.path=path;state.sel=null;state.q="";document.getElementById("q").value="";
+  if(push){state.hist=state.hist.slice(0,state.hi+1);state.hist.push({box:state.box,path:[...path]});state.hi=state.hist.length-1}
+  render();
+}
+document.getElementById("back").onclick=()=>{if(state.hi>0){state.hi--;const h=state.hist[state.hi];state.box=h.box;go([...h.path],false)}};
+document.getElementById("fwd").onclick=()=>{if(state.hi<state.hist.length-1){state.hi++;const h=state.hist[state.hi];state.box=h.box;go([...h.path],false)}};
+document.getElementById("boxSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;state.box=b.dataset.box;go([])};
+document.getElementById("viewSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;state.view=b.dataset.view;render()};
+document.getElementById("pvToggle").onclick=()=>{state.pv=!state.pv;render()};
+document.getElementById("q").oninput=e=>{state.q=e.target.value.trim().toLowerCase();state.sel=null;renderList();renderPreview()};
+document.getElementById("dlSel").onclick=()=>toast("Descargando "+(state.sel?state.sel.name:""));
+
+// ---------- render ----------
+function render(){
+  document.querySelectorAll("#boxSeg button").forEach(b=>b.classList.toggle("on",b.dataset.box===state.box));
+  document.querySelectorAll("#viewSeg button").forEach(b=>b.classList.toggle("on",b.dataset.view===state.view));
+  document.getElementById("inTools").style.display=state.box==="in"?"":"none";
+  document.getElementById("outTools").style.display=state.box==="out"?"":"none";
+  document.getElementById("back").disabled=state.hi<=0;
+  document.getElementById("fwd").disabled=state.hi>=state.hist.length-1;
+  document.getElementById("q").placeholder=state.path.length?"Buscar en esta carpeta…":"Buscar en "+root().name+"…";
+  renderCrumbs();renderTree();renderList();renderPreview();
+}
+function renderCrumbs(){
+  const c=document.getElementById("crumbs");c.innerHTML="";
+  const parts=[root().name,...state.path];
+  parts.forEach((p,i)=>{
+    if(i){const s=document.createElement("span");s.className="sep";s.textContent="›";c.appendChild(s)}
+    const b=document.createElement("button");b.textContent=p;b.onclick=()=>go(state.path.slice(0,i));c.appendChild(b);
+  });
+}
+function renderTree(){
+  const t=document.getElementById("tree");t.innerHTML="";
+  const sect=(title)=>{const h=document.createElement("div");h.className="h";h.textContent=title;t.appendChild(h)};
+  const build=(node,path,depth,container,box)=>{
+    (node.children||[]).filter(c=>c.kind!=="file").forEach(c=>{
+      const p=[...path,c.name];
+      const wrap=document.createElement("div");
+      const isOn=state.box===box&&p.join("/")===state.path.join("/");
+      const isAnc=state.box===box&&state.path.join("/").startsWith(p.join("/"));
+      const hasKids=(c.children||[]).some(k=>k.kind!=="file");
+      if(isAnc||depth===0&&box==="in")wrap.classList.add("open");
+      const n=document.createElement("div");n.className="n"+(isOn?" on":"");n.style.paddingLeft=(8+depth*14)+"px";
+      n.innerHTML=`<span class="tw">${hasKids?"▸":""}</span><span class="ic">${c.kind==="task"?"🗂":"📁"}</span><span>${c.name}</span><span class="cnt">${allFiles(c).length||""}</span>`;
+      n.querySelector(".tw").onclick=e=>{e.stopPropagation();wrap.classList.toggle("open");n.querySelector(".tw").textContent=wrap.classList.contains("open")?"▾":"▸"};
+      if(wrap.classList.contains("open")&&hasKids)n.querySelector(".tw").textContent="▾";
+      n.onclick=()=>{if(state.box!==box){state.box=box}go(p)};
+      wrap.appendChild(n);
+      const kids=document.createElement("div");kids.className="kids";wrap.appendChild(kids);
+      build(c,p,depth+1,kids,box);
+      container.appendChild(wrap);
+    });
+  };
+  sect("Entrada");build(IN,[],0,t,"in");
+  sect("Salida");build(OUT,[],0,t,"out");
+  sect("Ver Salida por");
+  ["Agente","Tipo de archivo","Fecha"].forEach(x=>{const n=document.createElement("div");n.className="n";n.innerHTML=`<span class="tw"></span><span class="ic">▤</span><span>${x}</span>`;n.onclick=()=>toast("Vista agrupada por "+x.toLowerCase()+" (maqueta)");t.appendChild(n)});
+  sect("Acceso rápido");
+  [["★","Favoritos"],["⏱","Recientes"],["⇧","Subidos por mí"]].forEach(([i,x])=>{const n=document.createElement("div");n.className="n";n.innerHTML=`<span class="tw"></span><span class="ic">${i}</span><span>${x}</span>`;n.onclick=()=>toast(x+" (maqueta)");t.appendChild(n)});
+}
+function currentItems(){
+  const n=nodeAt(state.path);
+  let items=state.q?allFiles(n).filter(x=>x.name.toLowerCase().includes(state.q)):(n.children||[]);
+  const k=state.sort.key,d=state.sort.dir;
+  return [...items].sort((a,b)=>{
+    const fa=a.kind!=="file",fb=b.kind!=="file";if(fa!==fb)return fa?-1:1;
+    let va,vb;
+    if(k==="name"){va=a.name.toLowerCase();vb=b.name.toLowerCase()}
+    else if(k==="type"){va=TYPE[a.type||a.kind]||"";vb=TYPE[b.type||b.kind]||""}
+    else if(k==="size"){va=a.size||0;vb=b.size||0}
+    else if(k==="date"){va=a.date||"";vb=b.date||""}
+    else if(k==="by"){va=a.by||"";vb=b.by||""}
+    else if(k==="used"){va=(a.used||[]).length;vb=(b.used||[]).length}
+    else if(k==="task"){va=a.task||"";vb=b.task||""}
+    return (va<vb?-1:va>vb?1:0)*d;
+  });
+}
+function renderList(){
+  const L=document.getElementById("list");const items=currentItems();
+  if(!items.length){L.innerHTML=`<div class="empty">${state.q?"Nada coincide con «"+state.q+"»":"Carpeta vacía"}${state.box==="in"&&!state.q?"<br><small>Arrastra archivos aquí o pulsa Subir</small>":""}</div>`}
+  else if(state.view==="list"){
+    const cols=state.box==="in"
+      ?[["name","Nombre"],["type","Tipo"],["size","Tamaño"],["date","Fecha"],["by","Subido por"],["used","Usado por"]]
+      :[["name","Nombre"],["type","Tipo"],["size","Tamaño"],["date","Fecha"],["by","Agente"],["task","Tarea"]];
+    let h=`<table><thead><tr>${cols.map(([k,l])=>`<th data-k="${k}">${l}${state.sort.key===k?`<span class="arrow">${state.sort.dir>0?"▲":"▼"}</span>`:""}</th>`).join("")}</tr></thead><tbody>`;
+    items.forEach((it,i)=>{
+      const isF=it.kind!=="file";
+      const cells=cols.map(([k])=>{
+        if(k==="name")return `<td><span class="ic">${isF?(it.kind==="task"?"🗂":"📁"):ICON[it.type]||"📎"}</span>${it.name}${state.fav.has(it.name)?' <span title="Favorito">★</span>':""}${it.ver>1?` <span class="pill">v${it.ver}</span>`:""}</td>`;
+        if(k==="type")return `<td class="muted">${isF?TYPE[it.kind]:TYPE[it.type]||"Archivo"}</td>`;
+        if(k==="size")return `<td class="muted">${isF?allFiles(it).length+" elementos":fmtSize(it.size)}</td>`;
+        if(k==="date")return `<td class="muted">${isF?"":fmtDate(it.date)}</td>`;
+        if(k==="by")return `<td class="muted">${isF?"":it.by}</td>`;
+        if(k==="used")return `<td class="muted">${isF?"":(it.used.length?it.used.length+" tarea"+(it.used.length>1?"s":""):"—")}</td>`;
+        if(k==="task")return `<td class="muted">${isF?"":it.task}</td>`;
+      }).join("");
+      h+=`<tr data-i="${i}" class="${isF?"folder":""}${state.sel===it?" sel":""}">${cells}</tr>`;
+    });
+    L.innerHTML=h+"</tbody></table>";
+    L.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(state.sort.key===k)state.sort.dir*=-1;else state.sort={key:k,dir:1};renderList()});
+    L.querySelectorAll("tbody tr").forEach(tr=>bindItem(tr,items[+tr.dataset.i]));
+  } else {
+    L.innerHTML=`<div class="icons">${items.map((it,i)=>{const isF=it.kind!=="file";return `<div class="it${state.sel===it?" sel":""}" data-i="${i}"><div class="thumb">${thumb(it)}</div><div class="nm">${it.name}</div><div class="sub">${isF?allFiles(it).length+" elementos":fmtSize(it.size)+" · "+fmtDate(it.date)}</div></div>`}).join("")}</div>`;
+    L.querySelectorAll(".it").forEach(el=>bindItem(el,items[+el.dataset.i]));
+  }
+  const files=items.filter(i=>i.kind==="file");
+  document.getElementById("status").innerHTML=`<span>${items.length} elemento${items.length!==1?"s":""}</span>${state.sel?`<span>1 seleccionado${state.sel.kind==="file"?" · "+fmtSize(state.sel.size):""}</span>`:""}<span style="margin-left:auto">${state.box==="in"?"Solo escriben personas · los agentes leen":"Solo escriben agentes · tú lees"}</span>`;
+  document.getElementById("dlSel").disabled=!(state.sel&&state.sel.kind==="file");
+}
+function thumb(it){
+  if(it.kind!=="file")return it.kind==="task"?"🗂":"📁";
+  if(it.type==="image")return `<div class="img" style="font-size:11px">${it.name.split(".")[0].toUpperCase().slice(0,12)}</div>`;
+  if(it.type==="video")return `<div class="vid">▶</div>`;
+  return ICON[it.type]||"📎";
+}
+function bindItem(el,it){
+  el.onclick=()=>{state.sel=it;renderList();renderPreview()};
+  el.ondblclick=()=>{if(it.kind!=="file")go([...state.path,it.name]);else openFull(it)};
+  el.oncontextmenu=e=>{e.preventDefault();state.sel=it;renderList();renderPreview();showCtx(e.clientX,e.clientY,it)};
+}
+function openFull(it){toast("Abrir «"+it.name+"» a pantalla completa (maqueta)")}
+
+// ---------- vista previa ----------
+function renderPreview(){
+  const P=document.getElementById("preview");P.classList.toggle("hidden",!state.pv);
+  const it=state.sel;
+  if(!it){P.innerHTML=`<div class="pv-head"><span>Vista previa</span></div><div class="empty">Selecciona un archivo para verlo aquí.<br><small>Doble clic abre a pantalla completa.</small></div>`;return}
+  if(it.kind!=="file"){const n=allFiles(it);P.innerHTML=`<div class="pv-head"><span>Carpeta</span></div><div class="pv-frame"><span class="big">${it.kind==="task"?"🗂":"📁"}</span></div><div class="pv-body"><h3>${it.name}</h3><div class="meta">${n.length} archivos · ${fmtSize(n.reduce((a,b)=>a+(b.size||0),0))}</div><div class="acts"><button class="tb" onclick="go([...state.path,'${it.name}'])">Abrir</button>${it.kind==="task"?`<button class="tb" onclick="toast('Ir a la tarea')">Ir a la tarea</button>`:""}</div></div>`;return}
+  const isIn=it.box==="in";
+  const kv=isIn
+    ?[["Subido por",it.by],["Carpeta",[root().name,...state.path].join(" › ")],["Visible para","toda la empresa"],["Usado en",it.used.length?it.used.slice(0,3).join(", ")+(it.used.length>3?", +"+(it.used.length-3):""):"ninguna tarea aún"]]
+    :[["Agente",it.by],["Tarea",it.task],["Carpeta",[root().name,...state.path].join(" › ")],["Origen","run del agente"]];
+  const acts=isIn
+    ?["Abrir","Descargar","Reemplazar","Mover","Renombrar","Permisos","Copiar enlace","Borrar"]
+    :["Abrir","Descargar","Ir a la tarea","Pasar a Entrada","Copiar enlace"];
+  const sameFamily=isIn?[]:allFiles(nodeAt(state.path)).filter(x=>x.name.replace(/-v\d+/,"")===it.name.replace(/-v\d+/,"")&&x!==it&&/-v\d+/.test(x.name));
+  P.innerHTML=`<div class="pv-head"><span>Vista previa</span><span><button onclick="openFull(state.sel)" title="Pantalla completa">⛶</button><button onclick="state.pv=false;render()" title="Cerrar">✕</button></span></div>
+  <div class="pv-frame">${previewFor(it)}<div class="tools">${pvTools(it)}</div></div>
+  <div class="pv-body">
+    <h3>${it.name} ${state.fav.has(it.name)?"★":""}</h3>
+    <div class="meta">${TYPE[it.type]||"Archivo"} · ${fmtSize(it.size)} · ${fmtDate(it.date)} 2026 · <span class="pill ${isIn?"in":"out"}">${isIn?"Entrada":"Salida"}</span></div>
+    <div class="kv">${kv.map(([k,v])=>`<b>${k}</b><span>${v}</span>`).join("")}</div>
+    <div class="acts">${acts.map(a=>`<button class="tb" onclick="act('${a}')">${a}</button>`).join("")}<button class="tb" onclick="toggleFav()">${state.fav.has(it.name)?"★ Quitar favorito":"☆ Favorito"}</button></div>
+    ${(it.ver>1||sameFamily.length)?`<div class="vers"><div class="h">${isIn?"Versiones":"Versiones en esta tarea"}</div>${isIn?Array.from({length:it.ver},(_,i)=>it.ver-i).map(v=>`<div class="${v===it.ver?"cur":""}">v${v} · ${v===it.ver?fmtDate(it.date)+" · (esta)":"12 sep · "+it.name}</div>`).join(""):[it,...sameFamily].sort((a,b)=>b.ver-a.ver).map(x=>`<div class="${x===it?"cur":""}">v${x.ver} · ${fmtDate(x.date)} · ${x===it?"(esta)":x.name}</div>`).join("")}</div>`:""}
+  </div>`;
+}
+function previewFor(it){
+  switch(it.type){
+    case "image":return `<div class="img">${it.name.split(".")[0].toUpperCase()}</div>`;
+    case "video":return `<div class="vid">▶</div>`;
+    case "pdf":return `<div class="pdf"><b>${it.name.replace(/[-_]/g," ").replace(".pdf","")}</b><i style="width:80%"></i><i></i><i style="width:90%"></i><i style="width:60%"></i><br><i style="width:70%"></i><i></i><i style="width:85%"></i><i style="width:40%"></i></div>`;
+    case "sheet":case "csv":return `<table><tr><th>Concepto</th><th>Ud.</th><th>Precio</th></tr><tr><td>Consultoría</td><td>h</td><td>95 €</td></tr><tr><td>Diseño</td><td>h</td><td>80 €</td></tr><tr><td>Desarrollo</td><td>h</td><td>90 €</td></tr><tr><td>Soporte</td><td>mes</td><td>450 €</td></tr><tr><td>Hosting</td><td>mes</td><td>60 €</td></tr></table>`;
+    case "md":return `<div class="doc"><h4>${it.name.replace(".md","").replace(/-/g," ")}</h4><p>Resumen en dos líneas de lo que contiene el documento, renderizado con el visor Markdown.</p><p>• Punto uno<br>• Punto dos<br>• Punto tres</p></div>`;
+    case "html":return `<div class="doc"><h4>Informe</h4><p>Vista renderizada en iframe con sandbox. Botón para alternar al código fuente.</p><div style="height:40px;border-radius:4px;background:linear-gradient(90deg,var(--accent) 60%,var(--muted) 60%)"></div></div>`;
+    case "json":return `<div class="code">{\n  <span class="k">"site"</span>: <span class="s">"landing"</span>,\n  <span class="k">"theme"</span>: <span class="s">"cosmonido"</span>,\n  <span class="k">"hero"</span>: { <span class="k">"image"</span>: <span class="s">"hero.png"</span> }\n}</div>`;
+    case "doc":return `<div class="pdf"><b>Documento Word</b><i style="width:80%"></i><i></i><i style="width:70%"></i></div>`;
+    case "pr":return `<div class="doc"><h4>🔀 PR #42 · Landing nueva</h4><p>Abierta · 3 archivos · +412 −38</p><p>main ← feat/landing</p></div>`;
+    case "preview":return `<div class="doc"><h4>🔗 Vista previa en vivo</h4><p>https://preview.cosmonido.local/landing</p><p>Estado: saludable</p></div>`;
+    default:return `<span class="big">📎</span>`;
+  }
+}
+function pvTools(it){
+  const b=s=>`<button onclick="toast('${s}')">${s}</button>`;
+  switch(it.type){
+    case "image":return b("Zoom")+b("1:1")+b("Girar");
+    case "video":return b("Fotograma")+b("1,5×");
+    case "pdf":return b("◀")+b("1 / 6")+b("▶")+b("Buscar");
+    case "sheet":return b("Hoja: Tarifas ▾")+b("Filtrar");
+    case "csv":return b("Filtrar")+b("Ordenar");
+    case "md":case "html":return b("Renderizado")+b("Código");
+    case "json":return b("Plegar")+b("Copiar");
+    case "pr":return b("Abrir en GitHub");
+    case "preview":return b("Abrir preview");
+    default:return "";
+  }
+}
+function act(a){
+  const it=state.sel;
+  if(a==="Abrir")return openFull(it);
+  if(a==="Pasar a Entrada")return toast("Elige carpeta de Entrada para copiar «"+it.name+"»");
+  if(a==="Borrar")return toast("Confirmar borrado de «"+it.name+"» (solo archivos subidos por personas)");
+  toast(a+" · "+it.name);
+}
+function toggleFav(){const n=state.sel.name;state.fav.has(n)?state.fav.delete(n):state.fav.add(n);renderList();renderPreview()}
+
+// ---------- menú contextual ----------
+const ctx=document.getElementById("ctx");
+function showCtx(x,y,it){
+  const isF=it.kind!=="file",isIn=state.box==="in";
+  const items=isF
+    ?[["Abrir","Enter"],["Nueva pestaña",""],["-"],isIn?["Renombrar","F2"]:null,isIn?["Mover…",""]:null,["Descargar carpeta (ZIP)",""],["-"],["Propiedades","Alt+Enter"]]
+    :[["Abrir","Enter"],["Abrir en pestaña nueva",""],["Vista rápida","Espacio"],["-"],["Descargar","Ctrl+S"],["Copiar enlace",""],[state.fav.has(it.name)?"Quitar favorito":"Favorito",""],["-"],
+      ...(isIn?[["Reemplazar por versión nueva",""],["Mover…",""],["Renombrar","F2"],["Permisos…",""],["-"],["Borrar","Supr"]]:[["Ir a la tarea",""],["Pasar a Entrada…",""]]),["-"],["Propiedades","Alt+Enter"]];
+  ctx.innerHTML=items.filter(Boolean).map(i=>i[0]==="-"?"<hr>":`<button>${i[0]}<span class="k">${i[1]}</span></button>`).join("");
+  ctx.querySelectorAll("button").forEach(b=>b.onclick=()=>{hideCtx();const t=b.firstChild.textContent;if(t==="Abrir"){isF?go([...state.path,it.name]):openFull(it)}else if(t==="Favorito"||t==="Quitar favorito")toggleFav();else toast(t+" · "+it.name)});
+  ctx.style.display="block";
+  const w=ctx.offsetWidth,h=ctx.offsetHeight;
+  ctx.style.left=Math.min(x,innerWidth-w-8)+"px";ctx.style.top=Math.min(y,innerHeight-h-8)+"px";
+}
+function hideCtx(){ctx.style.display="none"}
+document.addEventListener("click",e=>{if(!ctx.contains(e.target))hideCtx()});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")hideCtx();
+  if(e.target.tagName==="INPUT")return;
+  const items=currentItems();const i=items.indexOf(state.sel);
+  if(e.key==="ArrowDown"){e.preventDefault();state.sel=items[Math.min(items.length-1,i+1)]||items[0];renderList();renderPreview()}
+  if(e.key==="ArrowUp"){e.preventDefault();state.sel=items[Math.max(0,i-1)]||items[0];renderList();renderPreview()}
+  if(e.key==="Enter"&&state.sel){state.sel.kind!=="file"?go([...state.path,state.sel.name]):openFull(state.sel)}
+  if(e.key==="Backspace"&&state.path.length){go(state.path.slice(0,-1))}
+  if(e.key===" "&&state.sel){e.preventDefault();state.pv=true;render()}
+});
+// arrastrar (solo Entrada)
+const files=document.getElementById("files");
+["dragenter","dragover"].forEach(ev=>files.addEventListener(ev,e=>{if(state.box!=="in")return;e.preventDefault();files.classList.add("dragging")}));
+["dragleave","drop"].forEach(ev=>files.addEventListener(ev,e=>{e.preventDefault();files.classList.remove("dragging");if(ev==="drop"&&state.box==="in")toast("Subiendo "+(e.dataTransfer.files.length||1)+" archivo(s) a "+[root().name,...state.path].join(" › "))}));
+// toast
+let tt;function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),1800)}
+
+// arranque: Entrada › Clientes › Acme, con un archivo seleccionado
+state.box="in";go(["Precios"]);state.sel=nodeAt(state.path).children[0];renderList();renderPreview();
+</script>
+</body>
+</html>
