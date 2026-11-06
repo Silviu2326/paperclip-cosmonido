@@ -13,7 +13,7 @@ import { companies } from "./companies.js";
 
 // Customer-facing channel accounts (Sprint 2 pistas D/E). Secrets are referenced by name in
 // company_secrets; the values never live in this table.
-//   provider  meta (WhatsApp, Messenger, Instagram) | telegram | twilio
+//   provider  meta (WhatsApp, Messenger, Instagram) | kapso (WhatsApp) | telegram | twilio
 //   verify_secret_name     signature secret: Meta app secret, Telegram webhook secret token, Twilio auth token
 //   challenge_secret_name  Meta GET verification token (hub.verify_token); null for other providers
 //   token_secret_name      send credential: Meta access token, Telegram bot token, Twilio auth token
@@ -49,7 +49,7 @@ export const customerChannelAccounts = pgTable(
       .on(table.companyId, table.provider, table.externalAccountId),
     providerCheck: check(
       "customer_channel_accounts_provider_check",
-      sql`${table.provider} in ('meta', 'telegram', 'twilio')`,
+      sql`${table.provider} in ('meta', 'kapso', 'telegram', 'twilio')`,
     ),
     kindCheck: check(
       "customer_channel_accounts_kind_check",

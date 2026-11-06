@@ -12,8 +12,7 @@ vi.mock("@/context/CompanyContext", () => ({ useCompany: () => ({ selectedCompan
 vi.mock("@/context/BreadcrumbContext", () => ({ useBreadcrumbs: () => ({ setBreadcrumbs: state.breadcrumbs }) }));
 vi.mock("@/lib/router", () => ({ useParams: () => ({ conversationId: state.id }), Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
 vi.mock("@/api/conversations", () => ({ conversationsApi: { get: vi.fn(), messages: vi.fn() } }));
-vi.mock("@/components/inbox/ConversationActions", () => ({ ConversationActions: () => null }));
-vi.mock("@/components/inbox/ConversationComposer", () => ({ ConversationComposer: () => null }));
+vi.mock("@/components/conversations/ConversationControls", () => ({ ConversationControls: () => null }));
 vi.mock("@/i18n", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 let root: Root; let container: HTMLDivElement; let client: QueryClient;
@@ -47,4 +46,21 @@ it("shows the newest messages first and reaches history beyond 500 without dupli
   }
   expect([...container.querySelectorAll('[data-message-id]')].map((node) => node.getAttribute('data-message-id'))).toEqual(Array.from({ length: 550 }, (_, i) => `m-${i}`));
   expect([...container.querySelectorAll('button')].some((button) => button.textContent === 'conversations.thread.loadOlder')).toBe(false);
+});
+
+it("shows a retry instead of reporting not found when the detail request fails", async () => {
+  vi.mocked(conversationsApi.get).mockRejectedValue(new Error('Offline'));
+  await act(async () => root.render(<QueryClientProvider client={client}><ConversationDetail /></QueryClientProvider>));
+  await waitFor(() => !!container.querySelector('[role="alert"]'));
+  expect(container.textContent).toContain('conversations.thread.loadError');
+  expect(container.textContent).not.toContain('conversations.detail.notFound');
+  expect([...container.querySelectorAll('button')].some((button) => button.textContent === 'conversations.setup.retry')).toBe(true);
+});
+
+it("shows the WhatsApp closed-window notice and disables free-text sending", async () => {
+  vi.mocked(conversationsApi.get).mockResolvedValue({ id: state.id, subject: 'WhatsApp', channel: 'whatsapp', status: 'open', lastInboundAt: '2020-01-01T00:00:00Z', messages: [], nextMessageCursor: null } as unknown as Awaited<ReturnType<typeof conversationsApi.get>>);
+  await act(async () => root.render(<QueryClientProvider client={client}><ConversationDetail /></QueryClientProvider>));
+  await waitFor(() => container.textContent!.includes('conversationsUx.windowClosed'));
+  expect(container.textContent).toContain('conversationsUx.templateOnly');
+  expect([...container.querySelectorAll('button')].find((button) => button.textContent === 'conversations.composer.send')!.disabled).toBe(true);
 });

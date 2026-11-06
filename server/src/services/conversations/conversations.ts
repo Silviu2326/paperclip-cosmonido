@@ -1,10 +1,11 @@
-import { and, asc, desc, eq, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
 import {
   type Db,
   agents,
   conversations,
   conversationMessages,
   customers,
+  contacts,
   leads,
   opportunities,
 } from "@paperclipai/db";
@@ -27,6 +28,15 @@ export interface ConversationActor {
   agentId?: string | null;
 }
 
+const listCursorSchema = z.object({ id: z.string().uuid(), at: z.string().datetime().nullable() });
+function decodeListCursor(cursor: string) {
+  try {
+    return listCursorSchema.parse(JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")));
+  } catch {
+    throw badRequest("Invalid conversation cursor");
+  }
+}
+
 export const conversationListQuerySchema = z.object({
   status: z.enum(["open", "waiting_us", "waiting_them", "closed"]).optional(),
   channel: z.enum(["email", "whatsapp", "messenger", "instagram", "telegram", "webchat", "voice", "sms"]).optional(),
@@ -36,7 +46,10 @@ export const conversationListQuerySchema = z.object({
   contactId: z.string().uuid().optional(),
   overdue: z.enum(["true", "false"]).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional().default(25),
-  cursor: z.string().regex(/^\d{1,9}$/).optional(),
+  cursor: z.string().min(1).max(500).refine((value) => {
+    if (/^\d{1,9}$/.test(value)) return true; // Existing offset cursors remain readable during rollout.
+    try { decodeListCursor(value); return true; } catch { return false; }
+  }, "Invalid conversation cursor").optional(),
 });
 export type ConversationListQuery = z.infer<typeof conversationListQuerySchema>;
 
@@ -155,17 +168,30 @@ export function conversationService(db: Db) {
           lt(conversations.slaDueAt, new Date()),
         );
       }
-      const offset = query.cursor ? Number(query.cursor) : 0;
+      const legacyCursor = query.cursor && /^\d{1,9}$/.test(query.cursor) ? Number(query.cursor) : 0;
+      if (query.cursor && !/^\d{1,9}$/.test(query.cursor)) {
+        const cursor = decodeListCursor(query.cursor);
+        filters.push(cursor.at === null
+          ? and(isNull(conversations.lastMessageAt), lt(conversations.id, cursor.id))!
+          : or(isNull(conversations.lastMessageAt), sql`(${conversations.lastMessageAt}, ${conversations.id}) < (${cursor.at}::timestamptz, ${cursor.id}::uuid)`)!);
+      }
       const rows = await db
-        .select()
+        .select({
+          ...getTableColumns(conversations),
+          // Preserve PostgreSQL microseconds in the cursor, beyond JavaScript Date precision.
+          cursorAt: sql<string | null>`to_char(${conversations.lastMessageAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+        })
         .from(conversations)
         .where(and(...filters))
         .orderBy(sql`${conversations.lastMessageAt} desc nulls last`, desc(conversations.id))
         .limit(query.limit + 1)
-        .offset(offset);
+        .offset(legacyCursor);
+      const page = rows.slice(0, query.limit);
+      const last = page.at(-1);
       return {
-        items: rows.slice(0, query.limit).map(toConversation),
-        nextCursor: rows.length > query.limit ? String(offset + query.limit) : null,
+        items: page.map(toConversation),
+        nextCursor: rows.length > query.limit && last
+          ? Buffer.from(JSON.stringify({ id: last.id, at: last.cursorAt })).toString("base64url") : null,
       };
     },
 
@@ -212,6 +238,18 @@ export function conversationService(db: Db) {
     },
 
     async create(companyId: string, input: CreateConversation, actor: ConversationActor): Promise<Conversation> {
+      // Foreign keys alone do not enforce company ownership.
+      for (const [table, id, label] of [
+        [contacts, input.contactId, "Contact"],
+        [customers, input.customerId, "Customer"],
+        [opportunities, input.opportunityId, "Opportunity"],
+        [leads, input.leadId, "Lead"],
+      ] as const) {
+        if (!id) continue;
+        const [found] = await db.select({ id: table.id }).from(table)
+          .where(and(eq(table.companyId, companyId), eq(table.id, id))).limit(1);
+        if (!found) throw badRequest(`${label} not found in this company`);
+      }
       if (input.externalThreadId) {
         // Idempotent per (company, channel, thread): the same thread returns the existing conversation.
         const [existing] = await db
@@ -364,10 +402,10 @@ export function conversationService(db: Db) {
       await db
         .update(conversations)
         .set({
-          lastOutboundAt: sentAt,
+          lastOutboundAt: sql`greatest(coalesce(${conversations.lastOutboundAt}, ${sentAt.toISOString()}::timestamptz), ${sentAt.toISOString()}::timestamptz)`,
           lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${sentAt.toISOString()}::timestamptz), ${sentAt.toISOString()}::timestamptz)`,
-          status: sql`case when ${conversations.status} = 'closed' then 'closed' else 'waiting_them' end`,
-          slaDueAt: null,
+          status: sql`case when ${conversations.status} = 'closed' or ${conversations.lastInboundAt} > ${sentAt.toISOString()}::timestamptz then ${conversations.status} else 'waiting_them' end`,
+          slaDueAt: sql`case when ${conversations.lastInboundAt} > ${sentAt.toISOString()}::timestamptz then ${conversations.slaDueAt} else null end`,
           updatedAt: new Date(),
         })
         .where(eq(conversations.id, conversationId));

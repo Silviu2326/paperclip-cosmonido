@@ -67,3 +67,29 @@ it("distinguishes a new inbox from an empty filtered result", async () => {
   await act(async () => [...container.querySelectorAll('button')].find((item) => item.textContent === 'conversations.tabs.waiting')!.click());
   await waitFor(() => container.textContent!.includes('conversations.list.empty'));
 });
+
+it("searches the loaded conversations without changing server filters", async () => {
+  vi.mocked(conversationsApi.list).mockResolvedValue({ items: [
+    { id: 'a', subject: 'Ana consulta', channel: 'whatsapp', status: 'open' },
+    { id: 'b', subject: 'Otro cliente', channel: 'email', status: 'open' },
+  ] as Awaited<ReturnType<typeof conversationsApi.list>>['items'], nextCursor: null });
+  await act(async () => root.render(<QueryClientProvider client={client}><ConversationInbox /></QueryClientProvider>));
+  await waitFor(() => container.querySelectorAll('li').length === 2);
+  const input = container.querySelector('input[type="search"]')!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'ana');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  expect(container.querySelectorAll('li')).toHaveLength(1);
+  expect(container.textContent).toContain('Ana consulta');
+  expect(container.textContent).not.toContain('Otro cliente');
+  expect(conversationsApi.list).toHaveBeenCalledTimes(1);
+});
+
+it("shows a retry action when the initial list request fails", async () => {
+  vi.mocked(conversationsApi.list).mockRejectedValueOnce(new Error('Offline')).mockResolvedValue({ items: [], nextCursor: null });
+  await act(async () => root.render(<QueryClientProvider client={client}><ConversationInbox /></QueryClientProvider>));
+  await waitFor(() => !!container.querySelector('[role="alert"]'));
+  await act(async () => [...container.querySelectorAll('button')].find((item) => item.textContent === 'conversations.setup.retry')!.click());
+  await waitFor(() => container.textContent!.includes('conversations.list.firstMessage'));
+});

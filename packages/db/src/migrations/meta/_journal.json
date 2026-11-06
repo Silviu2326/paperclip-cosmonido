@@ -2591,6 +2591,13 @@
       "when": 1794003562477,
       "tag": "0371_project_autopilots",
       "breakpoints": true
+    },
+    {
+      "idx": 372,
+      "version": "7",
+      "when": 1794004512675,
+      "tag": "0372_kapso_channel_provider",
+      "breakpoints": true
     }
   ]
 }

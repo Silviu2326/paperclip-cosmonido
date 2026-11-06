@@ -3,6 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Inbox } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { EmptyState } from "../components/EmptyState";
@@ -10,7 +11,7 @@ import { PageSkeleton } from "../components/PageSkeleton";
 import { conversationsApi, type ConversationFilters } from "../api/conversations";
 import { queryKeys } from "../lib/queryKeys";
 import { ConversationFilterBar } from "../components/inbox/ConversationFilters";
-import { ConversationList } from "../components/inbox/ConversationList";
+import { ConversationList } from "../components/conversations/ConversationList";
 import { ConversationSetup } from "../components/inbox/ConversationSetup";
 
 // Served at /conversations. /inbox is the task inbox and is not touched here.
@@ -23,6 +24,7 @@ export function ConversationInbox() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const [tab, setTab] = useState<Tab>("all");
   const [filters, setFilters] = useState<ConversationFilters>({});
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setBreadcrumbs([{ label: t("conversations.title") }]);
@@ -41,6 +43,7 @@ export function ConversationInbox() {
     queryFn: ({ pageParam }) => conversationsApi.list(selectedCompanyId!, { ...query, cursor: pageParam }),
     getNextPageParam: (page) => page.nextCursor ?? undefined,
     enabled: !!selectedCompanyId,
+    refetchInterval: 30000,
   });
 
   if (!selectedCompanyId) {
@@ -83,6 +86,12 @@ export function ConversationInbox() {
         }}
       />
 
+      <label className="flex flex-col gap-1 text-sm">
+        {t("conversationsUx.search")}
+        <Input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("conversationsUx.searchPlaceholder")} />
+        <span className="text-xs text-muted-foreground">{t("conversationsUx.searchScope")}</span>
+      </label>
+
       {isLoading ? (
         <PageSkeleton variant="list" />
       ) : !data && error ? (
@@ -94,7 +103,7 @@ export function ConversationInbox() {
         <EmptyState icon={Inbox} message={t(filtered ? "conversations.list.empty" : "conversations.list.firstMessage")} />
       ) : (
         <div className="space-y-3">
-          <ConversationList items={items} />
+          <ConversationList key={selectedCompanyId} items={items} search={search} companyId={selectedCompanyId} />
           {error && <p role="alert" className="text-sm text-destructive">{t("conversations.list.loadError")}</p>}
           {hasNextPage && (
             <div className="flex justify-center">

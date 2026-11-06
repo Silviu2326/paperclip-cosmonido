@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SettingsScopeHeader } from "@/components/product-settings/SettingsScopeHeader";
 import { Link } from "@/lib/router";
 import { SecretBindingPicker } from "@/components/SecretBindingPicker";
+import { KapsoChannelCard } from "@/components/channels/KapsoChannelCard";
 import { secretsApi } from "@/api/secrets";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -30,14 +31,15 @@ import {
 // Sprint 2 pistas D/E: customer channel accounts (WhatsApp, Messenger, Instagram, Telegram, SMS).
 // Only secret names are entered here; the values stay in company secrets.
 
-const KINDS_BY_PROVIDER: Record<ChannelProvider, ChannelKind[]> = {
+type LegacyChannelProvider = Exclude<ChannelProvider, "kapso">;
+const KINDS_BY_PROVIDER: Record<LegacyChannelProvider, ChannelKind[]> = {
   meta: ["whatsapp", "messenger", "instagram"],
   telegram: ["telegram"],
   twilio: ["sms"],
 };
 
 interface DraftState {
-  provider: ChannelProvider;
+  provider: LegacyChannelProvider;
   kind: ChannelKind;
   label: string;
   externalAccountId: string;
@@ -153,7 +155,7 @@ export function ChannelsSettings({ embedded = false, initialKind }: { embedded?:
     setDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function changeProvider(provider: ChannelProvider) {
+  function changeProvider(provider: LegacyChannelProvider) {
     setDraft((current) => ({ ...current, provider, kind: KINDS_BY_PROVIDER[provider][0] }));
   }
 
@@ -201,7 +203,20 @@ export function ChannelsSettings({ embedded = false, initialKind }: { embedded?:
         )}
       </div>
 
-      {error && <p className="text-sm text-destructive">{t("channels.loadError")}: {errorText(error)}</p>}
+      {error && <div role="alert" className="flex flex-wrap items-center gap-2">
+        <p className="text-sm text-destructive">{t("channels.loadError")}: {errorText(error)}</p>
+        <Button variant="outline" onClick={() => void refresh()}>{t("channelsKapso.retry")}</Button>
+      </div>}
+
+      <KapsoChannelCard
+        key={selectedCompanyId}
+        companyId={selectedCompanyId}
+        accounts={(accounts ?? []).filter((account) => account.provider === "kapso")}
+        onRefresh={() => {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.secrets.list(selectedCompanyId) });
+          return refresh();
+        }}
+      />
 
       {showForm && (
         <Card className="p-4">
@@ -210,8 +225,8 @@ export function ChannelsSettings({ embedded = false, initialKind }: { embedded?:
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="channel-provider">{t("channels.fields.provider")}</Label>
-                <NativeSelect id="channel-provider" value={draft.provider} onChange={(e) => changeProvider(e.target.value as ChannelProvider)}>
-                  {(Object.keys(KINDS_BY_PROVIDER) as ChannelProvider[]).map((provider) => (
+                <NativeSelect id="channel-provider" value={draft.provider} onChange={(e) => changeProvider(e.target.value as LegacyChannelProvider)}>
+                  {(Object.keys(KINDS_BY_PROVIDER) as LegacyChannelProvider[]).map((provider) => (
                     <option key={provider} value={provider}>{t(`channels.provider.${provider}`)}</option>
                   ))}
                 </NativeSelect>
@@ -281,7 +296,7 @@ export function ChannelsSettings({ embedded = false, initialKind }: { embedded?:
       )}
 
       <div className="space-y-3">
-        {(accounts ?? []).map((account: ChannelAccount) => {
+        {(accounts ?? []).filter((account) => account.provider !== "kapso").map((account: ChannelAccount) => {
           const result = testResults[account.id];
           return (
             <Card key={account.id} className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">

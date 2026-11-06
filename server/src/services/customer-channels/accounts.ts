@@ -1,5 +1,12 @@
 import { and, asc, eq } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
+import {
+  CUSTOMER_CHANNEL_PROVIDERS,
+  CUSTOMER_CHANNEL_KINDS,
+  type CreateCustomerChannelAccount,
+  type UpdateCustomerChannelAccount,
+  type CustomerChannelAccount,
+} from "@paperclipai/shared";
 import { customerChannelAccounts } from "@paperclipai/db/schema/customer_channels";
 import { conflict, notFound, unprocessable } from "../../errors.js";
 import { logActivity } from "../activity-log.js";
@@ -8,9 +15,9 @@ import { secretService } from "../secrets.js";
 // Customer channel accounts (Sprint 2 pistas D/E). Accounts reference company secrets by name;
 // secret values are read only at send, verify or test time and never returned by this service.
 
-export const CHANNEL_PROVIDERS = ["meta", "telegram", "twilio"] as const;
+export const CHANNEL_PROVIDERS = CUSTOMER_CHANNEL_PROVIDERS;
 export type ChannelProvider = (typeof CHANNEL_PROVIDERS)[number];
-export const CHANNEL_KINDS = ["whatsapp", "messenger", "instagram", "telegram", "sms"] as const;
+export const CHANNEL_KINDS = CUSTOMER_CHANNEL_KINDS;
 export type ChannelKind = (typeof CHANNEL_KINDS)[number];
 export const CHANNEL_ACCOUNT_STATUSES = ["pending", "active", "disabled"] as const;
 export type ChannelAccountStatus = (typeof CHANNEL_ACCOUNT_STATUSES)[number];
@@ -19,6 +26,7 @@ const KINDS_BY_PROVIDER: Record<ChannelProvider, readonly ChannelKind[]> = {
   meta: ["whatsapp", "messenger", "instagram"],
   telegram: ["telegram"],
   twilio: ["sms"],
+  kapso: ["whatsapp"],
 };
 
 export function kindsForProvider(provider: ChannelProvider): readonly ChannelKind[] {
@@ -33,45 +41,28 @@ export interface ApprovedTemplate {
 }
 
 /** Public view: secret names only, never values. */
-export interface ChannelAccountView {
-  id: string;
-  companyId: string;
-  provider: ChannelProvider;
-  kind: ChannelKind;
-  label: string;
-  externalAccountId: string;
-  providerAccountSid: string | null;
-  verifySecretName: string;
-  challengeSecretName: string | null;
-  tokenSecretName: string;
-  status: ChannelAccountStatus;
-  approvedTemplates: ApprovedTemplate[];
-  lastTestedAt: string | null;
-  lastTestError: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type ChannelAccountView = CustomerChannelAccount;
+export type CreateChannelAccountInput = CreateCustomerChannelAccount;
+export type UpdateChannelAccountInput = UpdateCustomerChannelAccount;
 
-export interface CreateChannelAccountInput {
-  provider: ChannelProvider;
-  kind: ChannelKind;
-  label: string;
-  externalAccountId: string;
-  providerAccountSid?: string | null;
-  verifySecretName: string;
-  challengeSecretName?: string | null;
-  tokenSecretName: string;
-  approvedTemplates?: ApprovedTemplate[];
-}
-
-export interface UpdateChannelAccountInput {
-  label?: string;
-  providerAccountSid?: string | null;
-  verifySecretName?: string;
-  challengeSecretName?: string | null;
-  tokenSecretName?: string;
-  approvedTemplates?: ApprovedTemplate[];
-  status?: "active" | "disabled";
+// Reuse the credential columns. Kapso displayPhoneNumber uses the otherwise unused SID column.
+function kapsoFields(provider: string, input: UpdateChannelAccountInput) {
+  if (provider !== "kapso") {
+    if (input.apiKeySecretName !== undefined || input.webhookSecretName !== undefined || input.displayPhoneNumber !== undefined) {
+      throw unprocessable("Kapso fields require a Kapso account");
+    }
+    return input;
+  }
+  if ((input.apiKeySecretName && input.tokenSecretName && input.apiKeySecretName !== input.tokenSecretName) ||
+      (input.webhookSecretName && input.verifySecretName && input.webhookSecretName !== input.verifySecretName)) {
+    throw unprocessable("Conflicting Kapso secret references");
+  }
+  return {
+    ...input,
+    ...(input.apiKeySecretName !== undefined ? { tokenSecretName: input.apiKeySecretName } : {}),
+    ...(input.webhookSecretName !== undefined ? { verifySecretName: input.webhookSecretName } : {}),
+    ...(input.displayPhoneNumber !== undefined ? { providerAccountSid: input.displayPhoneNumber } : {}),
+  };
 }
 
 export interface ChannelActor {
@@ -94,6 +85,11 @@ export function toChannelAccountView(row: ChannelAccountRow): ChannelAccountView
     verifySecretName: row.verifySecretName,
     challengeSecretName: row.challengeSecretName,
     tokenSecretName: row.tokenSecretName,
+    ...(row.provider === "kapso" ? {
+      apiKeySecretName: row.tokenSecretName,
+      webhookSecretName: row.verifySecretName,
+      displayPhoneNumber: row.providerAccountSid,
+    } : {}),
     status: row.status as ChannelAccountStatus,
     approvedTemplates: row.approvedTemplates ?? [],
     lastTestedAt: row.lastTestedAt ? row.lastTestedAt.toISOString() : null,
@@ -153,11 +149,21 @@ function validateProviderShape(input: {
   }
 }
 
+export function kapsoApiBaseUrl(): string {
+  return (process.env.KAPSO_API_BASE_URL?.trim() || "https://api.kapso.ai").replace(/\/+$/, "");
+}
+
 /** Read-only probe per provider. Shared by the test action and its tests. */
 export function probeRequest(
   account: Pick<ChannelAccountRow, "provider" | "externalAccountId" | "providerAccountSid">,
   token: string,
 ): { url: string; headers: Record<string, string> } {
+  if (account.provider === "kapso") {
+    return {
+      url: `${kapsoApiBaseUrl()}/meta/whatsapp/v24.0/${encodeURIComponent(account.externalAccountId)}?fields=id,display_phone_number`,
+      headers: { "X-API-Key": token },
+    };
+  }
   if (account.provider === "meta") {
     return {
       url: `https://graph.facebook.com/v21.0/${encodeURIComponent(account.externalAccountId)}?fields=id`,
@@ -203,7 +209,9 @@ export function customerChannelService(db: Db, options: { fetch?: FetchLike } = 
     },
 
     async create(companyId: string, input: CreateChannelAccountInput, actor: ChannelActor): Promise<ChannelAccountView> {
+      input = { ...input, ...kapsoFields(input.provider, input) };
       validateProviderShape(input);
+      if (!input.verifySecretName || !input.tokenSecretName) throw unprocessable("Company secret names are required");
       await assertSecretNamesExist(db, companyId, [
         input.verifySecretName,
         input.tokenSecretName,
@@ -252,6 +260,7 @@ export function customerChannelService(db: Db, options: { fetch?: FetchLike } = 
     async update(companyId: string, id: string, input: UpdateChannelAccountInput, actor: ChannelActor): Promise<ChannelAccountView> {
       const current = await loadRow(companyId, id);
       if (!current) throw notFound("Channel account not found");
+      input = kapsoFields(current.provider, input);
       const nextChallenge = input.challengeSecretName !== undefined ? input.challengeSecretName : current.challengeSecretName;
       validateProviderShape({
         provider: current.provider as ChannelProvider,
@@ -322,7 +331,7 @@ export function customerChannelService(db: Db, options: { fetch?: FetchLike } = 
       } else {
         try {
           const probe = probeRequest(current, token);
-          const response = await fetchImpl(probe.url, { method: "GET", headers: probe.headers });
+          const response = await fetchImpl(probe.url, { method: "GET", headers: probe.headers, signal: AbortSignal.timeout(10_000) });
           result = response.ok
             ? { ok: true, status: response.status, detail: "The provider accepted the credentials" }
             : { ok: false, status: response.status, detail: `The provider answered HTTP ${response.status}` };

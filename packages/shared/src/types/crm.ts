@@ -11,6 +11,8 @@ import type {
   CrmActivityKind,
   CrmSubjectKind,
   CustomerHealth,
+  CustomerChannelProvider,
+  CustomerChannelKind,
   CustomerKind,
   CustomerStatus,
   DeliveryStatus,
@@ -26,6 +28,29 @@ import type {
 } from "../constants/crm.js";
 
 // Dates are ISO 8601 strings on the wire.
+
+export interface CustomerChannelAccount {
+  id: string;
+  companyId: string;
+  provider: CustomerChannelProvider;
+  kind: CustomerChannelKind;
+  label: string;
+  externalAccountId: string;
+  providerAccountSid: string | null;
+  verifySecretName: string;
+  challengeSecretName: string | null;
+  tokenSecretName: string;
+  /** Kapso aliases; values remain references to company secrets, never credentials. */
+  apiKeySecretName?: string;
+  webhookSecretName?: string;
+  displayPhoneNumber?: string | null;
+  status: "pending" | "active" | "disabled";
+  approvedTemplates: Array<{ name: string; language: string }>;
+  lastTestedAt: string | null;
+  lastTestError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Customer {
   id: string;

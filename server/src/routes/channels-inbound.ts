@@ -3,6 +3,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { customerChannelAccounts } from "@paperclipai/db/schema/customer_channels";
 import { recordInboundMessage } from "../services/conversations/inbound.js";
+import { parseKapsoWebhook, verifyKapsoSignature } from "../services/conversations/transports/kapso.js";
+import { applyProviderDeliveryStatus } from "../services/conversations/transports/delivery-status.js";
 import {
   applyMetaStatuses,
   metaChallengeResponse,
@@ -25,6 +27,7 @@ import {
 // Mounted under /api by app.ts:
 //   GET  /api/webhooks/meta/:companyId       Meta verification challenge (hub.verify_token)
 //   POST /api/webhooks/meta/:companyId       WhatsApp, Messenger, Instagram events and statuses
+//   POST /api/webhooks/kapso/:companyId      Kapso WhatsApp events and statuses
 //   POST /api/webhooks/twilio/:companyId     SMS inbound and status callbacks
 //   POST /api/webhooks/telegram/:companyId   Telegram bot updates
 // Every handler checks the provider signature before it uses any field of the request. A failed
@@ -56,7 +59,7 @@ function formParams(body: unknown): Record<string, string> | null {
 async function accountsOfProvider(
   db: Db,
   companyId: string,
-  provider: "meta" | "telegram" | "twilio",
+  provider: "meta" | "telegram" | "twilio" | "kapso",
   statuses: readonly string[],
 ): Promise<ChannelAccountRow[]> {
   return db
@@ -72,6 +75,41 @@ async function accountsOfProvider(
 export function channelInboundRoutes(db: Db) {
   const router = Router();
   const formBody = urlencoded({ extended: false, limit: "64kb" });
+
+  router.post("/webhooks/kapso/:companyId", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    if (!UUID_PATTERN.test(companyId)) return reject(res);
+    const raw = rawBodyOf(req);
+    if (!raw) return reject(res);
+    const signature = req.get("x-webhook-signature");
+    const candidates = await accountsOfProvider(db, companyId, "kapso", ["active"]);
+    const verified = new Set<string>();
+    for (const account of candidates) {
+      if (account.kind !== "whatsapp") continue;
+      const secret = await readCompanySecret(db, companyId, account.verifySecretName);
+      if (secret && verifyKapsoSignature(raw, signature, secret)) verified.add(account.externalAccountId);
+    }
+    if (!verified.size) return reject(res);
+    let payload: unknown;
+    try { payload = JSON.parse(raw.toString("utf8")); }
+    catch { res.status(400).json({ error: "Invalid JSON" }); return; }
+    const parsed = parseKapsoWebhook(payload, req.get("x-webhook-event"));
+    // Persist before acknowledging, so a crash cannot lose an accepted message.
+    // recordInboundMessage owns deduplication and dispatch policy; never wait for agent execution here.
+    for (const event of parsed.inbound) {
+      if (!verified.has(event.accountExternalId)) continue;
+      await recordInboundMessage(db, companyId, {
+        channel: "whatsapp", provider: "kapso", externalThreadId: event.externalThreadId,
+        externalMessageId: event.externalMessageId, from: event.from, body: event.body,
+        attachments: event.attachments, occurredAt: event.occurredAt,
+      });
+    }
+    for (const status of parsed.statuses) {
+      if (!verified.has(status.accountExternalId)) continue;
+      await applyProviderDeliveryStatus(db, { companyId, provider: "kapso", ...status });
+    }
+    res.status(200).json({ received: true });
+  });
 
   router.get("/webhooks/meta/:companyId", async (req, res) => {
     const companyId = req.params.companyId as string;

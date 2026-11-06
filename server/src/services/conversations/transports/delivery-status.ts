@@ -21,45 +21,52 @@ export async function applyProviderDeliveryStatus(
     receipt?: Record<string, unknown> | null;
   },
 ): Promise<boolean> {
-  const [row] = await db
-    .select()
-    .from(conversationMessages)
-    .where(and(
-      eq(conversationMessages.companyId, input.companyId),
-      eq(conversationMessages.provider, input.provider),
-      eq(conversationMessages.providerMessageId, input.providerMessageId),
-      eq(conversationMessages.direction, "outbound"),
-    ))
-    .limit(1);
-  if (!row) return false;
+  return db.transaction(async (tx) => {
+    const t = tx as unknown as Db;
+    const [row] = await t
+      .select()
+      .from(conversationMessages)
+      .where(and(
+        eq(conversationMessages.companyId, input.companyId),
+        eq(conversationMessages.provider, input.provider),
+        eq(conversationMessages.providerMessageId, input.providerMessageId),
+        eq(conversationMessages.direction, "outbound"),
+      ))
+      .for("update")
+      .limit(1);
+    if (!row) return false;
 
-  const current = row.deliveryStatus;
-  if (input.status === "failed") {
-    // A message the provider already delivered cannot fail afterwards.
-    if (current === "delivered" || current === "read" || current === "failed") return false;
-  } else {
-    if (current === "failed") return false;
-    if ((RANK[current] ?? -1) >= RANK[input.status]) return false;
-  }
+    const current = row.deliveryStatus;
+    if (input.status === "failed") {
+      // A message the provider already delivered cannot fail afterwards.
+      if (current !== "queued" && current !== "sent") return false;
+    } else {
+      if (current === "failed") return false;
+      if ((RANK[current] ?? -1) >= RANK[input.status]) return false;
+    }
 
-  const now = new Date();
-  await db
-    .update(conversationMessages)
-    .set({
-      deliveryStatus: input.status,
-      providerReceipt: { ...(row.providerReceipt ?? {}), ...(input.receipt ?? {}), lastStatus: input.status },
-      sentAt: row.sentAt ?? (input.status === "failed" ? null : now),
-      updatedAt: now,
-    })
-    .where(eq(conversationMessages.id, row.id));
-  await logActivity(db, {
-    companyId: input.companyId,
-    actorType: "system",
-    actorId: "channel-webhook",
-    action: "message.delivery_status_changed",
-    entityType: "conversation_message",
-    entityId: row.id,
-    details: { provider: input.provider, from: current, to: input.status },
+    const now = new Date();
+    await t
+      .update(conversationMessages)
+      .set({
+        deliveryStatus: input.status,
+        providerReceipt: { ...(row.providerReceipt ?? {}), ...(input.receipt ?? {}), lastStatus: input.status },
+        sentAt: row.sentAt ?? (input.status === "failed" ? null : now),
+        updatedAt: now,
+      })
+      .where(and(
+        eq(conversationMessages.companyId, input.companyId),
+        eq(conversationMessages.id, row.id),
+      ));
+    await logActivity(t, {
+      companyId: input.companyId,
+      actorType: "system",
+      actorId: "channel-webhook",
+      action: "message.delivery_status_changed",
+      entityType: "conversation_message",
+      entityId: row.id,
+      details: { provider: input.provider, from: current, to: input.status },
+    });
+    return true;
   });
-  return true;
 }

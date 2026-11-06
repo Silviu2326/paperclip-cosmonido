@@ -1,7 +1,9 @@
 import { and, eq, isNotNull, sql } from "drizzle-orm";
-import { type Db, conversationMessages, conversations } from "@paperclipai/db";
+import { type Db, conversationMessages, conversations, leads } from "@paperclipai/db";
 import type { Conversation, ConversationChannel, ConversationMessage } from "@paperclipai/shared";
 import { logActivity } from "../activity-log.js";
+import { normalizePhoneE164 } from "../crm/identity.js";
+import { badRequest, conflict } from "../../errors.js";
 import {
   ensureLeadForInbound,
   resolveContactForInbound,
@@ -11,15 +13,24 @@ import { slaDeadline, toConversation, toConversationMessage } from "./conversati
 
 // Entry point for every inbound message: email projection, web chat (F), Meta/Telegram/Twilio (D/E).
 // Stable signature: recordInboundMessage(db, companyId, input). Repeating the same
-// (provider, externalMessageId) returns the stored message and never creates a second one.
+// (company, channel, externalMessageId) returns the stored message without side effects.
+
+/** Channels backed by customer_channel_accounts whose inbound messages can wake the dispatch agent. */
+const MESSAGING_DISPATCH_CHANNELS: ReadonlySet<ConversationChannel> = new Set<ConversationChannel>([
+  "whatsapp",
+  "messenger",
+  "instagram",
+  "telegram",
+  "sms",
+]);
 
 export interface RecordInboundMessageInput {
   channel: ConversationChannel;
-  /** Transport that received the message. Defaults to the channel name. Part of the idempotency key. */
+  /** Transport that received the message. Defaults to the channel name. */
   provider?: string;
   /** Provider thread or chat id. One conversation per (company, channel, externalThreadId). */
   externalThreadId: string;
-  /** Provider message id. With `provider`, it is the idempotency key. */
+  /** Provider message id. Together with company and channel, it is the idempotency key. */
   externalMessageId: string;
   from: InboundFrom;
   body: string;
@@ -36,18 +47,20 @@ export interface RecordInboundMessageResult {
   created: boolean;
 }
 
-async function findInbound(db: Db, companyId: string, provider: string, externalMessageId: string) {
+async function findInbound(db: Db, companyId: string, channel: ConversationChannel, externalMessageId: string) {
   const [row] = await db
-    .select()
+    .select({ message: conversationMessages })
     .from(conversationMessages)
+    .innerJoin(conversations, eq(conversations.id, conversationMessages.conversationId))
     .where(and(
       eq(conversationMessages.companyId, companyId),
-      eq(conversationMessages.provider, provider),
+      eq(conversations.companyId, companyId),
+      eq(conversations.channel, channel),
       eq(conversationMessages.providerMessageId, externalMessageId),
       eq(conversationMessages.direction, "inbound"),
     ))
     .limit(1);
-  return row ?? null;
+  return row?.message ?? null;
 }
 
 export async function recordInboundMessage(
@@ -57,15 +70,20 @@ export async function recordInboundMessage(
 ): Promise<RecordInboundMessageResult> {
   const provider = input.provider ?? input.channel;
   const occurredAt = input.occurredAt ?? new Date();
-
-  const previous = await findInbound(db, companyId, provider, input.externalMessageId);
-  if (previous) {
-    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, previous.conversationId)).limit(1);
-    return { conversation: toConversation(conversation), message: toConversationMessage(previous), created: false };
-  }
+  if (!Number.isFinite(occurredAt.getTime())) throw badRequest("Invalid inbound message timestamp");
+  if (!input.externalMessageId.trim() || !input.externalThreadId.trim()) throw badRequest("Inbound message and thread ids are required");
+  const from = { ...input.from, phone: normalizePhoneE164(input.from.phone) };
 
   return db.transaction(async (tx) => {
     const t = tx as unknown as Db;
+    // Serialize inbound CRM resolution per company, including different threads sharing an identity.
+    // Transaction locks also cover multiple API processes and release automatically on failure.
+    await t.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`conversation-inbound:${companyId}`}, 0))`);
+    const previous = await findInbound(t, companyId, input.channel, input.externalMessageId);
+    if (previous) {
+      const [conversation] = await t.select().from(conversations).where(and(eq(conversations.companyId, companyId), eq(conversations.id, previous.conversationId))).limit(1);
+      return { conversation: toConversation(conversation), message: toConversationMessage(previous), created: false };
+    }
 
     const [thread] = await t
       .select()
@@ -75,6 +93,7 @@ export async function recordInboundMessage(
         eq(conversations.channel, input.channel),
         eq(conversations.externalThreadId, input.externalThreadId),
       ))
+      .for("update")
       .limit(1);
 
     let conv = thread;
@@ -109,6 +128,7 @@ export async function recordInboundMessage(
             eq(conversations.channel, input.channel),
             eq(conversations.externalThreadId, input.externalThreadId),
           ))
+          .for("update")
           .limit(1);
         conv = raced;
       }
@@ -137,22 +157,38 @@ export async function recordInboundMessage(
       })
       .returning();
     if (!inserted) {
-      const duplicate = await findInbound(t, companyId, provider, input.externalMessageId);
-      if (!duplicate) throw new Error("Inbound message conflict without a stored duplicate");
-      return { conversation: toConversation(conv), message: toConversationMessage(duplicate), created: false };
+      const duplicate = await findInbound(t, companyId, input.channel, input.externalMessageId);
+      // The existing DB index is provider-scoped, stricter than channel-scoped deduplication.
+      if (!duplicate) throw conflict("Provider message id is already used by another message");
+      const [duplicateConversation] = await t.select().from(conversations)
+        .where(and(eq(conversations.companyId, companyId), eq(conversations.id, duplicate.conversationId))).limit(1);
+      return { conversation: toConversation(duplicateConversation), message: toConversationMessage(duplicate), created: false };
     }
 
-    // Web chat automation is an explicit company opt-in. Insert only a durable
+    // Agent automation is an explicit company opt-in. Insert only a durable
     // inbox work row here; the worker creates an assigned task after commit and
     // the ordinary heartbeat/external-action gates own execution and delivery.
-    if (input.channel === "webchat") {
-      const policyRows = await t.execute(sql`
-        select d.agent_id, d.responsible_user_id
-        from conversation_agent_dispatch_settings d
-        inner join webchat_settings w on w.company_id = d.company_id and w.active = true
-        where d.company_id = ${companyId} and d.enabled = true
-        limit 1
-      `) as unknown as Array<{ agent_id: string; responsible_user_id: string }>;
+    // Web chat needs an active site; messaging channels (WhatsApp via Meta or
+    // Kapso, Messenger, Instagram, Telegram, SMS) need an active channel account.
+    if (input.channel === "webchat" || MESSAGING_DISPATCH_CHANNELS.has(input.channel)) {
+      const policyRows = (input.channel === "webchat"
+        ? await t.execute(sql`
+          select d.agent_id, d.responsible_user_id
+          from conversation_agent_dispatch_settings d
+          inner join webchat_settings w on w.company_id = d.company_id and w.active = true
+          where d.company_id = ${companyId} and d.enabled = true
+          limit 1
+        `)
+        : await t.execute(sql`
+          select d.agent_id, d.responsible_user_id
+          from conversation_agent_dispatch_settings d
+          where d.company_id = ${companyId} and d.enabled = true
+            and exists (
+              select 1 from customer_channel_accounts a
+              where a.company_id = d.company_id and a.kind = ${input.channel} and a.status = 'active'
+            )
+          limit 1
+        `)) as unknown as Array<{ agent_id: string; responsible_user_id: string }>;
       const policy = policyRows[0];
       if (policy?.agent_id && policy.responsible_user_id &&
           conv.assignedUserId === null && (!conv.assignedAgentId || conv.assignedAgentId === policy.agent_id)) {
@@ -169,15 +205,18 @@ export async function recordInboundMessage(
     // Contact and customer: resolved once per conversation, kept afterwards.
     const resolved = conv.contactId && conv.customerId
       ? null
-      : await resolveContactForInbound(t, companyId, input.channel, input.from);
+      : await resolveContactForInbound(t, companyId, input.channel, from);
 
     // A new inbound message opens a response window. A pending window keeps its earlier deadline.
     const windowAlreadyOpen = conv.status === "waiting_us" && conv.slaDueAt !== null;
+    const alreadyAnswered = conv.lastOutboundAt !== null && occurredAt <= conv.lastOutboundAt;
     const [updated] = await t
       .update(conversations)
       .set({
-        status: "waiting_us",
-        slaDueAt: windowAlreadyOpen ? conv.slaDueAt : slaDeadline(occurredAt),
+        status: alreadyAnswered ? conv.status : "waiting_us",
+        slaDueAt: alreadyAnswered ? conv.slaDueAt : windowAlreadyOpen
+          ? new Date(Math.min(conv.slaDueAt!.getTime(), slaDeadline(occurredAt).getTime()))
+          : slaDeadline(occurredAt),
         lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${occurredAt.toISOString()}::timestamptz), ${occurredAt.toISOString()}::timestamptz)`,
         lastInboundAt: sql`greatest(coalesce(${conversations.lastInboundAt}, ${occurredAt.toISOString()}::timestamptz), ${occurredAt.toISOString()}::timestamptz)`,
         contactId: conv.contactId ?? resolved?.contactId ?? null,
@@ -193,14 +232,16 @@ export async function recordInboundMessage(
       const leadId = await ensureLeadForInbound(t, companyId, {
         channel: input.channel,
         sourceRef: input.externalThreadId,
-        payload: { subject: input.subject ?? null, firstMessage: input.body.slice(0, 500), from: input.from },
-        from: input.from,
+        payload: { subject: input.subject ?? null, firstMessage: input.body.slice(0, 500), from },
+        from,
         contactId: final.contactId,
         language: input.language ?? null,
       });
+      const [lead] = await t.select({ contactId: leads.contactId }).from(leads)
+        .where(and(eq(leads.companyId, companyId), eq(leads.id, leadId))).limit(1);
       [final] = await t
         .update(conversations)
-        .set({ leadId, updatedAt: new Date() })
+        .set({ leadId, contactId: final.contactId ?? lead?.contactId ?? null, updatedAt: new Date() })
         .where(eq(conversations.id, conv.id))
         .returning();
     }

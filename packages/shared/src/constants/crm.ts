@@ -89,6 +89,11 @@ export const CONVERSATION_CHANNELS = [
 ] as const;
 export type ConversationChannel = (typeof CONVERSATION_CHANNELS)[number];
 
+export const CUSTOMER_CHANNEL_PROVIDERS = ["meta", "telegram", "twilio", "kapso"] as const;
+export type CustomerChannelProvider = (typeof CUSTOMER_CHANNEL_PROVIDERS)[number];
+export const CUSTOMER_CHANNEL_KINDS = ["whatsapp", "messenger", "instagram", "telegram", "sms"] as const;
+export type CustomerChannelKind = (typeof CUSTOMER_CHANNEL_KINDS)[number];
+
 export const CONVERSATION_STATUSES = ["open", "waiting_us", "waiting_them", "closed"] as const;
 export type ConversationStatus = (typeof CONVERSATION_STATUSES)[number];
 

@@ -12,6 +12,8 @@ import {
   CUSTOMER_HEALTHS,
   CUSTOMER_KINDS,
   CUSTOMER_STATUSES,
+  CUSTOMER_CHANNEL_PROVIDERS,
+  CUSTOMER_CHANNEL_KINDS,
   CONTACT_STATUSES,
   EXTERNAL_ACTION_TYPES,
   LEAD_PRIORITIES,
@@ -25,6 +27,57 @@ const guidSchema = z.string().guid();
 const isoDateSchema = z.string().datetime({ offset: true });
 const languageSchema = z.string().regex(/^[a-z]{2}$/, "Use an ISO 639-1 code");
 const currencySchema = z.string().regex(/^[A-Z]{3}$/, "Use an ISO 4217 code");
+
+const channelSecretName = z.string().trim().min(1).max(128);
+const channelTemplateSchema = z.object({
+  name: z.string().trim().min(1).max(512),
+  language: z.string().trim().min(2).max(10),
+});
+
+export const createCustomerChannelAccountSchema = z.object({
+  provider: z.enum(CUSTOMER_CHANNEL_PROVIDERS),
+  kind: z.enum(CUSTOMER_CHANNEL_KINDS),
+  label: z.string().trim().min(1).max(120),
+  externalAccountId: z.string().trim().min(1).max(64),
+  providerAccountSid: z.string().trim().regex(/^AC[a-zA-Z0-9]{32}$/).nullable().optional(),
+  verifySecretName: channelSecretName.optional(),
+  challengeSecretName: channelSecretName.nullable().optional(),
+  tokenSecretName: channelSecretName.optional(),
+  apiKeySecretName: channelSecretName.optional(),
+  webhookSecretName: channelSecretName.optional(),
+  displayPhoneNumber: z.string().trim().min(1).max(64).nullable().optional(),
+  approvedTemplates: z.array(channelTemplateSchema).max(50).optional(),
+}).superRefine((value, ctx) => {
+  const kapso = value.provider === "kapso";
+  for (const [field, present] of [
+    [kapso ? "apiKeySecretName" : "tokenSecretName", kapso ? value.apiKeySecretName ?? value.tokenSecretName : value.tokenSecretName],
+    [kapso ? "webhookSecretName" : "verifySecretName", kapso ? value.webhookSecretName ?? value.verifySecretName : value.verifySecretName],
+  ] as const) {
+    if (!present) ctx.addIssue({ code: "custom", path: [field], message: "A company secret name is required" });
+  }
+  if (kapso && (value.kind !== "whatsapp" || !/^\d+$/.test(value.externalAccountId))) {
+    ctx.addIssue({ code: "custom", path: ["externalAccountId"], message: "Kapso needs a WhatsApp phone_number_id" });
+  }
+  if (value.provider === "twilio" && !/^\+[1-9]\d{7,14}$/.test(value.externalAccountId)) {
+    ctx.addIssue({ code: "custom", path: ["externalAccountId"], message: "Twilio numbers must be E.164" });
+  }
+});
+
+export const updateCustomerChannelAccountSchema = z.object({
+  label: z.string().trim().min(1).max(120).optional(),
+  providerAccountSid: z.string().trim().regex(/^AC[a-zA-Z0-9]{32}$/).nullable().optional(),
+  verifySecretName: channelSecretName.optional(),
+  challengeSecretName: channelSecretName.nullable().optional(),
+  tokenSecretName: channelSecretName.optional(),
+  apiKeySecretName: channelSecretName.optional(),
+  webhookSecretName: channelSecretName.optional(),
+  displayPhoneNumber: z.string().trim().min(1).max(64).nullable().optional(),
+  approvedTemplates: z.array(channelTemplateSchema).max(50).optional(),
+  status: z.enum(["active", "disabled"]).optional(),
+}).strict();
+
+export type CreateCustomerChannelAccount = z.infer<typeof createCustomerChannelAccountSchema>;
+export type UpdateCustomerChannelAccount = z.infer<typeof updateCustomerChannelAccountSchema>;
 
 // ---------------------------------------------------------------- customers
 

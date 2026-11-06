@@ -83,6 +83,15 @@ export function conversationRoutes(db: Db, email?: EmailChannelService) {
   const agentDispatch = conversationAgentDispatchService(db);
   if (email) registerConversationTransport(emailTransportService(db, email));
 
+  router.param("id", (_req, _res, next, value) => {
+    if (!uuid.safeParse(value).success) return next(badRequest("Invalid conversation or message id"));
+    next();
+  });
+  router.param("companyId", (_req, _res, next, value) => {
+    if (!uuid.safeParse(value).success) return next(badRequest("Invalid company id"));
+    next();
+  });
+
   router.get("/companies/:companyId/conversation-agent-dispatch", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);

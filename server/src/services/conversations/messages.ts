@@ -29,20 +29,38 @@ import {
   type OutboundMessage,
   type TransportReconcileStatus,
 } from "./transports/types.js";
+import { listActiveAccounts } from "../customer-channels/accounts.js";
 
 // Outbound messages. Every external send passes gateExternalAction; there is no channel exception.
 // Delivery states: draft -> queued -> sent | delivered | read | failed | uncertain.
 // An uncertain send is never retried; it leaves only through reconcile().
 
 const transports = new Map<ConversationChannel, ConversationTransport>();
+const providerTransports = new Map<string, ConversationTransport>();
 
 /** Registers a transport for each channel it declares. A later registration replaces the earlier one. */
-export function registerConversationTransport(transport: ConversationTransport) {
-  for (const channel of transport.channels) transports.set(channel, transport);
+export function registerConversationTransport(transport: ConversationTransport, options: { defaultForChannel?: boolean } = {}) {
+  providerTransports.set(transport.provider, transport);
+  if (options.defaultForChannel !== false) {
+    for (const channel of transport.channels) transports.set(channel, transport);
+  }
 }
 
 export function transportForChannel(channel: string): ConversationTransport | null {
   return transports.get(channel as ConversationChannel) ?? null;
+}
+
+export async function transportForCompany(db: Db, companyId: string, channel: string, provider?: string): Promise<ConversationTransport | null> {
+  // Reconciliation uses the provider recorded at send time, even after account changes.
+  if (provider && provider !== DRAFT_PROVIDER) {
+    const recorded = providerTransports.get(provider);
+    return recorded?.channels.includes(channel as ConversationChannel) ? recorded : null;
+  }
+  if (channel === "whatsapp" && providerTransports.has("kapso")) {
+    const accounts = await listActiveAccounts(db, companyId, "kapso");
+    if (accounts.some((account) => account.kind === "whatsapp")) return providerTransports.get("kapso")!;
+  }
+  return transportForChannel(channel);
 }
 
 /** Draft messages carry provider 'draft' and the idempotency key, so a repeated draft call is a no-op. */
@@ -120,7 +138,7 @@ export function conversationMessageService(db: Db) {
       channel: parent.channel as ConversationChannel,
     });
   }
-  const transport = transportForChannel(parent.channel);
+  const transport = await transportForCompany(db, companyId, parent.channel);
   if (!transport) throw conflict(`No transport is active for channel ${parent.channel}`);
 
   const actionType: ExternalActionType = parent.channel === "email" ? "email" : "message";
@@ -355,7 +373,7 @@ export function conversationMessageService(db: Db) {
         throw conflict("Only queued or uncertain sends can be reconciled", { status: msg.deliveryStatus });
       }
       const parent = await loadConversation(companyId, msg.conversationId);
-      const transport = transportForChannel(parent.channel);
+      const transport = await transportForCompany(db, companyId, parent.channel, msg.provider ?? undefined);
       if (!transport) throw conflict(`No transport is active for channel ${parent.channel}`);
 
       let next: { status: TransportReconcileStatus; providerMessageId: string | null; receipt: Record<string, unknown> | null };

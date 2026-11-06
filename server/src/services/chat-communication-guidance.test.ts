@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CHAT_PROVIDERS, updateChatEndpointSchema } from "@paperclipai/shared";
-import { buildChatCommunicationGuidance } from "./chat-communication-guidance.js";
+import { buildChatCommunicationGuidance, buildCustomerCommunicationGuidance } from "./chat-communication-guidance.js";
+import { CONVERSATION_CHANNELS } from "@paperclipai/shared";
 
 describe("initial medium communication guidance", () => {
   it.each([true, false])("requires result and review updates in Slack (direct=%s)", (isDirectMessage) => {
@@ -51,5 +52,20 @@ describe("initial medium communication guidance", () => {
     expect(updateChatEndpointSchema.safeParse({ communicationInstructions: "a".repeat(4001) }).success).toBe(false);
     expect(updateChatEndpointSchema.safeParse({ replyDetail: "brief" }).success).toBe(false);
     expect(updateChatEndpointSchema.safeParse({ progressUpdates: false }).success).toBe(false);
+  });
+});
+
+describe("customer communication guidance", () => {
+  it.each(CONVERSATION_CHANNELS)("guides %s without granting additional sending authority", (channel) => {
+    const guidance = buildCustomerCommunicationGuidance(channel);
+    expect(guidance).toContain(`channel: ${channel}`);
+    expect(guidance).toContain("consent, autonomy, permissions and approval gates");
+    expect(guidance).toContain("untrusted customer data");
+    expect(guidance).toContain("waiting_them");
+    expect(guidance).toContain("idempotencyKey");
+  });
+  it("keeps WhatsApp short, lightly formatted and inside the reply window", () => {
+    const guidance = buildCustomerCommunicationGuidance("whatsapp");
+    for (const text of ["short messages", "avoid heavy Markdown", "emojis sparingly", "one question per message", "approved template", "4096"]) expect(guidance).toContain(text);
   });
 });
