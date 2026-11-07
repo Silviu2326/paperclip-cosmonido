@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useRef } from "react";
 import type { ExecutionProjection } from "@paperclipai/shared";
 import { useSecondTick } from "@/hooks/useSecondTick";
@@ -84,14 +85,16 @@ function RunnerTurnStatus({
   const elapsed = formatCompactDuration(elapsedMs);
 
   const failed = terminalStatusFailed(status);
-  const label = terminal ? (failed ? "Stopped" : "Worked") : "Working";
+  const label = terminal
+    ? (failed ? t("chatUiLib.turnStopped", { defaultValue: "Stopped" }) : t("chatUiLib.turnWorked", { defaultValue: "Worked" }))
+    : t("chatUiLib.turnWorking", { defaultValue: "Working" });
   const semanticLabel = terminal
     ? elapsed
-      ? `${label} ${failed ? "after" : "for"} ${elapsed}`
+      ? (failed ? t("chatUiLib.turnStoppedAfter", { time: elapsed, defaultValue: "Stopped after {{time}}" }) : t("chatUiLib.turnWorkedFor", { time: elapsed, defaultValue: "Worked for {{time}}" }))
       : label
-    : `${label} for ${elapsed ?? "0s"}`;
+    : t("chatUiLib.turnWorkingFor", { time: elapsed ?? "0s", defaultValue: "Working for {{time}}" });
   const visibleLabel = continuedAfterSteering
-    ? `Continued after steering · ${semanticLabel}`
+    ? t("chatUiLib.continuedAfterSteeringLabel", { label: semanticLabel, defaultValue: "Continued after steering · {{label}}" })
     : semanticLabel;
 
   return (

@@ -17,5 +17,8 @@ export const updateDocumentResourceMembershipSchema = z.object({
   starred: z.boolean(),
 }).strict();
 
+export const updateArtifactResourceMembershipSchema = updateDocumentResourceMembershipSchema;
+
+export type UpdateArtifactResourceMembership = z.infer<typeof updateArtifactResourceMembershipSchema>;
 export type UpdateResourceMembership = z.infer<typeof updateResourceMembershipSchema>;
 export type UpdateDocumentResourceMembership = z.infer<typeof updateDocumentResourceMembershipSchema>;

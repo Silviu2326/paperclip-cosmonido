@@ -1,1 +1,6 @@
 patches/*.patch whitespace=-space-before-tab
+# Run on the Linux VPS and in GitHub Actions; CRLF breaks bash there.
+scripts/cosmonido/**/*.sh text eol=lf
+.github/workflows/*.yml text eol=lf
+# Migrations are applied by content hash; a CRLF edit makes production see an applied migration as new.
+packages/db/src/migrations/*.sql text eol=lf

@@ -202,3 +202,26 @@ export async function createAssignedMcpTools(input: {
     },
   };
 }
+
+/** First-party product tools retain normal authenticated REST authorization. */
+export const PRODUCT_TOOL_NAMES = [
+  "get_assignment", "submit_deliverable_for_review", "context_search", "context_get",
+  "media_ingest", "media_transcribe", "media_detect_silences", "media_detect_fillers",
+  "media_cut", "media_subtitle", "media_export", "media_dub", "media_get_project", "media_get_job",
+  // Sprint 3
+  "media_stop_motion", "media_dub_multivoice", "media_voiceover",
+  "playbook_start", "playbook_get_run", "playbook_advance",
+  "proposal_create", "proposal_send", "proposal_get",
+  "decision_create", "decision_get",
+  "handoff_to_delivery", "agreement_get", "upsell_suggest",
+  "lead_qualify", "lead_enrich", "commitments_extract",
+  // Sprint 2 (dispatched by services/sprint2-tools.ts)
+  "crm_search", "crm_get_customer", "crm_create_customer", "crm_create_contact", "crm_create_opportunity",
+  "crm_update_opportunity_stage", "crm_set_next_action", "crm_log_activity", "commitment_create", "commitment_resolve",
+  "lead_get", "lead_list", "lead_triage", "lead_convert",
+  "conversation_list", "conversation_get", "message_draft", "message_send", "message_reply", "conversation_set_state",
+  "calendar_availability", "calendar_book", "calendar_reschedule", "calendar_cancel",
+  "customer_memory_get", "customer_memory_append",
+  "webchat_handoff",
+  "review_link_create", "review_status_get", "crm_sync_status", "call_summary_get", "call_schedule",
+] as const;

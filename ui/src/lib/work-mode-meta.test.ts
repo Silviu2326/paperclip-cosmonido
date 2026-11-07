@@ -19,3 +19,9 @@ describe("work mode metadata", () => {
     expect(titleForPendingWorkMode("planning")).toBe("Plan mode is on for this submission. Click to change.");
   });
 });
+
+// These tests assert English copy; the app default language is Spanish.
+import { afterAll as afterAllEn, beforeAll as beforeAllEn } from "vitest";
+import { i18n as i18nEn } from "@/i18n";
+beforeAllEn(async () => { await i18nEn.changeLanguage("en"); });
+afterAllEn(async () => { await i18nEn.changeLanguage("es"); });

@@ -1,3 +1,4 @@
+import { assignmentContextMediaNamespaces } from "../protocol-actions/assignment-context-media.js";
 import { PAPERCLIP_SEMANTIC_ACTION_CATALOG } from "../catalog/semantic-action-catalog.js";
 import type {
   PaperclipSemanticActionDescriptor,
@@ -12,6 +13,7 @@ import type {
 
 const NAMESPACE: Readonly<Record<PaperclipSemanticActionId, string>> =
   Object.freeze({
+  ...assignmentContextMediaNamespaces,
     set_task_title: "active_task",
   set_task_monitor: "continuation",
     search_api: "api_fallback",

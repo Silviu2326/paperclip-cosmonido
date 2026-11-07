@@ -241,6 +241,14 @@ export type {
   EnsureMySkillFolderRequest,
 } from "./folder.js";
 export type {
+  CompanyFile,
+  CompanyFileVersion,
+  CompanyFileFolderNode,
+  CompanyFilesListResponse,
+  CompanyFileUsage,
+  CompanyFileSortKey,
+} from "./company-file.js";
+export type {
   CatalogTeamKind,
   CatalogTeamTrustLevel,
   CatalogTeamCompatibility,
@@ -649,6 +657,11 @@ export type {
   CompanyArtifactMediaKind,
   CompanyArtifactProjectSummary,
   CompanyArtifactSource,
+  CompanyArtifactSortDir,
+  CompanyArtifactSortKey,
+  CompanyArtifactTreeNode,
+  CompanyArtifactTreeNodeKind,
+  CompanyArtifactTreeResponse,
   CompanyArtifactsResponse,
 } from "./artifact.js";
 
@@ -805,6 +818,8 @@ export type {
   IssueAncestorGoal,
   IssueAttachment,
   IssueCreationSource,
+  IssueListParams,
+  IssueReviewFilter,
   IssueLabel,
   IssueWatchdog,
   IssueWatchdogStatus,
@@ -929,7 +944,7 @@ export type {
   InstanceSchedulerHeartbeatAgent,
 } from "./heartbeat.js";
 export type { LiveEvent } from "./live.js";
-export type { DashboardRunActivityDay, DashboardSummary } from "./dashboard.js";
+export type { DashboardRunActivityDay, DashboardSummary, DashboardSection, DashboardActiveAssignment, DashboardNeedsYouItem, DashboardCostWindow, DashboardAssignmentSections } from "./dashboard.js";
 export type {
   TimelineActorType,
   TimelineEventKind,
@@ -960,7 +975,7 @@ export type {
   ResourceMembershipUpdateResult,
   UpdateResourceMembership,
 } from "./resource-memberships.js";
-export { RESOURCE_MEMBERSHIP_STATES } from "./resource-memberships.js";
+export { ARTIFACT_MEMBERSHIP_SOURCES, RESOURCE_MEMBERSHIP_STATES } from "./resource-memberships.js";
 export type { InboxDismissal, InboxDismissalKind } from "./inbox-dismissal.js";
 export type {
   DecisionEffectStaleness,
@@ -1091,6 +1106,21 @@ export type {
 export * from "./app-definition.js";
 export * from "./chat-channels.js";
 export * from "./chat-github.js";
+export type {
+  CrmPhoneCallbackStatus,
+  CrmPhoneIdentityState,
+  CrmPhoneConsentBasis,
+  CrmPhoneEvidenceSource,
+  CrmPhoneEvidenceStatement,
+  CrmPhoneCallSummary,
+  CrmPhoneCall,
+  CrmPhoneCallback,
+  CrmPhoneConnectorStatus,
+  CrmPhoneDialAuthorization,
+  CrmPhoneCallSummaryGetInput,
+  CrmPhoneCallScheduleInput,
+  CrmPhoneToolDefinition,
+} from "../productization/crm-phone.js";
 
 export * from "./email.js";
 

@@ -29,6 +29,7 @@ import type { CompanyArtifact } from "@/api/artifacts";
 function makeArtifact(overrides: Partial<CompanyArtifact> = {}): CompanyArtifact {
   return {
     id: "art-1",
+    thumbnailPath: null,
     source: "attachment",
     mediaKind: "image",
     title: "Hero shot",
@@ -43,6 +44,8 @@ function makeArtifact(overrides: Partial<CompanyArtifact> = {}): CompanyArtifact
     // Local, not UTC: the card renders "Last edited" from the local calendar
     // day, and noon UTC is already the 2nd at UTC+14.
     updatedAt: new Date(2026, 5, 1, 12, 0, 0, 0).toISOString(),
+    byteSize: null,
+    createdAt: new Date(2026, 5, 1, 12, 0, 0, 0).toISOString(),
     href: "/issues/PAP-10306#attachment-art-1",
     ...overrides,
   };

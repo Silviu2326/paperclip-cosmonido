@@ -8,6 +8,9 @@ import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useAgentChatNavigation, useOpenAgentChat } from "@/hooks/useAgentChatNavigation";
 import { recordedAgentChatIssueId, useRecentAgentChats } from "@/lib/recent-agent-chats";
 import { Link, useNavigate } from "@/lib/router";
+import { useDialogActions } from "@/context/DialogContext";
+import { ApiError } from "@/api/client";
+import { ChatLoadError, ChatNoAccess, ChatNoAgents, ChatNoSelection } from "@/components/chat/ChatStates";
 import { agentRouteRef } from "@/lib/utils";
 
 export function AgentChats() {
@@ -22,6 +25,7 @@ export function AgentChats() {
 function AgentChatsContent({ companyId, userId, enabled, loaded, agents, chats, session }: Pick<ReturnType<typeof useAgentChatNavigation>, "companyId" | "userId" | "enabled" | "loaded" | "agents" | "chats" | "session">) {
   const { t } = useTranslation();
   const primary = usePrimaryAgentPresentation(companyId);
+  const { openNewAgent } = useDialogActions();
   const openChat = useOpenAgentChat(companyId, userId);
   const navigate = useNavigate();
   const recentIds = useRecentAgentChats(companyId ?? "", userId);
@@ -59,26 +63,26 @@ function AgentChatsContent({ companyId, userId, enabled, loaded, agents, chats, 
   if (!companyId) return <p className="text-sm text-muted-foreground">{t("agentChats.selectCompany")}</p>;
   if (resolvingRecent || entryPath || primary?.loading) return <p role="status" className="text-sm text-muted-foreground">{t("agentChats.openingChat")}</p>;
   const error = blockingError ?? (recentIds.length > 0 ? chats.error : null);
+  if (error && ((error instanceof ApiError) && error.status === 403)) return <ChatNoAccess />;
+  if (error) {
+    return <ChatLoadError retrying={agents.isFetching || chats.isFetching || session.isFetching} onRetry={() => { void agents.refetch(); void chats.refetch(); void session.refetch(); }} />;
+  }
+  if (!agents.isPending && !session.isPending && agents.data?.length === 0) return <ChatNoAgents onAddAgent={openNewAgent} />;
   return <div className="mx-auto flex h-full max-w-xl flex-col justify-center gap-6 px-4 py-12">
-    <div className="flex flex-col gap-3">
-      <MessageCircle className="size-6 text-muted-foreground" />
-      <h1 className="text-xl font-semibold">{t("agentChats.heading")}</h1>
-      <p className="text-sm leading-relaxed text-muted-foreground">{t("agentChats.description")}</p>
-    </div>
-    {error ? <div role="alert" className="flex flex-col items-start gap-3"><p className="text-sm">{t("agentChats.loadError")}</p><Button variant="outline" onClick={() => { void agents.refetch(); void chats.refetch(); void session.refetch(); }}>{t("agentChats.tryAgain")}</Button></div>
-      : agents.isPending || session.isPending ? <p role="status" className="text-sm text-muted-foreground">{t("agentChats.loadingAgents")}</p>
-      : <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {(agents.data ?? []).slice(0, 6).map(agent => <button key={agent.id} type="button" disabled={openingId !== null}
-          onClick={async () => {
-            setOpeningId(agent.id); setOpenError(null);
-            try { await openChat(agent); } catch (error) { setOpenError(error instanceof Error ? error.message : t("agentChats.openErrorFallback")); } finally { setOpeningId(null); }
-          }} className="flex items-center gap-3 rounded-lg border border-border p-4 text-left hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
-          <AgentAvatar agent={agent} size={32} />
-          <span className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{agent.name}</span><span className="text-xs text-muted-foreground">{openingId === agent.id ? t("agentChats.openingChat") : agent.title ?? agent.role}</span></span>
-        </button>)}
-      </div>}
-    {openError && <p role="alert" className="text-sm text-destructive">{openError}</p>}
-    {agents.data?.length === 0 && <p className="text-sm text-muted-foreground">{t("agentChats.addAgent")}</p>}
-    <Button variant="ghost" className="self-start" asChild><Link to="/agents/all">{t("agentChats.browseAll")}</Link></Button>
+    <ChatNoSelection>
+      {agents.isPending || session.isPending ? <p role="status" className="text-sm text-muted-foreground">{t("agentChats.loadingAgents")}</p>
+        : <div className="grid w-full grid-cols-1 gap-2 text-left sm:grid-cols-2">
+          {(agents.data ?? []).slice(0, 6).map(agent => <button key={agent.id} type="button" disabled={openingId !== null}
+            onClick={async () => {
+              setOpeningId(agent.id); setOpenError(null);
+              try { await openChat(agent); } catch (error) { setOpenError(error instanceof Error ? error.message : t("agentChats.openErrorFallback")); } finally { setOpeningId(null); }
+            }} className="flex items-center gap-3 rounded-xl border border-border p-4 text-left transition-colors duration-(--motion-duration-fast) hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
+            <AgentAvatar agent={agent} size={32} />
+            <span className="flex min-w-0 flex-col gap-1"><span className="truncate text-sm font-medium">{agent.name}</span><span className="text-xs text-muted-foreground">{openingId === agent.id ? t("agentChats.openingChat") : agent.title ?? agent.role}</span></span>
+          </button>)}
+        </div>}
+      {openError && <p role="alert" className="text-sm text-destructive">{openError}</p>}
+      <Button variant="ghost" asChild><Link to="/agents/all">{t("agentChats.browseAll")}</Link></Button>
+    </ChatNoSelection>
   </div>;
 }

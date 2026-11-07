@@ -35,6 +35,7 @@ import {
 } from "../components/RoutineRunVariablesDialog";
 import { RoutineVariablesEditor, RoutineVariablesHint } from "../components/RoutineVariablesEditor";
 import { Button } from "@/components/ui/button";
+import { ProceduresLink } from "@/components/team-workspace/TeamWorkspaceLinks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -814,10 +815,13 @@ export function Routines() {
             Recurring work definitions that materialize into auditable execution tasks.
           </p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        <ProceduresLink />
         <Button onClick={openCreateRoutine}>
           <Plus className="mr-2 h-4 w-4" />
           Create routine
         </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>

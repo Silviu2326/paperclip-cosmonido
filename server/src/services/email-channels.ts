@@ -45,6 +45,7 @@ import { badRequest, conflict, forbidden, notFound } from "../errors.js";
 import { environmentService } from "./environments.js";
 import { resolveExecutionWorkspaceEnvironmentId } from "./execution-workspace-policy.js";
 import { emailConnectionService } from "./email-connections.js";
+import { productizationEntitlementsService } from "./productization/entitlements.js";
 import { secretService } from "./secrets.js";
 import { authorizationService } from "./authorization.js";
 import { assertChatTaskCreationAccess, resolveChatExecutionDefaults } from "./chat-execution-defaults.js";
@@ -126,6 +127,7 @@ const diagnostic = (e: unknown) =>
 
 export function emailChannelService(db: Db, options: EmailChannelOptions) {
   const secrets = secretService(db);
+  const entitlements=productizationEntitlementsService(db);
   const fetchImpl = options.fetch ?? fetch;
   const owner = randomUUID();
   const sockets = new Map<
@@ -686,7 +688,8 @@ export function emailChannelService(db: Db, options: EmailChannelOptions) {
     if (!endpoint) {
       const applicationId = input.applicationId ?? randomUUID();
       const connectionId = randomUUID();
-      await db.transaction(async (tx) => {
+      const reservation=await entitlements.reserveForCompany({companyId,metric:"connections",quantity:1,idempotencyKey:`agentmail-endpoint:${companyId}:${input.idempotencyKey}`,requestFingerprint:`${companyId}:${input.idempotencyKey}:${input.assignedAgentId}`});
+      try { await db.transaction(async (tx) => {
         if (input.applicationId) {
           const [app] = await tx
             .select()
@@ -767,7 +770,11 @@ export function emailChannelService(db: Db, options: EmailChannelOptions) {
           { companyId, profileId, targetType: "agent", targetId: agent.id },
           { companyId, profileId, targetType: "company", targetId: companyId },
         ]);
-      });
+      }); } catch(error) {
+        await entitlements.releaseAfterConfirmedRollback(reservation);
+        throw error;
+      }
+      await entitlements.commit(reservation);
       endpoint = await getEndpoint(input.idempotencyKey);
     }
     if (endpoint.status === "archived")

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
-import { resolveAgentAppearance, type CharacterState } from "@paperclipai/shared";
+import { isLpcAppearance, resolveAgentAppearance, type AgentAppearance, type CharacterState, type LpcScene } from "@paperclipai/shared";
+import { LpcCharacter } from "./LpcCharacter";
 import { cn } from "@/lib/utils";
 import { characterSlot } from "@/lib/agent-character-slot";
 import { AgentAvatar, avatarSizeClasses, type AgentAvatarProps } from "./AgentAvatar";
@@ -13,9 +14,21 @@ export interface AgentCharacterProps extends Omit<AgentAvatarProps, "pose"> {
   trackingScope?: "region" | "page";
   followCursor?: boolean;
   followRotation?: boolean;
+  /** lpc-v1 only: backdrop override ("none" hides the saved scene). ClipLab characters ignore it. */
+  scene?: LpcScene;
 }
-export function AgentCharacter({ agent, appearance, size = 256, state = "idle", muted = false, motion = "auto", trackingRegion, trackingScope = "region", followCursor = true, followRotation = true, className, label, name }: AgentCharacterProps) {
+/** Dispatches on the persisted character version: lpc-v1 pixel-art sprites or the ClipLab cap-v1 live renderer. */
+export function AgentCharacter(props: AgentCharacterProps) {
+  const { agent, appearance } = props;
   const identity = useMemo(() => resolveAgentAppearance(appearance ?? agent?.appearance, agent?.id), [appearance, agent?.appearance, agent?.id]);
+  if (isLpcAppearance(identity)) {
+    const { trackingRegion: _region, trackingScope: _scope, followCursor: _cursor, followRotation: _rotation, ...rest } = props;
+    return <LpcCharacter {...rest} appearance={identity} />;
+  }
+  const { scene: _scene, ...clipLabProps } = props;
+  return <ClipLabCharacter {...clipLabProps} identity={identity} />;
+}
+function ClipLabCharacter({ agent, identity, size = 256, state = "idle", muted = false, motion = "auto", trackingRegion, trackingScope = "region", followCursor = true, followRotation = true, className, label, name }: Omit<AgentCharacterProps, "scene"> & { identity: AgentAppearance }) {
   const root = useRef<HTMLSpanElement>(null), host = useRef<HTMLSpanElement>(null), player = useRef<Player | null>(null);
   const slotId = useRef(Symbol("agent-character"));
   const owner = useSyncExternalStore(characterSlot.subscribe, characterSlot.getSnapshot, () => null);

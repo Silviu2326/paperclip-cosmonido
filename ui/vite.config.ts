@@ -18,6 +18,19 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss(), serviceWorkerBuildIdPlugin()],
   build: {
     minify: "esbuild",
+    // Keep the static startup graph together: route splitting otherwise creates
+    // hundreds of tiny shared chunks that delay a cold load on high-latency links.
+    // $initial selects static dependencies only, preserving lazy pages/locales.
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            { name: "i18n", test: /[\\/]src[\\/]i18n[\\/]/, tags: ["$initial"], priority: 10 },
+            { name: "startup", tags: ["$initial"] },
+          ],
+        },
+      },
+    },
   },
   esbuild:
     mode === "production"

@@ -1,12 +1,16 @@
 import { useMemo, useState } from "react";
+import { LayoutGroup, motion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowUpDown, File, FileText, Image, Search, Video } from "lucide-react";
 import type { CompanyArtifact, Issue } from "@paperclipai/shared";
+import { agentsApi } from "@/api/agents";
 import { artifactsApi } from "@/api/artifacts";
+import { AgentAvatar } from "@/components/AgentAvatar";
+import { useMotionTokens } from "@/hooks/useMotionTokens";
 import { issuesApi } from "@/api/issues";
 import { projectsApi } from "@/api/projects";
 import { IssueFiltersPopover } from "@/components/IssueFiltersPopover";
-import { StatusIcon } from "@/components/StatusIcon";
+import { StatusIcon, statusLabel } from "@/components/StatusIcon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,9 +21,12 @@ import {
   issueStatusOrder,
   type IssueFilterState,
 } from "@/lib/issue-filters";
+import { accentReadable, accentTint, brandAccent } from "@/lib/accent";
+import { relativeShort } from "@/lib/relative-short";
+import { t, useTranslation } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 import { Link } from "@/lib/router";
-import { cn, formatDate, relativeTime } from "@/lib/utils";
+import { cn, relativeTime } from "@/lib/utils";
 
 /**
  * The agent-scoped side panels shown beside an agent chat: every task the
@@ -34,11 +41,11 @@ const ARTIFACT_MAX_PAGES = 5;
 
 export type AgentTaskSortField = "updated" | "created" | "status" | "title";
 
-const SORT_OPTIONS: ReadonlyArray<[AgentTaskSortField, string]> = [
-  ["updated", "Last updated"],
-  ["created", "Created"],
-  ["status", "Status"],
-  ["title", "Title"],
+const sortOptions = (): ReadonlyArray<[AgentTaskSortField, string]> => [
+  ["updated", t("chatUi.lastUpdated", { defaultValue: "Last updated" })],
+  ["created", t("chatUi.created", { defaultValue: "Created" })],
+  ["status", t("chatUi.status", { defaultValue: "Status" })],
+  ["title", t("chatUi.title", { defaultValue: "Title" })],
 ];
 
 export function sortAgentTasks(
@@ -70,9 +77,31 @@ function PanelMessage({ children, tone = "muted" }: { children: React.ReactNode;
 }
 
 const cardClassName =
-  "flex flex-col gap-1 rounded-lg border border-border bg-card p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "flex flex-col gap-1.5 rounded-xl border border-border bg-card p-3 transition-[border-color,transform] duration-(--motion-duration-fast) hover:-translate-y-0.5 hover:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+const STATUS_ACCENT: Record<string, string> = {
+  in_progress: brandAccent(7),
+  in_review: brandAccent(10),
+  blocked: brandAccent(10),
+  done: brandAccent(8),
+};
+
+/** Status as a tinted pill, so the state of each task reads before its title does. */
+function TaskStatusPill({ task }: { task: Issue }) {
+  const accent = STATUS_ACCENT[task.status];
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
+      style={accent ? { background: accentTint(accent, 18), color: accentReadable(accent) } : { background: "var(--muted)" }}
+    >
+      <StatusIcon status={task.status} blockerAttention={task.blockerAttention} />
+      {statusLabel(task.status)}
+    </span>
+  );
+}
 
 export function AgentTaskCard({ task }: { task: Issue }) {
+  const { i18n } = useTranslation();
   return (
     <Link
       // design-allow(card-pattern): navigation <Link> card; Card renders a div and would break anchor semantics
@@ -83,26 +112,27 @@ export function AgentTaskCard({ task }: { task: Issue }) {
       data-testid="agent-task-card"
       className={cardClassName}
     >
-      <div className="flex min-w-0 items-start gap-2">
-        <StatusIcon
-          status={task.status}
-          blockerAttention={task.blockerAttention}
-          className="mt-0.5 shrink-0"
-        />
-        <span className="min-w-0 flex-1 line-clamp-2 text-sm font-medium text-foreground">
-          {task.title}
-        </span>
-      </div>
-      <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
+      <span className="line-clamp-2 text-sm font-medium text-foreground">{task.title}</span>
+      <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="font-mono">{task.identifier ?? task.id.slice(0, 8)}</span>
-        <span aria-hidden>·</span>
-        <time dateTime={new Date(task.updatedAt).toISOString()} title={new Date(task.updatedAt).toLocaleString()}>
-          {relativeTime(task.updatedAt)}
+        <TaskStatusPill task={task} />
+        <time className="ml-auto" dateTime={new Date(task.updatedAt).toISOString()} title={new Date(task.updatedAt).toLocaleString()}>
+          {relativeShort(task.updatedAt, i18n.language) ?? relativeTime(task.updatedAt)}
         </time>
-      </div>
+      </span>
     </Link>
   );
 }
+
+const agentTasksQuery = (companyId: string, agentId: string) => ({
+  queryKey: queryKeys.issues.listParticipatedByAgent(companyId, agentId),
+  queryFn: () => issuesApi.list(companyId, {
+    participantAgentId: agentId,
+    sortField: "updated" as const,
+    sortDir: "desc" as const,
+    limit: AGENT_TASK_LIMIT,
+  }),
+});
 
 export function AgentTasksPanel({
   companyId,
@@ -119,15 +149,7 @@ export function AgentTasksPanel({
   const [sortField, setSortField] = useState<AgentTaskSortField>("updated");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const tasksQuery = useQuery({
-    queryKey: queryKeys.issues.listParticipatedByAgent(companyId, agentId),
-    queryFn: () => issuesApi.list(companyId, {
-      participantAgentId: agentId,
-      sortField: "updated",
-      sortDir: "desc",
-      limit: AGENT_TASK_LIMIT,
-    }),
-  });
+  const tasksQuery = useQuery(agentTasksQuery(companyId, agentId));
   const projectsQuery = useQuery({
     queryKey: queryKeys.projects.list(companyId),
     queryFn: () => projectsApi.list(companyId),
@@ -150,15 +172,15 @@ export function AgentTasksPanel({
   const capped = (tasksQuery.data?.length ?? 0) >= AGENT_TASK_LIMIT;
 
   return (
-    <section className="flex flex-col gap-3" aria-label="Agent tasks">
+    <section className="flex flex-col gap-3" aria-label={t("chatUi.agentTasks", { defaultValue: "Agent tasks" })}>
       <div className="flex items-center gap-1">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search tasks"
-            aria-label="Search tasks"
+            placeholder={t("chatUi.searchTasks", { defaultValue: "Search tasks" })}
+            aria-label={t("chatUi.searchTasks", { defaultValue: "Search tasks" })}
             className="h-8 pl-7 text-sm"
           />
         </div>
@@ -174,13 +196,13 @@ export function AgentTasksPanel({
         />
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Sort" aria-label="Sort tasks">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("chatUi.sort", { defaultValue: "Sort" })} aria-label={t("chatUi.sortTasks", { defaultValue: "Sort tasks" })}>
               <ArrowUpDown className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-48 p-0">
             <div className="space-y-0.5 p-2">
-              {SORT_OPTIONS.map(([field, label]) => (
+              {sortOptions().map(([field, label]) => (
                 <button
                   key={field}
                   type="button"
@@ -208,23 +230,23 @@ export function AgentTasksPanel({
       </div>
 
       {tasksQuery.isPending ? (
-        <PanelMessage>Loading tasks…</PanelMessage>
+        <PanelMessage>{t("chatUi.loadingTasks", { defaultValue: "Loading tasks…" })}</PanelMessage>
       ) : tasksQuery.isError ? (
-        <PanelMessage tone="error">Could not load this agent's tasks.</PanelMessage>
+        <PanelMessage tone="error">{t("chatUi.couldNotLoadThisAgentSTasks", { defaultValue: "Could not load this agent's tasks." })}</PanelMessage>
       ) : total === 0 ? (
-        <PanelMessage>This agent hasn't worked on any tasks yet.</PanelMessage>
+        <PanelMessage>{t("chatUi.thisAgentHasnTWorkedOnAnyTasksYet", { defaultValue: "This agent hasn't worked on any tasks yet." })}</PanelMessage>
       ) : visible.length === 0 ? (
         <PanelMessage>
           {capped
-            ? `No tasks match these filters among the ${AGENT_TASK_LIMIT} most recently updated.`
-            : "No tasks match these filters."}
+            ? t("chatUi.noTasksMatchCapped", { defaultValue: "No tasks match these filters among the {{count}} most recently updated.", count: AGENT_TASK_LIMIT })
+            : t("chatUi.noTasksMatchTheseFilters", { defaultValue: "No tasks match these filters." })}
         </PanelMessage>
       ) : (
         <div className="flex flex-col gap-2">
           {visible.map((task) => <AgentTaskCard key={task.id} task={task} />)}
           {capped ? (
             <p className="px-1 text-xs text-muted-foreground">
-              Showing the {AGENT_TASK_LIMIT} most recently updated tasks.
+              {t("chatUi.showingRecentTasks", { defaultValue: "Showing the {{count}} most recently updated tasks.", count: AGENT_TASK_LIMIT })}
             </p>
           ) : null}
         </div>
@@ -233,15 +255,26 @@ export function AgentTasksPanel({
   );
 }
 
-function ArtifactKindIcon({ artifact }: { artifact: CompanyArtifact }) {
-  const className = "mt-0.5 h-4 w-4 shrink-0 text-muted-foreground";
-  switch (artifact.mediaKind) {
-    case "image": return <Image className={className} aria-hidden />;
-    case "video": return <Video className={className} aria-hidden />;
-    case "text":
-    case "document": return <FileText className={className} aria-hidden />;
-    default: return <File className={className} aria-hidden />;
-  }
+const ARTIFACT_KINDS = {
+  image: { icon: Image, accent: brandAccent(2) },
+  video: { icon: Video, accent: brandAccent(8) },
+  text: { icon: FileText, accent: brandAccent(7) },
+  document: { icon: FileText, accent: brandAccent(7) },
+} as const;
+
+function ArtifactKindTile({ artifact }: { artifact: CompanyArtifact }) {
+  const kind = ARTIFACT_KINDS[artifact.mediaKind as keyof typeof ARTIFACT_KINDS];
+  const Icon = kind?.icon ?? File;
+  const accent = kind?.accent ?? brandAccent(10);
+  return (
+    <span
+      aria-hidden
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+      style={{ background: accentTint(accent, 28), color: accentReadable(accent) }}
+    >
+      <Icon className="h-4 w-4" />
+    </span>
+  );
 }
 
 export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
@@ -253,19 +286,19 @@ export function AgentArtifactCard({ artifact }: { artifact: CompanyArtifact }) {
       target="_blank"
       rel="noreferrer"
       data-testid="agent-artifact-card"
-      className={cardClassName}
+      className={cn(cardClassName, "flex-row items-center gap-3")}
     >
-      <div className="flex min-w-0 items-start gap-2">
-        <ArtifactKindIcon artifact={artifact} />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground" title={artifact.title}>
+      <ArtifactKindTile artifact={artifact} />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-foreground" title={artifact.title}>
           {artifact.title}
         </span>
-      </div>
-      <div className="flex items-center gap-1.5 pl-6 text-xs text-muted-foreground">
-        <span>Updated {formatDate(artifact.updatedAt)}</span>
-        <span aria-hidden>·</span>
-        <span className="font-mono">{artifact.issue.identifier}</span>
-      </div>
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{t("chatUi.updatedOn", { defaultValue: "Updated {{date}}", date: new Date(artifact.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) })}</span>
+          <span aria-hidden>·</span>
+          <span className="font-mono">{artifact.issue.identifier}</span>
+        </span>
+      </span>
     </Link>
   );
 }
@@ -287,22 +320,95 @@ async function listAgentArtifacts(companyId: string, agentId: string) {
   return { artifacts, truncated: true };
 }
 
-export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string; agentId: string }) {
-  const artifactsQuery = useQuery({
-    queryKey: queryKeys.artifacts.byAgent(companyId, agentId),
-    queryFn: () => listAgentArtifacts(companyId, agentId),
-  });
+const agentArtifactsQuery = (companyId: string, agentId: string) => ({
+  queryKey: queryKeys.artifacts.byAgent(companyId, agentId),
+  queryFn: () => listAgentArtifacts(companyId, agentId),
+});
 
-  if (artifactsQuery.isPending) return <PanelMessage>Loading artifacts…</PanelMessage>;
-  if (artifactsQuery.isError) return <PanelMessage tone="error">Could not load this agent's artifacts.</PanelMessage>;
+export function AgentArtifactsPanel({ companyId, agentId }: { companyId: string; agentId: string }) {
+  const artifactsQuery = useQuery(agentArtifactsQuery(companyId, agentId));
+
+  if (artifactsQuery.isPending) return <PanelMessage>{t("chatUi.loadingArtifacts", { defaultValue: "Loading artifacts…" })}</PanelMessage>;
+  if (artifactsQuery.isError) return <PanelMessage tone="error">{t("chatUi.couldNotLoadThisAgentSArtifacts", { defaultValue: "Could not load this agent's artifacts." })}</PanelMessage>;
   const { artifacts, truncated } = artifactsQuery.data;
-  if (artifacts.length === 0) return <PanelMessage>This agent hasn't produced any artifacts yet.</PanelMessage>;
+  if (artifacts.length === 0) return <PanelMessage>{t("chatUi.thisAgentHasnTProducedAnyArtifactsYet", { defaultValue: "This agent hasn't produced any artifacts yet." })}</PanelMessage>;
   return (
-    <section className="flex flex-col gap-2" aria-label="Agent artifacts">
+    <section className="flex flex-col gap-2" aria-label={t("chatUi.agentArtifacts", { defaultValue: "Agent artifacts" })}>
       {artifacts.map((artifact) => <AgentArtifactCard key={artifact.id} artifact={artifact} />)}
       {truncated ? (
-        <p className="px-1 text-xs text-muted-foreground">Showing this agent's {artifacts.length} most recent artifacts.</p>
+        <p className="px-1 text-xs text-muted-foreground">{t("chatUi.showingRecentArtifacts", { defaultValue: "Showing this agent's {{count}} most recent artifacts.", count: artifacts.length })}</p>
       ) : null}
     </section>
+  );
+}
+
+export type AgentPanelView = "tasks" | "artifacts";
+
+/** Counts shown on the switch: the agent's open tasks and all its artifacts. Shares the panels' queries, so nothing loads twice. */
+function useAgentWorkCounts(companyId: string, agentId: string, excludeIssueId?: string) {
+  const tasks = useQuery(agentTasksQuery(companyId, agentId));
+  const artifacts = useQuery(agentArtifactsQuery(companyId, agentId));
+  return {
+    tasks: Array.isArray(tasks.data) ? tasks.data.filter((task) => task.id !== excludeIssueId && task.status !== "done" && task.status !== "cancelled").length : null,
+    artifacts: Array.isArray(artifacts.data?.artifacts) ? artifacts.data.artifacts.length : null,
+  };
+}
+
+/** The agent the panel is about: avatar, name and role, so the column reads as "this agent's work". */
+export function AgentPanelHeader({ companyId, agentId }: { companyId: string; agentId: string }) {
+  const agentsQuery = useQuery({
+    queryKey: queryKeys.agents.list(companyId),
+    queryFn: () => agentsApi.list(companyId),
+  });
+  const agent = agentsQuery.data?.find((item) => item.id === agentId);
+  if (!agent) return null;
+  return (
+    <div className="mb-4 flex items-center gap-3" data-testid="agent-panel-header">
+      <AgentAvatar agent={agent} size={48} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold" style={{ fontFamily: "var(--font-heading)" }}>{agent.name}</p>
+        <p className="truncate text-xs text-muted-foreground">{agent.title ?? agent.role}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Two pills instead of a tab strip: tasks and artifacts, each with its count. */
+export function AgentPanelSwitch({ companyId, agentId, excludeIssueId, active, onSelect }: {
+  companyId: string;
+  agentId: string;
+  excludeIssueId?: string;
+  active: AgentPanelView | null;
+  onSelect: (view: AgentPanelView) => void;
+}) {
+  const { t } = useTranslation();
+  const tokens = useMotionTokens();
+  const counts = useAgentWorkCounts(companyId, agentId, excludeIssueId);
+  const options: [AgentPanelView, string, number | null][] = [
+    ["tasks", t("agentWorkPanels.tasks", { defaultValue: "Encargos" }), counts.tasks],
+    ["artifacts", t("agentWorkPanels.artifacts", { defaultValue: "Archivos" }), counts.artifacts],
+  ];
+  return (
+    <LayoutGroup id="agent-panel-switch">
+      <div role="tablist" className="inline-flex shrink-0 rounded-xl border border-border bg-muted/40 p-1">
+        {options.map(([id, label, count]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={active === id}
+            data-side-panel-tab-target={id === "tasks" ? "agent-tasks" : "artifacts"}
+            onClick={() => onSelect(id)}
+            className={cn("relative rounded-lg px-3 py-1.5 text-sm transition-colors duration-(--motion-duration-fast) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active === id ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+          >
+            {active === id ? (
+              <motion.span layoutId="agent-panel-pill" className="absolute inset-0 rounded-lg bg-background shadow-sm" transition={{ duration: tokens.base, ease: tokens.easeOut }} />
+            ) : null}
+            <span className="relative">{label}</span>
+            {count != null ? <span className="relative ml-1.5 text-xs tabular-nums text-muted-foreground">{count}</span> : null}
+          </button>
+        ))}
+      </div>
+    </LayoutGroup>
   );
 }

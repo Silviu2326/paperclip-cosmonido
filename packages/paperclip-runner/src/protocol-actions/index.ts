@@ -1,3 +1,4 @@
+import { assignmentContextMediaActions } from "./assignment-context-media.js";
 import { getWorkspaceAction } from "./get-workspace.js";
 import { listWorkspacesAction } from "./list-workspaces.js";
 import { selectWorkspaceAction } from "./select-workspace.js";
@@ -61,6 +62,7 @@ import { writeDocumentAction } from "./write-document.js";
 import { deepFreezeProtocolAction } from "./freeze.js";
 
 export const PAPERCLIP_PROTOCOL_ACTIONS = deepFreezeProtocolAction([
+  ...assignmentContextMediaActions,
   getWorkspaceAction,
   listWorkspacesAction,
   selectWorkspaceAction,

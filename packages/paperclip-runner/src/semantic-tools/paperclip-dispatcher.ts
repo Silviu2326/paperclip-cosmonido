@@ -108,7 +108,17 @@ export class PaperclipSemanticDispatcher {
       allErrors: true,
       allowUnionTypes: true,
       strict: true,
+      // Generated tool schemas declare `required` inside oneOf branches while the properties live at the
+      // top level (zod output); that is valid JSON Schema but trips ajv's strictRequired heuristic.
+      strictRequired: false,
     });
+
+    // Tool schemas use JSON Schema `format: "uuid"`; without the format registered ajv throws an unknown-format error.
+
+    ajv.addFormat("uuid", /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    ajv.addFormat("uri", (value: string) => { try { new URL(value); return true; } catch { return false; } });
+    ajv.addFormat("date-time", (value: string) => !Number.isNaN(Date.parse(value)));
+    ajv.addFormat("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     for (const descriptor of PAPERCLIP_SEMANTIC_ACTION_CATALOG) {
       this.#inputValidators.set(
         descriptor.operationId,

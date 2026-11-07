@@ -13,6 +13,16 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
+// Identity/language synchronization and notifications were added to App after
+// these route-only fixtures. Keep their existing authentication isolation:
+// these tests drive redirects and page selection, not account queries or push.
+vi.mock("./api/companies-query", () => ({
+  useAccountIdentity: () => ({ userId: null, settled: true }),
+}));
+vi.mock("./features/productization/notifications/ProductNotificationBridge", () => ({
+  ProductNotificationBridge: () => null,
+}));
+
 const streamlinedUiState = vi.hoisted(() => ({ enabled: true, loaded: true }));
 
 vi.mock("./hooks/useStreamlinedUiEnabled", () => ({

@@ -47,6 +47,27 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Runtime branding exception: PublicBusinessBrand may bind these two custom
+   properties only from the server's opt-in public projection. The API validates
+   six-digit color values; layout/type/contrast surfaces remain token-owned.
+   No arbitrary CSS, remote stylesheet or requested domain is accepted here. */
+.public-business-brand {
+  border-color: var(--public-business-accent, var(--border));
+  border-inline-start-width: calc(var(--spacing) * 1);
+  border-inline-start-color: var(--public-business-primary, var(--primary));
+}
+.public-business-brand-title {
+  color: var(--foreground);
+}
+
+:root {
+  --conversation-preview-height: 36rem;
+  --sidebar-active-marker-color: #e8752b;
+  --sidebar-active-marker-width: 3px;
+  --media-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  --notification-settings-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
+}
+
 /* Shared file tree: preserve desktop indentation and leave room for labels on
    narrow screens, including deeply nested skill packages. */
 .file-tree-row {
@@ -1512,40 +1533,130 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
   animation: shimmer-text-slide 2.5s linear infinite;
 }
 
-.paperclip-thinking-icon {
-  transform-origin: 50% 50%;
+/* Full-page loading robot: floats, blinks and pulses its antenna. */
+.robot-loading-body {
+  animation: robot-loading-float 1.8s ease-in-out infinite;
 }
 
-@keyframes paperclip-thinking-draw {
-  0% {
-    stroke-dasharray: 0 85.717;
-    stroke-dashoffset: -85.717;
-    opacity: 1;
-    animation-timing-function: cubic-bezier(0.455, 0.03, 0.515, 0.955);
-  }
-  39.0625% {
-    stroke-dasharray: 85.717 85.717;
-    stroke-dashoffset: 0;
-    opacity: 1;
-    animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-  }
-  78.125% {
-    stroke-dasharray: 0 85.717;
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  78.225% {
-    opacity: 0;
-  }
-  100% {
-    stroke-dasharray: 0 85.717;
-    stroke-dashoffset: 0;
-    opacity: 0;
+.robot-loading-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: robot-loading-blink 3.6s ease-in-out infinite;
+}
+
+.robot-loading-antenna {
+  animation: robot-loading-pulse 1.2s ease-in-out infinite;
+}
+
+.robot-loading-shadow {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0.25;
+  animation: robot-loading-shadow 1.8s ease-in-out infinite;
+}
+
+/* lpc-v1 pixel-art agent sprites. The sheet is served at native 64px frames,
+   one row per character state; the element scales it with nearest-neighbour
+   sampling and steps through a row with a CSS animation. Frame geometry
+   (--lpc-end, position, duration, steps) is computed from the shared
+   LPC_POSES contract by LpcCharacter.tsx. */
+.pixel-art {
+  image-rendering: pixelated;
+}
+
+.lpc-sprite {
+  display: inline-block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  animation-name: lpc-sprite-row;
+  animation-iteration-count: infinite;
+}
+
+@keyframes lpc-sprite-row {
+  from { background-position-x: 0%; }
+  to { background-position-x: var(--lpc-end, 0%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lpc-sprite {
+    animation: none;
   }
 }
 
-.paperclip-thinking-icon-path {
-  animation: paperclip-thinking-draw 1s linear infinite;
+/* lpc-v1 scenes: CSS-only pixel backdrops behind the live character. Colours
+   live here as tokens; LpcCharacter.tsx adds .lpc-scene + .lpc-scene-<name>. */
+:root {
+  --lpc-floor: #6b8f3f;
+  --lpc-meadow-a: #8fd3ff; --lpc-meadow-b: #d6f1ff; --lpc-meadow-floor: #6fae4a; --lpc-meadow-floor-2: #5c9a3c;
+  --lpc-sunset-a: #ff9a5c; --lpc-sunset-b: #ffd1a6; --lpc-sunset-floor: #5a3e5c; --lpc-sunset-floor-2: #4a3250;
+  --lpc-night-a: #0f1b3d; --lpc-night-b: #2a3f7a; --lpc-night-floor: #1f2a3e; --lpc-night-floor-2: #182131; --lpc-star: #ffffff;
+  --lpc-ocean-a: #5fc8e8; --lpc-ocean-b: #c9f0ff; --lpc-ocean-floor: #f1d9a6; --lpc-ocean-floor-2: #2f9bd6;
+  --lpc-desert-a: #ffd79a; --lpc-desert-b: #fff1d0; --lpc-desert-floor: #d9a55a; --lpc-desert-floor-2: #c48f48;
+  --lpc-space-a: #090a1f; --lpc-space-b: #1b1446; --lpc-space-floor: #3a2f6e; --lpc-space-floor-2: #2b2255;
+}
+.lpc-scene {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl, 0.75rem);
+  background: linear-gradient(to bottom, var(--lpc-scene-a) 0%, var(--lpc-scene-b) 72%, var(--lpc-scene-floor) 72%, var(--lpc-scene-floor) 100%);
+  image-rendering: pixelated;
+}
+.lpc-scene::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 28%;
+  background:
+    repeating-linear-gradient(90deg, var(--lpc-scene-floor-2) 0 6%, transparent 6% 14%) 0 0 / 100% 3px no-repeat,
+    linear-gradient(to bottom, var(--lpc-scene-floor), var(--lpc-scene-floor-2));
+  pointer-events: none;
+}
+.lpc-scene > * { position: relative; z-index: 1; }
+.lpc-scene-meadow { --lpc-scene-a: var(--lpc-meadow-a); --lpc-scene-b: var(--lpc-meadow-b); --lpc-scene-floor: var(--lpc-meadow-floor); --lpc-scene-floor-2: var(--lpc-meadow-floor-2); }
+.lpc-scene-sunset { --lpc-scene-a: var(--lpc-sunset-a); --lpc-scene-b: var(--lpc-sunset-b); --lpc-scene-floor: var(--lpc-sunset-floor); --lpc-scene-floor-2: var(--lpc-sunset-floor-2); }
+.lpc-scene-night { --lpc-scene-a: var(--lpc-night-a); --lpc-scene-b: var(--lpc-night-b); --lpc-scene-floor: var(--lpc-night-floor); --lpc-scene-floor-2: var(--lpc-night-floor-2); }
+.lpc-scene-ocean { --lpc-scene-a: var(--lpc-ocean-a); --lpc-scene-b: var(--lpc-ocean-b); --lpc-scene-floor: var(--lpc-ocean-floor); --lpc-scene-floor-2: var(--lpc-ocean-floor-2); }
+.lpc-scene-desert { --lpc-scene-a: var(--lpc-desert-a); --lpc-scene-b: var(--lpc-desert-b); --lpc-scene-floor: var(--lpc-desert-floor); --lpc-scene-floor-2: var(--lpc-desert-floor-2); }
+.lpc-scene-space { --lpc-scene-a: var(--lpc-space-a); --lpc-scene-b: var(--lpc-space-b); --lpc-scene-floor: var(--lpc-space-floor); --lpc-scene-floor-2: var(--lpc-space-floor-2); }
+.lpc-scene-night::before, .lpc-scene-space::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 28% 0;
+  background:
+    radial-gradient(circle, var(--lpc-star) 1px, transparent 1.5px) 12% 18% / 37px 29px,
+    radial-gradient(circle, var(--lpc-star) 1px, transparent 1.5px) 60% 40% / 53px 41px,
+    radial-gradient(circle, var(--lpc-star) 0.5px, transparent 1px) 30% 70% / 23px 19px;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@keyframes robot-loading-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+
+@keyframes robot-loading-blink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes robot-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+@keyframes robot-loading-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.25; }
+  50% { transform: scaleX(0.75); opacity: 0.12; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot-loading-body,
+  .robot-loading-eye,
+  .robot-loading-antenna,
+  .robot-loading-shadow {
+    animation: none;
+  }
 }
 
 /* Muted variant (task-chat v7 activity rows): the sweep runs over the
@@ -1599,13 +1710,6 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
     animation: none;
     -webkit-text-fill-color: unset;
     background: none;
-  }
-
-  .paperclip-thinking-icon-path {
-    animation: none;
-    opacity: 1;
-    stroke-dasharray: 85.717 85.717;
-    stroke-dashoffset: 0;
   }
 }
 
@@ -2746,8 +2850,8 @@ span.paperclip-mention-chip[data-mention-kind="external-object"] {
   --sz-36px: 36px; /* Extracted from ui/src/components/WorkspaceFileBrowser.tsx (min-h-[36px]). */
   --sz-32px: 32px; /* Extracted from ui/src/components/WorkspaceFileBrowser.tsx (min-h-[32px]). */
   --sz-30px: 30px; /* Extracted from ui/src/components/WorkspaceFileBrowser.tsx (min-h-[30px]). */
-  --sz-8px: 8px; /* Extracted from ui/src/components/artifacts/ArtifactGroupCard.tsx (translate-x-[8px]). */
-  --sz-4px: 4px; /* Extracted from ui/src/components/artifacts/ArtifactGroupCard.tsx (translate-x-[4px]). */
+  --sz-8px: 8px; /* Extracted from the removed ArtifactGroupCard (translate-x-[8px]). */
+  --sz-4px: 4px; /* Extracted from the removed ArtifactGroupCard (translate-x-[4px]). */
   --sz-34px: 34px; /* Extracted from ui/src/components/environment-variables-editor/SecretPicker.tsx (h-[34px]). */
   --sz-11rem: 11rem; /* Extracted from ui/src/components/issue-properties/IssueProperties.tsx (min-w-[11rem]). */
   --sz-32rem: 32rem; /* Extracted from ui/src/components/issue-properties/IssueProperties.tsx (w-[32rem]). */

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { AgentAppearance, AgentAvatarSize, AgentAvatarBackground, CharacterState } from "@paperclipai/shared";
+import { encodeLpcSpec, isLpcAppearance, type AgentAppearance, type AgentAvatarSize, type AgentAvatarBackground, type CharacterState } from "@paperclipai/shared";
 import type { StorageProvider } from "../storage/types.js";
 import { createInviteRateLimiter } from "./invite-rate-limit.js";
 import { createAgentAvatarPool } from "./agent-avatar-pool.js";
@@ -11,10 +11,17 @@ export interface AgentAvatarRequest {
   pose: CharacterState;
   muted: boolean;
   background?: AgentAvatarBackground;
+  /** lpc-v1 only: the native animation sheet (`states`) or the office world sheet (`world`) instead of a portrait. */
+  sheet?: "states" | "world";
 }
 export function avatarCacheKey(request: AgentAvatarRequest) {
-  const { appearance, size, scale, pose, muted, background } = request;
-  return `generated-agent-avatars/${appearance.characterVersion}/${muted ? "muted-dream" : appearance.paletteId}/${pose}-${size}-${scale}${background === "paperclip-dark" ? "-paperclip-dark-v1" : ""}.png`;
+  const { appearance, size, scale, pose, muted, background, sheet } = request;
+  const dark = background === "paperclip-dark" ? "-paperclip-dark-v1" : "";
+  if (isLpcAppearance(appearance)) {
+    const name = sheet === "world" ? "world" : sheet === "states" ? "sheet" : `${pose}-${size}-${scale}`;
+    return `generated-agent-avatars/${appearance.characterVersion}/${encodeLpcSpec(appearance.lpc)}/${name}${muted ? "-muted" : ""}${sheet ? "" : dark}.png`;
+  }
+  return `generated-agent-avatars/${appearance.characterVersion}/${muted ? "muted-dream" : appearance.paletteId}/${pose}-${size}-${scale}${dark}.png`;
 }
 export class AvatarAdmissionError extends Error {
   constructor(public readonly retryAfterSeconds: number) { super("Too many cold avatar requests"); }

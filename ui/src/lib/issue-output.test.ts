@@ -141,6 +141,21 @@ describe("isOutputEligibleContentType", () => {
 });
 
 describe("getIssueOutputs", () => {
+  it("promotes media studio output through its protected attachment path", () => {
+    const attachmentId = uuid();
+    const result = getIssueOutputs([
+      makeWorkProduct({
+        id: "media-studio-output",
+        type: "media",
+        isPrimary: true,
+        metadata: { ...videoMetadata(attachmentId), assetId: uuid(), mediaProjectId: uuid() },
+      }),
+    ]);
+    expect(result.primary?.degraded).toBe(false);
+    expect(result.primary?.metadata?.contentPath).toBe(`/api/attachments/${attachmentId}/content`);
+    expect(getPromotedOutputAttachmentIds(result.items.map((item) => item.workProduct))).toContain(attachmentId);
+  });
+
   it("ignores non-artifact work products and returns empty for no outputs", () => {
     const result = getIssueOutputs([
       makeWorkProduct({ id: "pr-1", type: "pull_request" }),

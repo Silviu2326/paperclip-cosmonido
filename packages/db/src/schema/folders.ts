@@ -1,5 +1,6 @@
 import {
   type AnyPgColumn,
+  boolean,
   index,
   integer,
   pgTable,
@@ -24,6 +25,8 @@ export const folders = pgTable(
     systemKey: text("system_key"),
     color: text("color"),
     position: integer("position").notNull().default(0),
+    /** Company files only: when false, agents cannot see the folder's files (contents, index, list or read). */
+    agentVisible: boolean("agent_visible").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

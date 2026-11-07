@@ -218,6 +218,7 @@ export async function prepareHeartbeatTaskContext(db: Db, input: HeartbeatTaskCo
     wakeComment: safeWakeCommentContext,
     wakeComments: safeWakeComments,
     attachmentOmissions: paperclipWakePayload?.attachmentOmissions,
+    companyFiles: paperclipWakePayload?.companyFiles,
     externalChatProvider: paperclipWakePayload?.externalChatProvider,
     slackCommand: issueContext?.chatAssignedAgentId === agent.id
       ? issueContext.chatSlackCommand

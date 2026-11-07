@@ -12,6 +12,7 @@ import type {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InstanceExperimentalSettings } from "./InstanceExperimentalSettings";
 import { queryKeys } from "../lib/queryKeys";
+import { i18n, t } from "@/i18n";
 
 const mockInstanceSettingsApi = vi.hoisted(() => ({
   getExperimental: vi.fn(),
@@ -214,10 +215,10 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     const warning = [...container.querySelectorAll('[role="alert"]')].find((alert) =>
-      alert.textContent?.includes("Las funciones experimentales pueden dejar de funcionar en cualquier momento."),
+      alert.textContent?.includes(t("instanceExperimentalSettings.mayBreak")),
     );
-    expect(warning?.textContent).toContain("Las funciones experimentales pueden dejar de funcionar en cualquier momento.");
-    expect(warning?.textContent).toContain("no compatibility guarantees");
+    expect(warning?.textContent).toContain(t("instanceExperimentalSettings.mayBreak"));
+    expect(warning?.textContent).toContain(t("instanceExperimentalSettings.optInWarning"));
   });
 
   it("does not render an Apps experimental setting", async () => {
@@ -231,7 +232,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
     const selector = 'button[aria-label="Activar o desactivar los conectores de memoria (experimental)"]';
     expect(container.querySelector(selector)?.getAttribute("aria-checked")).toBe("false");
-    expect(container.textContent).toContain("Existing connections keep running.");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.memoryFootnote"));
     for (const enabled of [true, false]) {
       await act(() => container.querySelector<HTMLButtonElement>(selector)!.click());
       await flushReact();
@@ -264,7 +265,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
     const selector = 'button[aria-label="Activar o desactivar las conexiones de asistentes (experimental)"]';
     expect(container.querySelector(selector)?.getAttribute("aria-checked")).toBe("false");
-    expect(container.textContent).toContain("work already delegated continues");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.assistantFootnote"));
     for (const enabled of [true, false]) {
       await act(() => container.querySelector<HTMLButtonElement>(selector)!.click());
       await flushReact();
@@ -278,7 +279,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
     const selector = 'button[aria-label="Activar o desactivar OpenAI Dot (experimental)"]';
     expect(container.querySelector(selector)?.getAttribute("aria-checked")).toBe("false");
-    expect(container.textContent).toContain("Requires Assistant connections (MCP) and an authenticated instance with a public HTTPS URL");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.openaiDotFootnote"));
     for (const enabled of [true, false]) {
       await act(() => container.querySelector<HTMLButtonElement>(selector)!.click());
       await flushReact();
@@ -291,7 +292,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
     const selector = 'button[aria-label="Activar o desactivar los conectores de chat (experimental)"]';
     expect(container.querySelector(selector)?.getAttribute("aria-checked")).toBe("false");
-    expect(container.textContent).toContain("Existing chat connections keep running");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.chatConnectorsFootnote"));
     for (const enabled of [true, false]) {
       await act(() => container.querySelector<HTMLButtonElement>(selector)!.click());
       await flushReact();
@@ -383,7 +384,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Paperclip Runner");
-    expect(container.textContent).toContain("Onboarding continues to use legacy adapters");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.runnerDesc"));
     const toggle = container.querySelector<HTMLButtonElement>(
       PAPERCLIP_RUNNER_TOGGLE_SELECTOR,
     );
@@ -405,7 +406,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
 
     expect(container.textContent).toContain("Interfaz clásica de tareas");
     expect(container.textContent).toContain(
-      "Restores the previous task detail page",
+      t("instanceExperimentalSettings.classicDesc"),
     );
     expect(container.textContent).toContain(
       "El cambio surte efecto de inmediato. No afecta a los datos de las tareas.",
@@ -453,7 +454,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
 
     expect(container.textContent).toContain("Decisiones");
     expect(container.textContent).toContain(
-      "Show the Decisions item in the main sidebar",
+      t("instanceExperimentalSettings.decisionsDesc"),
     );
 
     const toggle = container.querySelector<HTMLButtonElement>(DECISIONS_TOGGLE_SELECTOR);
@@ -537,7 +538,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Usar espacios de trabajo aislados por defecto");
-    expect(container.textContent).toContain("per-task worktree");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.isolatedDefaultDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(
       ISOLATED_WORKSPACES_BY_DEFAULT_TOGGLE_SELECTOR,
@@ -593,16 +594,16 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain(
-      "Only tasks created after enabling will run automatically",
+      t("instanceExperimentalSettings.worktreeDesc"),
     );
-    expect(container.textContent).toContain("Toggling off and on resets the cutoff.");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.worktreeDesc"));
     // Off => no armed banner and no fail-closed hint.
     expect(container.textContent).not.toContain("Ejecutando las tareas creadas después del");
-    expect(container.textContent).not.toContain("Execution is suppressed");
+    expect(container.textContent).not.toContain(t("instanceExperimentalSettings.suppressed"));
 
     expect(container.textContent).toContain("Ejecutar tareas en este worktree");
     expect(container.textContent).toContain(
-      "isolated git-worktree preview instance",
+      t("instanceExperimentalSettings.worktreeDesc"),
     );
 
     const toggle = container.querySelector<HTMLButtonElement>(WORKTREE_RUN_EXECUTION_TOGGLE_SELECTOR);
@@ -631,7 +632,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Ejecutando las tareas creadas después del");
-    expect(container.textContent).not.toContain("Execution is suppressed");
+    expect(container.textContent).not.toContain(t("instanceExperimentalSettings.suppressed"));
     const toggle = container.querySelector<HTMLButtonElement>(WORKTREE_RUN_EXECUTION_TOGGLE_SELECTOR);
     expect(toggle?.getAttribute("aria-checked")).toBe("true");
   });
@@ -647,9 +648,9 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     };
     await renderPage();
 
-    expect(container.textContent).toContain("Execution is suppressed");
-    expect(container.textContent).toContain("armed in a different instance");
-    expect(container.textContent).toContain("Toggle it off and back on");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.suppressed"));
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.armedOtherInstance"));
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.toggleHint"));
     expect(container.textContent).not.toContain("Ejecutando las tareas creadas después del");
   });
 
@@ -664,8 +665,8 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     };
     await renderPage();
 
-    expect(container.textContent).toContain("Execution is suppressed");
-    expect(container.textContent).toContain("missing its activation cutoff");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.suppressed"));
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.missingCutoff"));
     expect(container.textContent).not.toContain("Ejecutando las tareas creadas después del");
   });
 
@@ -673,7 +674,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Agentes integrados");
-    expect(container.textContent).toContain("Show Paperclip-managed built-in agent surfaces");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.builtInDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(BUILT_IN_AGENTS_TOGGLE_SELECTOR);
     expect(toggle?.getAttribute("aria-checked")).toBe("false");
@@ -693,7 +694,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Habilidades beta");
-    expect(container.textContent).toContain("pin beta releases of the Paperclip core skill");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.betaSkillsDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(BETA_SKILLS_TOGGLE_SELECTOR);
     expect(toggle?.getAttribute("aria-checked")).toBe("false");
@@ -713,7 +714,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Resúmenes");
-    expect(container.textContent).toContain("Show Summarizer-generated status slots");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.summariesDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(SUMMARIES_TOGGLE_SELECTOR);
     expect(toggle?.getAttribute("aria-checked")).toBe("false");
@@ -733,7 +734,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Tarjetas de estado");
-    expect(container.textContent).toContain("experimental shared status-card board");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.statusCardsDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(STATUS_CARDS_TOGGLE_SELECTOR);
     expect(toggle?.getAttribute("aria-checked")).toBe("false");
@@ -803,7 +804,7 @@ describe("InstanceExperimentalSettings — Conference Room Chat card (PAP-11233)
     await renderPage();
 
     expect(container.textContent).toContain("Modo desarrollador de Paperclip");
-    expect(container.textContent).toContain("including Honeycomb trace queries on run pages");
+    expect(container.textContent).toContain(t("instanceExperimentalSettings.devModeDesc"));
 
     const toggle = container.querySelector<HTMLButtonElement>(
       PAPERCLIP_DEVELOPER_MODE_TOGGLE_SELECTOR,
@@ -1050,13 +1051,20 @@ describe("InstanceExperimentalSettings — card ordering and headings (PAP-393)"
   });
 
   it("alphabetizes cards by their displayed title within each section", async () => {
-    setWorktreeRuntimeMeta(true);
-    await renderPage({ ...defaultExperimentalSettings(), enableIsolatedWorkspaces: true });
+    // Cards are authored in English-title order, so this check reads the titles in English.
+    const previousLanguage = i18n.language;
+    await i18n.changeLanguage("en");
+    try {
+      setWorktreeRuntimeMeta(true);
+      await renderPage({ ...defaultExperimentalSettings(), enableIsolatedWorkspaces: true });
 
-    for (const section of container.querySelectorAll("section")) {
-      const titles = [...section.querySelectorAll("h3")].map((heading) => heading.textContent ?? "");
-      expect(titles.length).toBeGreaterThan(1);
-      expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" })));
+      for (const section of container.querySelectorAll("section")) {
+        const titles = [...section.querySelectorAll("h3")].map((heading) => heading.textContent ?? "");
+        expect(titles.length).toBeGreaterThan(1);
+        expect(titles).toEqual([...titles].sort((a, b) => a.localeCompare(b, i18n.language, { sensitivity: "base" })));
+      }
+    } finally {
+      await i18n.changeLanguage(previousLanguage);
     }
   });
 

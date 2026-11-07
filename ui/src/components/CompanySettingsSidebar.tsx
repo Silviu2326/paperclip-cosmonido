@@ -1,3 +1,4 @@
+import { BusinessSettingsLinks } from "./BusinessSettingsLinks";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -207,6 +208,7 @@ export function CompanySettingsSidebar() {
             />
           )}
         </div>
+        <BusinessSettingsLinks />
       </nav>
     </ContextualSidebarFrame>
   );

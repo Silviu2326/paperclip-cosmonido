@@ -62,6 +62,7 @@ export function RuntimeTestCard({
   disabled?: boolean;
   variant?: "connection" | "prerequisites";
 }) {
+  const missingCodeSandbox = result?.checks.some(check => check.code === "codex_code_sandbox_unavailable");
   const missingRuntime = state === "fail"
     ? result?.checks.find(check => check.code === "acpx_runtime_package_missing")
     : undefined;
@@ -108,7 +109,7 @@ export function RuntimeTestCard({
           >
             <h3 className="text-sm font-medium">{content.title}</h3>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              {state === "fail" && error ? error : content.description}
+              {missingCodeSandbox ? t("agentWorkPermissions.sandboxUnavailable") : state === "fail" && error ? error : content.description}
             </p>
           </div>
           <Button
@@ -153,7 +154,7 @@ export function RuntimeTestCard({
                   />
                 )}
                 <div className="min-w-0 space-y-1">
-                  <p className="break-words text-foreground">{check.message}</p>
+                  <p className="break-words text-foreground">{check.code === "codex_code_sandbox_unavailable" ? t("agentWorkPermissions.sandboxUnavailable") : check.message}</p>
                   {check.detail && (
                     <p className="break-all text-muted-foreground">
                       {check.detail}

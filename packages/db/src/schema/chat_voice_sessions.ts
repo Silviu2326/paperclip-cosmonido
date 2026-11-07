@@ -42,7 +42,7 @@ export const chatVoiceSessions = pgTable("chat_voice_sessions", {
   foreignKey({ columns: [t.companyId, t.assignedAgentId], foreignColumns: [agents.companyId, agents.id], name: "chat_voice_sessions_agent_fk" }),
   check("chat_voice_sessions_state_check", sql`${t.state} in ('reserved', 'creating', 'creation_unknown', 'connecting', 'active', 'awaiting_approval', 'ending', 'ended', 'failed', 'expired')`),
   check("chat_voice_sessions_mode_check", sql`${t.mode} in ('browser', 'inbound_phone', 'outbound_phone')`),
-  check("chat_voice_sessions_authority_check", sql`${t.callerAuthority} in ('member', 'instance_admin', 'local_board', 'guest_intake', 'pending_approval')`),
+  check("chat_voice_sessions_authority_check", sql`${t.callerAuthority} in ('member', 'instance_admin', 'local_board', 'guest_intake', 'pending_approval', 'crm_callback')`),
   check("chat_voice_sessions_counters_check", sql`${t.generation} >= 1 and ${t.replyCursor} >= 0`),
   check("chat_voice_sessions_token_check", sql`${t.toolTokenHash} ~ '^[a-f0-9]{64}$'`),
   check("chat_voice_sessions_expiry_check", sql`${t.expiresAt} > ${t.createdAt}`),

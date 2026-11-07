@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n";
 import { decisionEffectTargetIssueIds, type Agent, type AttentionSubject } from "@paperclipai/shared";
 import { decisionsApi, type DecisionOutcome } from "../api/decisions";
+import { requestResponse } from "../api/client";
+import { readApiJson } from "../api/response";
 import { issuesApi } from "../api/issues";
 import { queryKeys } from "../lib/queryKeys";
 import { useCompany } from "../context/CompanyContext";
@@ -19,6 +21,8 @@ interface DecisionResolverProps {
   initialDecision?: DecisionOutcome;
   /** Called after a decide/dismiss so the parent can refresh the feed row. */
   onResolved?: () => void;
+  /** Focused notifications partition both cached data and fresh reads by principal. */
+  cacheScope?: string;
 }
 
 type IssueDetail = Awaited<ReturnType<typeof issuesApi.get>>;
@@ -41,9 +45,11 @@ export function signedCancelTreePreviewIds(targetIssueId: string, snapshot: { de
  * dismiss mutations, and invalidates the attention feed + target-issue keys on
  * success — same conventions as {@link AttentionInteractionResolver}.
  */
-export function DecisionResolver({ companyId, decisionId, originIssue, agentMap, initialDecision, onResolved }: DecisionResolverProps) {
+export function DecisionResolver({ companyId, decisionId, originIssue, agentMap, initialDecision, onResolved, cacheScope }: DecisionResolverProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const scopedKey = (key: readonly unknown[]) => cacheScope ? [...key, "principal", cacheScope] : key;
+  const freshRead = async <T,>(path: string): Promise<T> => readApiJson<T>(await requestResponse(path, { cache: "no-store" }));
   const { selectedCompany } = useCompany();
   const prefix = selectedCompany?.issuePrefix ?? "";
   const issueHref = useCallback(
@@ -52,8 +58,8 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
   );
 
   const detail = useQuery({
-    queryKey: queryKeys.decisions.detail(decisionId),
-    queryFn: () => decisionsApi.get(decisionId),
+    queryKey: scopedKey(queryKeys.decisions.detail(decisionId)),
+    queryFn: () => cacheScope ? freshRead<DecisionOutcome>(`/decisions/${decisionId}`) : decisionsApi.get(decisionId),
     enabled: !!decisionId,
     initialData: initialDecision,
     staleTime: 30_000,
@@ -62,8 +68,8 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
 
   // Shared across every open decision row → a single fetch carries `targetChanged`.
   const openList = useQuery({
-    queryKey: queryKeys.decisions.list(companyId, "open"),
-    queryFn: () => decisionsApi.list(companyId, { status: "open" }),
+    queryKey: scopedKey(queryKeys.decisions.list(companyId, "open")),
+    queryFn: () => cacheScope ? freshRead<Awaited<ReturnType<typeof decisionsApi.list>>>(`/companies/${companyId}/decisions?status=open`) : decisionsApi.list(companyId, { status: "open" }),
     enabled: !!companyId && decision?.status === "open",
   });
   const targetChanged = useMemo(
@@ -94,8 +100,8 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
 
   const issueData = useQueries({
     queries: referencedIds.map((id) => ({
-      queryKey: queryKeys.issues.detail(id),
-      queryFn: () => issuesApi.get(id),
+      queryKey: scopedKey(queryKeys.issues.detail(id)),
+      queryFn: () => cacheScope ? freshRead<IssueDetail>(`/issues/${id}`) : issuesApi.get(id),
       staleTime: 30_000,
     })),
     combine: combineIssueData,
@@ -136,13 +142,13 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
   }, [decision?.targetSnapshots, resolveIssue]);
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.decisions.detail(decisionId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.decisions.list(companyId, "open") });
-    queryClient.invalidateQueries({ queryKey: queryKeys.decisions.list(companyId, "decided") });
+    queryClient.invalidateQueries({ queryKey: scopedKey(queryKeys.decisions.detail(decisionId)) });
+    queryClient.invalidateQueries({ queryKey: scopedKey(queryKeys.decisions.list(companyId, "open")) });
+    queryClient.invalidateQueries({ queryKey: scopedKey(queryKeys.decisions.list(companyId, "decided")) });
     queryClient.invalidateQueries({ queryKey: queryKeys.attention(companyId) });
     for (const id of Object.keys(decision?.targetSnapshots ?? {})) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.decisions.forTargetIssue(companyId, id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(id) });
+      queryClient.invalidateQueries({ queryKey: scopedKey(queryKeys.decisions.forTargetIssue(companyId, id)) });
+      queryClient.invalidateQueries({ queryKey: scopedKey(queryKeys.issues.detail(id)) });
     }
     onResolved?.();
   };
@@ -152,7 +158,7 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
       decisionsApi.decide(decisionId, input),
     retry: 2,
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.decisions.detail(decisionId), data);
+      queryClient.setQueryData(scopedKey(queryKeys.decisions.detail(decisionId)), data);
       invalidate();
     },
   });
@@ -160,7 +166,7 @@ export function DecisionResolver({ companyId, decisionId, originIssue, agentMap,
   const dismissMutation = useMutation({
     mutationFn: (reason: string | undefined) => decisionsApi.dismiss(decisionId, reason),
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.decisions.detail(decisionId), data);
+      queryClient.setQueryData(scopedKey(queryKeys.decisions.detail(decisionId)), data);
       invalidate();
     },
   });

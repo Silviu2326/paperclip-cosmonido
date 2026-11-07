@@ -5,6 +5,7 @@ import { subscriptionCostReport } from "../services/subscription-report.js";
 import { refreshCompanySubscriptions } from "../services/subscription-refresh.js";
 import { canManageAiConnections } from "./ai-connections.js";
 import { importProviderCostsSchema } from "@paperclipai/shared";
+import { assignmentCostService } from "../services/assignment-costs.js";
 import { accountingIntegrityService } from "../services/accounting-integrity.js";
 import { costDataQualityReport } from "../services/cost-data-quality.js";
 import { billingReconciliationService } from "../services/billing-reconciliation.js";
@@ -84,6 +85,7 @@ export function costRoutes(
   const agents = agentService(db);
   const issues = issueService(db);
   const access = accessService(db);
+  const assignmentCosts = assignmentCostService(db);
 
   function costReaderActor(req: Parameters<typeof assertCompanyAccess>[0], companyId: string) {
     assertBoard(req);
@@ -237,6 +239,29 @@ export function costRoutes(
     const excludeRoot = req.query.excludeRoot === "true" || req.query.excludeRoot === "1";
     const summary = await costs.issueTreeSummary(issue.companyId, issue.id, { excludeRoot });
     res.json(summary);
+  });
+
+  router.get("/companies/:companyId/costs/by-goal", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+    if (!(await assertCompanyCostReadAllowed(req, res, companyId))) return;
+    res.json(await assignmentCosts.byGoal(companyId, parseCostDateRange(req.query), req.actor));
+  });
+
+  router.get("/goals/:id/cost-summary", async (req, res) => {
+    const goalId = z.string().uuid().safeParse(req.params.id);
+    if (!goalId.success) throw badRequest("Invalid goal ID");
+    const goal = await getAccessibleResource(req, res, assignmentCosts.findGoal(goalId.data), "Goal not found");
+    if (!goal) return;
+    assertCompanyAccess(req, goal.companyId);
+    if (!(await assertCompanyCostReadAllowed(req, res, goal.companyId))) return;
+    // Private goal roots are indistinguishable from missing goals on this route.
+    const authorizedGoal = await assignmentCosts.goalSummary(goal.companyId, goal.id, req.actor).catch((error: unknown) => {
+      if (error && typeof error === "object" && "status" in error && error.status === 404) return null;
+      throw error;
+    });
+    if (!authorizedGoal) { res.status(404).json({ error: "Goal not found" }); return; }
+    res.json(authorizedGoal);
   });
 
   router.get("/companies/:companyId/costs/by-user", async (req, res) => {

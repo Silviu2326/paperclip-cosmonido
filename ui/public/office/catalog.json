@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "tileSize": 32,
+  "atlases": {
+    "interior": "/office/interior.png"
+  },
+  "floors": {
+    "wood": { "atlas": "interior", "x": 0, "y": 0 },
+    "carpet_red": { "atlas": "interior", "x": 34, "y": 0 }
+  },
+  "walls": {
+    "stone": {
+      "atlas": "interior",
+      "top": { "x": 68, "y": 0 },
+      "face": { "x": 102, "y": 0 }
+    }
+  },
+  "objects": {
+    "desk": {
+      "atlas": "interior", "x": 136, "y": 0, "w": 96, "h": 48,
+      "footprint": { "w": 3, "h": 1 }, "walkable": false,
+      "seat": { "dx": 1, "dy": 1, "facing": "up" },
+      "label": { "es": "Mesa con ordenador", "en": "Desk with computer" }
+    },
+    "chair": {
+      "atlas": "interior", "x": 234, "y": 0, "w": 32, "h": 32,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "seat": { "dx": 0, "dy": 0, "facing": "up" },
+      "label": { "es": "Silla", "en": "Chair" }
+    },
+    "sofa": {
+      "atlas": "interior", "x": 268, "y": 0, "w": 64, "h": 32,
+      "footprint": { "w": 2, "h": 1 }, "walkable": false,
+      "seat": { "dx": 0, "dy": 0, "facing": "down" },
+      "label": { "es": "Sofá", "en": "Sofa" }
+    },
+    "plant": {
+      "atlas": "interior", "x": 334, "y": 0, "w": 32, "h": 64,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "label": { "es": "Planta", "en": "Plant" }
+    },
+    "coffee": {
+      "atlas": "interior", "x": 368, "y": 0, "w": 32, "h": 64,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "label": { "es": "Cafetera", "en": "Coffee machine" }
+    },
+    "window": {
+      "atlas": "interior", "x": 402, "y": 0, "w": 28, "h": 44,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "label": { "es": "Ventana", "en": "Window" }
+    },
+    "bookshelf": {
+      "atlas": "interior", "x": 432, "y": 0, "w": 64, "h": 64,
+      "footprint": { "w": 2, "h": 2 }, "walkable": false,
+      "label": { "es": "Estantería", "en": "Bookshelf" }
+    },
+    "whiteboard": {
+      "atlas": "interior", "x": 126, "y": 66, "w": 64, "h": 32,
+      "footprint": { "w": 2, "h": 1 }, "walkable": false,
+      "label": { "es": "Pizarra", "en": "Whiteboard" }
+    },
+    "lamp": {
+      "atlas": "interior", "x": 0, "y": 66, "w": 24, "h": 64,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "label": { "es": "Lámpara", "en": "Lamp" }
+    },
+    "printer": {
+      "atlas": "interior", "x": 26, "y": 66, "w": 64, "h": 64,
+      "footprint": { "w": 2, "h": 1 }, "walkable": false,
+      "label": { "es": "Impresora", "en": "Printer" }
+    },
+    "water_cooler": {
+      "atlas": "interior", "x": 92, "y": 66, "w": 32, "h": 64,
+      "footprint": { "w": 1, "h": 1 }, "walkable": false,
+      "label": { "es": "Dispensador de agua", "en": "Water cooler" }
+    }
+  }
+}

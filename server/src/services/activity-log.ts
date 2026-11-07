@@ -4,7 +4,9 @@ export type { ActivityPublication } from "../types/activity-publication.js";
 import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { activityLog, agentApiKeys, companies, heartbeatRuns, issues } from "@paperclipai/db";
+import { activityLog, agentApiKeys, companies, heartbeatRuns, issues, businessWebhookOutbox } from "@paperclipai/db";
+import { businessWebhookEventForActivity } from "./productization/business-webhooks.js";
+import { enqueueProductNotificationActivitySignal } from "./productization/notification-activity-signal.js";
 import { isUuidLike, PLUGIN_EVENT_TYPES, type PluginEventType } from "@paperclipai/shared";
 import type { PluginEvent } from "@paperclipai/plugin-sdk";
 import { publishLiveEvent } from "./live-events.js";
@@ -164,7 +166,8 @@ export function publishActivity(publication: ActivityPublication) {
 export async function persistActivity(db: Db, input: LogActivityInput) {
   const redactedDetails = await redactActivityDetails(db, input.details ?? null);
   const responsibleUserId = await resolveResponsibleUserIdForActivity(db, input);
-  const [activity] = await db.insert(activityLog).values({
+  const activity = await db.transaction(async (tx) => {
+  const [row] = await tx.insert(activityLog).values({
     companyId: input.companyId,
     actorType: input.actorType,
     actorId: input.actorId,
@@ -175,7 +178,12 @@ export async function persistActivity(db: Db, input: LogActivityInput) {
     runId: input.runId ?? null,
     responsibleUserId,
     details: redactedDetails,
-  }).returning({ id: activityLog.id });
+  }).returning({ id: activityLog.id, createdAt: activityLog.createdAt });
+  const event = businessWebhookEventForActivity({ activityId: row.id, companyId: input.companyId, action: input.action, entityId: input.entityId, occurredAt: row.createdAt });
+  if (event) await tx.insert(businessWebhookOutbox).values({ ...event, occurredAt: row.createdAt }).onConflictDoNothing();
+  await enqueueProductNotificationActivitySignal(tx as unknown as Db, { companyId: input.companyId, activityId: row.id, action: input.action, entityType: input.entityType });
+  return row;
+  });
 
   const payload = {
     issueId: input.issueId ?? (input.entityType === "issue" ? input.entityId : null),

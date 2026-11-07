@@ -4,6 +4,7 @@ import type { AgentEnvConfig } from "@paperclipai/shared";
 import { companies } from "./companies.js";
 import { goals } from "./goals.js";
 import { agents } from "./agents.js";
+import { customers } from "./customers.js";
 
 export const projects = pgTable(
   "projects",
@@ -18,6 +19,7 @@ export const projects = pgTable(
     personalOwnerUserId: text("personal_owner_user_id"),
     status: text("status").notNull().default("backlog"),
     leadAgentId: uuid("lead_agent_id").references(() => agents.id),
+    customerId: uuid("customer_id").references(() => customers.id, { onDelete: "set null" }),
     targetDate: date("target_date"),
     color: text("color"),
     icon: text("icon"),
@@ -31,6 +33,7 @@ export const projects = pgTable(
   },
   (table) => ({
     companyIdx: index("projects_company_idx").on(table.companyId),
+    companyCustomerIdx: index("projects_company_customer_idx").on(table.companyId, table.customerId),
     visibilityCheck: check("projects_visibility_check", sql`${table.visibility} in ('open', 'private')`),
     personalOwnerUq: uniqueIndex("projects_company_personal_owner_uq")
       .on(table.companyId, table.personalOwnerUserId)

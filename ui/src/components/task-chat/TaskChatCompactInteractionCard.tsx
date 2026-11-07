@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import {
   useEffect,
   useMemo,
@@ -87,39 +88,81 @@ export interface TaskChatCompactInteractionCardProps extends SharedInteractionPr
 
 const KIND_COPY = {
   suggest_tasks: {
-    fallbackTitle: "Suggested tasks",
-    label: "Tasks",
+    get fallbackTitle() { return t("chatUi.suggestedTasks", { defaultValue: "Suggested tasks" }); },
+    get label() { return t("chatUi.tasks", { defaultValue: "Tasks" }); },
     icon: GitBranch,
   },
   ask_user_questions: {
-    fallbackTitle: "Questions",
-    label: "Questions",
+    get fallbackTitle() { return t("chatUi.questions", { defaultValue: "Questions" }); },
+    get label() { return t("chatUi.questions", { defaultValue: "Questions" }); },
     icon: CircleHelp,
   },
   request_confirmation: {
-    fallbackTitle: "Confirmation",
-    label: "Confirmation",
+    get fallbackTitle() { return t("chatUi.confirmation", { defaultValue: "Confirmation" }); },
+    get label() { return t("chatUi.confirmation", { defaultValue: "Confirmation" }); },
     icon: CheckCircle2,
   },
   request_checkbox_confirmation: {
-    fallbackTitle: "Choose options",
-    label: "Selection",
+    get fallbackTitle() { return t("chatUi.chooseOptions", { defaultValue: "Choose options" }); },
+    get label() { return t("chatUi.selection", { defaultValue: "Selection" }); },
     icon: ListChecks,
   },
   request_item_verdicts: {
-    fallbackTitle: "Review items",
-    label: "Review",
+    get fallbackTitle() { return t("chatUi.reviewItems", { defaultValue: "Review items" }); },
+    get label() { return t("chatUi.review", { defaultValue: "Review" }); },
     icon: MessageSquareQuote,
   },
   connection_intent: {
-    fallbackTitle: "Connect service",
-    label: "Connection",
+    get fallbackTitle() { return t("chatUi.connectService", { defaultValue: "Connect service" }); },
+    get label() { return t("chatUi.connection", { defaultValue: "Connection" }); },
     icon: Plug,
   },
 } as const;
 
 function statusLabel(status: IssueThreadInteraction["status"]): string {
-  return status.replaceAll("_", " ");
+  switch (status) {
+    case "pending":
+      return t("chatUiQuestions.statusPending", { defaultValue: "pending" });
+    case "accepted":
+      return t("chatUiQuestions.statusAccepted", { defaultValue: "accepted" });
+    case "rejected":
+      return t("chatUiQuestions.statusRejected", { defaultValue: "rejected" });
+    case "answered":
+      return t("chatUiQuestions.statusAnswered", { defaultValue: "answered" });
+    case "cancelled":
+      return t("chatUiQuestions.statusCancelled", { defaultValue: "cancelled" });
+    case "expired":
+      return t("chatUiQuestions.statusExpired", { defaultValue: "expired" });
+    case "failed":
+      return t("chatUiQuestions.statusFailed", { defaultValue: "failed" });
+    default:
+      return String(status).replaceAll("_", " ");
+  }
+}
+
+function verdictLabel(verdict: string): string {
+  switch (verdict) {
+    case "approve":
+      return t("chatUiQuestions.verdictApprove", { defaultValue: "approve" });
+    case "reject":
+      return t("chatUiQuestions.verdictReject", { defaultValue: "reject" });
+    case "defer":
+      return t("chatUiQuestions.verdictDefer", { defaultValue: "defer" });
+    default:
+      return verdict;
+  }
+}
+
+function riskText(risk: string): string {
+  const name =
+    risk === "read"
+      ? t("chatUiQuestions.riskRead", { defaultValue: "read" })
+      : risk === "write"
+        ? t("chatUiQuestions.riskWrite", { defaultValue: "write" })
+        : risk === "destructive"
+          ? t("chatUiQuestions.riskDestructive", { defaultValue: "destructive" })
+          : risk;
+  return t("chatUiQuestions.riskLabel", { risk: name, defaultValue: "{{risk}} risk" });
 }
 
 function statusTone(status: IssueThreadInteraction["status"]): string {
@@ -239,7 +282,7 @@ function Details({ children }: { children?: ReactNode }) {
   return (
     <details className="mt-2">
       <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground">
-        <ChevronDown aria-hidden className="h-3.5 w-3.5" /> Details
+        <ChevronDown aria-hidden className="h-3.5 w-3.5" /> {t("chatUiQuestions.details", { defaultValue: "Details" })}
       </summary>
       <div className="mt-2 rounded-sm bg-muted/40 px-2.5 py-2 text-sm text-muted-foreground">
         {children}
@@ -346,7 +389,13 @@ function PlanReviewPreview({
       }}
       href="#document-plan"
       testId="plan-review-preview"
-      ariaLabel={`Open ${target.label ?? (targetRevision == null ? "plan" : `plan revision ${targetRevision}`)}`}
+      ariaLabel={
+        target.label
+          ? t("chatUiQuestions.openNamed", { name: target.label, defaultValue: "Open {{name}}" })
+          : targetRevision == null
+            ? t("chatUiQuestions.openPlanLower", { defaultValue: "Open plan" })
+            : t("chatUiQuestions.openPlanRevisionLower", { revision: targetRevision, defaultValue: "Open plan revision {{revision}}" })
+      }
     />
   );
 }
@@ -417,7 +466,7 @@ function ReceiptDisclosure({
                 </p>
               ) : null}
               <p className="mt-1 text-sm font-medium text-foreground">
-                Answer: {values.length > 0 ? values.join(", ") : "No answer"}
+                {t("chatUiQuestions.answerValue", { answer: values.length > 0 ? values.join(", ") : t("chatUiQuestions.noAnswer", { defaultValue: "No answer" }), defaultValue: "Answer: {{answer}}" })}
               </p>
             </div>
           );
@@ -434,10 +483,7 @@ function ReceiptDisclosure({
         <p className="text-sm text-foreground">{interaction.payload.prompt}</p>
         {interaction.status === "accepted" ? (
           <p className="mt-1 text-sm font-medium text-foreground">
-            Answer:{" "}
-            {selectedLabels.length > 0
-              ? selectedLabels.join(", ")
-              : "No options selected"}
+            {t("chatUiQuestions.answerValue", { answer: selectedLabels.length > 0 ? selectedLabels.join(", ") : t("chatUiQuestions.noOptionsSelected", { defaultValue: "No options selected" }), defaultValue: "Answer: {{answer}}" })}
           </p>
         ) : null}
         {interaction.payload.detailsMarkdown ? (
@@ -466,7 +512,7 @@ function ReceiptDisclosure({
               return (
                 <li key={item.id}>
                   <span className="font-medium">{item.label}</span> ·{" "}
-                  {verdict?.verdict}
+                  {verdict ? verdictLabel(verdict.verdict) : null}
                   {verdict?.reason ? ` — ${verdict.reason}` : ""}
                 </li>
               );
@@ -474,7 +520,7 @@ function ReceiptDisclosure({
           </ul>
         ) : (
           <p className="mt-1 text-sm font-medium text-foreground">
-            No verdicts submitted
+            {t("chatUiQuestions.noVerdictsSubmitted", { defaultValue: "No verdicts submitted" })}
           </p>
         )}
         {interaction.payload.detailsMarkdown ? (
@@ -505,7 +551,7 @@ function ReceiptDisclosure({
           </ul>
         ) : interaction.status === "accepted" ? (
           <p className="text-sm font-medium text-foreground">
-            No tasks created
+            {t("chatUiQuestions.noTasksCreated", { defaultValue: "No tasks created" })}
           </p>
         ) : null}
       </div>
@@ -513,8 +559,7 @@ function ReceiptDisclosure({
   } else if (interaction.kind === "connection_intent") {
     request = (
       <p className="text-sm text-foreground">
-        {interaction.payload.requestingAgentName} requested access to{" "}
-        {interaction.payload.serviceName}.
+        {t("chatUiQuestions.requestedAccess", { agent: interaction.payload.requestingAgentName, service: interaction.payload.serviceName, defaultValue: "{{agent}} requested access to {{service}}." })}
       </p>
     );
   } else {
@@ -532,13 +577,10 @@ function ReceiptDisclosure({
           <div className="rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
             <p>
               <strong>{interaction.payload.toolAction.toolDisplayName}</strong>{" "}
-              · {interaction.payload.toolAction.risk} risk
+              · {riskText(interaction.payload.toolAction.risk)}
             </p>
             <p className="mt-1">
-              Expires{" "}
-              {new Date(
-                interaction.payload.toolAction.expiresAt,
-              ).toLocaleString()}
+              {t("chatUiQuestions.expiresAt", { date: new Date(interaction.payload.toolAction.expiresAt).toLocaleString(), defaultValue: "Expires {{date}}" })}
             </p>
             <div className="mt-2">
               <MarkdownBody externalReferences={externalReferences}>
@@ -556,22 +598,22 @@ function ReceiptDisclosure({
         {interaction.payload.secretProposal ? (
           <dl className="grid gap-1 rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
             <div>
-              <dt className="text-xs text-muted-foreground">Secret</dt>
+              <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.secret", { defaultValue: "Secret" })}</dt>
               <dd>{interaction.payload.secretProposal.sourceSecretLabel}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Binding</dt>
+              <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.binding", { defaultValue: "Binding" })}</dt>
               <dd className="font-mono text-xs">
                 {interaction.payload.secretProposal.configPath} →{" "}
                 {interaction.payload.secretProposal.targetAgentName}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Why</dt>
+              <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.why", { defaultValue: "Why" })}</dt>
               <dd>{interaction.payload.secretProposal.justification}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">Expires</dt>
+              <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.expires", { defaultValue: "Expires" })}</dt>
               <dd>
                 {new Date(
                   interaction.payload.secretProposal.expiresAt,
@@ -595,7 +637,7 @@ function ReceiptDisclosure({
       {request}
       {answerReason ? (
         <p className="text-sm text-muted-foreground">
-          <span className="font-medium">Reason:</span> {answerReason}
+          <span className="font-medium">{t("chatUiQuestions.reasonColon", { defaultValue: "Reason:" })}</span> {answerReason}
         </p>
       ) : null}
     </div>
@@ -606,7 +648,7 @@ function ReceiptDisclosure({
     const summary =
       interaction.kind === "ask_user_questions" &&
       interaction.status === "answered"
-        ? "Questions answered"
+        ? t("chatUiQuestions.questionsAnswered", { defaultValue: "Questions answered" })
         : buildIssueThreadInteractionSummary(interaction);
     return (
       <details
@@ -644,7 +686,7 @@ function ReceiptDisclosure({
   return (
     <details className="mt-2">
       <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-        View original request and resolution
+        {t("chatUiQuestions.viewOriginalRequest", { defaultValue: "View original request and resolution" })}
       </summary>
       {detail}
     </details>
@@ -867,7 +909,7 @@ function ConfirmationCard({
         <div className="space-y-2">
           <p className="whitespace-pre-line break-words text-sm leading-5 text-foreground">
             {isPlanConfirmation
-              ? "Do you accept this plan?"
+              ? t("chatUiQuestions.acceptPlanQuestion", { defaultValue: "Do you accept this plan?" })
               : interaction.payload.prompt}
           </p>
           {!isPlanConfirmation ? (
@@ -894,13 +936,10 @@ function ConfirmationCard({
                   : "text-muted-foreground",
               )}
             >
-              {interaction.payload.toolAction.risk} risk
+              {riskText(interaction.payload.toolAction.risk)}
             </span>
             <span className="ml-auto text-xs text-muted-foreground">
-              Expires{" "}
-              {new Date(
-                interaction.payload.toolAction.expiresAt,
-              ).toLocaleString()}
+              {t("chatUiQuestions.expiresAt", { date: new Date(interaction.payload.toolAction.expiresAt).toLocaleString(), defaultValue: "Expires {{date}}" })}
             </span>
           </div>
           <MarkdownBody externalReferences={externalReferences}>
@@ -908,7 +947,7 @@ function ConfirmationCard({
           </MarkdownBody>
           <details>
             <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
-              Arguments and audit hash
+              {t("chatUiQuestions.argumentsAndAuditHash", { defaultValue: "Arguments and audit hash" })}
             </summary>
             <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words font-mono text-xs text-foreground">
               {interaction.payload.toolAction.argumentsSummaryJson}
@@ -922,22 +961,22 @@ function ConfirmationCard({
       {interaction.payload.secretProposal ? (
         <dl className="mt-3 grid gap-2 rounded-sm bg-muted/45 px-3 py-2.5 text-sm">
           <div>
-            <dt className="text-xs text-muted-foreground">Secret</dt>
+            <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.secret", { defaultValue: "Secret" })}</dt>
             <dd>{interaction.payload.secretProposal.sourceSecretLabel}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Binding</dt>
+            <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.binding", { defaultValue: "Binding" })}</dt>
             <dd className="font-mono text-xs">
               {interaction.payload.secretProposal.configPath} →{" "}
               {interaction.payload.secretProposal.targetAgentName}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Why</dt>
+            <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.why", { defaultValue: "Why" })}</dt>
             <dd>{interaction.payload.secretProposal.justification}</dd>
           </div>
           <div>
-            <dt className="text-xs text-muted-foreground">Expires</dt>
+            <dt className="text-xs text-muted-foreground">{t("chatUiQuestions.expires", { defaultValue: "Expires" })}</dt>
             <dd>
               {new Date(
                 interaction.payload.secretProposal.expiresAt,
@@ -952,8 +991,8 @@ function ConfirmationCard({
             id={`${interaction.id}-reject-reason-label`}
             className="text-xs font-medium leading-4 text-foreground"
           >
-            {interaction.payload.rejectReasonLabel ?? "What should change?"}
-            {interaction.payload.rejectRequiresReason ? "" : " (optional)"}
+            {interaction.payload.rejectReasonLabel ?? t("chatUiQuestions.whatShouldChange", { defaultValue: "What should change?" })}
+            {interaction.payload.rejectRequiresReason ? "" : " " + t("chatUiQuestions.optionalParen", { defaultValue: "(optional)" })}
           </p>
           {isPlanConfirmation ? (
             <TaskChatRichInput
@@ -961,7 +1000,7 @@ function ConfirmationCard({
               onChange={setReason}
               placeholder={
                 interaction.payload.declineReasonPlaceholder ??
-                "Describe what should change"
+                t("chatUiQuestions.describeWhatShouldChange", { defaultValue: "Describe what should change" })
               }
               imageUploadHandler={onUploadImage}
               mentions={mentions}
@@ -982,7 +1021,7 @@ function ConfirmationCard({
               onChange={(event) => setReason(event.target.value)}
               placeholder={
                 interaction.payload.declineReasonPlaceholder ??
-                "Add a short note"
+                t("chatUiQuestions.addShortNote", { defaultValue: "Add a short note" })
               }
               className={TAKEOVER_TEXTAREA_CLASS}
               autoFocus
@@ -1004,7 +1043,7 @@ function ConfirmationCard({
                 setRejecting(false);
               }}
             >
-              Back
+              {t("chatUiQuestions.back", { defaultValue: "Back" })}
             </Button>
             <Button
               type="button"
@@ -1022,7 +1061,7 @@ function ConfirmationCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.rejectLabel ?? "Reject"}
+              {interaction.payload.rejectLabel ?? t("chatUiQuestions.reject", { defaultValue: "Reject" })}
             </Button>
           </>
         ) : (
@@ -1038,7 +1077,7 @@ function ConfirmationCard({
                   : void resolve("reject")
               }
             >
-              {interaction.payload.rejectLabel ?? "Reject"}
+              {interaction.payload.rejectLabel ?? t("chatUiQuestions.reject", { defaultValue: "Reject" })}
             </Button>
             <Button
               type="button"
@@ -1049,7 +1088,7 @@ function ConfirmationCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.acceptLabel ?? "Approve"}
+              {interaction.payload.acceptLabel ?? t("chatUiQuestions.approve", { defaultValue: "Approve" })}
             </Button>
           </>
         )}
@@ -1147,10 +1186,10 @@ function CheckboxConfirmationCard({
 
   const countHint =
     maximum < Number.POSITIVE_INFINITY
-      ? `${selected.size} selected · choose ${minimum}–${maximum}`
+      ? t("chatUiQuestions.selectedChoose", { count: selected.size, min: minimum, max: maximum, defaultValue: "{{count}} selected · choose {{min}}–{{max}}" })
       : minimum > 0
-        ? `${selected.size} selected · at least ${minimum}`
-        : `${selected.size} selected`;
+        ? t("chatUiQuestions.selectedAtLeast", { count: selected.size, min: minimum, defaultValue: "{{count}} selected · at least {{min}}" })
+        : t("chatUiQuestions.selectedCount", { count: selected.size, defaultValue: "{{count}} selected" });
 
   return (
     <div>
@@ -1174,8 +1213,8 @@ function CheckboxConfirmationCard({
             <Input
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
-              placeholder="Filter options"
-              aria-label="Filter options"
+              placeholder={t("chatUiQuestions.filterOptions", { defaultValue: "Filter options" })}
+              aria-label={t("chatUiQuestions.filterOptions", { defaultValue: "Filter options" })}
               className="pl-8"
             />
           </label>
@@ -1216,15 +1255,15 @@ function CheckboxConfirmationCard({
             htmlFor={`${interaction.id}-reject-reason`}
             className="text-xs font-medium text-foreground"
           >
-            {interaction.payload.rejectReasonLabel ?? "What should change?"}
-            {interaction.payload.rejectRequiresReason ? "" : " (optional)"}
+            {interaction.payload.rejectReasonLabel ?? t("chatUiQuestions.whatShouldChange", { defaultValue: "What should change?" })}
+            {interaction.payload.rejectRequiresReason ? "" : " " + t("chatUiQuestions.optionalParen", { defaultValue: "(optional)" })}
           </label>
           <Textarea
             id={`${interaction.id}-reject-reason`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder={
-              interaction.payload.declineReasonPlaceholder ?? "Add a short note"
+              interaction.payload.declineReasonPlaceholder ?? t("chatUiQuestions.addShortNote", { defaultValue: "Add a short note" })
             }
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
@@ -1243,7 +1282,7 @@ function CheckboxConfirmationCard({
               disabled={working !== null}
               onClick={() => setRejecting(false)}
             >
-              Back
+              {t("chatUiQuestions.back", { defaultValue: "Back" })}
             </Button>
             <Button
               type="button"
@@ -1260,7 +1299,7 @@ function CheckboxConfirmationCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.rejectLabel ?? "Decline"}
+              {interaction.payload.rejectLabel ?? t("chatUiQuestions.decline", { defaultValue: "Decline" })}
             </Button>
           </>
         ) : (
@@ -1276,7 +1315,7 @@ function CheckboxConfirmationCard({
                   : void resolve("reject")
               }
             >
-              {interaction.payload.rejectLabel ?? "Decline"}
+              {interaction.payload.rejectLabel ?? t("chatUiQuestions.decline", { defaultValue: "Decline" })}
             </Button>
             <Button
               type="button"
@@ -1287,7 +1326,7 @@ function CheckboxConfirmationCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              {interaction.payload.acceptLabel ?? "Confirm selection"}
+              {interaction.payload.acceptLabel ?? t("chatUiQuestions.confirmSelection", { defaultValue: "Confirm selection" })}
             </Button>
           </>
         )}
@@ -1327,7 +1366,9 @@ function SuggestedTaskRow({
           </span>
           {hiddenCount > 0 ? (
             <span className="block text-xs text-muted-foreground">
-              + {hiddenCount} hidden follow-up
+              {hiddenCount === 1
+                ? t("chatUiQuestions.hiddenFollowUpOne", { count: hiddenCount, defaultValue: "+ {{count}} hidden follow-up" })
+                : t("chatUiQuestions.hiddenFollowUpOther", { count: hiddenCount, defaultValue: "+ {{count}} hidden follow-ups" })}
             </span>
           ) : null}
         </span>
@@ -1445,7 +1486,7 @@ function SuggestedTasksCard({
   return (
     <div>
       <p className="text-sm leading-5 text-foreground">
-        Select the tasks to create.
+        {t("chatUiQuestions.selectTasksToCreate", { defaultValue: "Select the tasks to create." })}
       </p>
       {interaction.payload.tasks.length > 10 ? (
         <label className="relative mt-3 block">
@@ -1456,15 +1497,15 @@ function SuggestedTasksCard({
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter suggested tasks"
-            aria-label="Filter suggested tasks"
+            placeholder={t("chatUiQuestions.filterSuggestedTasks", { defaultValue: "Filter suggested tasks" })}
+            aria-label={t("chatUiQuestions.filterSuggestedTasks", { defaultValue: "Filter suggested tasks" })}
             className="pl-8"
           />
         </label>
       ) : null}
       <ul
         className="mt-2 max-h-(--sz-28dvh) overflow-y-auto scrollbar-auto-hide"
-        aria-label="Suggested tasks"
+        aria-label={t("chatUi.suggestedTasks", { defaultValue: "Suggested tasks" })}
       >
         {visibleRoots.map((node) => (
           <SuggestedTaskRow
@@ -1481,13 +1522,13 @@ function SuggestedTasksCard({
             htmlFor={`${interaction.id}-reject-reason`}
             className="text-xs font-medium text-foreground"
           >
-            Why should these tasks change? (optional)
+            {t("chatUiQuestions.whyTasksChange", { defaultValue: "Why should these tasks change? (optional)" })}
           </label>
           <Textarea
             id={`${interaction.id}-reject-reason`}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("chatUiQuestions.addShortNote", { defaultValue: "Add a short note" })}
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
           />
@@ -1495,7 +1536,7 @@ function SuggestedTasksCard({
       ) : null}
       <InteractionActionError message={actionError} />
       <ActionRow
-        hint={`${selected.size} of ${interaction.payload.tasks.length} selected`}
+        hint={t("chatUiQuestions.selectedOfTotal", { count: selected.size, total: interaction.payload.tasks.length, defaultValue: "{{count}} of {{total}} selected" })}
       >
         {rejecting ? (
           <>
@@ -1506,7 +1547,7 @@ function SuggestedTasksCard({
               disabled={working !== null}
               onClick={() => setRejecting(false)}
             >
-              Back
+              {t("chatUiQuestions.back", { defaultValue: "Back" })}
             </Button>
             <Button
               type="button"
@@ -1518,7 +1559,7 @@ function SuggestedTasksCard({
               {working === "reject" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              Send back
+              {t("chatUiQuestions.sendBack", { defaultValue: "Send back" })}
             </Button>
           </>
         ) : (
@@ -1530,7 +1571,7 @@ function SuggestedTasksCard({
               disabled={working !== null || !onRejectInteraction}
               onClick={() => setRejecting(true)}
             >
-              Revise
+              {t("chatUiQuestions.revise", { defaultValue: "Revise" })}
             </Button>
             <Button
               type="button"
@@ -1543,7 +1584,7 @@ function SuggestedTasksCard({
               {working === "accept" ? (
                 <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
               ) : null}
-              Create selected
+              {t("chatUiQuestions.createSelected", { defaultValue: "Create selected" })}
             </Button>
           </>
         )}
@@ -1625,7 +1666,7 @@ function ItemVerdictsCard({
   if (!item)
     return (
       <p className="text-sm text-muted-foreground">
-        No review items were provided.
+        {t("chatUiQuestions.noReviewItems", { defaultValue: "No review items were provided." })}
       </p>
     );
   const resolved = resolvedById.get(item.id);
@@ -1716,30 +1757,30 @@ function ItemVerdictsCard({
   return (
     <div>
       <div className="mb-2 flex items-center text-xs text-muted-foreground">
-        <span>{drafts.size + resolvedById.size} decided</span>
+        <span>{t("chatUiQuestions.decidedCount", { count: drafts.size + resolvedById.size, defaultValue: "Decided: {{count}}" })}</span>
         <TaskChatComposerTakeoverControls>
           <nav
             className="flex shrink-0 items-center gap-1"
-            aria-label="Item pagination"
+            aria-label={t("chatUiQuestions.itemPagination", { defaultValue: "Item pagination" })}
           >
             <Button
               type="button"
               size="icon-xs"
               variant="ghost"
-              aria-label="Previous item"
+              aria-label={t("chatUiQuestions.previousItem", { defaultValue: "Previous item" })}
               disabled={working || page === 0}
               onClick={() => setPage((current) => current - 1)}
             >
               <ChevronLeft aria-hidden />
             </Button>
             <span className="min-w-10 text-center tabular-nums">
-              {page + 1} of {items.length}
+              {t("chatUiQuestions.pageOf", { page: page + 1, total: items.length, defaultValue: "{{page}} of {{total}}" })}
             </span>
             <Button
               type="button"
               size="icon-xs"
               variant="ghost"
-              aria-label="Next item"
+              aria-label={t("chatUiQuestions.nextItem", { defaultValue: "Next item" })}
               disabled={
                 working ||
                 page === items.length - 1 ||
@@ -1768,7 +1809,7 @@ function ItemVerdictsCard({
             href={itemHref}
             className="text-xs font-medium text-primary hover:underline"
           >
-            Open
+            {t("chatUiQuestions.open", { defaultValue: "Open" })}
           </a>
         ) : null}
       </div>
@@ -1781,14 +1822,14 @@ function ItemVerdictsCard({
       ) : null}
       {resolved ? (
         <p className="mt-3 inline-flex rounded-sm border border-border px-2 py-1 text-xs capitalize text-muted-foreground">
-          {resolved.verdict}
+          {verdictLabel(resolved.verdict)}
           {resolved.reason ? ` · ${resolved.reason}` : ""}
         </p>
       ) : (
         <div
           className="mt-3 flex flex-wrap gap-1.5"
           role="group"
-          aria-label={`Verdict for ${item.label}`}
+          aria-label={t("chatUiQuestions.verdictFor", { label: item.label, defaultValue: "Verdict for {{label}}" })}
         >
           {enabledVerdicts.map((verdict) => (
             <Button
@@ -1816,7 +1857,7 @@ function ItemVerdictsCard({
               {verdict === "reject" ? (
                 <X aria-hidden className="h-4 w-4" />
               ) : null}
-              {verdict}
+              {verdictLabel(verdict)}
             </Button>
           ))}
         </div>
@@ -1827,13 +1868,13 @@ function ItemVerdictsCard({
             htmlFor={`${interaction.id}-${item.id}-reason`}
             className="text-xs font-medium text-foreground"
           >
-            {interaction.payload.reasonLabel ?? "Reason"}
+            {interaction.payload.reasonLabel ?? t("chatUiQuestions.reason", { defaultValue: "Reason" })}
           </label>
           <Textarea
             id={`${interaction.id}-${item.id}-reason`}
             value={draft.reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="Add a short reason"
+            placeholder={t("chatUiQuestions.addShortReason", { defaultValue: "Add a short reason" })}
             className={TAKEOVER_TEXTAREA_CLASS}
             autoFocus
           />
@@ -1845,7 +1886,7 @@ function ItemVerdictsCard({
               disabled={!draft.reason.trim() || working}
               onClick={confirmRejectionReason}
             >
-              Submit rejection reason
+              {t("chatUiQuestions.submitRejectionReason", { defaultValue: "Submit rejection reason" })}
             </Button>
           </div>
         </div>
@@ -1869,7 +1910,7 @@ function ItemVerdictsCard({
           {working ? (
             <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
           ) : null}
-          {drafts.size > 0 ? `Apply ${drafts.size}` : "Apply decisions"}
+          {drafts.size > 0 ? t("chatUiQuestions.applyCount", { count: drafts.size, defaultValue: "Apply {{count}}" }) : t("chatUiQuestions.applyDecisions", { defaultValue: "Apply decisions" })}
         </Button>
       </ActionRow>
     </div>
@@ -1898,14 +1939,14 @@ export function TaskChatCompactInteractionCard({
     ? agentMap?.get(interaction.createdByAgentId)?.name
     : interaction.createdByUserId
       ? interaction.createdByUserId === currentUserId
-        ? "You"
+        ? t("chatUiQuestions.you", { defaultValue: "You" })
         : userLabelMap?.get(interaction.createdByUserId)
       : null;
   const addresseeLabel = interaction.addresseeAgentId
     ? agentMap?.get(interaction.addresseeAgentId)?.name
     : interaction.addresseeUserId
       ? interaction.addresseeUserId === currentUserId
-        ? "You"
+        ? t("chatUiQuestions.you", { defaultValue: "You" })
         : (userLabelMap?.get(interaction.addresseeUserId) ??
           interaction.addresseeUserId)
       : null;
@@ -1932,7 +1973,7 @@ export function TaskChatCompactInteractionCard({
         <ConnectionIntentInteractionBody
           interaction={interaction}
           currentUserId={currentUserId}
-          addresseeLabel={addresseeLabel ?? "the addressed user"}
+          addresseeLabel={addresseeLabel ?? t("chatUiQuestions.addressedUser", { defaultValue: "the addressed user" })}
           addresseeName={interaction.addresseeUserId ? userLabelMap?.get(interaction.addresseeUserId) : undefined}
         />
     );

@@ -1,4 +1,9 @@
 export * from "./slack-app-manifest.js";
+export * from "./types/assignment.js";
+export * from "./types/deliverable-review.js";
+export * from "./types/assignment-costs.js";
+export * from "./validators/assignment.js";
+export * from "./validators/deliverable-review.js";
 export { composioAppSetupSchema, composioAppsRefreshSchema, composioAppsSyncSchema, composioAppAccountSchema, type ComposioAppSetupInput, type ComposioAppSetupResult, type ComposioAppAccountInput, type ComposioAppAccount, type ComposioAppSnapshot, type ComposioAppSyncState, type ComposioAppsResponse } from "./composio-app-setup.js";
 export { agentAdapterTypeSchema, optionalAgentAdapterTypeSchema } from "./adapter-type.js";
 export {
@@ -1071,7 +1076,12 @@ export type {
   CompanyArtifactIssueSummary,
   CompanyArtifactMediaKind,
   CompanyArtifactProjectSummary,
+  CompanyArtifactSortDir,
+  CompanyArtifactSortKey,
   CompanyArtifactSource,
+  CompanyArtifactTreeNode,
+  CompanyArtifactTreeNodeKind,
+  CompanyArtifactTreeResponse,
   CompanyArtifactsResponse,
   CreateDocumentAnnotationCommentRequest,
   CreateDocumentAnnotationThreadRequest,
@@ -1248,6 +1258,8 @@ export type {
   LegacyPlanDocument,
   IssueAttachment,
   IssueCreationSource,
+  IssueListParams,
+  IssueReviewFilter,
   IssueLabel,
   IssueTreeControlPreview,
   IssueTreeHold,
@@ -1744,8 +1756,10 @@ export {
 } from "./validators/sidebar-preferences.js";
 export {
   resourceMembershipStateSchema,
+  updateArtifactResourceMembershipSchema,
   updateDocumentResourceMembershipSchema,
   updateResourceMembershipSchema,
+  type UpdateArtifactResourceMembership,
   type UpdateDocumentResourceMembership,
   type UpdateResourceMembership,
 } from "./validators/resource-memberships.js";
@@ -1760,7 +1774,9 @@ export {
   type InboxAgentPolicy,
 } from "./types/inbox-agent-policy.js";
 export {
+  ARTIFACT_MEMBERSHIP_SOURCES,
   RESOURCE_MEMBERSHIP_STATES,
+  type ArtifactMembershipSource,
   type ResourceMembershipResourceType,
   type ResourceMembershipState,
   type ResourceMemberships,
@@ -1993,6 +2009,7 @@ export {
   issueBlockedInboxReasonSchema,
   issueBlockedInboxSeveritySchema,
   issueBlockedInboxStateSchema,
+  issueReviewFilterSchema,
   updateIssueSchema,
   stalledReviewDecisionSchema,
   issueExecutionPolicySchema,
@@ -2053,6 +2070,7 @@ export {
   submitIssueThreadInteractionVerdictsSchema,
   linkIssueApprovalSchema,
   createIssueAttachmentMetadataSchema,
+  attachIssueArtifactSchema,
   createIssueWorkProductSchema,
   issueWorkProductMetadataSchema,
   updateIssueWorkProductSchema,
@@ -2070,6 +2088,12 @@ export {
   companyArtifactSourceSchema,
   companyArtifactsQuerySchema,
   companyArtifactsResponseSchema,
+  companyArtifactsTreeQuerySchema,
+  companyArtifactSortKeySchema,
+  companyArtifactSortDirSchema,
+  companyArtifactTreeNodeIdSchema,
+  companyArtifactTreeNodeSchema,
+  companyArtifactTreeResponseSchema,
   reconcileExecutionWorkspaceBranchSchema,
   updateExecutionWorkspaceSchema,
   workspaceOverviewQuerySchema,
@@ -2120,10 +2144,12 @@ export {
   type SubmitIssueThreadInteractionVerdicts,
   type LinkIssueApproval,
   type CreateIssueAttachmentMetadata,
+  type AttachIssueArtifact,
   type CreateIssueWorkProduct,
   type UpdateIssueWorkProduct,
   type UpsertIssueWatchdog,
   type CompanyArtifactsQuery,
+  type CompanyArtifactsTreeQuery,
   type ReconcileExecutionWorkspaceBranch,
   type UpdateExecutionWorkspace,
   type WorkspaceOverviewQuery,
@@ -2647,6 +2673,10 @@ export type {
 } from "./environment-support.js";
 
 export type { AdapterRegistryEntry } from "./types/adapter-registry.js";
+export {
+  COMPANY_FILES_DEFAULT_ROOT_FOLDERS,
+  COMPANY_FILES_INDEX_MAX_ENTRIES,
+} from "./constants/company-files.js";
 export type {
   FolderKind,
   Folder,
@@ -2816,6 +2846,10 @@ export * from "./types/voice-sessions.js";
 export * from "./validators/voice-sessions.js";
 
 export * from "./agent-appearance.js";
+export * from "./agent-capabilities.js";
+export * from "./lpc-character.js";
+export * from "./office-layout.js";
+export * from "./validators/office.js";
 export * from "./ai-connections.js";
 export * from "./ai-connection-router.js";
 export * from "./ai-connection-usage.js";
@@ -2889,3 +2923,74 @@ export * from "./fast-response.js";
 export { HUMAN_TASK_ORIGIN_KINDS, isAgentCreatedIssue, type IssueCreationSourceFields } from "./issue-creation-source.js";
 
 export * from "./grok-bot.js";
+
+export type {
+  CompanyFile,
+  CompanyFileVersion,
+  CompanyFileFolderNode,
+  CompanyFilesListResponse,
+  CompanyFileUsage,
+  CompanyFileSortKey,
+} from "./types/company-file.js";
+
+export {
+  companyFileSortKeySchema,
+  listCompanyFilesQuerySchema,
+  updateCompanyFileSchema,
+  createCompanyFileFolderSchema,
+  updateCompanyFileFolderSchema,
+  createCompanyFileFromArtifactSchema,
+  addCompanyFileVersionNoteSchema,
+  companyFileListScopeSchema,
+  updateCompanyFileResourceMembershipSchema,
+  contextSearchSchema,
+  contextGetSchema,
+} from "./validators/company-file.js";
+export type {
+  UpdateCompanyFileResourceMembership,
+  ListCompanyFilesQuery,
+  UpdateCompanyFile,
+  CreateCompanyFileFolder,
+  UpdateCompanyFileFolder,
+  CreateCompanyFileFromArtifact,
+  AddCompanyFileVersionNote,
+  ContextSearch,
+  ContextGet,
+} from "./validators/company-file.js";
+
+export * from "./types/media-studio.js";
+export * from "./validators/media-studio.js";
+
+export * from "./types/dashboard.js";
+
+export { mediaArtifactWorkProductMetadataSchema, type MediaArtifactWorkProductMetadata } from "./validators/work-product.js";
+
+// Sprint 3: autonomous sales and delivery
+export * from "./types/playbook.js";
+export * from "./validators/playbook.js";
+export * from "./types/autonomy.js";
+export * from "./validators/autonomy.js";
+export * from "./types/proposal.js";
+export * from "./validators/proposal.js";
+export * from "./types/handoff.js";
+export * from "./validators/handoff.js";
+export * from "./types/service-agreement.js";
+export * from "./validators/service-agreement.js";
+export * from "./types/commercial-decision.js";
+export * from "./validators/commercial-decision.js";
+export * from "./types/lead-qualification.js";
+export * from "./validators/lead-qualification.js";
+export * from "./types/agent-explain.js";
+export * from "./types/daily-brief.js";
+export * from "./validators/daily-brief.js";
+export * from "./types/commitment.js";
+export * from "./validators/commitment.js";
+// Sprint 2 CRM contract (constants, types, validators, agent tool names).
+export * from "./constants/crm.js";
+export * from "./types/crm.js";
+export * from "./validators/crm.js";
+export * from "./crm-tools.js";
+export * from "./productization/crm-phone.js";
+export * from "./validators/lead-form.js";
+
+export * from "./autopilot.js";

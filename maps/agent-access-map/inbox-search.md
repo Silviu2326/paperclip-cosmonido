@@ -9,6 +9,8 @@ Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.
 
+The navigation integration does not change the documented inbox participation and visibility policy. Any newly surfaced review data/API path is not enumerated by this companion; no live access proof is added here.
+
 ## `views`
 
 The issue-list API accepts optional `includeAgentCreatedTasks`; false restricts

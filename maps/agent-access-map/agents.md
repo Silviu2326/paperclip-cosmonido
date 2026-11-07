@@ -217,6 +217,43 @@ Gaps: No agent mutation path for another person's preference. Live human/agent
 access is unverified; UI fixture callbacks do not establish persistence or task
 and Chat default resolution.
 
+## `capabilities`
+
+Review: `baseline`.
+
+API: `present` — representative operation IDs:
+
+- `GET /api/agents/{id}/capabilities`.
+- `PUT /api/agents/{id}/capabilities` (body: `capabilities` and optional `profile`).
+- `POST /api/companies/{companyId}/agent-hires` and `POST /api/companies/{companyId}/agents`
+  accept the same `capabilities` and `profile` on create.
+
+Agent access: `restricted` — GET is readable by an agent with company read access to
+the target. PUT is board-only: an agent key, including the CEO's, cannot change any
+agent's switches, including its own.
+
+Policy: GET uses the same agent read check as the agent detail route. PUT requires a
+board actor with company access and the agent-management permission
+(`agents:create` decision), and the target must belong to that company. Media switches
+persist the company grants `media:analyze`, `media:edit` and `media:create_video`;
+`video` is returned as their compatibility aggregate. The legacy `media:generate`
+grant temporarily authorizes all three until the board saves granular settings for
+that agent. Pending hires retain their requested action grants at activation. The
+approval level of messages and calls stays in `autonomy_policies` and is read-only
+here. Changes write an `agent.capabilities_updated` activity with before and after.
+
+Evidence: `source-only` — [routes](../../server/src/routes/agents.ts),
+[service](../../server/src/services/agent-capabilities.ts) and
+[service test](../../server/src/services/agent-capabilities.test.ts).
+
+Verification: `not-run` — as a board user, PUT switches and GET them back; confirm the
+grants and the activity record. Assert that an agent key gets a denial on PUT for
+itself and for another agent, and that a foreign-company agent returns not found.
+
+Gaps: A deployed Motor Video CLI, Remotion dependencies, browser and FFmpeg are
+operator-provisioned before video renders can run. Live render acceptance is not
+established by source checks.
+
 ## `grok-bot`
 
 Review: `baseline`.
@@ -232,3 +269,17 @@ Evidence: `source-only` — [routes](../../server/src/routes/grok-bot.ts), [shar
 Verification: `not-run` — deployed acceptance pending; focused protocol/authorization and actual Rust backend tests; run fresh/saved setup, assigned and proactive tasks, duplicate calls, stale sessions, restart, ambiguous delivery, stop and recovery through the real client on the serving managed candidate.
 
 Gaps: deployed two-way work and unattended first-time onboarding remain unqualified; remote termination, provider transcript streaming and usage accounting are unavailable.
+
+### Permissions by agent specialty
+
+Onboarding, hiring and editing use the same permission catalogue: customer care and sales share messages/calls, content uses media actions, software uses the code profile flag, operations exposes no unimplemented permission switches, and custom combines all options. Explicit capability saves and hire activation restrict the supported grants to the selected specialty; existing grants are preserved on reads and an editing notice explains that saving adjusts older configurations. Code remains a profile flag, not an adapter sandbox guarantee. No automatic permission migration is performed.
+
+Evidence: shared specialty normalization, creation/activation metadata tests and per-specialty UI visibility tests. Live provider execution remains separate acceptance.
+
+### Individual agent catalog
+
+The roster links to `/agents/catalog` in both UI modes. The catalog lists individual agents from the existing team packages, supports search/category filters, and previews a selected agent before installing through the existing company-scoped team catalog API. Requests use `agents: [slug]`, include package skills, exclude company/projects/issues, and rename collisions. External sources remain disabled in this quick flow. Required inputs and a loaded adapter are checked before installation; server authorization remains authoritative. The resulting profile is linked for AI connection and permission review.
+
+Evidence: option/search tests, UI typecheck/build and mocked-browser checks. A mocked installation is not proof of a live provider or authenticated production import.
+
+The individual agent catalog has a direct sidebar entry in both navigation modes. Shipped agent and team display names and per-agent descriptions use English/Spanish resources; search matches localized text without requiring accents. Preview/install receive the same localized default name override. Package references and source identifiers remain stable. Localization coverage tests include every shipped team and agent slug.

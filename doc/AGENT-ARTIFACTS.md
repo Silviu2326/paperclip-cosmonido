@@ -250,3 +250,24 @@ be retried. Workspace files continue to use the existing workspace file viewer.
 
 Storybook: **Tasks / Text file tabs** covers opening from Artifacts, Markdown,
 plain text, empty files, oversized files, missing attachments, and a narrow panel.
+
+## Company files (Entrada)
+
+Shared company files are not task artifacts. They live in the company library and
+any task in the company can read them. The task context lists the newest files as an
+index with `fileId`, path, type, size and version. Agents read contents with the
+native tools `list_company_files` and `read_company_file`, with
+`GET /api/company-files/{fileId}/content`, or with `paperclip files download <fileId>
+--out <path>`. Every read is recorded against the file and run and shown to the board
+under the file's "Usado en" list. Agents cannot add or change company files.
+
+Do not upload a deliverable here; upload it to the task as an artifact as described
+above. Reference material such as a brand guide is read from Entrada. See
+`skills/paperclip/references/company-files.md` for the full workflow.
+
+**Hidden folders.** A board user can set `agentVisible = false` on an Entrada folder (`PATCH /api/company-files/folders/{id}`). The folder, its subfolders and their files then disappear for agents: the wake index, `list_company_files`, the folder listing, search and tree omit them, and the agent content, versions, usage and thumbnail routes return 404. Board users still see everything, and each `CompanyFile` reports the effective `agentVisible` flag.
+
+**Downloads.** Board users can download a whole Entrada folder (`GET /api/company-files/folders/{id}/archive`, recursive, current version of each file) or every artifact of one task or project (`GET /api/companies/{companyId}/artifacts/archive?node=issue:<id>|project:<id>`). Artifact entries are named `<TASK-IDENTIFIER>/<filename>`; documents are `<TASK-IDENTIFIER>/<key>.md`. Archives stream from storage entry by entry and are capped at 500 MB (413 above that); an empty archive returns 422. Both routes log `company_file.archive_downloaded` or `artifact.archive_downloaded`.
+
+**Thumbnails.** Image attachments and image company files have a 320px-wide WebP thumbnail at `/api/attachments/{id}/thumbnail` and `/api/company-files/{id}/thumbnail`. The first request generates it and stores it under `thumbnails/{companyId}` keyed by asset id; later requests read the stored copy. Non-image files and undecodable images return 404. `CompanyFile.thumbnailPath` and `CompanyArtifact.thumbnailPath` carry the URL, or `null`.
+

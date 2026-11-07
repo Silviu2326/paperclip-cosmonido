@@ -7,6 +7,7 @@ import {
   projectAccessMembers,
   projectGoals,
   goals,
+  customers,
   issues,
   budgetPolicies,
   pluginManagedResources,
@@ -505,6 +506,16 @@ async function assertGoalsBelongToCompany(db: Db, companyId: string, goalIds: st
   }
 }
 
+async function assertCustomerBelongsToCompany(db: Db, companyId: string, customerId: string | null | undefined): Promise<void> {
+  if (!customerId) return;
+  const [row] = await db
+    .select({ id: customers.id })
+    .from(customers)
+    .where(and(eq(customers.companyId, companyId), eq(customers.id, customerId)))
+    .limit(1);
+  if (!row) throw unprocessable("Unknown customer id for this company", { customerId });
+}
+
 async function syncGoalLinks(db: Db, projectId: string, companyId: string, goalIds: string[]) {
   // Delete existing links
   await db.delete(projectGoals).where(eq(projectGoals.projectId, projectId));
@@ -668,6 +679,7 @@ export function projectService(db: Db, options: { captureWorkspaceUpdates?: bool
     // skipped validation whenever `goalIds: []` and `goalId` arrive
     // together (goalIds wins resolution, mirroring the update path).
     const legacyGoalId = ids?.[0] ?? null;
+    await assertCustomerBelongsToCompany(db, companyId, projectData.customerId);
 
     return db.transaction(async (tx) => {
       const txDb = tx as unknown as Db;
@@ -977,6 +989,7 @@ export function projectService(db: Db, options: { captureWorkspaceUpdates?: bool
       if (ids && ids.length > 0) {
         await assertGoalsBelongToCompany(db, existingProject.companyId, ids);
       }
+      await assertCustomerBelongsToCompany(db, existingProject.companyId, projectData.customerId);
 
       if (projectData.name !== undefined) {
         const existingShortname = normalizeProjectUrlKey(existingProject.name);

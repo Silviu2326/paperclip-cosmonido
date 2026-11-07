@@ -13,6 +13,7 @@ export const issueWorkProductTypeSchema = z.enum([
   "branch",
   "commit",
   "artifact",
+  "media",
   "document",
 ]);
 
@@ -103,3 +104,18 @@ export const updateIssueWorkProductSchema = objectWithoutDefaults(
 ).partial();
 
 export type UpdateIssueWorkProduct = z.infer<typeof updateIssueWorkProductSchema>;
+
+/** Direct media assets retain same-origin, asset-bound preview/download URLs. */
+export const mediaArtifactWorkProductMetadataSchema = z.object({
+  assetId: z.string().guid(), mediaProjectId: z.string().guid().optional(), attachmentId: z.undefined().optional(),
+  contentType: z.string().min(1), byteSize: z.number().int().nonnegative(),
+  contentPath: z.string().min(1), openPath: z.string().min(1), downloadPath: z.string().min(1),
+  originalFilename: z.string().optional().nullable(),
+}).superRefine((value, ctx) => {
+  const contentPath = `/api/assets/${value.assetId}/content`;
+  for (const key of ["contentPath", "openPath", "downloadPath"] as const) {
+    const expected = key === "downloadPath" ? `${contentPath}?download=1` : contentPath;
+    if (value[key] !== expected) ctx.addIssue({ code: "custom", path: [key], message: "Media URLs must reference the same asset content route" });
+  }
+});
+export type MediaArtifactWorkProductMetadata = z.infer<typeof mediaArtifactWorkProductMetadataSchema>;

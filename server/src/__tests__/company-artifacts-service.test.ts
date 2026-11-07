@@ -4,7 +4,9 @@ import { eq } from "drizzle-orm";
 import request from "supertest";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  activityLog,
   agents,
+  artifactMemberships,
   assets,
   companies,
   createDb,
@@ -66,6 +68,7 @@ describeEmbeddedPostgres("companyArtifactsService", () => {
   }, 20_000);
 
   afterEach(async () => {
+    await db.delete(artifactMemberships);
     await db.delete(documentMemberships);
     await db.delete(issueWorkProducts);
     await db.delete(issueAttachments);
@@ -77,6 +80,7 @@ describeEmbeddedPostgres("companyArtifactsService", () => {
     await db.delete(issues);
     await db.delete(projects);
     await db.delete(agents);
+    await db.delete(activityLog);
     await db.delete(companies);
   });
 
@@ -403,6 +407,69 @@ describeEmbeddedPostgres("companyArtifactsService", () => {
     );
     expect(incompatibleKind.status).toBe(200);
     expect(incompatibleKind.body).toEqual({ artifacts: [], nextCursor: null });
+  });
+
+  it("returns starred attachments and work products from artifact memberships, scoped to the caller", async () => {
+    const { companyId } = await seedArtifacts();
+    const directAttachmentId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const workProductId = "18181818-1818-4181-8181-181818181818";
+    await db.insert(artifactMemberships).values([
+      {
+        companyId,
+        artifactRef: `attachment:${directAttachmentId}`,
+        userId: "user-1",
+        starredAt: new Date("2026-02-05T00:00:00.000Z"),
+      },
+      {
+        companyId,
+        artifactRef: `work_product:${workProductId}`,
+        userId: "user-1",
+        starredAt: new Date("2026-02-03T00:00:00.000Z"),
+      },
+      {
+        companyId,
+        artifactRef: `attachment:${directAttachmentId}`,
+        userId: "other-user",
+        starredAt: new Date("2026-02-06T00:00:00.000Z"),
+      },
+      {
+        companyId,
+        artifactRef: "attachment:notes-not-starred",
+        userId: "user-1",
+        starredAt: null,
+      },
+    ]);
+
+    const app = express();
+    app.use((req, _res, next) => {
+      req.actor = {
+        type: "board",
+        userId: "user-1",
+        source: "session",
+        companyIds: [companyId],
+        memberships: [{ companyId, membershipRole: "viewer", status: "active" }],
+      };
+      next();
+    });
+    app.use("/api/companies", companyRoutes(db, createStorageService()));
+    app.use(errorHandler);
+
+    const starred = await request(app).get(`/api/companies/${companyId}/artifacts?starred=true`);
+    expect(starred.status).toBe(200);
+    expect(starred.body.artifacts.map((artifact: { title: string }) => artifact.title)).toEqual([
+      "direct-video.mp4",
+      "Primary Cut",
+    ]);
+    expect(starred.body.artifacts.map((artifact: { source: string }) => artifact.source)).toEqual([
+      "attachment",
+      "work_product",
+    ]);
+
+    const starredVideos = await request(app).get(`/api/companies/${companyId}/artifacts?starred=true&kind=video`);
+    expect(starredVideos.body.artifacts.map((artifact: { title: string }) => artifact.title)).toEqual([
+      "direct-video.mp4",
+      "Primary Cut",
+    ]);
   });
 
   it("returns an empty starred view for agent callers", async () => {
@@ -893,6 +960,177 @@ describeEmbeddedPostgres("companyArtifactsService", () => {
       selectedGroup: null,
       nextCursor: null,
     });
+  });
+
+  it("reports byteSize and createdAt for every source and filters by issueId", async () => {
+    const { companyId, issueId } = await seedArtifacts();
+    const storage = createStorageService({ "notes.txt": Buffer.from("Searchable notes preview") });
+
+    const all = await companyArtifactsService(db, storage).list(companyId, { limit: 10 });
+    const byTitle = new Map(all.artifacts.map((artifact) => [artifact.title, artifact]));
+    expect(byTitle.get("Review Notes")?.byteSize).toBe(
+      Buffer.byteLength("# Review\n\nAgent-created review document with useful details.", "utf8"),
+    );
+    expect(byTitle.get("direct-video.mp4")?.byteSize).toBe(100);
+    expect(byTitle.get("Primary Cut")?.byteSize).toBe(200);
+    expect(byTitle.get("notes.txt")?.byteSize).toBe(64);
+    for (const artifact of all.artifacts) {
+      expect(artifact.createdAt).toEqual(expect.any(String));
+    }
+
+    const issueOnly = await companyArtifactsService(db, storage).list(companyId, { issueId, limit: 10 });
+    expect(issueOnly.artifacts.map((artifact) => artifact.title)).toEqual([
+      "direct-video.mp4",
+      "Primary Cut",
+      "notes.txt",
+    ]);
+    expect(issueOnly.nextCursor).toBeNull();
+  });
+
+  it("sorts by name ascending and pages with a sort cursor", async () => {
+    const { companyId } = await seedArtifacts();
+    const storage = createStorageService({ "notes.txt": Buffer.from("Searchable notes preview") });
+
+    const firstPage = await companyArtifactsService(db, storage).list(companyId, {
+      sort: "name",
+      dir: "asc",
+      limit: 2,
+    });
+    expect(firstPage.artifacts.map((artifact) => artifact.title)).toEqual(["direct-video.mp4", "notes.txt"]);
+    expect(firstPage.nextCursor).toEqual(expect.any(String));
+
+    const secondPage = await companyArtifactsService(db, storage).list(companyId, {
+      sort: "name",
+      dir: "asc",
+      limit: 2,
+      cursor: firstPage.nextCursor ?? undefined,
+    });
+    expect(secondPage.artifacts.map((artifact) => artifact.title)).toEqual(["Primary Cut", "Review Notes"]);
+    expect(secondPage.nextCursor).toBeNull();
+  });
+
+  it("groups artifacts by agent", async () => {
+    const { companyId } = await seedArtifacts();
+    const storage = createStorageService({ "notes.txt": Buffer.from("Searchable notes preview") });
+
+    const grouped = await companyArtifactsService(db, storage).list(companyId, {
+      groupBy: "agent",
+      limit: 10,
+    });
+    expect(grouped.artifacts).toEqual([]);
+    expect(grouped.groups?.map((group) => ({
+      key: group.key,
+      label: group.label,
+      count: group.count,
+      mediaKinds: group.mediaKinds,
+    }))).toEqual([
+      { key: "33333333-3333-4333-8333-333333333333", label: "Coder", count: 4, mediaKinds: ["document", "video", "text"] },
+    ]);
+  });
+
+  it("returns folder tree root, project, and issue nodes with aggregated counts", async () => {
+    const { companyId, projectId, issueId, secondIssueId } = await seedArtifacts();
+    const storage = createStorageService();
+    const service = companyArtifactsService(db, storage);
+
+    const root = await service.tree(companyId, { node: "root" });
+    expect(root.node).toMatchObject({ id: "root", kind: "root", count: 4, hasChildren: true });
+    expect(root.children.map((child) => [child.id, child.kind, child.count])).toEqual([
+      ["projects", "projects", 3],
+      ["no_project", "no_project", 1],
+    ]);
+
+    const projects = await service.tree(companyId, { node: "projects" });
+    expect(projects.children.map((child) => [child.id, child.label, child.count])).toEqual([
+      [`project:${projectId}`, "Artifacts", 3],
+    ]);
+
+    const project = await service.tree(companyId, { node: `project:${projectId}` });
+    expect(project.node).toMatchObject({ id: `project:${projectId}`, kind: "project", count: 3 });
+    expect(project.children).toHaveLength(1);
+    expect(project.children[0]).toMatchObject({
+      id: `issue:${issueId}`,
+      kind: "issue",
+      label: "PAP-1 · Make the reel",
+      issueIdentifier: "PAP-1",
+      count: 3,
+      totalByteSize: 364,
+      mediaKinds: ["video", "text"],
+      hasChildren: false,
+    });
+
+    const noProject = await service.tree(companyId, { node: "no_project" });
+    expect(noProject.children.map((child) => [child.id, child.label, child.count])).toEqual([
+      [`issue:${secondIssueId}`, "PAP-2 · Write the plan", 1],
+    ]);
+
+    const issue = await service.tree(companyId, { node: `issue:${issueId}` });
+    expect(issue.node).toMatchObject({ id: `issue:${issueId}`, kind: "issue", count: 3, hasChildren: false });
+    expect(issue.children).toEqual([]);
+  });
+  it("archives one task's artifacts as <identifier>/<filename> and documents as <identifier>/<key>.md", async () => {
+    const { companyId, issueId, secondIssueId } = await seedArtifacts();
+    const storage = createStorageService({ "notes.txt": Buffer.from("Text file preview from an agent output.") });
+    const service = companyArtifactsService(db, storage);
+
+    const task = await service.archiveEntries(companyId, `issue:${issueId}`);
+    const taskPaths = task.entries.map((entry) => entry.path).sort();
+    expect(taskPaths).toEqual(expect.arrayContaining(["PAP-1/direct-video.mp4", "PAP-1/notes.txt"]));
+    expect(taskPaths.every((path) => path.startsWith("PAP-1/"))).toBe(true);
+    // The work product's attachment is listed once, under its filename (dedupe against the attachment row).
+    expect(new Set(taskPaths).size).toBe(taskPaths.length);
+
+    const review = await service.archiveEntries(companyId, `issue:${secondIssueId}`);
+    expect(review.entries).toEqual([
+      expect.objectContaining({ path: "PAP-2/review.md", text: "# Review\n\nAgent-created review document with useful details." }),
+    ]);
+    expect(review.totalByteSize).toBe(Buffer.byteLength("# Review\n\nAgent-created review document with useful details.", "utf8"));
+  });
+
+  it("rejects malformed nodes and empty nodes with 400 and 422 from the service", async () => {
+    const { companyId } = await seedArtifacts();
+    const service = companyArtifactsService(db, createStorageService());
+    await expect(service.archiveEntries(companyId, "root")).rejects.toMatchObject({ status: 400 });
+    await expect(service.archiveEntries(companyId, `project:${"12345678-1234-4234-8234-123456789012"}`)).rejects.toMatchObject({ status: 422 });
+  });
+
+  it("GET /artifacts/archive streams a zip for board users, logs it, and returns 404 across companies", async () => {
+    const { companyId, otherCompanyId, issueId } = await seedArtifacts();
+    const app = express();
+    app.use((req, _res, next) => {
+      req.actor = {
+        type: "board",
+        userId: "user-1",
+        source: "session",
+        companyIds: [companyId],
+        memberships: [{ companyId, membershipRole: "viewer", status: "active" }],
+      } as any;
+      next();
+    });
+    app.use("/api/companies", companyRoutes(db, createStorageService({ "notes.txt": Buffer.from("n") })));
+    app.use(errorHandler);
+
+    const res = await request(app)
+      .get(`/api/companies/${companyId}/artifacts/archive?node=issue:${issueId}`)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks: Buffer[] = [];
+        response.on("data", (chunk: Buffer) => chunks.push(chunk));
+        response.on("end", () => callback(null, Buffer.concat(chunks)));
+      });
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toBe("application/zip");
+    expect(res.headers["content-disposition"]).toMatch(/^attachment;/);
+    expect((res.body as Buffer).subarray(0, 4).equals(Buffer.from([0x50, 0x4b, 0x03, 0x04]))).toBe(true);
+    expect((res.body as Buffer).toString("latin1")).toContain("PAP-1/notes.txt");
+
+    const logged = await db.select().from(activityLog).where(eq(activityLog.action, "artifact.archive_downloaded"));
+    expect(logged.some((row) => row.companyId === companyId && row.entityId === issueId)).toBe(true);
+
+    const foreign = await request(app).get(`/api/companies/${otherCompanyId}/artifacts/archive?node=issue:${issueId}`);
+    expect(foreign.status).toBe(404);
+    const malformed = await request(app).get(`/api/companies/${companyId}/artifacts/archive?node=bogus`);
+    expect(malformed.status).toBe(400);
   });
 });
 

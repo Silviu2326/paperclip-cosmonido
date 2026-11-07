@@ -20,6 +20,7 @@ Agent access: [companion](../agent-access-map/agents.md).
 - `primary-agent`: choose a personal primary agent for the company, confirm replacement, and inspect its roster/sidebar and task/chat defaults.
 - `lifecycle`: pause/resume or retire an agent while preserving history.
 - `built-in`: configure required agents without treating them as ordinary removable hires.
+- `capabilities`: choose which channels an agent may use to message people and whether it may call, analyze media, edit media or create videos; also set its specialty, sectors and code profile. Approval levels for messages and calls are visible but changed separately; capability settings are board-managed.
 
 ## How to get to it (user POV)
 
@@ -39,6 +40,14 @@ Use the roster’s organization view; `/org` redirects to the roster in the stre
 
 Open an agent profile and choose **Set as my primary**. Inspect its crown on the
 profile/roster and its position in the Agents sidebar, then open a new task or Chat.
+
+### `capabilities`
+
+No capabilities panel is in the UI yet (planned in phase 2 of the
+[capabilities plan](../../doc/plans/2026-10-24-capacidades-de-agente.md)). Today the
+switches are set on hire or create with `capabilities` and `profile`, and changed with
+`PUT /api/agents/{id}/capabilities` by a board user. Omitted switches mean everything
+stays enabled, as before.
 
 ## Driving it with Playwright and the Paperclip CLI
 
@@ -111,6 +120,19 @@ Switch company/user to check isolation. Open a task and Chat with a
 valid draft or recent selection; verify those explicit choices take precedence
 over the primary fallback. Opening Chat must not start execution.
 
+### `capabilities`
+
+Automated: [capability service and grant diff](../../server/src/services/agent-capabilities.test.ts)
+covers the grant diff, profile persistence, the activity record and company scope.
+
+Manual: As a board user, `PUT /api/agents/{id}/capabilities` with `messages` off,
+`mediaAnalyze` on, `mediaEdit` off and `mediaCreateVideo` on. Read
+`GET /api/agents/{id}/capabilities`, confirm the exact grants and compatibility
+`video` aggregate, and confirm an agent key gets a denial on the same PUT. Create a
+pending hire with a media action disabled, approve it, and confirm activation keeps
+the selected grants. For video creation, use an installed Motor Video runtime and
+authorized image/audio/video assets; generated images and speech remain unsupported.
+
 ## Gotchas
 
 - A roster entry is not proof of an authenticated or invokable adapter.
@@ -129,3 +151,17 @@ Evidence: source implementation and focused protocol tests; real provider assign
 ### Documentation scope: Agents, organization, and runtime setup
 
 Per-harness/model/account capabilities, every instruction-file error, and complete built-in-agent lifecycle variants remain separate qualification matrices.
+
+### Permissions by agent specialty
+
+Onboarding, hiring and editing use the same permission catalogue: customer care and sales share messages/calls, content uses media actions, software uses the code profile flag, operations exposes no unimplemented permission switches, and custom combines all options. Explicit capability saves and hire activation restrict the supported grants to the selected specialty; existing grants are preserved on reads and an editing notice explains that saving adjusts older configurations. Code remains a profile flag, not an adapter sandbox guarantee. No automatic permission migration is performed.
+
+Evidence: shared specialty normalization, creation/activation metadata tests and per-specialty UI visibility tests. Live provider execution remains separate acceptance.
+
+### Individual agent catalog
+
+The roster links to `/agents/catalog` in both UI modes. The catalog lists individual agents from the existing team packages, supports search/category filters, and previews a selected agent before installing through the existing company-scoped team catalog API. Requests use `agents: [slug]`, include package skills, exclude company/projects/issues, and rename collisions. External sources remain disabled in this quick flow. Required inputs and a loaded adapter are checked before installation; server authorization remains authoritative. The resulting profile is linked for AI connection and permission review.
+
+Evidence: option/search tests, UI typecheck/build and mocked-browser checks. A mocked installation is not proof of a live provider or authenticated production import.
+
+The individual agent catalog has a direct sidebar entry in both navigation modes. Shipped agent and team display names and per-agent descriptions use English/Spanish resources; search matches localized text without requiring accents. Preview/install receive the same localized default name override. Package references and source identifiers remain stable. Localization coverage tests include every shipped team and agent slug.

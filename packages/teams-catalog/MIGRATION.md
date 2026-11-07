@@ -24,6 +24,9 @@ The approved plan for this package lives at [PAP-10206 plan document](/PAP/issue
 ## Optional entries shipped in Phase H
 
 - `paperclipai/optional/content/content-machine` — vendored local `content-calendar` skill, single content lead, recurring weekly content review. Kept from Phase B as the canonical fixture for local-skill resolution.
+- `paperclipai/optional/sales/sales-inbound` — Sprint 2 inbound sales team (SDR, Qualifier, Scheduler) with a weekly pipeline review. Uses the catalog skills `lead-triage`, `channel-reply`, and `booking-etiquette`. Every agent starts at `draft_only`; the CRM, lead, conversation, and calendar tools it names are the Sprint 2 contract surface.
+- `paperclipai/optional/content/agency-content` — Sprint 2 agency content team (Account Manager, Writer, Editor, Reviewer) with a weekly delivery review. Uses the catalog skills `client-brief-intake` and `delivery-review`. Every agent starts at `draft_only`.
+- `paperclipai/optional/customer-care/customer-care` — Sprint 2 customer care team (Support Agent, Escalation Agent) with a weekly care review. Uses the catalog skill `channel-reply`. Every agent starts at `draft_only`.
 
 ## Intentionally deferred
 

@@ -194,7 +194,7 @@ describe("Chat connectors visibility gate", () => {
       ),
     );
     await flushReact();
-    expect(container.textContent).toContain("Connect AgentMail from Connectors.");
+    expect(container.textContent).toContain("Conecta AgentMail desde Conectores.");
     expect(container.querySelector('a[href="/apps/chat/endpoint-1/settings"]')).toBeNull();
     expect(api.list).toHaveBeenCalledWith("company-1");
     expect(api.binding).not.toHaveBeenCalled();

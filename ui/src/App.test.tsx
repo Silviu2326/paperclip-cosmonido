@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CloudAccessGate } from "./components/CloudAccessGate";
 import { queryKeys } from "./lib/queryKeys";
 import appSource from "./App.tsx?raw";
+import { i18n } from "./i18n";
+import { DEFAULT_LOCALE } from "./i18n/locales";
 
 const mockHealthApi = vi.hoisted(() => ({
   get: vi.fn(),
@@ -89,7 +91,9 @@ function unmountRoot(root: ReturnType<typeof createRoot>) {
 describe("CloudAccessGate", () => {
   let container: HTMLDivElement;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // This gate suite asserts English copy independently of the Spanish default.
+    await i18n.changeLanguage("en");
     container = document.createElement("div");
     document.body.appendChild(container);
     mockHealthApi.get.mockResolvedValue({
@@ -100,7 +104,8 @@ describe("CloudAccessGate", () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE);
     container.remove();
     document.body.innerHTML = "";
     vi.clearAllMocks();

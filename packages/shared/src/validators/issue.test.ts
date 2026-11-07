@@ -6,6 +6,7 @@ import {
   issueCommentMetadataSchema,
   createIssueSchema,
   issueBlockedInboxAttentionSchema,
+  issueReviewFilterSchema,
   resolveIssueRecoveryActionSchema,
   respondIssueThreadInteractionSchema,
   stalledReviewDecisionSchema,
@@ -16,6 +17,11 @@ import {
 import { createAgentSchema } from "./agent.js";
 
 describe("issue validators", () => {
+  it("accepts only the task review filter values", () => {
+    expect(issueReviewFilterSchema.parse("required")).toBe("required");
+    expect(issueReviewFilterSchema.parse("pending")).toBe("pending");
+    expect(issueReviewFilterSchema.safeParse("all").success).toBe(false);
+  });
   it("preserves the exact expected execution policy snapshot without defaults", () => {
     const snapshot = { mode: "normal", stages: [], monitor: { nextCheckAt: "2026-10-10T12:00:00Z" } };
     expect(updateIssueSchema.parse({ expectedExecutionPolicy: snapshot }).expectedExecutionPolicy).toEqual(snapshot);

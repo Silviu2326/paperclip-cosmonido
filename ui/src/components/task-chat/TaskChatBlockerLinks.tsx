@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type {
   IssueBlockerAttentionIssueSummary,
   IssueRelationIssueSummary,
@@ -130,7 +131,7 @@ function BlockerRow({
 }
 
 function LiveWorkGlyph({ status }: { status: WaitingBlockerStatus }) {
-  const label = status === "done" ? "Done" : status === "running" ? "Running" : "Waiting";
+  const label = status === "done" ? t("chatUi.done", { defaultValue: "Done" }) : status === "running" ? t("chatUi.running", { defaultValue: "Running" }) : t("chatUi.waiting", { defaultValue: "Waiting" });
   if (status === "done") {
     return (
       <CheckCircle2
@@ -193,13 +194,17 @@ export function TaskChatBlockerLinks({
   placement: "top" | "bottom";
 }) {
   const streamlined = useStreamlinedTaskChatPresentation();
-  const directLabel = streamlined && placement === "bottom" ? "Still blocked by" : "Blocked by";
+  const directLabel = streamlined && placement === "bottom"
+    ? t("chatUiWork.stillBlockedBy", { defaultValue: "Still blocked by" })
+    : t("chatUiWork.blockedBy", { defaultValue: "Blocked by" });
   const rootLabel = streamlined
-    ? placement === "bottom" ? "Root blocker remains" : "Root blocker"
-    : "Ultimately blocked by";
+    ? placement === "bottom"
+      ? t("chatUiWork.rootBlockerRemains", { defaultValue: "Root blocker remains" })
+      : t("chatUiWork.rootBlocker", { defaultValue: "Root blocker" })
+    : t("chatUiWork.ultimatelyBlockedBy", { defaultValue: "Ultimately blocked by" });
   return (
     <div
-      aria-label="Task blockers"
+      aria-label={t("chatUi.taskBlockers", { defaultValue: "Task blockers" })}
       data-placement={placement}
       data-testid="task-chat-blocker-links"
       className="flex min-w-0 flex-col gap-1 overflow-hidden text-(length:--text-micro) leading-4 text-amber-700 dark:text-amber-300"
@@ -220,10 +225,12 @@ export function TaskChatLiveWorkLinks({
   placement: "top" | "bottom";
 }) {
   const streamlined = useStreamlinedTaskChatPresentation();
-  const heading = streamlined && placement === "bottom" ? "Still waiting on live work" : "Waiting on live work";
+  const heading = streamlined && placement === "bottom"
+    ? t("chatUiWork.stillWaitingLiveWork", { defaultValue: "Still waiting on live work" })
+    : t("chatUiWork.waitingLiveWork", { defaultValue: "Waiting on live work" });
   return (
     <div
-      aria-label="Tasks waiting on live work"
+      aria-label={t("chatUi.tasksWaitingOnLiveWork", { defaultValue: "Tasks waiting on live work" })}
       data-placement={placement}
       data-testid="task-chat-live-work-links"
       className="flex min-w-0 flex-col gap-1.5 overflow-hidden text-(length:--text-micro) leading-4 text-primary"
@@ -254,10 +261,10 @@ export function TaskChatLiveWorkLinks({
         ))}
       </ol>
       {liveWork.nowRunning.map((blocker) => streamlined ? (
-        <LiveWorkLink key={blocker.id} blocker={blocker} status="running" label="Now running" />
+        <LiveWorkLink key={blocker.id} blocker={blocker} status="running" label={t("chatUi.nowRunning", { defaultValue: "Now running" })} />
       ) : (
         <div key={blocker.id} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
-          <span className="shrink-0 font-medium">Now running</span>
+          <span className="shrink-0 font-medium">{t("chatUi.nowRunning", { defaultValue: "Now running" })}</span>
           <LiveWorkLink blocker={blocker} status="running" />
         </div>
       ))}

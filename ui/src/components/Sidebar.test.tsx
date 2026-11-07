@@ -9,6 +9,9 @@ import { Sidebar } from "./Sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { t } from "@/i18n";
 
+const mockBusinessNavigation = vi.hoisted(() => ({ business: true, agenda: false, office: false }));
+vi.mock("@/hooks/useBusinessNavigation", () => ({ useBusinessNavigation: () => ({ preferences: mockBusinessNavigation }) }));
+
 const mockHeartbeatsApi = vi.hoisted(() => ({
   liveRunsForCompany: vi.fn(),
 }));
@@ -25,7 +28,7 @@ vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/", search: "", hash: "", state: null }),
   NavLink: ({ to, children, className, ...props }: {
     to: string;
-    children: ReactNode;
+    children: ReactNode | ((state: { isActive: boolean }) => ReactNode);
     className?: string | ((state: { isActive: boolean }) => string);
   }) => (
     <a
@@ -33,7 +36,7 @@ vi.mock("@/lib/router", () => ({
       className={typeof className === "function" ? className({ isActive: false }) : className}
       {...props}
     >
-      {children}
+      {typeof children === "function" ? children({ isActive: false }) : children}
     </a>
   ),
 }));
@@ -165,6 +168,7 @@ describe("Sidebar", () => {
     mockSidebar.collapsed = false;
     mockSidebar.collapseLocked = false;
     mockSidebar.peeking = false;
+    Object.assign(mockBusinessNavigation, { business: true, agenda: false, office: false });
     mockInboxBadge.inbox = 0;
     mockInboxBadge.failedRuns = 0;
   });
@@ -199,6 +203,43 @@ describe("Sidebar", () => {
     flushSync(() => {
       root.unmount();
     });
+  });
+
+  it("lets the operator fold Business and reach the following navigation groups", async () => {
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableStreamlinedUi: true });
+    const root = await renderSidebar();
+    const toggle = (key: "collapseAria" | "expandAria") => {
+      const label = t(`sidebarSection.${key}`, { label: t("nav.business") });
+      const button = container.querySelector(`button[aria-label="${label}"]`);
+      expect(button).not.toBeNull();
+      flushSync(() => button!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    };
+    expect(container.querySelector('a[href="/customers"]')).not.toBeNull();
+    toggle("collapseAria");
+    await flushReact();
+    expect(container.querySelector('a[href="/customers"]')).toBeNull();
+    expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
+    expect(container.querySelectorAll('a[href="/agents/catalog"]')).toHaveLength(1);
+    expect(container.querySelector('a[href="/agents/catalog"]')?.textContent).toContain("Catálogo de agentes");
+    toggle("expandAria");
+    await flushReact();
+    expect(container.querySelector('a[href="/customers"]')).not.toBeNull();
+    flushSync(() => root.unmount());
+  });
+
+  it("keeps business tools optional and Settings reachable from the admin group", async () => {
+    mockInstanceSettingsApi.getExperimental.mockResolvedValue({ enableStreamlinedUi: true });
+    mockBusinessNavigation.business = false;
+    mockBusinessNavigation.agenda = true;
+    const root = await renderSidebar();
+    expect(container.querySelector('a[href="/customers"]')).toBeNull();
+    expect(container.querySelector('a[href="/sales"]')).toBeNull();
+    expect(container.querySelector('a[href="/schedule"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/issues"]')).not.toBeNull();
+    await openAdminGroup();
+    expect(container.querySelector('a[href="/company/settings"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/company/settings/navigation"]')).toBeNull();
+    flushSync(() => root.unmount());
   });
 
   it("shows Search as a nav item instead of a header icon", async () => {
@@ -242,7 +283,7 @@ describe("Sidebar", () => {
     });
   });
 
-  it("uses the simplified work navigation and lists each agent once, inside Equipo", async () => {
+  it("uses the simplified work navigation and lists each agent once, in its own group", async () => {
     mockInstanceSettingsApi.getExperimental.mockResolvedValue({
       enableIsolatedWorkspaces: false,
       enableStreamlinedLeftNavigation: true,
@@ -259,12 +300,14 @@ describe("Sidebar", () => {
 
     const projectsLink = [...container.querySelectorAll("nav a")].find((a) => a.textContent?.trim() === "Proyectos");
     expect(projectsLink?.getAttribute("href")).toBe("/projects");
-    // The standalone Agents link is gone: the agents group in Equipo is the only entry.
+    // The standalone Agents link and the "Ver equipo" row are gone: the agents group is the only entry.
     expect(container.querySelectorAll('a[href="/agents"]')).toHaveLength(0);
     expect(container.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
     await openAdminGroup();
     expect([...container.querySelectorAll('a[href="/activity"]')]).toHaveLength(1);
-    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).toContain("Auditoría");
+    expect([...container.querySelectorAll("nav a")].map((a) => a.textContent?.trim())).toContain("Actividad");
+    expect(navLabels).not.toContain("Ver equipo");
+    expect(navLabels).not.toContain("Rutinas");
     expect(navLabels).not.toContain("Ajustes");
     expect(navLabels).not.toContain("Actividad");
     expect(navLabels).not.toContain("Costos");
@@ -530,14 +573,16 @@ describe("Sidebar", () => {
     await openAdminGroup();
     const sections = [...container.querySelectorAll("nav > div")];
     const workSection = sections.find((section) => section.textContent?.startsWith("Trabajo"));
-    const teamSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupTeam")));
+    const teamSection = sections.find((section) => section.querySelector('[data-testid="sidebar-agents"]'));
     const orgSection = sections.find((section) => section.textContent?.startsWith(t("sidebarNew.groupAdmin")));
     const labels = (section: Element | undefined) => [...(section?.querySelectorAll("a") ?? [])]
       .map((anchor) => anchor.textContent?.trim());
 
-    expect(labels(workSection)).toEqual(["Tareas", "Proyectos", "Rutinas", "Artefactos"]);
+    expect(labels(workSection)).toEqual([
+      t("nav.tasks"), t("nav.projects"), t("uxNav.files"),
+    ]);
     expect(teamSection?.querySelector('[data-testid="sidebar-agents"]')).not.toBeNull();
-    expect(labels(orgSection)).toEqual(["Habilidades", "Conectores", "Auditoría"]);
+    expect(labels(orgSection)).toEqual(["Conectores", t("sidebar.activity"), t("nav.settings")]);
     expect(sections.indexOf(workSection!)).toBeLessThan(sections.indexOf(teamSection!));
     expect(sections.indexOf(teamSection!)).toBeLessThan(sections.indexOf(orgSection!));
     expect(
@@ -654,7 +699,7 @@ describe("Sidebar", () => {
       links.findIndex((anchor) => anchor.textContent === "Habilidades"),
     );
     expect(links.findIndex((anchor) => anchor.textContent === "Conectores")).toBeLessThan(
-      links.findIndex((anchor) => anchor.textContent === "Auditoría"),
+      links.findIndex((anchor) => anchor.textContent === "Actividad"),
     );
 
     flushSync(() => {

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import { AlertCircle, Check, Loader2 } from "lucide-react";
 import {
@@ -74,7 +75,7 @@ function LauncherContent({
                       </span>
                     ) : null}
                   </span>
-                  {item.alreadyOpen ? <Check className="size-4 text-muted-foreground" aria-label="Already open" /> : null}
+                  {item.alreadyOpen ? <Check className="size-4 text-muted-foreground" aria-label={t("chatUi.alreadyOpen", { defaultValue: "Already open" })} /> : null}
                   {item.shortcut ? <CommandShortcut>{item.shortcut}</CommandShortcut> : null}
                 </CommandItem>
               ))}
@@ -93,10 +94,10 @@ export function SidePanelLauncher({
   trigger,
   open: controlledOpen,
   onOpenChange,
-  title = "Open a side panel tab",
-  description = "Choose a view or resource to open.",
-  placeholder = "Search tabs and resources…",
-  emptyMessage = "No matching tabs or resources.",
+  title = t("chatUi.openASidePanelTab", { defaultValue: "Open a side panel tab" }),
+  description = t("chatUi.chooseAViewOrResourceToOpen", { defaultValue: "Choose a view or resource to open." }),
+  placeholder = t("chatUi.searchTabsAndResources", { defaultValue: "Search tabs and resources…" }),
+  emptyMessage = t("chatUi.noMatchingTabsOrResources", { defaultValue: "No matching tabs or resources." }),
   className,
 }: SidePanelLauncherProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);

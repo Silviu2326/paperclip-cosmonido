@@ -770,6 +770,17 @@ export function getUnreadTouchedIssues(issues: Issue[]): Issue[] {
   return issues.filter((issue) => issue.isUnreadForMe);
 }
 
+/**
+ * Deep link into the approvals slice of the inbox's "all" tab: `?show=approvals&approvals=actionable|resolved|all`.
+ * The retired Approvals list used it to keep its pending/all tabs addressable. Returns null without `show=approvals`.
+ */
+export function parseInboxApprovalPreset(search: string): { approval: InboxApprovalFilter } | null {
+  const params = new URLSearchParams(search);
+  if (params.get("show") !== "approvals") return null;
+  const approval = params.get("approvals");
+  return { approval: approval === "actionable" || approval === "resolved" ? approval : "all" };
+}
+
 export function getApprovalsForTab(
   approvals: Approval[],
   tab: InboxTab,

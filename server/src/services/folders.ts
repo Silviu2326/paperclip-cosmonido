@@ -1,6 +1,6 @@
-import { and, asc, eq, max, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, max, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { companySkills, folders, routines } from "@paperclipai/db";
+import { companyFiles, companySkills, folders, routines } from "@paperclipai/db";
 import type {
   CreateFolder,
   Folder,
@@ -156,10 +156,22 @@ export function folderService(db: Db, mutationLockHeld = false) {
       .groupBy(companySkills.folderId);
   }
 
+  async function companyFileCounts(companyId: string) {
+    return db
+      .select({ folderId: companyFiles.folderId, count: sql<number>`count(*)::int` })
+      .from(companyFiles)
+      .where(and(eq(companyFiles.companyId, companyId), isNull(companyFiles.deletedAt)))
+      .groupBy(companyFiles.folderId);
+  }
+
   async function list(companyId: string, kind: FolderKind): Promise<FolderListResult> {
     const [folderRows, countRows] = await Promise.all([
       getRows(companyId, kind),
-      kind === "routine" ? routineCounts(companyId) : skillCounts(companyId),
+      kind === "routine"
+        ? routineCounts(companyId)
+        : kind === "company_files"
+          ? companyFileCounts(companyId)
+          : skillCounts(companyId),
     ]);
     const views = buildFolderViews(folderRows);
     const countsByFolderId = new Map<string | null, number>();
@@ -369,6 +381,10 @@ export function folderService(db: Db, mutationLockHeld = false) {
       if (!target) throw notFound("Folder not found");
       if (target.kind !== input.kind) throw unprocessable("Folder kind must match item kind");
       if (await isBundledFolder(companyId, target.id)) throw forbidden("Bundled folders are read-only");
+    }
+    if (input.kind === "company_files") {
+      // Company files keep their own move/rename rules (name collisions, live files only).
+      throw unprocessable("Company files are moved with PATCH /api/company-files/:id");
     }
     if (input.kind === "routine") {
       const row = await db

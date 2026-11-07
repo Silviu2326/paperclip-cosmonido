@@ -22,6 +22,7 @@ const state = vi.hoisted(() => ({
 vi.mock("@/components/primary-agent/PrimaryAgentPresentation", () => ({ usePrimaryAgentPresentation: () => ({ primaryAgentId: state.primaryAgentId, loading: state.primaryLoading }) }));
 
 vi.mock("@/context/BreadcrumbContext", () => ({ useBreadcrumbs: () => ({ setBreadcrumbs: vi.fn() }) }));
+vi.mock("@/context/DialogContext", () => ({ useDialogActions: () => ({ openNewAgent: vi.fn() }) }));
 vi.mock("@/hooks/useAgentChatNavigation", () => ({
   useAgentChatNavigation: () => ({
     companyId: state.companyId,

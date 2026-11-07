@@ -299,6 +299,10 @@ describe("SidebarProjects", () => {
       agentMemberships: {},
       starredDocumentIds: [],
       documentStarredAt: {},
+      starredCompanyFileIds: [],
+      companyFileStarredAt: {},
+      starredArtifactRefs: [],
+      artifactStarredAt: {},
       updatedAt: null,
     };
     mockResourceMembershipsApi.listMine.mockImplementation(() => Promise.resolve(memberships));

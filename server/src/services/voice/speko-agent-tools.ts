@@ -7,6 +7,7 @@ import { chatVoiceCallbacks, instanceUserRoles, companyMemberships } from "@pape
 import type { VoiceCaller } from "./voice-session-store.js";
 import { z } from "zod";
 import { instanceSettingsService } from "../instance-settings.js";
+import { assertAgentCapability } from "../external-action-gate.js";
 const SPEKO_TOOLS = [{ name: "call_my_phone", description: "Call the responsible person's saved phone number to discuss this task with the assigned Paperclip agent. Requires that person's callback opt-in. Never chooses another recipient, cancels work or grants approvals. Do not redial an uncertain attempt.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, risk: "write", scopes: [] }] as const;
 type SpekoTaskSession = Pick<ToolGatewaySession, "companyId" | "agentId" | "runId" | "issueId" | "identityContextId">;
 interface Binding { companyId: string; endpointId: string; issueId: string; caller: VoiceCaller }
@@ -18,6 +19,8 @@ export function registerSpekoVoiceRuntime(db: Db, start: (binding: Binding, invo
 async function resolveAuthority(db: Db, session: SpekoTaskSession, endpointId: string) {
   if (!(await instanceSettingsService(db).getExperimental()).enableChatConnectors) throw forbidden("Voice connections are disabled");
   if (!runtimes.has(db) || !session.agentId || !session.runId || !session.issueId) throw forbidden("Speko tools require an active task run");
+  // Listing and execution both pass here, so the agent's company grant for calls is checked on every use.
+  await assertAgentCapability(db, { companyId: session.companyId, agentId: session.agentId, permissionKey: "channels:call" });
   const { run, context } = await captureRunIdentity(db, { companyId: session.companyId, agentId: session.agentId, runId: session.runId });
   if ((run.contextSnapshot?.issueId ?? run.contextSnapshot?.taskId) !== session.issueId || !run.responsibleUserId || session.identityContextId && session.identityContextId !== context?.id) throw forbidden("The accepted requester or task changed");
   const [endpoint] = await db.select().from(chatEndpoints).where(and(eq(chatEndpoints.companyId, session.companyId), eq(chatEndpoints.id, endpointId), eq(chatEndpoints.provider, "speko"), eq(chatEndpoints.assignedAgentId, session.agentId), eq(chatEndpoints.status, "active")));

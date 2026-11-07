@@ -156,7 +156,7 @@ vi.mock("./AnnouncementWell", () => ({
 }));
 
 vi.mock("./MobileBottomNav", () => ({
-  MobileBottomNav: () => null,
+  MobileBottomNav: ({ visible }: { visible: boolean }) => <nav data-mobile-bottom-nav data-visible={String(visible)} />,
 }));
 
 vi.mock("./WorktreeBanner", () => ({
@@ -1265,6 +1265,17 @@ describe("Layout", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it.each([false, true])("keeps the mobile drawer and bottom navigation mutually usable (drawer open: %s)", async (open) => {
+    mockSidebarState.isMobile = true;
+    mockSidebarState.sidebarOpen = open;
+    const { root } = await renderLayoutRoot();
+    const primaryNav = container.querySelector('[data-content-header-controls]');
+    expect(primaryNav).not.toBeNull();
+    expect(primaryNav?.closest('[inert]') !== null).toBe(!open);
+    expect(container.querySelector('[data-mobile-bottom-nav]')?.getAttribute('data-visible')).toBe(String(!open));
+    await act(async () => root.unmount());
   });
 
   it("clips overflow on the desktop layout root", async () => {

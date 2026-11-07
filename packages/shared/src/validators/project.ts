@@ -114,6 +114,7 @@ const projectFields = {
   visibility: z.enum(["open", "private"]).optional().default("open"),
   status: z.enum(PROJECT_STATUSES).optional().default("backlog"),
   leadAgentId: z.string().guid().optional().nullable(),
+  customerId: z.string().uuid().optional().nullable(),
   targetDate: z.string().optional().nullable(),
   color: z.string().optional().nullable(),
   icon: z.enum(PROJECT_ICON_NAMES).optional().nullable(),

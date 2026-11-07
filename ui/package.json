@@ -15,7 +15,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "pnpm check:locales && vite build",
+    "check:locales": "node scripts/check-locales.mjs",
     "build:preview": "vite build --config vite.preview.config.mjs",
     "storybook": "storybook dev -p 6006 -c storybook/.storybook",
     "build-storybook": "storybook build -c storybook/.storybook -o storybook-static",
@@ -63,6 +64,7 @@
     "lucide-react": "^1.48.0",
     "mermaid": "^12.1.0",
     "motion": "^13.1.1",
+    "pdfjs-dist": "^6.4.299",
     "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -72,6 +74,7 @@
     "react-router-dom": "^7.18.4",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "yjs": "13.6.32"
   },
   "devDependencies": {

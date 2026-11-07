@@ -3,7 +3,14 @@ export { companies } from "./companies.js";
 export { companyLogos } from "./company_logos.js";
 export { companyTransferRuns } from "./company_transfer_runs.js";
 export { companyOnboardingSeeds } from "./company_onboarding_seeds.js";
-export { authUsers, authSessions, authAccounts, authVerifications } from "./auth.js";
+export { authUsers, authSessions, authAccounts, authVerifications, authTwoFactors } from "./auth.js";
+export * from "./productization_security.js";
+export * from "./productization_notifications.js";
+export * from "./productization_public_api.js";
+export * from "./productization_imports.js";
+export * from "./review_links.js";
+export * from "./crm_sync.js";
+export * from "./commercial_automation_cursors.js";
 export { instanceSettings } from "./instance_settings.js";
 export { instanceUserRoles } from "./instance_user_roles.js";
 export { chatVoiceCallbacks } from "./chat_voice_callbacks.js";
@@ -43,6 +50,9 @@ export { workspaceRuntimeServices } from "./workspace_runtime_services.js";
 export { projectGoals } from "./project_goals.js";
 export { goals } from "./goals.js";
 export { folders } from "./folders.js";
+export { companyFiles, companyFileVersions, companyFileReads } from "./company_files.js";
+export { companyFileMemberships } from "./company_file_memberships.js";
+export { artifactMemberships } from "./artifact_memberships.js";
 export { issues } from "./issues.js";
 export { issueAccessGrants } from "./issue_access_grants.js";
 export { issueWatchdogs } from "./issue_watchdogs.js";
@@ -244,6 +254,7 @@ export { chatVoiceReports } from "./chat_voice_reports.js";
 export { chatVoicePhoneLines, chatVoiceInboundCalls } from "./chat_voice_inbound.js";
 export * from "./decision_models.js";
 export { userCompanyPreferences } from "./user_company_preferences.js";
+export { officeLayouts } from "./office_layouts.js";
 
 export { chatSlackManagerGrants } from "./chat_slack_manager_grants.js";
 export { aiSubscriptions, aiSubscriptionPrices, aiSubscriptionConnections } from "./ai_subscriptions.js";
@@ -253,3 +264,44 @@ export { executionWorkspaceRepositories } from "./execution_workspace_repositori
 export { executionWorkspaceRepositoryRoots } from "./execution_workspace_repository_roots.js";
 export { executionWorkspaceRepositoryAccess } from "./execution_workspace_repository_access.js";
 export * from "./fast_responses.js";
+
+export * from "./deliverable_reviews.js";
+
+export * from "./media_studio.js";
+
+// Sprint 3: autonomous sales and delivery
+export * from "./playbooks.js";
+export * from "./lead_qualifications.js";
+export * from "./autonomy.js";
+export * from "./proposals.js";
+export * from "./handoff_receipts.js";
+export * from "./service_agreements.js";
+export * from "./commercial_decisions.js";
+export * from "./daily_brief_preferences.js";
+
+// Sprint 2 (CRM, conversaciones, canales, agenda, memoria, gate)
+export * from "./customers.js";
+export * from "./contacts.js";
+export * from "./leads.js";
+export * from "./opportunities.js";
+export * from "./crm_activities.js";
+export * from "./commitments.js";
+export * from "./conversations.js";
+export * from "./external_actions.js";
+export * from "./lead_forms.js";
+export * from "./calendar.js";
+export * from "./crm_phone.js";
+export * from "./customer_memory.js";
+export * from "./customer_channels.js";
+export * from "./webchat_settings.js";
+export { productizationOnboarding } from "./productization_onboarding.js";
+export * from "./productization_accounts.js";
+export * from "./productization_customer_portal.js";
+export * from "./productization_media_presets.js";
+export * from "./productization_packages.js";
+export * from "./conversation_agent_dispatch.js";
+export * from "./productization_public_catalog.js";
+export * from "./productization_agency.js";
+export * from "./productization_copilot_requests.js";
+
+export { projectAutopilots } from "./project_autopilots.js";

@@ -16,6 +16,14 @@ import { __liveUpdatesTestUtils } from "./LiveUpdatesProvider";
 import { queryKeys } from "../lib/queryKeys";
 
 describe("LiveUpdatesProvider issue invalidation", () => {
+  it.each(["conversation", "conversation_message"])("refreshes the customer inbox and open thread for %s events", (entityType) => {
+    const client = new QueryClient();
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    __liveUpdatesTestUtils.invalidateActivityQueries(client, "company-a", { entityType, entityId: "message-a" }, { userId: "user-a", agentId: null });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.conversations.list("company-a") });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["conversations", "detail"] });
+    client.clear();
+  });
   it('refreshes sources, legacy repositories and installed skills after a background import', () => {
     const client = new QueryClient();
     const invalidate = vi.spyOn(client, 'invalidateQueries');

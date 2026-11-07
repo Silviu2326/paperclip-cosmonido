@@ -1,7 +1,15 @@
+import { assertAgentWorkPermissions, workPermissionsForTool } from "../agent-work-permissions.js";
+import { PRODUCT_TOOL_NAMES } from "./assigned-mcp-tools.js";
+import { callAssignmentTool } from "../assignment-tools.js";
+import { callMediaTool } from "../media-tools.js";
+import { agentMediaActionForTool, assertAgentMediaAction } from "../external-action-gate.js";
+import { dispatchSprint3Tool, SPRINT3_TOOL_NAMES } from "../sprint3-tools.js";
+import { callSprint2Tool, SPRINT2_TOOL_NAMES } from "../sprint2-tools.js";
 import { DELIVERY_QUEUES, notifyDeliveryWork } from "../delivery-work-notifications.js";
 import { skillAccessService } from "../skill-access.js";
 import { callTaskWorkspaceTool } from "../task-workspace-tools.js";
 import { TaskAttachmentReadCache, TASK_ATTACHMENT_DEFINITIONS, TASK_ATTACHMENT_SCHEMAS, listTaskAttachments, readTaskAttachment } from "./runner-task-attachments.js";
+import { COMPANY_FILE_DEFINITIONS, COMPANY_FILE_SCHEMAS, listCompanyFiles, readCompanyFile } from "./runner-company-files.js";
 import { RUNNER_BRIDGE_SCHEMAS, runnerBridgeDefinitions, readAssignedSkill, executeWorkspaceTool, readWorkspaceUploadFile, settleRunnerBridgeRead, assertRunnerWorkspacePathAllowed } from "./runner-bridge-tools.js";
 import type { NativeRuntimeContextSnapshot } from "../../vendor/paperclip-runner/index.js";
 import { assertCanManageIssueMonitor, prepareIssueMonitorUpdate, setTaskMonitorSchema, summarizeIssueMonitor } from "../issue-monitors.js";
@@ -113,6 +121,7 @@ import {
 
 const EXTERNAL_WORKSPACE_OPERATIONS = new Set(["get_workspace", "list_workspaces", "select_workspace", "prepare_repository", "register_deliverable"]);
 const IMPLEMENTED_OPERATIONS = new Set([
+  ...PRODUCT_TOOL_NAMES,
   "submit_complaint", "submit_suggestion",
   "read_agent_instructions", "update_agent_instructions", "get_agent_instruction_history", "restore_agent_instructions",
   "search_api", "call_api", "hire_agent",
@@ -152,6 +161,8 @@ type Binding = {
   firstPartyOnly?: boolean;
   /** Operator-approved Dot attachment access, pinned when the turn opens. */
   taskAttachmentRead?: boolean;
+  /** Company files (Entrada) reads. Native runs set this by default; it is not an operator opt-in like task attachments. */
+  companyFilesRead?: boolean;
   runtimeContext?: NativeRuntimeContextSnapshot;
   assertBridgeAuthority?: () => Promise<void>;
   executionTargetKind?: "local" | "remote";
@@ -215,7 +226,8 @@ function canonicalJson(value: unknown): string {
 
 export class PaperclipRunnerToolAuthority {
   #taskAttachmentCache = new TaskAttachmentReadCache();
-  close() { this.#taskAttachmentCache.close(); }
+  #companyFileCache = new TaskAttachmentReadCache();
+  close() { this.#taskAttachmentCache.close(); this.#companyFileCache.close(); }
   constructor(readonly db: Db, readonly binding: Binding) {}
 
   definitions(): Array<Record<string, unknown>> {
@@ -294,6 +306,7 @@ export class PaperclipRunnerToolAuthority {
     definitions.push(REUSE_CHAT_ATTACHMENT_TOOL_DEFINITION);
     if (this.binding.chatAttachmentReadScope) definitions.push(READ_CHAT_ATTACHMENT_TOOL_DEFINITION);
     if (this.binding.taskAttachmentRead) definitions.push(...TASK_ATTACHMENT_DEFINITIONS);
+    if (this.binding.companyFilesRead) definitions.push(...COMPANY_FILE_DEFINITIONS);
     definitions.push(...runnerBridgeDefinitions({ workspace: !this.binding.firstPartyOnly && !!this.binding.workspaceRoot && this.binding.workspaceBridge === true, skills: !!this.binding.runtimeContext, api: runnerApiToolsEnabled(this.binding.companyId, this.binding.apiToolsEnabled), mode: workMode }));
     const connectionTools = this.binding.firstPartyOnly ? [] : [...RUNTIME_CONNECTION_TOOL_DEFINITIONS,
       ...(this.binding.connectorAssignments ?? []).flatMap((assignment) => assignment.tools)];
@@ -307,6 +320,9 @@ export class PaperclipRunnerToolAuthority {
     callId: string;
     arguments: unknown;
   }): Promise<unknown> {
+    const workPermissions = workPermissionsForTool(call.tool, call.arguments, this.binding.agentId);
+    const policyContext = workPermissions.length ? await this.#boundContext() : undefined;
+    if (policyContext) assertAgentWorkPermissions(policyContext.actor.metadata, workPermissions);
     if (this.binding.firstPartyOnly && (EXTERNAL_WORKSPACE_OPERATIONS.has(call.tool) || call.tool.startsWith("workspace_"))) throw forbidden("Paperclip workspace access is unavailable to this Grok Bot session.");
     if (this.binding.nativeReview) {
       if (call.tool === "resolve_review") return this.#resolveReview(call.arguments);
@@ -333,6 +349,24 @@ export class PaperclipRunnerToolAuthority {
         return result;
       });
     }
+    if (Object.hasOwn(COMPANY_FILE_SCHEMAS, call.tool)) {
+      const authorize = async () => {
+        const current = await this.#boundContext();
+        if (!this.binding.companyFilesRead || current.actor.adapterType !== "paperclip_runner")
+          throw forbidden("Company files reading was not enabled or was disabled");
+        await this.binding.assertBridgeAuthority?.();
+      };
+      await authorize();
+      const schema = COMPANY_FILE_SCHEMAS[call.tool as keyof typeof COMPANY_FILE_SCHEMAS];
+      const parsed = schema.safeParse(call.arguments);
+      if (!parsed.success) return { outcome: "failed", code: "runner_company_file_invalid_arguments", message: "Arguments do not match this tool's advertised schema." };
+      return settleRunnerBridgeRead(async () => {
+        if (call.tool === "read_company_file") return readCompanyFile({ db: this.db, binding: this.binding, arguments: parsed.data, storage: this.binding.storage, cache: this.#companyFileCache, authorize });
+        const result = await listCompanyFiles(this.db, this.binding, parsed.data as { folder?: string; after?: string });
+        await authorize();
+        return result;
+      });
+    }
     if (RUNNER_BRIDGE_SCHEMAS.has(call.tool)) {
       await this.#boundContext();
       if (!this.definitions().some(definition => definition.name === call.tool)) throw forbidden("Tool is not available to this run");
@@ -341,6 +375,7 @@ export class PaperclipRunnerToolAuthority {
       const input = parsed.data as Record<string, any>;
       if (call.tool.startsWith("workspace_")) {
         const authorize = async () => { const current = await this.#boundContext();
+          assertAgentWorkPermissions(current.actor.metadata, workPermissionsForTool(call.tool, call.arguments, this.binding.agentId));
           if (current.actor.adapterConfig?.dotWorkspaceAccess !== true) throw forbidden("Dot workspace access was disabled");
           await this.binding.assertBridgeAuthority?.();
           if (["workspace_write", "workspace_run"].includes(call.tool) && current.issue.workMode !== "standard") throw forbidden("This work mode cannot change files or run commands");
@@ -447,7 +482,7 @@ export class PaperclipRunnerToolAuthority {
     ) {
       throw new Error("paperclip_runner_tool_not_advertised");
     }
-    const context = await this.#boundContext();
+    const context = policyContext ?? await this.#boundContext();
     const input = record(call.arguments);
     if (call.tool === READ_CHAT_ATTACHMENT_TOOL_NAME) {
       const scope = this.binding.chatAttachmentReadScope;
@@ -502,6 +537,23 @@ export class PaperclipRunnerToolAuthority {
     ) {
       throw new Error("paperclip_runner_tool_mode_denied");
     }
+    if (SPRINT3_TOOL_NAMES.includes(call.tool)) {
+      const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+      const token = this.#apiToken(context);
+      if (!apiUrl || !token) throw new Error("Sprint 3 tool authentication is unavailable");
+      const dispatch = dispatchSprint3Tool(call.tool);
+      if (!dispatch) throw new Error(`Unknown Sprint 3 tool ${call.tool}`);
+      return dispatch({
+        name: call.tool,
+        arguments: input,
+        apiUrl,
+        token,
+        companyId: this.binding.companyId,
+        issueId: this.binding.issueId,
+        agentId: this.binding.agentId,
+        conversation: Boolean(context.issue.conversationAgentId),
+      });
+    }
     switch (call.tool) {
       case "submit_complaint":
       case "submit_suggestion": {
@@ -541,6 +593,8 @@ export class PaperclipRunnerToolAuthority {
         if (!apiUrl || !token) throw new Error("Workspace tool authentication is unavailable");
         return callTaskWorkspaceTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, workspaceRoot: this.binding.workspaceRoot });
       }
+      case "context_search":
+      case "context_get":
       case "create_project":
       case "list_project_repositories":
       case "list_projects": {
@@ -551,7 +605,41 @@ export class PaperclipRunnerToolAuthority {
           companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId,
           conversation: Boolean(context.issue.conversationAgentId) });
       }
+      case "get_assignment":
+      case "submit_deliverable_for_review": {
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Assignment tool authentication is unavailable");
+        return callAssignmentTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId });
+      }
+      case "media_ingest": case "media_transcribe": case "media_detect_silences": case "media_detect_fillers":
+      case "media_cut": case "media_subtitle": case "media_export": case "media_dub": case "media_get_project": case "media_get_job":
+      case "media_stop_motion": case "media_dub_multivoice": case "media_voiceover": {
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Media tool authentication is unavailable");
+        const mediaAction = agentMediaActionForTool(call.tool);
+        if (mediaAction === undefined) throw new Error("Media tool has no action capability mapping");
+        if (mediaAction !== null) {
+          await assertAgentMediaAction(this.db, { companyId: this.binding.companyId, agentId: this.binding.agentId, action: mediaAction });
+        }
+        return callMediaTool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
+      }
       case "search_api": return searchRunnerApi(call.arguments);
+      case "crm_search": case "crm_get_customer": case "crm_create_customer": case "crm_create_contact": case "crm_create_opportunity":
+      case "crm_update_opportunity_stage": case "crm_set_next_action": case "crm_log_activity": case "commitment_create": case "commitment_resolve":
+      case "lead_get": case "lead_list": case "lead_triage": case "lead_convert":
+      case "conversation_list": case "conversation_get": case "message_draft": case "message_send": case "message_reply": case "conversation_set_state":
+      case "calendar_availability": case "calendar_book": case "calendar_reschedule": case "calendar_cancel":
+      case "customer_memory_get": case "customer_memory_append": case "webchat_handoff":
+      case "review_link_create": case "review_status_get": case "crm_sync_status":
+      case "call_summary_get": case "call_schedule": {
+        if (!SPRINT2_TOOL_NAMES.includes(call.tool)) throw new Error(`Unknown tool ${call.tool}`);
+        const apiUrl = this.binding.apiUrl ?? process.env.PAPERCLIP_API_URL;
+        const token = this.#apiToken(context);
+        if (!apiUrl || !token) throw new Error("Sprint 2 tool authentication is unavailable");
+        return callSprint2Tool({ name: call.tool, arguments: input, apiUrl, token, companyId: this.binding.companyId, issueId: this.binding.issueId, agentId: this.binding.agentId });
+      }
       case "hire_agent": {
         const body: Record<string, unknown> = {
           name: requiredString(input.name),
@@ -941,6 +1029,7 @@ export class PaperclipRunnerToolAuthority {
     if (this.binding.firstPartyOnly && (input.files?.length || /\/(?:attachments|assets)\/[^/]+\/content$/.test(path) || /\/file-resources\/content$/.test(path))) {
       throw forbidden("Use this Grok work session's bounded upload or download grant; direct file API access is unavailable.");
     }
+    if (input.files?.some(file => file.path)) assertAgentWorkPermissions((await this.#boundContext()).actor.metadata, ["workspaceRead"]);
     if (!this.binding.dotRuntime) return;
     const current = await this.#boundContext();
     await this.binding.assertBridgeAuthority?.();
@@ -1711,6 +1800,7 @@ export class PaperclipRunnerToolAuthority {
       idempotencyKey,
       input,
       async (tx, context) => {
+        assertAgentWorkPermissions(context.actor.metadata, ["documentsWrite", "workspaceRead"]);
         if (this.binding.dotRuntime) {
           if (!this.binding.workspaceBridge || context.actor.adapterConfig?.dotWorkspaceAccess !== true)
             throw forbidden("Dot workspace access is required to publish workspace files.");

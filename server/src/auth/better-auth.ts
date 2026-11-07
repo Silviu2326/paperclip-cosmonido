@@ -3,15 +3,19 @@ import type { IncomingHttpHeaders } from "node:http";
 import { betterAuth, type Auth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { toNodeHandler } from "better-auth/node";
+import { twoFactor } from "better-auth/plugins";
+import { createAuthEndpoint } from "better-auth/api";
 import type { Db } from "@paperclipai/db";
 import {
   authAccounts,
   authSessions,
   authUsers,
   authVerifications,
+  authTwoFactors,
 } from "@paperclipai/db";
 import type { Config } from "../config.js";
 import { resolvePaperclipInstanceId } from "../home-paths.js";
+import { authProviderAvailability, isAuthEmailConfigured, resolveAuthEmailConfig, sendAuthVerificationEmail } from "../services/auth-email.js";
 import {
   workspaceLoginHandoffPlugin,
   type WorkspaceHandoffExpectedIdentity,
@@ -45,6 +49,18 @@ type BetterAuthSessionResolver = {
 };
 
 type BetterAuthInstance = BetterAuthHandlerTarget & BetterAuthSessionResolver;
+
+function authProviderAvailabilityPlugin(availability: ReturnType<typeof authProviderAvailability>) {
+  return {
+    id: "paperclip-auth-provider-availability",
+    endpoints: {
+      providerAvailability: createAuthEndpoint("/provider-availability", { method: "GET" }, async (ctx) => {
+        ctx.setHeader("Cache-Control", "no-store");
+        return ctx.json(availability);
+      }),
+    },
+  };
+}
 
 const AUTH_COOKIE_PREFIX_FALLBACK = "default";
 const AUTH_COOKIE_PREFIX_INVALID_SEGMENTS_RE = /[^a-zA-Z0-9_-]+/g;
@@ -243,6 +259,17 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
   const publicUrl = process.env.PAPERCLIP_PUBLIC_URL?.trim() || baseUrl;
   const managedRuntimePublicUrl = process.env.PAPERCLIP_MANAGED_RUNTIME_PUBLIC_URL?.trim() || undefined;
   const secret = process.env.BETTER_AUTH_SECRET ?? process.env.PAPERCLIP_AGENT_JWT_SECRET;
+  const emailConfig = resolveAuthEmailConfig();
+  const emailDeliveryConfigured = isAuthEmailConfigured(emailConfig);
+  const requireEmailVerification = process.env.PAPERCLIP_AUTH_REQUIRE_EMAIL_VERIFICATION?.trim().toLowerCase() === "true";
+  const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  if (Boolean(googleClientId) !== Boolean(googleClientSecret)) {
+    throw new Error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must both be configured to enable Google sign-in.");
+  }
+  if (requireEmailVerification && !emailDeliveryConfigured) {
+    throw new Error("PAPERCLIP_AUTH_REQUIRE_EMAIL_VERIFICATION requires PAPERCLIP_AUTH_EMAIL_PROVIDER=resend, RESEND_API_KEY, and PAPERCLIP_AUTH_EMAIL_FROM.");
+  }
   if (!secret) {
     throw new Error(
       "BETTER_AUTH_SECRET (or PAPERCLIP_AGENT_JWT_SECRET) must be set. " +
@@ -268,13 +295,33 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
         session: authSessions,
         account: authAccounts,
         verification: authVerifications,
+        twoFactor: authTwoFactors,
       },
     }),
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false,
+      requireEmailVerification: requireEmailVerification && emailDeliveryConfigured,
       disableSignUp: config.authDisableSignUp,
     },
+    ...(emailDeliveryConfigured ? {
+      emailVerification: {
+        sendVerificationEmail: async ({ user, url, token }: { user: { email: string }; url: string; token: string }) =>
+          sendAuthVerificationEmail({ email: user.email, url, token }),
+        sendOnSignUp: requireEmailVerification,
+        sendOnSignIn: requireEmailVerification,
+        autoSignInAfterVerification: true,
+      },
+    } : {}),
+    ...(googleClientId && googleClientSecret ? {
+      socialProviders: {
+        google: {
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+          requireEmailVerification: true,
+        },
+      },
+    } : {}),
+    appName: "Paperclip",
     rateLimit: buildBetterAuthRateLimitOptions({
       deploymentMode: config.deploymentMode,
       deploymentExposure: config.deploymentExposure,
@@ -287,6 +334,8 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
     ...(resolveWorkspaceHandoffIdentity(config)
       ? {
           plugins: [
+            twoFactor({ issuer: "Paperclip" }),
+            authProviderAvailabilityPlugin(authProviderAvailability()),
             workspaceLoginHandoffPlugin({
               db,
               // Re-resolved per exchange so a hot restart cannot keep validating
@@ -302,7 +351,7 @@ export function createBetterAuthInstance(db: Db, config: Config, trustedOrigins:
             }),
           ],
         }
-      : {}),
+      : { plugins: [twoFactor({ issuer: "Paperclip" }), authProviderAvailabilityPlugin(authProviderAvailability())] }),
   };
 
   if (!baseUrl) {

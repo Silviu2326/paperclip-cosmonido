@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { t } from ".";
+import { i18n, t } from ".";
 import en from "./locales/en.json";
-import { localeMessages } from "./locales";
+import { DEFAULT_LOCALE, localeMessages, loadLocaleMessages, supportedLocales } from "./locales";
 import { validateLocaleMessages } from "./locale-validation";
 
 describe("locale validation", () => {
@@ -11,10 +11,23 @@ describe("locale validation", () => {
     expect(t("app.missing")).toBe("app.missing");
   });
 
-  it("accepts registered locale files", () => {
-    expect(Object.keys(localeMessages)).toContain("en");
+  it("loads and validates every registered locale without bundling them at startup", async () => {
+    await Promise.all(supportedLocales.map((locale) => loadLocaleMessages(locale)));
+    expect(Object.keys(localeMessages).sort()).toEqual([...supportedLocales].sort());
     for (const [locale, messages] of Object.entries(localeMessages)) {
       expect(validateLocaleMessages(messages), locale).toEqual([]);
+    }
+  }, 30_000); // Cold transforms of all 40 chunks exceed the per-test 5 s default.
+
+  it("loads an unbundled language through i18next before switching translations", async () => {
+    expect(i18n.hasResourceBundle("pt-BR", "translation")).toBe(false);
+    try {
+      await i18n.changeLanguage("pt-BR");
+      expect(i18n.hasResourceBundle("pt-BR", "translation")).toBe(true);
+      expect(t("app.noCompanies.title")).toBe((localeMessages["pt-BR"] as typeof en).app.noCompanies.title);
+      expect(i18n.language).toBe("pt-BR");
+    } finally {
+      await i18n.changeLanguage(DEFAULT_LOCALE);
     }
   });
 

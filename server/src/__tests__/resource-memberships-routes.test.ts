@@ -7,10 +7,17 @@ import {
   activityLog,
   agentMemberships,
   agents,
+  artifactMemberships,
+  assets,
   companies,
+  companyFileMemberships,
+  companyFiles,
   createDb,
   documentMemberships,
   documents,
+  issueAttachments,
+  issueWorkProducts,
+  issues,
   projectMemberships,
   projects,
 } from "@paperclipai/db";
@@ -65,6 +72,13 @@ describeEmbeddedPostgres("resource membership routes", () => {
 
   afterEach(async () => {
     await db.delete(activityLog);
+    await db.delete(artifactMemberships);
+    await db.delete(companyFileMemberships);
+    await db.delete(issueWorkProducts);
+    await db.delete(issueAttachments);
+    await db.delete(assets);
+    await db.delete(companyFiles);
+    await db.delete(issues);
     await db.delete(documentMemberships);
     await db.delete(projectMemberships);
     await db.delete(agentMemberships);
@@ -152,6 +166,7 @@ describeEmbeddedPostgres("resource membership routes", () => {
       companyId,
       documentId,
       otherAgentId,
+      otherCompanyId,
       otherDocumentId,
       otherProjectId,
       projectId,
@@ -176,6 +191,10 @@ describeEmbeddedPostgres("resource membership routes", () => {
       projectStarredAt: {},
       agentStarredAt: {},
       documentStarredAt: {},
+      starredCompanyFileIds: [],
+      companyFileStarredAt: {},
+      starredArtifactRefs: [],
+      artifactStarredAt: {},
       updatedAt: null,
     });
   });
@@ -485,5 +504,115 @@ describeEmbeddedPostgres("resource membership routes", () => {
     expect(response.status).toBe(404);
     expect(response.body.error).toBe("Document not found");
     await expect(db.select().from(documentMemberships)).resolves.toHaveLength(0);
+  });
+
+  it("stars company files idempotently, lists them, and rejects foreign or malformed targets", async () => {
+    const { companyId, otherCompanyId } = await seed();
+    const fileId = randomUUID();
+    const foreignFileId = randomUUID();
+    await db.insert(companyFiles).values([
+      { id: fileId, companyId, name: "guia.pdf", slug: "guia-pdf", contentType: "application/pdf", byteSize: 3 },
+      { id: foreignFileId, companyId: otherCompanyId, name: "ajena.pdf", slug: "ajena-pdf", contentType: "application/pdf", byteSize: 3 },
+    ]);
+    const app = createApp(db, boardActor(companyId));
+    const url = `/api/companies/${companyId}/resource-memberships/me/company-files`;
+
+    const [first, second] = await Promise.all([
+      request(app).put(`${url}/${fileId}`).send({ starred: true }),
+      request(app).put(`${url}/${fileId}`).send({ starred: true }),
+    ]);
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ resourceType: "company_file", resourceId: fileId, state: "joined", starredAt: expect.any(String) });
+    expect(second.status).toBe(200);
+    expect(second.body.starredAt).toBe(first.body.starredAt);
+
+    const list = await request(app).get(`/api/companies/${companyId}/resource-memberships/me`);
+    expect(list.body.starredCompanyFileIds).toEqual([fileId]);
+    expect(list.body.companyFileStarredAt).toEqual({ [fileId]: first.body.starredAt });
+    await expect(db.select().from(companyFileMemberships)).resolves.toHaveLength(1);
+
+    const unstar = await request(app).put(`${url}/${fileId}`).send({ starred: false });
+    expect(unstar.status).toBe(200);
+    expect(unstar.body.starredAt).toBeNull();
+    const after = await request(app).get(`/api/companies/${companyId}/resource-memberships/me`);
+    expect(after.body.starredCompanyFileIds).toEqual([]);
+
+    const foreign = await request(app).put(`${url}/${foreignFileId}`).send({ starred: true });
+    expect(foreign.status).toBe(404);
+    expect(foreign.body.error).toBe("File not found");
+    const malformed = await request(app).put(`${url}/not-a-uuid`).send({ starred: true });
+    expect(malformed.status).toBe(404);
+    const extraKey = await request(app).put(`${url}/${fileId}`).send({ starred: true, state: "left" });
+    expect(extraKey.status).toBe(400);
+    await expect(db.select().from(companyFileMemberships)).resolves.toHaveLength(0);
+
+    const activity = await db.select().from(activityLog).where(eq(activityLog.entityType, "company_file"));
+    expect(activity.map((entry) => entry.action)).toEqual([
+      "resource_membership.starred",
+      "resource_membership.unstarred",
+    ]);
+  });
+
+  it("stars Salida attachments and work products by artifact ref and rejects foreign or unknown artifacts", async () => {
+    const { companyId, otherCompanyId } = await seed();
+    const issueId = randomUUID();
+    const foreignIssueId = randomUUID();
+    await db.insert(issues).values([
+      { id: issueId, companyId, title: "Brief", status: "in_progress" },
+      { id: foreignIssueId, companyId: otherCompanyId, title: "Ajeno", status: "in_progress" },
+    ]);
+    const assetId = randomUUID();
+    const foreignAssetId = randomUUID();
+    await db.insert(assets).values([
+      { id: assetId, companyId, provider: "local_disk", objectKey: `${companyId}/nota.txt`, contentType: "text/plain", byteSize: 4, sha256: "a".repeat(64), originalFilename: "nota.txt" },
+      { id: foreignAssetId, companyId: otherCompanyId, provider: "local_disk", objectKey: `${otherCompanyId}/ajena.txt`, contentType: "text/plain", byteSize: 4, sha256: "b".repeat(64), originalFilename: "ajena.txt" },
+    ]);
+    const attachmentId = randomUUID();
+    const foreignAttachmentId = randomUUID();
+    await db.insert(issueAttachments).values([
+      { id: attachmentId, companyId, issueId, assetId },
+      { id: foreignAttachmentId, companyId: otherCompanyId, issueId: foreignIssueId, assetId: foreignAssetId },
+    ]);
+    const workProductId = randomUUID();
+    await db.insert(issueWorkProducts).values({
+      id: workProductId,
+      companyId,
+      issueId,
+      type: "artifact",
+      provider: "paperclip",
+      title: "Informe",
+      status: "ready_for_review",
+    });
+    const app = createApp(db, boardActor(companyId));
+    const url = `/api/companies/${companyId}/resource-memberships/me/artifacts`;
+
+    const attachment = await request(app).put(`${url}/attachment/${attachmentId}`).send({ starred: true });
+    expect(attachment.status).toBe(200);
+    expect(attachment.body).toMatchObject({ resourceType: "artifact", resourceId: `attachment:${attachmentId}`, starredAt: expect.any(String) });
+    const workProduct = await request(app).put(`${url}/work_product/${workProductId}`).send({ starred: true });
+    expect(workProduct.status).toBe(200);
+    expect(workProduct.body.resourceId).toBe(`work_product:${workProductId}`);
+
+    const list = await request(app).get(`/api/companies/${companyId}/resource-memberships/me`);
+    expect(list.body.starredArtifactRefs).toEqual(expect.arrayContaining([`attachment:${attachmentId}`, `work_product:${workProductId}`]));
+    expect(list.body.starredArtifactRefs).toHaveLength(2);
+    expect(Object.keys(list.body.artifactStarredAt).sort()).toEqual([`attachment:${attachmentId}`, `work_product:${workProductId}`].sort());
+
+    const foreignAttachment = await request(app).put(`${url}/attachment/${foreignAttachmentId}`).send({ starred: true });
+    expect(foreignAttachment.status).toBe(404);
+    expect(foreignAttachment.body.error).toBe("Attachment not found");
+    const unknownWorkProduct = await request(app).put(`${url}/work_product/${randomUUID()}`).send({ starred: true });
+    expect(unknownWorkProduct.status).toBe(404);
+    expect(unknownWorkProduct.body.error).toBe("Work product not found");
+    const badSource = await request(app).put(`${url}/video/${attachmentId}`).send({ starred: true });
+    expect(badSource.status).toBe(400);
+    const malformed = await request(app).put(`${url}/attachment/not-a-uuid`).send({ starred: true });
+    expect(malformed.status).toBe(404);
+
+    const unstar = await request(app).put(`${url}/attachment/${attachmentId}`).send({ starred: false });
+    expect(unstar.status).toBe(200);
+    const after = await request(app).get(`/api/companies/${companyId}/resource-memberships/me`);
+    expect(after.body.starredArtifactRefs).toEqual([`work_product:${workProductId}`]);
+    await expect(db.select().from(artifactMemberships)).resolves.toHaveLength(1);
   });
 });

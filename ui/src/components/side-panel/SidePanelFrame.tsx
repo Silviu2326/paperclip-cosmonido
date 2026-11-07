@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { CSSProperties, ReactNode } from "react";
 import { Maximize2, Minimize2, PanelRightClose, PanelRightOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ export function SidePanelFrame({
   open = true,
   maximized = false,
   resizing = false,
-  label = "Side panel",
+  label = t("chatUi.sidePanel", { defaultValue: "Side panel" }),
   headerSize = "default",
   className,
   bodyClassName,
@@ -108,7 +109,7 @@ export function SidePanelToggleButton({
   shortcut?: string;
   className?: string;
 }) {
-  const label = "Toggle side panel";
+  const label = t("chatUi.toggleSidePanel", { defaultValue: "Toggle side panel" });
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -154,8 +155,8 @@ export function SidePanelWindowControls({
         size="icon-sm"
         className="h-(--side-panel-tab-height) w-(--side-panel-tab-height) text-muted-foreground hover:text-foreground focus-visible:text-foreground"
         onClick={() => onMaximizedChange(!maximized)}
-        aria-label={maximized ? "Restore side panel" : "Maximize side panel"}
-        title={maximized ? "Restore side panel" : "Maximize side panel"}
+        aria-label={maximized ? t("chatUi.restoreSidePanel", { defaultValue: "Restore side panel" }) : t("chatUi.maximizeSidePanel", { defaultValue: "Maximize side panel" })}
+        title={maximized ? t("chatUi.restoreSidePanel", { defaultValue: "Restore side panel" }) : t("chatUi.maximizeSidePanel", { defaultValue: "Maximize side panel" })}
       >
         {maximized ? <Minimize2 aria-hidden /> : <Maximize2 aria-hidden />}
       </Button>
@@ -166,8 +167,8 @@ export function SidePanelWindowControls({
           size="icon-sm"
           className="h-(--side-panel-tab-height) w-(--side-panel-tab-height) text-muted-foreground hover:text-foreground focus-visible:text-foreground"
           onClick={onToggle}
-          aria-label="Close side panel"
-          title="Close side panel"
+          aria-label={t("chatUi.closeSidePanel", { defaultValue: "Close side panel" })}
+          title={t("chatUi.closeSidePanel", { defaultValue: "Close side panel" })}
         >
           <X aria-hidden />
         </Button>

@@ -7,6 +7,7 @@ import { chatCredentialMutationLease } from "../chat-credential-mutation-lease.j
 
 import { slackChatRegistrationService, slackRegistrationProjection } from "../chat-slack-registration.js";
 import { chatSlackRegistrations } from "@paperclipai/db";
+import { productizationEntitlementsService } from "../productization/entitlements.js";
 
 import { defaultSlackAppConfiguration } from "@paperclipai/shared";
 import {
@@ -62,6 +63,7 @@ type ChatEndpointsOptions = {
 };
 export function createChatEndpoints(db: Db, options: ChatEndpointsOptions) {
   const { endpointRecord, CAPABILITIES, PROVIDER_LABELS, withCredentialMutationLease, getPublicBaseUrl, getWebhookPublicBaseUrl } = options;
+  const entitlements=productizationEntitlementsService(db);
 
 
 function iso(value: Date | null | undefined): string | null {
@@ -273,7 +275,8 @@ function providerSetupState(
     const name = (
       input.name?.trim() || `${PROVIDER_LABELS[input.provider]} — ${agent.name}`
     ).slice(0, 145);
-    await db.transaction(async (tx) => {
+    const reservation=await entitlements.reserveForCompany({companyId,metric:"connections",quantity:1,idempotencyKey:`chat-endpoint:${endpointId}`,requestFingerprint:`${companyId}:${input.provider}:${input.assignedAgentId}:${applicationId}`});
+    try { await db.transaction(async (tx) => {
       if (input.applicationId) {
         const application = await tx
           .select({
@@ -359,7 +362,11 @@ function providerSetupState(
             : {}),
         },
       });
-    });
+    }); } catch(error) {
+      await entitlements.releaseAfterConfirmedRollback(reservation);
+      throw error;
+    }
+    await entitlements.commit(reservation);
     await logActivity(db, {
       companyId,
       actorType: "user",

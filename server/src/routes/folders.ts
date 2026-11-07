@@ -114,7 +114,7 @@ export function folderRoutes(db: Db) {
       runId: actor.runId,
       agentApiKeyId: actor.agentApiKeyId,
       action: "folder.item_moved",
-      entityType: req.body.kind === "routine" ? "routine" : "company_skill",
+      entityType: req.body.kind === "routine" ? "routine" : req.body.kind === "company_files" ? "company_file" : "company_skill",
       entityId: moved.itemId,
       details: { kind: moved.kind, folderId: moved.folderId },
     });

@@ -132,8 +132,10 @@ describe("chat setup and identity-link clipboard actions", () => {
     flushSync(() => {});
   }
   async function click(text: string) {
+    // The generic setup navigation is translated; provider wizards (Slack) pass their own English labels.
+    const spanish: Record<string, string> = { "1Choose agent": "1Elegir agente", "2Connect provider": "2Conectar proveedor", "3Try it": "3Probarlo" };
     const button = [...document.querySelectorAll("button")].find(
-      (node) => node.textContent?.trim() === text,
+      (node) => node.textContent?.trim() === text || node.textContent?.trim() === spanish[text],
     );
     expect(button, text).toBeDefined();
     flushSync(() => button!.click());
@@ -628,7 +630,7 @@ describe("chat setup and identity-link clipboard actions", () => {
     "lets %s setup revisit the agent without duplicating the connection or losing provider fields",
     async (provider) => {
       await render(provider);
-      const nav = container.querySelector('aside nav[aria-label="Connection setup progress"]')!;
+      const nav = container.querySelector('aside nav[aria-label="Progreso de la configuración de la conexión"]')!;
       expect(nav).not.toBeNull();
       expect(container.querySelector("main nav")).toBeNull();
       const steps = [...nav.querySelectorAll("button")];

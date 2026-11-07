@@ -7,6 +7,8 @@ export default defineConfig({
       : {}),
     projects: [
       "packages/shared",
+      "packages/media-studio",
+      "packages/voice-engine",
       "packages/skills-catalog",
       "packages/db",
       "packages/adapter-utils",

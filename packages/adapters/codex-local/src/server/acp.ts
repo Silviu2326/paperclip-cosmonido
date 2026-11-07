@@ -88,6 +88,7 @@ export function resolveCodexExecutionEngine(config: Record<string, unknown>): Co
 export async function resolveCodexExecutionEngineForRun(
   input: CodexEngineResolutionInput,
 ): Promise<CodexEngineSelection> {
+  if (input.config.paperclipCodeAccess === "read_only" || input.config.paperclipCodeAccess === "workspace_write") return { engine: "cli", explicit: true };
   const selection = normalizeEngine(input.config.engine);
   // Engine availability must never change the agent's execution or permission contract.
   if (selection.engine === "cli") return selection;

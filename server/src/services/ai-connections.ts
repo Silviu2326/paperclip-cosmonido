@@ -45,6 +45,7 @@ import { logger } from "../middleware/logger.js";
 import { logActivity } from "./activity-log.js";
 import { secretService } from "./secrets.js";
 import { probeAiConnectionUsage } from "./ai-connection-usage.js";
+import { productizationEntitlementsService } from "./productization/entitlements.js";
 
 /** Same human audience displayed by the existing Connections identity controls. */
 function canUseCredential(
@@ -887,11 +888,31 @@ export function aiConnectionService(db: Db) {
     // Quota refresh can hold this lock through a 60-second token exchange.
     // Keep the verified sign-in in memory across two 30-second acquisition
     // timeouts instead of making its caller discard a successful login.
+    const entitlement = productizationEntitlementsService(db);
+    const reservation = reconnect ? null : await entitlement.reserveForCompany({
+      companyId,
+      metric: "connections",
+      quantity: 1,
+      idempotencyKey: `ai-connection:${id}`,
+      requestFingerprint: `${companyId}:${id}:${input.provider}:${input.method}:${input.ownership}`,
+    });
     for (let attempt = 0; ; attempt++) {
-      try { return await persist(); }
-      catch (error) {
-        if (attempt >= 2 || (error as NodeJS.ErrnoException)?.code !== WORKSPACE_RESTORE_LOCK_TIMEOUT_CODE) throw error;
+      let result: { connectionId: string; grantId: string };
+      try {
+        result = await persist();
       }
+      catch (error) {
+        if (attempt < 2 && (error as NodeJS.ErrnoException)?.code === WORKSPACE_RESTORE_LOCK_TIMEOUT_CODE) continue;
+        if (reservation) await entitlement.releaseAfterConfirmedRollback(reservation);
+        throw error;
+      }
+      // The DB row is committed at this point. If quota settlement fails, keep
+      // the reservation conservative for reconciliation; never release it.
+      if (reservation) {
+        if (result.connectionId === id) await entitlement.commit(reservation);
+        else await entitlement.releaseAfterConfirmedRollback(reservation);
+      }
+      return result;
     }
   }
   async function recoverQuotaCredentialInTransaction(

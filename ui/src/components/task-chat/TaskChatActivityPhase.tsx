@@ -2,6 +2,7 @@ import { TaskChatExpansionState, useTaskChatExpansion } from "./expansion-state"
 import { useContext, useEffect, type ReactNode } from "react";
 import { Brain, ChevronRight, CircleEllipsis } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import type { TaskChatActivityPhaseItem } from "./task-chat-model";
 import { protocolActivityPresentation } from "./task-chat-activity-presentation";
@@ -93,7 +94,9 @@ export function TaskChatActivityPhase({
         <button
           type="button"
           aria-expanded={open}
-          aria-label={`${open ? "Collapse" : "Expand"} activity: ${item.summary}`}
+          aria-label={open
+            ? t("chatUiComposer.collapseActivity", { summary: item.summary, defaultValue: "Collapse activity: {{summary}}" })
+            : t("chatUiComposer.expandActivity", { summary: item.summary, defaultValue: "Expand activity: {{summary}}" })}
           onClick={() => setOpen((value) => !value)}
           className={cn(
             runnerAppearance

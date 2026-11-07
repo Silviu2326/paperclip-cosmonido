@@ -132,6 +132,8 @@ export function saveLastTaskView(key: TaskViewKey): void {
  * to `All tasks` instead of the user's last-used view.
  */
 export const ORGANIZATION_SCOPED_PARAMS = [
+  "review",
+  "projectId",
   "assignee",
   "workspace",
   "participantAgentId",

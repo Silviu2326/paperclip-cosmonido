@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { IssueWorkMode } from "@paperclipai/shared";
 import { ClipboardList, Hammer, MessageCircleQuestion, type LucideIcon } from "lucide-react";
 
@@ -45,21 +46,21 @@ export function workModeMetaList(): WorkModeMeta[] {
   return [
     {
       value: "standard",
-      label: "Auto mode",
+      label: t("chatUi.autoMode", { defaultValue: "Auto mode" }),
       icon: Hammer,
       tone: "neutral",
       classes: STANDARD_CLASSES,
     },
     {
       value: "planning",
-      label: "Plan mode",
+      label: t("chatUi.planMode", { defaultValue: "Plan mode" }),
       icon: ClipboardList,
       tone: "planning",
       classes: PLANNING_CLASSES,
     },
     {
       value: "ask",
-      label: "Ask mode",
+      label: t("chatUi.askMode", { defaultValue: "Ask mode" }),
       icon: MessageCircleQuestion,
       tone: "ask",
       classes: ASK_CLASSES,
@@ -80,10 +81,10 @@ export function nextWorkMode(mode: IssueWorkMode): IssueWorkMode {
 
 export function titleForPendingWorkMode(mode: IssueWorkMode): string {
   if (mode === "ask") {
-    return "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work.";
+    return t("chatUi.askModeForThisSubmission", { defaultValue: "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work." });
   }
   if (mode === "planning") {
-    return "Plan mode is on for this submission. Click to change.";
+    return t("chatUi.planModeIsOnForThisSubmission", { defaultValue: "Plan mode is on for this submission. Click to change." });
   }
-  return "Auto mode for this submission. Click to change.";
+  return t("chatUi.autoModeForThisSubmission", { defaultValue: "Auto mode for this submission. Click to change." });
 }

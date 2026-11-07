@@ -1,4 +1,5 @@
 import { skillAccessService } from "../skill-access.js";
+import { loadCompanyFilesIndex } from "./company-files-context.js";
 import type { AuthorizationActor } from "../authorization.js";
 import { spekoToolsForSession } from "../voice/speko-agent-tools.js";
 import { githubConfiguredInstructionSources } from "../chat-github-review-policy.js";
@@ -2648,6 +2649,7 @@ export async function buildPaperclipWakePayload(input: {
     executionContinuation: input.contextSnapshot.executionContinuation ?? null,
     chatCompletionUpdates: input.contextSnapshot.chatCompletionUpdates ?? null,
     attachmentOmissions,
+    companyFiles: await loadCompanyFilesIndex(input.db, input.companyId),
     externalChatProvider,
     recovery:
       recoveryStillActive

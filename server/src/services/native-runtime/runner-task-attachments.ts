@@ -6,8 +6,8 @@ import { getStorageService } from "../../storage/index.js";
 import type { StorageService } from "../../storage/types.js";
 import { logActivity } from "../activity-log.js";
 
-const MAX_READ_BYTES = 16 * 1024 * 1024;
-const PAGE_BYTES = 12000;
+export const MAX_READ_BYTES = 16 * 1024 * 1024;
+export const PAGE_BYTES = 12000;
 const STORAGE_TIMEOUT_MS = 10000;
 export const TASK_ATTACHMENT_SCHEMAS = {
   list_task_attachments: z.object({ after: z.uuid().optional() }).strict(),
@@ -86,7 +86,8 @@ async function source(db: Db, binding: Binding, attachmentId: string) {
     throw new Error("runner_attachment_size_or_hash_invalid");
   return row;
 }
-async function bytes(storage: StorageService, companyId: string, file: Awaited<ReturnType<typeof source>>) {
+/** Streams one stored object and verifies its size and sha256 before returning it. Shared with company files. */
+export async function bytes(storage: StorageService, companyId: string, file: { objectKey: string; byteSize: number; sha256: string }) {
   let expired = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const objectPromise = storage.getObject(companyId, file.objectKey).then(object => {

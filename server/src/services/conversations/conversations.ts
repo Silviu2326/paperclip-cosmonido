@@ -1,0 +1,414 @@
+import { and, desc, eq, getTableColumns, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
+import {
+  type Db,
+  agents,
+  conversations,
+  conversationMessages,
+  customers,
+  contacts,
+  leads,
+  opportunities,
+} from "@paperclipai/db";
+import type {
+  Conversation,
+  ConversationMessage,
+  ConversationMessagePage,
+  CreateConversation,
+  SetConversationState,
+} from "@paperclipai/shared";
+import { z } from "zod";
+import { badRequest, notFound } from "../../errors.js";
+import { logActivity } from "../activity-log.js";
+
+/** Company-wide first-response target. Constant until company settings expose it. */
+export const CONVERSATION_SLA_HOURS = 4;
+
+export interface ConversationActor {
+  userId?: string | null;
+  agentId?: string | null;
+}
+
+const listCursorSchema = z.object({ id: z.string().uuid(), at: z.string().datetime().nullable() });
+function decodeListCursor(cursor: string) {
+  try {
+    return listCursorSchema.parse(JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")));
+  } catch {
+    throw badRequest("Invalid conversation cursor");
+  }
+}
+
+export const conversationListQuerySchema = z.object({
+  status: z.enum(["open", "waiting_us", "waiting_them", "closed"]).optional(),
+  channel: z.enum(["email", "whatsapp", "messenger", "instagram", "telegram", "webchat", "voice", "sms"]).optional(),
+  /** "none" lists unassigned conversations; any other value matches an assigned user or agent id. */
+  assigned: z.string().trim().min(1).max(120).optional(),
+  customerId: z.string().uuid().optional(),
+  contactId: z.string().uuid().optional(),
+  overdue: z.enum(["true", "false"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+  cursor: z.string().min(1).max(500).refine((value) => {
+    if (/^\d{1,9}$/.test(value)) return true; // Existing offset cursors remain readable during rollout.
+    try { decodeListCursor(value); return true; } catch { return false; }
+  }, "Invalid conversation cursor").optional(),
+});
+export type ConversationListQuery = z.infer<typeof conversationListQuerySchema>;
+
+export const conversationMessageQuerySchema = z.object({
+  before: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+export type ConversationMessageQuery = z.infer<typeof conversationMessageQuerySchema>;
+
+export interface ConversationPage {
+  items: Conversation[];
+  nextCursor: string | null;
+}
+
+type ConversationRow = typeof conversations.$inferSelect;
+type MessageRow = typeof conversationMessages.$inferSelect;
+
+const iso = (value: Date | null) => (value ? value.toISOString() : null);
+
+export function toConversation(row: ConversationRow): Conversation {
+  return {
+    id: row.id,
+    companyId: row.companyId,
+    channel: row.channel as Conversation["channel"],
+    contactId: row.contactId,
+    customerId: row.customerId,
+    opportunityId: row.opportunityId,
+    leadId: row.leadId,
+    externalThreadId: row.externalThreadId,
+    subject: row.subject,
+    status: row.status as Conversation["status"],
+    priority: row.priority as Conversation["priority"],
+    slaDueAt: iso(row.slaDueAt),
+    assignedUserId: row.assignedUserId,
+    assignedAgentId: row.assignedAgentId,
+    lastMessageAt: iso(row.lastMessageAt),
+    lastInboundAt: iso(row.lastInboundAt),
+    lastOutboundAt: iso(row.lastOutboundAt),
+    language: row.language,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export function toConversationMessage(row: MessageRow): ConversationMessage {
+  return {
+    id: row.id,
+    companyId: row.companyId,
+    conversationId: row.conversationId,
+    direction: row.direction as ConversationMessage["direction"],
+    actorKind: row.actorKind as ConversationMessage["actorKind"],
+    actorUserId: row.actorUserId,
+    actorAgentId: row.actorAgentId,
+    body: row.body,
+    attachments: row.attachments,
+    language: row.language,
+    deliveryStatus: row.deliveryStatus as ConversationMessage["deliveryStatus"],
+    provider: row.provider,
+    providerMessageId: row.providerMessageId,
+    providerReceipt: row.providerReceipt ?? null,
+    externalActionId: row.externalActionId,
+    sentAt: iso(row.sentAt),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export function activityActor(actor: ConversationActor) {
+  if (actor.agentId) return { actorType: "agent" as const, actorId: actor.agentId, agentId: actor.agentId };
+  return { actorType: "user" as const, actorId: actor.userId ?? "board", agentId: null };
+}
+
+/** Thread-level SLA: the first unanswered inbound message sets the deadline; an outbound clears it. */
+export function slaDeadline(from: Date): Date {
+  return new Date(from.getTime() + CONVERSATION_SLA_HOURS * 60 * 60 * 1000);
+}
+
+export function conversationService(db: Db) {
+  async function loadRow(companyId: string, id: string): Promise<ConversationRow> {
+    const [row] = await db
+      .select()
+      .from(conversations)
+      .where(and(eq(conversations.companyId, companyId), eq(conversations.id, id)))
+      .limit(1);
+    if (!row) throw notFound("Conversation not found");
+    return row;
+  }
+
+  async function assertAgentInCompany(companyId: string, agentId: string) {
+    const [agent] = await db
+      .select({ id: agents.id })
+      .from(agents)
+      .where(and(eq(agents.companyId, companyId), eq(agents.id, agentId)))
+      .limit(1);
+    if (!agent) throw badRequest("Agent not found in this company");
+  }
+
+  return {
+    async list(companyId: string, query: ConversationListQuery): Promise<ConversationPage> {
+      const filters: SQL[] = [eq(conversations.companyId, companyId)];
+      if (query.status) filters.push(eq(conversations.status, query.status));
+      if (query.channel) filters.push(eq(conversations.channel, query.channel));
+      if (query.customerId) filters.push(eq(conversations.customerId, query.customerId));
+      if (query.contactId) filters.push(eq(conversations.contactId, query.contactId));
+      if (query.assigned === "none") {
+        filters.push(isNull(conversations.assignedUserId), isNull(conversations.assignedAgentId));
+      } else if (query.assigned) {
+        const value = query.assigned;
+        const match = or(eq(conversations.assignedUserId, value), eq(conversations.assignedAgentId, value));
+        if (match) filters.push(match);
+      }
+      if (query.overdue === "true") {
+        filters.push(
+          eq(conversations.status, "waiting_us"),
+          isNotNull(conversations.slaDueAt),
+          lt(conversations.slaDueAt, new Date()),
+        );
+      }
+      const legacyCursor = query.cursor && /^\d{1,9}$/.test(query.cursor) ? Number(query.cursor) : 0;
+      if (query.cursor && !/^\d{1,9}$/.test(query.cursor)) {
+        const cursor = decodeListCursor(query.cursor);
+        filters.push(cursor.at === null
+          ? and(isNull(conversations.lastMessageAt), lt(conversations.id, cursor.id))!
+          : or(isNull(conversations.lastMessageAt), sql`(${conversations.lastMessageAt}, ${conversations.id}) < (${cursor.at}::timestamptz, ${cursor.id}::uuid)`)!);
+      }
+      const rows = await db
+        .select({
+          ...getTableColumns(conversations),
+          // Preserve PostgreSQL microseconds in the cursor, beyond JavaScript Date precision.
+          cursorAt: sql<string | null>`to_char(${conversations.lastMessageAt} at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`,
+        })
+        .from(conversations)
+        .where(and(...filters))
+        .orderBy(sql`${conversations.lastMessageAt} desc nulls last`, desc(conversations.id))
+        .limit(query.limit + 1)
+        .offset(legacyCursor);
+      const page = rows.slice(0, query.limit);
+      const last = page.at(-1);
+      return {
+        items: page.map(toConversation),
+        nextCursor: rows.length > query.limit && last
+          ? Buffer.from(JSON.stringify({ id: last.id, at: last.cursorAt })).toString("base64url") : null,
+      };
+    },
+
+    /** Loads by id alone, for route-level access checks (getAccessibleResource). */
+    async findById(id: string): Promise<Conversation | null> {
+      const [row] = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1);
+      return row ? toConversation(row) : null;
+    },
+
+    async getById(companyId: string, id: string): Promise<Conversation | null> {
+      const [row] = await db
+        .select()
+        .from(conversations)
+        .where(and(eq(conversations.companyId, companyId), eq(conversations.id, id)))
+        .limit(1);
+      return row ? toConversation(row) : null;
+    },
+
+    /** Start at the latest messages, then page backwards without shifting on new arrivals. */
+    async messagePage(companyId: string, conversationId: string, query: ConversationMessageQuery): Promise<ConversationMessagePage> {
+      const filters: SQL[] = [eq(conversationMessages.companyId, companyId), eq(conversationMessages.conversationId, conversationId)];
+      if (query.before) {
+        const [anchor] = await db.select({ id: conversationMessages.id }).from(conversationMessages).where(and(
+          ...filters, eq(conversationMessages.id, query.before),
+        )).limit(1);
+        if (!anchor) throw badRequest("Invalid message cursor for this conversation");
+        // Compare in PostgreSQL to preserve sub-millisecond timestamp precision.
+        filters.push(sql`(${conversationMessages.createdAt}, ${conversationMessages.id}) < (
+          select created_at, id from conversation_messages
+          where id = ${query.before} and company_id = ${companyId} and conversation_id = ${conversationId}
+        )`);
+      }
+      const rows = await db
+        .select()
+        .from(conversationMessages)
+        .where(and(...filters))
+        .orderBy(desc(conversationMessages.createdAt), desc(conversationMessages.id))
+        .limit(query.limit + 1);
+      const page = rows.slice(0, query.limit).reverse();
+      return {
+        items: page.map(toConversationMessage),
+        nextCursor: rows.length > query.limit ? page[0]!.id : null,
+      };
+    },
+
+    async create(companyId: string, input: CreateConversation, actor: ConversationActor): Promise<Conversation> {
+      // Foreign keys alone do not enforce company ownership.
+      for (const [table, id, label] of [
+        [contacts, input.contactId, "Contact"],
+        [customers, input.customerId, "Customer"],
+        [opportunities, input.opportunityId, "Opportunity"],
+        [leads, input.leadId, "Lead"],
+      ] as const) {
+        if (!id) continue;
+        const [found] = await db.select({ id: table.id }).from(table)
+          .where(and(eq(table.companyId, companyId), eq(table.id, id))).limit(1);
+        if (!found) throw badRequest(`${label} not found in this company`);
+      }
+      if (input.externalThreadId) {
+        // Idempotent per (company, channel, thread): the same thread returns the existing conversation.
+        const [existing] = await db
+          .select()
+          .from(conversations)
+          .where(and(
+            eq(conversations.companyId, companyId),
+            eq(conversations.channel, input.channel),
+            eq(conversations.externalThreadId, input.externalThreadId),
+          ))
+          .limit(1);
+        if (existing) return toConversation(existing);
+      }
+      const row = await db.transaction(async (tx) => {
+        const t = tx as unknown as Db;
+        if (input.assignedAgentId) await assertAgentInCompany(companyId, input.assignedAgentId);
+        const [created] = await t
+          .insert(conversations)
+          .values({
+            companyId,
+            channel: input.channel,
+            contactId: input.contactId ?? null,
+            customerId: input.customerId ?? null,
+            opportunityId: input.opportunityId ?? null,
+            leadId: input.leadId ?? null,
+            externalThreadId: input.externalThreadId ?? null,
+            subject: input.subject ?? null,
+            priority: input.priority ?? "normal",
+            language: input.language ?? null,
+            assignedUserId: input.assignedUserId ?? null,
+            assignedAgentId: input.assignedAgentId ?? null,
+          })
+          .returning();
+        await logActivity(t, {
+          companyId,
+          ...activityActor(actor),
+          action: "conversation.created",
+          entityType: "conversation",
+          entityId: created.id,
+          details: { channel: input.channel },
+        });
+        return created;
+      });
+      return toConversation(row);
+    },
+
+    async setState(companyId: string, id: string, input: SetConversationState, actor: ConversationActor): Promise<Conversation> {
+      const current = await loadRow(companyId, id);
+      const [row] = await db
+        .update(conversations)
+        .set({
+          status: input.status,
+          priority: input.priority ?? current.priority,
+          // Closing a thread clears the pending deadline; reopening waits for the customer again.
+          slaDueAt: input.status === "closed" ? null : current.slaDueAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(conversations.id, id))
+        .returning();
+      await logActivity(db, {
+        companyId,
+        ...activityActor(actor),
+        action: "conversation.state_changed",
+        entityType: "conversation",
+        entityId: id,
+        details: { from: current.status, to: input.status, priority: row.priority },
+      });
+      return toConversation(row);
+    },
+
+    async assign(
+      companyId: string,
+      id: string,
+      input: { assignedUserId?: string | null; assignedAgentId?: string | null },
+      actor: ConversationActor,
+    ): Promise<Conversation> {
+      await loadRow(companyId, id);
+      if (input.assignedAgentId) await assertAgentInCompany(companyId, input.assignedAgentId);
+      const assignedAgentId = input.assignedAgentId ?? null;
+      const assignedUserId = assignedAgentId ? null : (input.assignedUserId ?? null);
+      const [row] = await db
+        .update(conversations)
+        .set({ assignedUserId, assignedAgentId, updatedAt: new Date() })
+        .where(eq(conversations.id, id))
+        .returning();
+      await logActivity(db, {
+        companyId,
+        ...activityActor(actor),
+        action: "conversation.assigned",
+        entityType: "conversation",
+        entityId: id,
+        details: { assignedUserId, assignedAgentId },
+      });
+      return toConversation(row);
+    },
+
+    async link(
+      companyId: string,
+      id: string,
+      input: { customerId?: string | null; opportunityId?: string | null; leadId?: string | null },
+      actor: ConversationActor,
+    ): Promise<Conversation> {
+      await loadRow(companyId, id);
+      if (input.customerId) {
+        const [found] = await db.select({ id: customers.id }).from(customers)
+          .where(and(eq(customers.companyId, companyId), eq(customers.id, input.customerId))).limit(1);
+        if (!found) throw badRequest("Customer not found in this company");
+      }
+      if (input.opportunityId) {
+        const [found] = await db.select({ id: opportunities.id }).from(opportunities)
+          .where(and(eq(opportunities.companyId, companyId), eq(opportunities.id, input.opportunityId))).limit(1);
+        if (!found) throw badRequest("Opportunity not found in this company");
+      }
+      if (input.leadId) {
+        const [found] = await db.select({ id: leads.id }).from(leads)
+          .where(and(eq(leads.companyId, companyId), eq(leads.id, input.leadId))).limit(1);
+        if (!found) throw badRequest("Lead not found in this company");
+      }
+      const row = await db.transaction(async (tx) => {
+        const t = tx as unknown as Db;
+        const [updated] = await t
+          .update(conversations)
+          .set({
+            ...(input.customerId !== undefined ? { customerId: input.customerId } : {}),
+            ...(input.opportunityId !== undefined ? { opportunityId: input.opportunityId } : {}),
+            ...(input.leadId !== undefined ? { leadId: input.leadId } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(conversations.id, id))
+          .returning();
+        if (input.leadId) {
+          await t.update(leads).set({ conversationId: id, updatedAt: new Date() })
+            .where(and(eq(leads.companyId, companyId), eq(leads.id, input.leadId)));
+        }
+        await logActivity(t, {
+          companyId,
+          ...activityActor(actor),
+          action: "conversation.linked",
+          entityType: "conversation",
+          entityId: id,
+          details: { customerId: input.customerId ?? null, opportunityId: input.opportunityId ?? null, leadId: input.leadId ?? null },
+        });
+        return updated;
+      });
+      return toConversation(row);
+    },
+
+    /** Called by messageService when an outbound message is accepted as sent. */
+    async recordOutboundSent(conversationId: string, sentAt: Date): Promise<void> {
+      await db
+        .update(conversations)
+        .set({
+          lastOutboundAt: sql`greatest(coalesce(${conversations.lastOutboundAt}, ${sentAt.toISOString()}::timestamptz), ${sentAt.toISOString()}::timestamptz)`,
+          lastMessageAt: sql`greatest(coalesce(${conversations.lastMessageAt}, ${sentAt.toISOString()}::timestamptz), ${sentAt.toISOString()}::timestamptz)`,
+          status: sql`case when ${conversations.status} = 'closed' or ${conversations.lastInboundAt} > ${sentAt.toISOString()}::timestamptz then ${conversations.status} else 'waiting_them' end`,
+          slaDueAt: sql`case when ${conversations.lastInboundAt} > ${sentAt.toISOString()}::timestamptz then ${conversations.slaDueAt} else null end`,
+          updatedAt: new Date(),
+        })
+        .where(eq(conversations.id, conversationId));
+    },
+  };
+}

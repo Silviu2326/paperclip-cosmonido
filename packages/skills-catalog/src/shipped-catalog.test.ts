@@ -19,11 +19,20 @@ const EXPECTED_BUNDLED_KEYS = [
 
 const EXPECTED_OPTIONAL_KEYS = [
   "paperclipai/optional/browser/agent-browser",
+  "paperclipai/optional/content/burned-subtitles-style",
+  "paperclipai/optional/content/client-brief-intake",
+  "paperclipai/optional/content/delivery-review",
   "paperclipai/optional/content/release-announcement",
+  "paperclipai/optional/content/short-video-script",
   "paperclipai/optional/content/simplified-english",
+  "paperclipai/optional/content/social-post-copy",
+  "paperclipai/optional/content/transcript-based-editing",
   "paperclipai/optional/finance/ramp",
   "paperclipai/optional/product/design-critique",
   "paperclipai/optional/research/last30days",
+  "paperclipai/optional/sales/booking-etiquette",
+  "paperclipai/optional/sales/channel-reply",
+  "paperclipai/optional/sales/lead-triage",
   "paperclipai/optional/software-development/prepare-mcp-integration",
 ];
 

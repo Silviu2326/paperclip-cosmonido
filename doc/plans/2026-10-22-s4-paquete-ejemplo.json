@@ -1,0 +1,44 @@
+{
+  "format": "paperclip.portable-package",
+  "version": 1,
+  "packageKey": "ejemplo-equipo-editorial",
+  "packageVersion": "1.0.0",
+  "name": "Ejemplo de equipo editorial",
+  "description": "Contenido de ejemplo para revisar perfiles y requisitos. No contiene datos de un cliente ni acredita instalación o ejecución.",
+  "teams": [
+    {
+      "id": "editorial",
+      "name": "Equipo editorial",
+      "description": "Preparar y revisar un borrador a partir de un brief que deberá aportar la persona.",
+      "members": [
+        {
+          "id": "coordinacion",
+          "title": "Coordinación de contenidos",
+          "purpose": "Aclarar audiencia, objetivo y criterio de aceptación antes de proponer el trabajo.",
+          "deploymentMode": "persistent",
+          "deliveryCriteria": ["Brief y propuesta revisables por la persona responsable"],
+          "suggestedCostLimit": null,
+          "reportsTo": null,
+          "skillRefs": []
+        },
+        {
+          "id": "redaccion",
+          "title": "Redacción",
+          "purpose": "Preparar un borrador siguiendo el brief confirmado y solicitar revisión.",
+          "deploymentMode": "persistent",
+          "deliveryCriteria": ["Borrador vinculado al brief y listo para revisión"],
+          "suggestedCostLimit": null,
+          "reportsTo": "coordinacion",
+          "skillRefs": []
+        }
+      ]
+    }
+  ],
+  "skills": [],
+  "playbooks": [],
+  "requestTemplates": [],
+  "brandPresets": [],
+  "forms": [],
+  "meetingTypes": [],
+  "connectionRequests": []
+}

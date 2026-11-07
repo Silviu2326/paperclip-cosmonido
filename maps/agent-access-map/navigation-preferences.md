@@ -10,6 +10,8 @@ Each capability needs operation-level review before its entire scope can be
 qualified. No live agent execution is claimed. Follow the [map contract](../README.md)
 for format, permission checks, evidence and maintenance.
 
+The navigation note describes the UX integration only. Any new settings or notification API/binding is not enumerated here; the existing preference baselines remain source-only and are not live verification.
+
 ## `navigation`
 
 Review: `baseline`.
@@ -18,6 +20,7 @@ API: `present` — representative operation IDs:
 
 - `GET /api/companies/{companyId}/projects`.
 - `GET /api/companies/{companyId}/resource-memberships/me`.
+- `PUT /api/companies/{companyId}/resource-memberships/me/artifacts/{source}/{artifactId}` stars a Salida attachment or work product (board only). `PUT /api/companies/{companyId}/resource-memberships/me/company-files/{companyFileId}` stars an Entrada file (board only).
 
 Agent access: `partial` — Resource APIs plus user-specific stars; browser-local recents.
 

@@ -31,6 +31,7 @@ import { cn, formatCents } from "../lib/utils";
 import { SHOW_TASK_PRIORITY_UI } from "../lib/ui-flags";
 import { Bot, CircleDot, DollarSign, ShieldCheck, LayoutDashboard, PauseCircle } from "lucide-react";
 import { ActiveAgentsPanel } from "../components/ActiveAgentsPanel";
+import { AssignmentDashboard } from "../components/AssignmentDashboard";
 import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRateChart } from "../components/ActivityCharts";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { Card } from "@/components/ui/card";
@@ -39,6 +40,8 @@ import { InlineBanner } from "../components/InlineBanner";
 import type { Agent, Issue } from "@paperclipai/shared";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { SmokeLabDashboardCard } from "../components/SmokeLabDashboardCard";
+import { CommercialDecisionsSection } from "@/components/CommercialDecisionsSection";
+import { BusinessHome } from "@/features/productization/BusinessHome";
 
 const DASHBOARD_ACTIVITY_LIMIT = 10;
 
@@ -325,6 +328,8 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       {error && <p className="text-sm text-destructive">{error.message}</p>}
+      <CommercialDecisionsSection />
+      <BusinessHome companyId={selectedCompanyId!} />
 
       {pausedBanner?.kind === "imported" ? (
         <InlineBanner
@@ -380,6 +385,8 @@ export function Dashboard() {
 
       {data && (
         <>
+          <AssignmentDashboard data={data} />
+
           {data.budgets.activeIncidents > 0 ? (
             <div className="flex items-start justify-between gap-3 rounded-xl border border-destructive/20 bg-(image:--gradient-extract-1) px-4 py-3">
               <div className="flex items-start gap-2.5">

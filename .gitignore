@@ -31,6 +31,7 @@ check-*.mjs
 !.github/scripts/check-*.mjs
 !.github/scripts/tests/check-*.mjs
 !scripts/check-*.mjs
+!ui/scripts/check-*.mjs
 new-agent*.json
 newcompany.json
 seed-*.mjs
@@ -46,6 +47,8 @@ server/src/**/*.js
 server/src/**/*.js.map
 server/src/**/*.d.ts
 server/src/**/*.d.ts.map
+# Hand-written browser script shipped as-is (web chat widget, pista F)
+!server/src/public/**/*.js
 tmp/
 feedback-export-*
 diagnostics/
@@ -92,3 +95,4 @@ test-results/
 
 # Opt-in CI timing artifacts
 .ci-profile/
+ui/storybook-static.lock/

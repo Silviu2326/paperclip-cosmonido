@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { buildPaperclipTaskMarkdown } from "./task-markdown.js";
+import { buildPaperclipTaskMarkdown, renderCompanyFilesSection } from "./task-markdown.js";
+
+function fakeIndex(count: number, truncated = false, total = count) {
+  return {
+    entries: Array.from({ length: count }, (_, i) => ({
+      fileId: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
+      path: `Marca/archivo-${i}.pdf`,
+      name: `archivo-${i}.pdf`,
+      contentType: "application/pdf",
+      byteSize: 1024 * (i + 1),
+      version: 2,
+      updatedAt: "2026-10-21T10:00:00.000Z",
+    })),
+    truncated,
+    total,
+  };
+}
 
 const issue = {
   id: "task-1",
@@ -109,5 +125,40 @@ describe("heartbeat task markdown rendering", () => {
     expect(markdown).toContain("````text\nRevise the scope.");
     expect(markdown).not.toContain("Implement the accepted plan");
     expect(markdown).not.toContain("old-approved-revision");
+  });
+
+  it("renders the company files section with per-runner read instructions", () => {
+    const markdown = buildPaperclipTaskMarkdown({
+      issue,
+      companyFiles: fakeIndex(2),
+      nativeRunner: false,
+    })!;
+    expect(markdown).toContain("## Company files (Entrada)");
+    expect(markdown).toContain('- "Marca/archivo-0.pdf" · application/pdf · 1024 B · v2 · 00000000-0000-4000-8000-000000000000');
+    expect(markdown).toContain("GET $PAPERCLIP_API_URL/api/company-files/{fileId}/content");
+    expect(markdown).toContain("paperclip files download <fileId> --out <safe-local-path>");
+    expect(markdown).not.toContain("list_company_files");
+
+    const native = buildPaperclipTaskMarkdown({ issue, companyFiles: fakeIndex(1), nativeRunner: true })!;
+    expect(native).toContain("list_company_files");
+    expect(native).toContain("read_company_file");
+    expect(native).not.toContain("paperclip files download");
+  });
+
+  it("omits the company files section when the index is empty or missing", () => {
+    const empty = buildPaperclipTaskMarkdown({ issue, companyFiles: { entries: [], truncated: false, total: 0 } })!;
+    expect(empty).not.toContain("Company files (Entrada)");
+    expect(buildPaperclipTaskMarkdown({ issue, companyFiles: null })).not.toContain("Company files (Entrada)");
+    expect(renderCompanyFilesSection({ entries: [], truncated: false, total: 0 }, false)).toBeNull();
+  });
+
+  it("flags a truncated index and keeps the rendered size bounded at the cap", () => {
+    const section = renderCompanyFilesSection(fakeIndex(200, true, 350), false)!;
+    expect(section.join("\n")).toContain("Index shows 200 of 350 files");
+    expect(section.filter((line) => line.startsWith('- "')).length).toBe(200);
+    // Approximate size for 200 entries, reported in the task summary.
+    const chars = section.join("\n").length;
+    expect(chars).toBeGreaterThan(0);
+    expect(chars).toBeLessThan(40_000);
   });
 });

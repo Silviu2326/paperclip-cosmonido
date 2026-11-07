@@ -6,6 +6,8 @@ navigation: {"section":"Oversight and operation","sectionOrder":70,"order":30}
 
 People organize their sidebar, move between company resources, maintain their profile, and dismiss product announcements with the correct persistence and identity scope.
 
+UX integration note: the business section exposes Clientes, Ventas, and Conversaciones; settings and notification preferences remain reachable through their scoped destinations. This is navigation context, not a new permission or data contract. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Implementation: [sidebar](../../ui/src/components/Sidebar.tsx), [profile](../../ui/src/pages/ProfileSettings.tsx), [announcements](../../ui/src/components/AnnouncementWell.tsx).
 
 Agent access: [companion](../agent-access-map/navigation-preferences.md).

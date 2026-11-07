@@ -234,7 +234,7 @@ describe("TaskChatProtocolCard", () => {
     flushSync(() => savedDescription!.querySelector("summary")!.click());
     expect(savedDescription?.open).toBe(true);
     flushSync(() => savedDescription!.querySelector("summary")!.click());
-    expect(container.textContent).toContain("git · active · Updated");
+    expect(container.textContent).toContain("git · Active · Updated");
     expect(container.querySelector('button[aria-label^="Hide details:"]')?.getAttribute("aria-expanded")).toBe("true");
     expect(container.querySelector("strong")?.className).not.toContain("line-clamp-2");
     flushSync(() => container.querySelector<HTMLButtonElement>('button[aria-label^="Hide details:"]')!.click());
@@ -963,3 +963,9 @@ describe("TaskChatProtocolCard", () => {
     expect(next?.disabled).toBe(false);
   });
 });
+
+// These tests assert English copy; the app's default language is Spanish.
+import { afterAll as afterAllEn, beforeAll as beforeAllEn } from "vitest";
+import { i18n as i18nEn } from "@/i18n";
+beforeAllEn(async () => { await i18nEn.changeLanguage("en"); });
+afterAllEn(async () => { await i18nEn.changeLanguage("es"); });

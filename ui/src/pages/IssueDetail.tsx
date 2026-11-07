@@ -1,3 +1,4 @@
+import { TaskOutcomePanel, TaskStandaloneReviewPanel } from "../components/TaskOutcomePanel";
 import { t, useTranslation } from "@/i18n";
 import { grokBotApi } from "@/api/grokBot";
 import { WorkspaceBaseRefRecoveryProvider } from "../components/WorkspaceBaseRefRecovery";
@@ -12,6 +13,7 @@ import { mergeComposerRunSettings, type ComposerRunSettings } from "@/components
 import { AgentIdentity } from "@/components/AgentIdentity";
 import { clearLegacyChatMessageRequests } from "@/lib/chat-message-request";
 import { agentChatDraft } from "@/lib/agent-chat-draft";
+import { AgentChatContext } from "@/components/chat/AgentChatContext";
 import { trackRecentProject } from "@/lib/recent-projects";
 import { Settings as ChatSettings } from "lucide-react";
 import { agentDetailHref } from "./agent-detail-navigation";
@@ -199,6 +201,7 @@ import { useStreamlinedUiEnabled } from "../hooks/useStreamlinedUiEnabled";
 import { workModeMetaFor } from "../lib/work-mode-meta";
 import { IssueContinuationHandoff } from "../components/IssueContinuationHandoff";
 import { IssueAttachmentsSection } from "../components/IssueAttachmentsSection";
+import { ArtifactAttachmentPicker, type SelectedIssueArtifact } from "../components/artifacts/ArtifactAttachmentPicker";
 import { IssueDocumentsSection } from "../components/IssueDocumentsSection";
 import { IssuePlanDecompositionsSection } from "../components/IssuePlanDecompositionsSection";
 import { IssueOutputSection } from "../components/issue-output/IssueOutputSection";
@@ -5549,6 +5552,30 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     },
   });
 
+  const attachExistingArtifacts = useMutation({
+    mutationFn: async (selected: SelectedIssueArtifact[]) => {
+      const companyId = conversation?.agent.companyId ?? loadedIssue?.companyId;
+      if (!companyId) throw new Error(t("issueDetail.taskDetailsLoading"));
+      const writableIssueId = conversation ? await resolveWritableIssueId() : loadedIssue?.id;
+      if (!writableIssueId) throw new Error(t("issueDetail.taskDetailsLoading"));
+      const failures: string[] = [];
+      for (const artifact of selected) {
+        try {
+          await issuesApi.attachArtifact(companyId, writableIssueId, artifact);
+        } catch {
+          failures.push(artifact.title);
+        }
+      }
+      return { companyId, issueId: writableIssueId, failures };
+    },
+    onSuccess: async ({ issueId: attachedIssueId, failures }) => {
+      setAttachmentError(failures.length ? t("artifactPicker.attachFailed", { count: failures.length }) : null);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.issues.attachments(attachedIssueId) });
+      invalidateIssueDetail();
+    },
+    onError: (err) => setAttachmentError(err instanceof Error ? err.message : t("issueDetail.uploadFailed")),
+  });
+
   const importMarkdownDocument = useMutation({
     mutationFn: async (file: File) => {
       const baseName = fileBaseName(file.name);
@@ -7118,6 +7145,13 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
     !treeControlPreviewError;
   const attachmentUploadButton = (
     <>
+      {(conversation?.agent.companyId ?? loadedIssue?.companyId) ? (
+        <ArtifactAttachmentPicker
+          companyId={conversation?.agent.companyId ?? loadedIssue!.companyId}
+          disabled={attachExistingArtifacts.isPending}
+          onAdd={(items) => attachExistingArtifacts.mutate(items)}
+        />
+      ) : null}
       <input
         ref={fileInputRef}
         type="file"
@@ -7721,6 +7755,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
       {ancestorsNav}
       {createdFromNote}
       {issueHeaderBlock}
+      {conversationAgent && <AgentChatContext agent={conversationAgent} issue={issue} />}
       {pluginOutletsBlock}
     </>
   ) : undefined;
@@ -7903,6 +7938,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
 
           {taskChatShellEnabled ? null : (
             <IssueOutputSection
+              reviewIssueId={issue.id}
               workProducts={workProducts}
               onMediaClick={(item) => {
                 const meta = item.metadata;
@@ -8017,6 +8053,8 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
           {taskChatShellEnabled ? null : (
             <Separator className={shellSectionClass} />
           )}
+
+          <TaskOutcomePanel issueId={issue.id} />
 
           <Tabs
             value={resolvedDetailTab}
@@ -8356,6 +8394,7 @@ export function TaskDetailSurface({ conversation, tasksTab }: { tasksTab?: TaskS
             </TabsContent>
 
             <TabsContent value="activity" className={shellSectionClass}>
+              <TaskStandaloneReviewPanel issueId={issue.id} />
               {detailTab === "activity" ? (
                 <IssueDetailActivityTab
                   issue={issue}

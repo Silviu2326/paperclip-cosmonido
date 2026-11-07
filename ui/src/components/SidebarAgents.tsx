@@ -654,7 +654,8 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
       }}
       menu={{
         ariaLabel: t("sidebarAgents.sectionActions"),
-        actions: [
+        // The "see all" link below already leads to the same roster; keep the menu entry only when that link is absent.
+        actions: showSeeAllLink ? [] : [
           { type: "item", label: t("sidebarAgents.browseAgents"), icon: Users, href: "/agents/all" },
           { type: "separator" },
         ],

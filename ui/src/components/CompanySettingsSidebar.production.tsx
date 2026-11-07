@@ -1,3 +1,4 @@
+import { BusinessSettingsLinks } from "./BusinessSettingsLinks";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
@@ -214,6 +215,7 @@ export function CompanySettingsSidebar() {
             />
           )}
         </div>
+        <BusinessSettingsLinks />
       </nav>
     </aside>
   );

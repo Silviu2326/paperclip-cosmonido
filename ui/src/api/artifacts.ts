@@ -3,6 +3,9 @@ import type {
   CompanyArtifact,
   CompanyArtifactGroupBy,
   CompanyArtifactMediaKind,
+  CompanyArtifactSortDir,
+  CompanyArtifactSortKey,
+  CompanyArtifactTreeResponse,
   CompanyArtifactsResponse,
 } from "@paperclipai/shared";
 
@@ -13,6 +16,10 @@ export type {
   CompanyArtifactMediaKind as ArtifactMediaKind,
   CompanyArtifactsResponse,
   CompanyArtifactSource as ArtifactSource,
+  CompanyArtifactSortKey,
+  CompanyArtifactSortDir,
+  CompanyArtifactTreeNode,
+  CompanyArtifactTreeResponse,
 } from "@paperclipai/shared";
 
 /**
@@ -41,6 +48,16 @@ export interface ListArtifactsParams {
   groupBy?: CompanyArtifactGroupBy;
   /** When grouping, selects a single stack to expand into its artifacts. */
   groupIssueId?: string;
+  /** Keyed groupings (agent, media_kind, day): selects one group's artifacts. */
+  groupKey?: string;
+  /** Only artifacts produced by this issue (folder listing for a tree node). */
+  issueId?: string;
+  /** Sort key for the flat list. Server default is `date`. */
+  sort?: CompanyArtifactSortKey;
+  /** Sort direction. Server default is `desc`. */
+  dir?: CompanyArtifactSortDir;
+  /** Only artifacts the current viewer has starred (documents, attachments and work products). */
+  starred?: boolean;
   limit?: number;
   cursor?: string;
 }
@@ -53,6 +70,11 @@ function buildArtifactsQuery(params?: ListArtifactsParams): string {
   if (params?.q) search.set("q", params.q);
   if (params?.groupBy && params.groupBy !== "none") search.set("groupBy", params.groupBy);
   if (params?.groupIssueId) search.set("groupIssueId", params.groupIssueId);
+  if (params?.groupKey) search.set("groupKey", params.groupKey);
+  if (params?.issueId) search.set("issueId", params.issueId);
+  if (params?.sort && params.sort !== "date") search.set("sort", params.sort);
+  if (params?.dir && params.dir !== "desc") search.set("dir", params.dir);
+  if (params?.starred) search.set("starred", "true");
   if (params?.limit != null) search.set("limit", String(params.limit));
   if (params?.cursor) search.set("cursor", params.cursor);
   const qs = search.toString();
@@ -78,11 +100,22 @@ function normalizeArtifactsResponse(
   };
 }
 
+/** ZIP of every artifact under a Salida node (`issue:<id>` or `project:<id>`, board only). */
+export function companyArtifactsArchivePath(companyId: string, node: string): string {
+  const search = new URLSearchParams({ node });
+  return `/api/companies/${companyId}/artifacts/archive?${search.toString()}`;
+}
+
 export const artifactsApi = {
   list: async (companyId: string, params?: ListArtifactsParams): Promise<CompanyArtifactsResponse> => {
     const raw = await api.get<CompanyArtifactsResponse | CompanyArtifact[]>(
       `/companies/${companyId}/artifacts${buildArtifactsQuery(params)}`,
     );
     return normalizeArtifactsResponse(raw);
+  },
+  /** Folder tree node and its direct children (`root`, `projects`, `no_project`, `project:<id>`, `issue:<id>`). */
+  tree: async (companyId: string, node = "root"): Promise<CompanyArtifactTreeResponse> => {
+    const search = new URLSearchParams({ node });
+    return api.get<CompanyArtifactTreeResponse>(`/companies/${companyId}/artifacts/tree?${search.toString()}`);
   },
 };

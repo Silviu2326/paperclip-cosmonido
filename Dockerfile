@@ -20,6 +20,7 @@ COPY server/package.json server/
 COPY ui/package.json ui/
 COPY packages/shared/package.json packages/shared/
 COPY packages/db/package.json packages/db/
+COPY packages/media-studio/package.json packages/media-studio/
 COPY packages/adapter-utils/package.json packages/adapter-utils/
 COPY packages/google-sheets-mcp-server/package.json packages/google-sheets-mcp-server/
 COPY packages/kv-demo-mcp-server/package.json packages/kv-demo-mcp-server/
@@ -142,7 +143,9 @@ RUN pnpm --filter @paperclipai/plugin-sdk build
 # same ARG again for the runtime fallback; an ARG goes out of scope at the
 # end of its stage. Empty for local `docker build`, which then writes no stamp.
 ENV NODE_OPTIONS=--max-old-space-size=4096
-RUN pnpm --filter @paperclipai/server build
+# TypeScript 7 uses a native Go compiler; NODE_OPTIONS does not cap its heap.
+# Keep the self-hosted build within an 8 GB VPS alongside the live service.
+RUN GOMEMLIMIT=5GiB GOGC=50 pnpm --filter @paperclipai/server build
 RUN test -f server/dist/index.js || (echo "ERROR: server build output missing" && exit 1)
 RUN rm -rf packages/paperclip-runner/runner/target
 
@@ -152,10 +155,15 @@ RUN rm -rf packages/paperclip-runner/runner/target
 # Grok's native executable stays an external sandbox prerequisite; this pack
 # contains only its launcher.
 FROM build AS runner-provider-pack
+# Self-hosted installs that never run remote OpenCode/ACPX can skip the pack
+# (~5 min per build) and still stamp the commit into the server and UI.
+ARG PAPERCLIP_SKIP_PROVIDER_PACK=""
 # Unstamped local builds remain usable, but cannot qualify a remote pack.
 # Never invent a source revision to make an unqualified pack look verified.
 RUN mkdir -p /provider-pack \
-  && if [ -n "${PAPERCLIP_BUILD_COMMIT}" ]; then \
+  && if [ -n "${PAPERCLIP_SKIP_PROVIDER_PACK}" ]; then \
+    echo "Skipping remote provider pack: PAPERCLIP_SKIP_PROVIDER_PACK is set"; \
+  elif [ -n "${PAPERCLIP_BUILD_COMMIT}" ]; then \
     PAPERCLIP_RUNNER_SOURCE_REVISION="${PAPERCLIP_BUILD_COMMIT}" node packages/paperclip-runner/scripts/build-provider-pack.mjs /provider-pack; \
   else \
     echo "Skipping remote provider pack: supply a full PAPERCLIP_BUILD_COMMIT to enable remote OpenCode/ACPX execution"; \
@@ -184,7 +192,13 @@ RUN echo "cli-tools-epoch: ${CLI_TOOLS_CACHE_EPOCH}" \
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-COPY --chown=node:node --from=build /app /app
+# Dependencies and code are separate layers. node_modules (~3 GB) comes from
+# the deps stage, so it stays cached until a manifest or the lockfile changes;
+# the build stage only adds two build caches inside node_modules (runner
+# build-inputs and tsbuildinfo), which the runtime never reads. A code change
+# then re-exports ~0.5 GB instead of the whole 3.5 GB /app.
+COPY --chown=node:node --from=deps /app /app
+COPY --chown=node:node --from=build --exclude=node_modules --exclude=**/node_modules /app /app
 
 COPY --from=runner-provider-pack /provider-pack /opt/paperclip-runner/provider-pack
 # Managed deployments can remap node's UID at startup. This immutable pack

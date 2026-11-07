@@ -1,6 +1,7 @@
 import { parseObject } from "../adapters/utils.js";
 import { assertLegacyRunTaskOwnership } from "../legacy-run-task-ownership.js";
 import { enqueueFastResponse } from "../services/fast-responses.js";
+import { getAssetThumbnail } from "../services/thumbnails.js";
 import { hasRequiredWorkspaceRecovery, LEGACY_WORKSPACE_RECOVERY_SCHEMA } from "../services/workspace-restore-recovery-state.js";
 import { hasUnverifiedNativeWorkspaceFinalizationOwner } from "../services/native-runtime/native-workspace-finalization-recovery-state.js";
 import { monitorPoliciesEqual, applyActorMonitorScheduledBy, assertCanManageIssueMonitor, summarizeIssueMonitor } from "../services/issue-monitors.js";
@@ -16,6 +17,7 @@ import { setIssueTitle } from "../services/issue-title.js";
 import { setIssueTitleSchema } from "@paperclipai/shared";
 import { resolveConfirmationFromComment } from "../services/confirmation-comment-resolution.js";
 import { createIssueReadTiming } from "../services/issue-read-timing.js";
+import { attachIssueArtifact, getIssueArtifactSourceIssueId } from "../services/issue-artifact-attachments.js";
 import { isNativeWorkspaceExportRepairCause } from "@paperclipai/shared";
 import { resumeNativeWorkspaceAfterOwnerStop } from "../services/native-runtime/native-workspace-owner-recovery.js";
 import { retryNativeWorkspaceExport } from "../services/native-runtime/native-workspace-export-retry.js";
@@ -85,6 +87,7 @@ import {
   companySearchExtractQuerySchema,
   companySearchQuerySchema,
   createIssueAttachmentMetadataSchema,
+  attachIssueArtifactSchema,
   createIssueThreadInteractionSchema,
   createIssueWorkProductSchema,
   createIssueLabelSchema,
@@ -106,6 +109,7 @@ import {
   upsertIssueWatchdogSchema,
   linkIssueApprovalSchema,
   issueDocumentKeySchema,
+  issueReviewFilterSchema,
   ISSUE_CONTINUATION_SUMMARY_DOCUMENT_KEY,
   ISSUE_WATCHDOG_DISCOVERY_KINDS,
   TASK_WATCHDOG_PRODUCT_BUG_ORIGIN_KIND,
@@ -8305,6 +8309,12 @@ export function issueRoutes(
         ? Number.parseInt(rawOffset, 10)
         : null;
     const attention = req.query.attention as string | undefined;
+    const parsedReview = req.query.review === undefined ? null : issueReviewFilterSchema.safeParse(req.query.review);
+    if (parsedReview && !parsedReview.success) {
+      res.status(400).json({ error: "review must be required or pending" });
+      return;
+    }
+    const review = parsedReview?.success ? parsedReview.data : undefined;
     const sortField = req.query.sortField as string | undefined;
     const sortDir = req.query.sortDir as string | undefined;
     const view = req.query.view as string | undefined;
@@ -8459,6 +8469,7 @@ export function issueRoutes(
     const listFilters: IssueFilters = {
       readCondition: await issueReadSqlCondition(db, req.actor),
       attention: attention === "blocked" ? "blocked" : undefined,
+      review,
       status: req.query.status as string | string[] | undefined,
       assigneeAgentId,
       participantAgentId: req.query.participantAgentId as string | undefined,
@@ -19482,6 +19493,84 @@ export function issueRoutes(
     },
   );
 
+  router.post(
+    "/companies/:companyId/issues/:issueId/attachments/from-artifact",
+    validate(attachIssueArtifactSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      const issueId = req.params.issueId as string;
+      assertCompanyAccess(req, companyId);
+      const issue = await getAccessibleResource(req, res, svc.getById(issueId), "Issue not found");
+      if (!issue) return;
+      if (issue.companyId !== companyId) {
+        res.status(422).json({ error: "Issue does not belong to company" });
+        return;
+      }
+      if (!(await assertAgentIssueMutationAllowed(req, res, issue))) return;
+      if (!(await assertDeliverableMutationAllowedByRunContext(req, res, issue))) return;
+
+      const source = req.body as z.infer<typeof attachIssueArtifactSchema>;
+      const sourceIssueId = await getIssueArtifactSourceIssueId(db, companyId, source);
+      if (sourceIssueId) {
+        const sourceIssue = await getAccessibleResource(req, res, svc.getById(sourceIssueId), "Artifact not found");
+        if (!sourceIssue || !(await assertIssueReadAllowed(req, res, sourceIssue))) return;
+        if (sourceIssue.companyId !== companyId) {
+          res.status(404).json({ error: "Artifact not found" });
+          return;
+        }
+      }
+      const actor = getActorInfo(req);
+      const attachment = await attachIssueArtifact(db, storage, {
+        companyId,
+        issueId,
+        source,
+        actor: { agentId: actor.agentId, userId: actor.actorType === "user" ? actor.actorId : null, runId: actor.runId },
+      });
+      await logActivity(db, {
+        companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        agentApiKeyId: actor.agentApiKeyId,
+        action: "issue.attachment_added",
+        entityType: "issue",
+        entityId: issueId,
+        issueId,
+        details: {
+          attachmentId: attachment.id,
+          originalFilename: attachment.originalFilename,
+          contentType: attachment.contentType,
+          byteSize: attachment.byteSize,
+          source: source.source,
+          sourceId: source.id,
+        },
+      });
+      if (attachment.artifactWorkProductId) {
+        await logActivity(db, {
+          companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: actor.runId,
+          agentApiKeyId: actor.agentApiKeyId,
+          action: "issue.work_product_created",
+          entityType: "issue",
+          entityId: issueId,
+          issueId,
+          details: {
+            workProductId: attachment.artifactWorkProductId,
+            type: "artifact",
+            provider: "paperclip",
+            source: "artifact_attachment_import",
+          },
+        });
+      }
+      const { artifactWorkProductId: _artifactWorkProductId, ...attachmentResponse } = attachment;
+      res.status(201).json(withContentPath(attachmentResponse));
+    },
+  );
+
   router.get("/attachments/:attachmentId/content", async (req, res, next) => {
     const attachmentId = req.params.attachmentId as string;
     const attachment = await getAccessibleResource(
@@ -19574,6 +19663,40 @@ export function issueRoutes(
       String(contentLength || object.contentLength || 0),
     );
     object.stream.pipe(res);
+  });
+
+  // 320px WebP thumbnail of an image attachment. Same access rules as the content route.
+  router.get("/attachments/:attachmentId/thumbnail", async (req, res, next) => {
+    const attachmentId = req.params.attachmentId as string;
+    const attachment = await getAccessibleResource(
+      req,
+      res,
+      svc.getAttachmentById(attachmentId),
+      "Attachment not found",
+    );
+    if (!attachment) return;
+    const issue = await svc.getById(attachment.issueId);
+    if (!issue) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    if (!(await assertIssueReadAllowed(req, res, issue))) return;
+    const thumbnail = await getAssetThumbnail(storage, {
+      companyId: attachment.companyId,
+      assetId: attachment.assetId,
+      objectKey: attachment.objectKey,
+      contentType: attachment.contentType,
+    });
+    if (!thumbnail) {
+      res.status(404).json({ error: "Thumbnail not available for this attachment" });
+      return;
+    }
+    res.setHeader("Content-Type", thumbnail.contentType);
+    res.setHeader("Content-Length", String(thumbnail.contentLength));
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    thumbnail.stream.on("error", (err) => next(err));
+    thumbnail.stream.pipe(res);
   });
 
   router.delete("/attachments/:attachmentId", async (req, res) => {

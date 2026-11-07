@@ -6,6 +6,7 @@ import type { TaskChatMarkerItem } from "./task-chat-model";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router";
 import { timeAgo } from "@/lib/timeAgo";
+import { t } from "@/i18n";
 
 const VARIANT_ICON = {
   session_start: CircleDot,
@@ -47,16 +48,20 @@ export function TaskChatMarker({
         className="tc-enter-marker flex w-full items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm">
         <KeyRound className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="font-semibold text-destructive">{agentName} couldn’t start</p>
+          <p className="font-semibold text-destructive">{t("chatUiComposer.agentCouldntStart", { agentName, defaultValue: "{{agentName}} couldn’t start" })}</p>
           <p className="break-words font-medium text-foreground">
-            {agentName} is configured to use {credentialName || "an AI credential"}, but {deniedUser === "you" ? "you don’t" : `${deniedUser} doesn’t`} have access to that credential.
+            {deniedUser === "you"
+              ? t("chatUiComposer.credentialNoAccessYou", { agentName, credentialName: credentialName || t("chatUiComposer.anAiCredential", { defaultValue: "an AI credential" }), defaultValue: "{{agentName}} is configured to use {{credentialName}}, but you don’t have access to that credential." })
+              : t("chatUiComposer.credentialNoAccessUser", { agentName, deniedUser, credentialName: credentialName || t("chatUiComposer.anAiCredential", { defaultValue: "an AI credential" }), defaultValue: "{{agentName}} is configured to use {{credentialName}}, but {{deniedUser}} doesn’t have access to that credential." })}
           </p>
           <p className="text-muted-foreground">
-            Choose an AI connection {deniedUser === "you" ? "you can" : `${deniedUser} can`} use, or ask an administrator to update {agentName}’s connection. Then try again.
+            {deniedUser === "you"
+              ? t("chatUiComposer.chooseConnectionYou", { agentName, defaultValue: "Choose an AI connection you can use, or ask an administrator to update {{agentName}}’s connection. Then try again." })
+              : t("chatUiComposer.chooseConnectionUser", { agentName, deniedUser, defaultValue: "Choose an AI connection {{deniedUser}} can use, or ask an administrator to update {{agentName}}’s connection. Then try again." })}
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Button asChild variant="outline" size="sm"><Link to={settingsHref}>Change AI connection</Link></Button>
-            {item.runHref && <Button asChild variant="ghost" size="sm"><Link to={item.runHref}>View run</Link></Button>}
+            <Button asChild variant="outline" size="sm"><Link to={settingsHref}>{t("chatUiComposer.changeAiConnection", { defaultValue: "Change AI connection" })}</Link></Button>
+            {item.runHref && <Button asChild variant="ghost" size="sm"><Link to={item.runHref}>{t("chatUiComposer.viewRun", { defaultValue: "View run" })}</Link></Button>}
           </div>
         </div>
       </div>
@@ -105,7 +110,7 @@ export function TaskChatMarker({
               disabled={tryAgainPending}
               data-testid="task-chat-run-failed-try-again"
             >
-              {tryAgainPending ? "Trying again..." : "Try again"}
+              {tryAgainPending ? t("chatUiComposer.tryingAgain", { defaultValue: "Trying again..." }) : t("chatUiComposer.tryAgain", { defaultValue: "Try again" })}
             </Button>
           ) : null}
         </div>
@@ -124,12 +129,12 @@ export function TaskChatMarker({
               <div className="flex items-center justify-end gap-2 border-t border-border/70 bg-background/50 px-3 py-2 dark:bg-background/30">
                 {item.planHref ? (
                   <Button asChild variant="ghost" size="xs">
-                    <Link to={item.planHref}>View saved plan</Link>
+                    <Link to={item.planHref}>{t("chatUiComposer.viewSavedPlan", { defaultValue: "View saved plan" })}</Link>
                   </Button>
                 ) : null}
                 {item.runHref ? (
                   <Button asChild variant="ghost" size="xs">
-                    <Link to={item.runHref}>View run</Link>
+                    <Link to={item.runHref}>{t("chatUiComposer.viewRun", { defaultValue: "View run" })}</Link>
                   </Button>
                 ) : null}
                 {onTryAgain ? (
@@ -140,7 +145,7 @@ export function TaskChatMarker({
                     disabled={tryAgainPending}
                     data-testid="task-chat-run-failed-try-again"
                   >
-                    {tryAgainPending ? "Trying again..." : "Try again"}
+                    {tryAgainPending ? t("chatUiComposer.tryingAgain", { defaultValue: "Trying again..." }) : t("chatUiComposer.tryAgain", { defaultValue: "Try again" })}
                   </Button>
                 ) : null}
               </div>
@@ -185,7 +190,7 @@ export function TaskChatMarker({
             disabled={tryAgainPending}
             data-testid="task-chat-run-failed-try-again"
           >
-            {tryAgainPending ? "Trying again..." : "Try again"}
+            {tryAgainPending ? t("chatUiComposer.tryingAgain", { defaultValue: "Trying again..." }) : t("chatUiComposer.tryAgain", { defaultValue: "Try again" })}
           </Button>
         ) : null}
       </span>

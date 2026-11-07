@@ -338,6 +338,10 @@ export interface ChatChannelServiceOptions {
   deferWebhookProcessing?: boolean;
   /** Derived from instance deployment mode, never a provider request. */
   allowLocalVoiceBoard?: boolean;
+  /** Optional post-persistence voice report projection; projection failures are retried by report reconciliation. */
+  onCallReport?: (input: { companyId: string; sessionId: string; providerSessionId: string; complete: boolean }) => Promise<void>;
+  /** CRM callback policy boundary, rechecked by the CRM service immediately before provider I/O. */
+  beginCrmCallback?: (input: { companyId: string; callbackId: string; claimToken: string; sessionId: string; endpointId: string; assigneeAgentId: string; phoneE164: string }) => Promise<void>;
   /** Test override for GitHub's end-to-end webhook response budget. */
   githubWebhookResponseBudgetMs?: number;
   /** Testable boundary after reading a GitHub webhook and before authentication. */
@@ -539,6 +543,8 @@ export function chatChannelService(db: Db, options: ChatChannelServiceOptions) {
   const { findAuthorizedIdentityLink, ensurePrincipal, sponsorAllowsGuest, lockCurrentPrincipalAuthorization, requireCurrentExternalActionAuthorization, isExternalActionAuthorizationChange, ensureResource } = createChatInboundAuthority(db, { voiceStore, runtimeCallbackEndpoint });
   const voice = createSpekoChannelService(db, { endpointRecord, resolveCredentialRefs: (...args) => resolveCredentialRefs(...args), fetchImpl,
     allowLocalBoard: options.allowLocalVoiceBoard === true,
+    onCallReport: options.onCallReport,
+    beginCrmCallback: options.beginCrmCallback,
     onQuestionAnswered: (interactionId) => scheduleMessageProcessing(async () => {
       await questionResponses.deliver(interactionId);
       await processPendingPublications();

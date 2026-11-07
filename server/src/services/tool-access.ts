@@ -5,6 +5,7 @@ import { chatCredentialMutationLease } from "./chat-credential-mutation-lease.js
 import { notifyChatEndpointWork } from "./chat-work-notifications.js";
 import { removeSlackRegistration } from "./chat-slack-registration-cleanup.js";
 import { chatEndpoints } from "@paperclipai/db";
+import { productizationEntitlementsService } from "./productization/entitlements.js";
 import { AGGREGATOR_NAMES, isAppAggregator, type AggregatorAppsResponse, type ArcadeDiscoverySetupInput } from "@paperclipai/shared/aggregator-apps";
 import { resolveAggregatorApp, type AppCatalogAggregator } from "@paperclipai/shared/aggregator-app-catalog";
 import { AggregatorDiscoveryUnavailableError, discoverArcadeApps, discoverExecutorApps, type DiscoveredApp } from "./aggregator-app-discovery.js";
@@ -3101,6 +3102,7 @@ export function toolAccessService(
   options: ToolAccessServiceOptions = {},
 ) {
   const secrets = secretService(db);
+  const productEntitlements = productizationEntitlementsService(db);
   const composioSyncJobs = new Map<string, Promise<void>>();
   const composioSyncTtlMs = 5 * 60_000;
   const composioSyncLeaseMs = 4 * 60_000;
@@ -8476,28 +8478,36 @@ export function toolAccessService(
       return { row: updated, created: false };
     }
     const connectionId = randomUUID();
-    const [created] = await db
-      .insert(toolConnections)
-      .values({
-        id: connectionId,
-        companyId,
-        applicationId,
-        name: definition.connectionName,
-        uid: connectionUid(
-          "paperclip",
-          definition.connectionName,
-          connectionId,
-        ),
-        connectionKind: "managed",
-        transport: "local_stdio",
-        status: "active",
-        enabled: true,
-        config,
-        transportConfig: config,
-        credentialRefs: [],
-        credentialSecretRefs: [],
-      })
-      .returning();
+    const reservation = await productEntitlements.reserveForCompany({ companyId, metric: "connections", quantity: 1, idempotencyKey: `tool-example:${companyId}:${definition.id}`, requestFingerprint: `${companyId}:${definition.id}` });
+    let created: typeof toolConnections.$inferSelect;
+    try {
+      [created] = await db
+        .insert(toolConnections)
+        .values({
+          id: connectionId,
+          companyId,
+          applicationId,
+          name: definition.connectionName,
+          uid: connectionUid(
+            "paperclip",
+            definition.connectionName,
+            connectionId,
+          ),
+          connectionKind: "managed",
+          transport: "local_stdio",
+          status: "active",
+          enabled: true,
+          config,
+          transportConfig: config,
+          credentialRefs: [],
+          credentialSecretRefs: [],
+        })
+        .returning();
+    } catch (error) {
+      await productEntitlements.releaseAfterConfirmedRollback(reservation);
+      throw error;
+    }
+    await productEntitlements.commit(reservation);
     await ensureDefaultOrganizationGrant(created);
     await syncCredentialBindings(created);
     await ensureRuntimeSlot(created);
@@ -13221,9 +13231,11 @@ export function toolAccessService(
           .returning();
       } else {
         const connectionId = randomUUID();
-        [connectionRow] = await db
-          .insert(toolConnections)
-          .values({
+        const reservation=await productEntitlements.reserveForCompany({companyId,metric:"connections",quantity:1,idempotencyKey:`gallery-connection:${companyId}:${connectionId}`,requestFingerprint:`${companyId}:${connectionId}:${transport}`});
+        try {
+          [connectionRow] = await db
+            .insert(toolConnections)
+            .values({
             id: connectionId,
             companyId,
             applicationId: applicationRow.id,
@@ -13254,8 +13266,13 @@ export function toolAccessService(
               actor?.actorType === "agent" ? (actor.actorId ?? null) : null,
             createdByUserId:
               actor?.actorType === "user" ? (actor.actorId ?? null) : null,
-          })
-          .returning();
+            })
+            .returning();
+        } catch(error) {
+          await productEntitlements.releaseAfterConfirmedRollback(reservation);
+          throw error;
+        }
+        await productEntitlements.commit(reservation);
       }
       if (revivedConnectionPrevious) {
         emitConnectionUpdated(
@@ -18142,9 +18159,12 @@ export function toolAccessService(
       }
       const connectionId = randomUUID();
       const binding = actorBinding(actor);
-      const [row] = await db
-        .insert(toolConnections)
-        .values({
+      const reservation=await productEntitlements.reserveForCompany({companyId,metric:"connections",quantity:1,idempotencyKey:`tool-connection:${companyId}:${connectionId}`,requestFingerprint:`${companyId}:${connectionId}:${transport}`});
+      let row: typeof toolConnections.$inferSelect;
+      try {
+        [row] = await db
+          .insert(toolConnections)
+          .values({
           id: connectionId,
           companyId,
           applicationId,
@@ -18172,8 +18192,13 @@ export function toolAccessService(
             binding.actorType === "agent" ? binding.actorId : null,
           createdByUserId:
             binding.actorType === "user" ? binding.actorId : null,
-        })
-        .returning();
+          })
+          .returning();
+      } catch(error) {
+        await productEntitlements.releaseAfterConfirmedRollback(reservation);
+        throw error;
+      }
+      await productEntitlements.commit(reservation);
       await ensureDefaultOrganizationGrant(row);
       await syncCredentialBindings(row);
       await ensureRuntimeSlot(row);

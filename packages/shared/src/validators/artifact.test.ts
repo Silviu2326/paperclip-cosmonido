@@ -14,12 +14,14 @@ const artifact = {
   title: "Plan",
   previewText: "Artifact preview",
   contentType: "text/markdown",
+  byteSize: 12,
   contentPath: null,
   openPath: null,
   downloadPath: null,
   issue,
   project: null,
   createdByAgent: null,
+  createdAt: "2026-06-06T11:00:00.000Z",
   updatedAt: "2026-06-06T12:00:00.000Z",
   href: "/PAP/issues/PAP-1#document-plan",
 };
@@ -50,7 +52,7 @@ describe("companyArtifactsQuerySchema", () => {
   });
 
   it("rejects invalid grouped artifact query parameters", () => {
-    expect(() => companyArtifactsQuerySchema.parse({ groupBy: "agent" })).toThrow();
+    expect(() => companyArtifactsQuerySchema.parse({ groupBy: "bogus" })).toThrow();
     expect(() => companyArtifactsQuerySchema.parse({ groupIssueId: "PAP-1" })).toThrow();
   });
 });
@@ -60,6 +62,8 @@ describe("companyArtifactsResponseSchema", () => {
     const group = {
       id: `task:${issue.id}`,
       groupBy: "task",
+      key: issue.id,
+      label: issue.title,
       issue,
       title: issue.title,
       count: 1,

@@ -9,6 +9,8 @@ import { useAgentChatEnabled } from "@/hooks/useAgentChatEnabled";
 import { recordAgentChatVisit } from "@/lib/recent-agent-chats";
 import { queryKeys } from "@/lib/queryKeys";
 import { useParams } from "@/lib/router";
+import { ApiError } from "@/api/client";
+import { ChatLoadError, ChatNoAccess, ChatSkeleton } from "@/components/chat/ChatStates";
 import { agentRouteRef } from "@/lib/utils";
 import { TaskDetailSurface } from "./IssueDetail";
 import { isUuidLike, type Issue } from "@paperclipai/shared";
@@ -72,27 +74,26 @@ export function AgentChat() {
     }
   }, [agent, selectedCompanyId, chat.data, client, userId]);
   if (!loaded || agents.isPending || session.isPending || historyAgent.isFetching && !agent)
-    return (
-      <p className="text-sm text-muted-foreground">{t("agentChat.loading")}</p>
-    );
+    return <ChatSkeleton />;
   if (!enabled && !chat.data)
     return (
       <p className="text-sm text-muted-foreground">
         {t("agentChat.disabled")}
       </p>
     );
-  if (agents.error || chat.error || !rosterAgent && historyAgent.error)
+  if (agents.error || chat.error || !rosterAgent && historyAgent.error) {
+    const failure = agents.error ?? chat.error ?? historyAgent.error;
+    if (failure instanceof ApiError && failure.status === 403) return <ChatNoAccess />;
     return (
-      <p className="text-sm text-destructive">
-        {(agents.error ?? chat.error ?? historyAgent.error)?.message}
-      </p>
+      <ChatLoadError
+        retrying={agents.isFetching || chat.isFetching || historyAgent.isFetching}
+        onRetry={() => { void agents.refetch(); void chat.refetch(); void historyAgent.refetch(); }}
+      />
     );
+  }
   if (!agent)
     return <p className="text-sm text-destructive">{t("agentChat.agentNotFound")}</p>;
-  if (chat.isPending)
-    return (
-      <p className="text-sm text-muted-foreground">{t("agentChat.loading")}</p>
-    );
+  if (chat.isPending) return <ChatSkeleton />;
   return (
     <TaskDetailSurface
       key={`${agent.id}:${userId}`}

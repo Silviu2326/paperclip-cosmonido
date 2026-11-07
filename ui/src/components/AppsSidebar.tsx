@@ -1,7 +1,7 @@
 import { useLocation } from "@/lib/router";
 import { ChatDetailSidebar } from "./chat/ChatDetailSidebar";
 import { ChatSetupSidebar } from "./chat/ChatSetupNavigation";
-import { Store, ShieldQuestion } from "lucide-react";
+import { Store, ShieldQuestion, Radio, Globe, RefreshCw } from "lucide-react";
 import { DEVELOPER_TABS, advancedTabHref, isExperimentalToolTab } from "@/pages/tools/tool-tabs";
 import { useSmokeLabEnabled } from "@/hooks/useSmokeLabEnabled";
 import { useReviewCount } from "@/pages/apps/useReviewCount";
@@ -49,6 +49,14 @@ export function AppsSidebar() {
             badgeTone="warning"
             badgeLabel={t("appsSidebar.reviewBadge")}
           />
+        </div>
+        <div data-slot="contextual-sidebar-section" className={contextualSidebarStyles.section}>
+          <div className={contextualSidebarStyles.sectionLabel}>{t("uxNav.customerChannels", { defaultValue: "Atención a clientes" })}</div>
+          <div className={contextualSidebarStyles.group}>
+            <SidebarNavItem to="/apps/channels" label={t("nav.channels")} icon={Radio} end />
+            <SidebarNavItem to="/apps/webchat" label={t("nav.webchat")} icon={Globe} end />
+            <SidebarNavItem to="/apps/crm-sync" label={t("nav.crmSync")} icon={RefreshCw} end />
+          </div>
         </div>
         {developerTabs.length > 0 ? (
           <div data-slot="contextual-sidebar-section" className={contextualSidebarStyles.section}>

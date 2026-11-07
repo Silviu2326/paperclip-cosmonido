@@ -1,3 +1,4 @@
+import { probeCodexFilesystemSandbox } from "./code-access.js";
 import { createProviderStoppedBoundary } from "@paperclipai/adapter-utils/provider-stopped-boundary";
 import { createUsageCheckpointLog } from "@paperclipai/adapter-utils/usage-checkpoint";
 import { createHash } from "node:crypto";
@@ -1154,6 +1155,13 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
             continuationSummaryBody,
           })
         : "";
+    const codeSandbox = await probeCodexFilesystemSandbox({ runId, target: runtimeExecutionTarget, command,
+      cwd: effectiveExecutionCwd, env, access: config.paperclipCodeAccess });
+    if (!codeSandbox.available) return { exitCode: 1, signal: null, timedOut: false,
+      errorCode: "codex_code_sandbox_unavailable", errorMessage: codeSandbox.detail,
+      resultJson: { executionRecovery: { kind: "bootstrap", providerWorkStarted: false } } };
+
+
     const runAttempt = async (resumeSessionId: string | null) => {
       await hydrateFreshSessionHandoff(ctx, { resumedSession: Boolean(resumeSessionId) });
       const renderedBootstrapPrompt =

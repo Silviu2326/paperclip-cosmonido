@@ -83,7 +83,12 @@ export async function getMonthlySpendTotal(
 }
 
 export async function createCostEventInTransaction(db: Db, companyId: string, data: Omit<typeof costEvents.$inferInsert, "companyId" | "receiptHash" | "costCents"> & { costCents: MoneyInput }, publications: ActivityPublication[] = [], actor?: Pick<LogActivityInput, "actorType" | "actorId" | "agentId">) {
-  const parsed = ((data.usageKind === "decision" || data.usageKind === "fast_response") ? createServiceCostEventSchema : createCostEventSchema).safeParse({ ...data, occurredAt: data.occurredAt.toISOString() });
+  const parsed = ((data.usageKind === "decision" || data.usageKind === "fast_response" || data.usageKind === "media" || data.usageKind === "enrichment" || data.usageKind === "autonomy_bench") ? createServiceCostEventSchema : createCostEventSchema).safeParse({
+    ...data,
+    // Service receipts (bench, enrichment, media) may carry no agent or responsible user; the schema needs explicit nulls.
+    ...(data.usageKind === "enrichment" || data.usageKind === "autonomy_bench" ? { agentId: data.agentId ?? null, responsibleUserId: data.responsibleUserId ?? null } : {}),
+    occurredAt: data.occurredAt.toISOString(),
+  });
   if (!parsed.success) throw unprocessable("Invalid cost receipt", parsed.error.flatten());
   const values = {
     ...parsed.data,
@@ -155,7 +160,7 @@ export async function createCostEventInTransaction(db: Db, companyId: string, da
   await budgetServiceInTransaction(db, publications).evaluateCostEvent(event);
   await logActivity(db, {
     companyId, actorType: actor?.actorType ?? "system", actorId: actor?.actorId ?? "cost_accounting", agentId: actor?.agentId ?? event.agentId,
-    ...((event.usageKind === "decision" || event.usageKind === "fast_response") ? { responsibleUserIdOverride: event.responsibleUserId } : {}),
+    ...((event.usageKind === "decision" || event.usageKind === "fast_response" || event.usageKind === "media" || event.usageKind === "enrichment" || event.usageKind === "autonomy_bench") ? { responsibleUserIdOverride: event.responsibleUserId } : {}),
     runId: event.heartbeatRunId, action: "cost.reported", entityType: "cost_event", entityId: event.id,
     details: { costCents: event.costCents, costCentsExact: values.costCents, model: event.model, costStatus: event.costStatus },
   }, publications);
@@ -414,7 +419,7 @@ export function costService(db: Db, budgetHooks: BudgetServiceHooks = {}) {
           eq(companyMemberships.companyId, companyId),
           eq(companyMemberships.principalType, "user"),
           ne(companyMemberships.principalId, "local-board"),
-          eq(companyMemberships.principalId, sql`case when ${costEvents.usageKind} in ('decision', 'fast_response') then ${costEvents.responsibleUserId} else ${heartbeatRuns.responsibleUserId} end`),
+          eq(companyMemberships.principalId, sql`case when ${costEvents.usageKind} in ('decision', 'fast_response', 'media', 'enrichment', 'autonomy_bench') then ${costEvents.responsibleUserId} else ${heartbeatRuns.responsibleUserId} end`),
         ))
         .where(and(...conditions))
         .groupBy(companyMemberships.principalId)

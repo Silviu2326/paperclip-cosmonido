@@ -1,0 +1,9 @@
+storybook/support/feature-map/FeatureOverview.tsx(5,21): error TS2307: Cannot find module '../../generated/catalog.json' or its corresponding type declarations.
+storybook/support/feature-map/FeatureOverview.tsx(6,26): error TS2307: Cannot find module '../../generated/feature-index.json' or its corresponding type declarations.
+storybook/support/feature-map/FeatureOverview.tsx(19,62): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(68,60): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(70,39): error TS7006: Parameter 'feature' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(73,41): error TS7006: Parameter 'capability' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(77,14): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(90,21): error TS7006: Parameter 'section' implicitly has an 'any' type.
+storybook/support/feature-map/FeatureOverview.tsx(94,35): error TS7006: Parameter 'feature' implicitly has an 'any' type.

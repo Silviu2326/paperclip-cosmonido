@@ -1,8 +1,11 @@
+import { applyAgentCodeAccess } from "../services/agent-code-access.js";
 import { cancellationRequestId } from "../services/native-runtime/native-cancellation-request.js";
-import { agentHarnessType, type AgentRunnerChoice } from "@paperclipai/shared";
+import { agentHarnessType, type AgentCapabilities, type AgentRunnerChoice } from "@paperclipai/shared";
 import { resolveNewAgentRunnerForCompany } from "../services/agent-runner-selection.js";
 import { agentEnvironmentTestService } from "../services/agent-environment-test.js";
 import { createAgentLifecycle } from "../services/agent-lifecycle.js";
+import { agentCapabilitiesService, capabilityMetadataForCreate } from "../services/agent-capabilities.js";
+import { productizationEntitlementsService } from "../services/productization/entitlements.js";
 
 import { agentIdentityService } from "../services/agent-identity.js";
 import { aiConnectionRouterService, poolMemberRuntimeConfig } from "../services/ai-connection-router.js";
@@ -68,6 +71,7 @@ import {
   resolveAgentInstructionCandidateSchema,
   updateAgentInstructionsBundleSchema,
   updateAgentPermissionsSchema,
+  updateAgentCapabilitiesSchema,
   updateAgentInstructionsPathSchema,
   wakeAgentSchema,
   updateAgentSchema,
@@ -577,8 +581,10 @@ export function agentRoutes(
   const router = Router();
   const svc = agentService(db, { cancelWorkForScope: scope => heartbeat.cancelBudgetScopeWork(scope) });
   const svcLifecycle = createAgentLifecycle(db, { cancelWorkForScope: scope => heartbeat.cancelBudgetScopeWork(scope) });
+  const entitlements=productizationEntitlementsService(db);
   const access = accessService(db);
   const approvalsSvc = approvalService(db);
+  const capabilitiesSvc = agentCapabilitiesService(db);
   const budgets = budgetService(db);
   const environmentsSvc = environmentService(db);
   const { resolveAdapterTestEnvironmentId, resolveAdapterTestExecutionContext, assertAdapterTestEnvironmentForCompany, testManagedEnvironment } = agentEnvironmentTestService(db, options.pluginWorkerManager);
@@ -4233,8 +4239,17 @@ export function agentRoutes(
       // This intent flag is consumed below and must never reach agent create.
       inheritRuntimeFrom,
       runner: hireRunner,
+      // `capabilities` is either the legacy free-text column or the structured switches.
+      capabilities: hireCapabilitiesField,
+      profile: hireProfile,
       ...hireInput
     } = req.body;
+    const hireCapabilityRequest = typeof hireCapabilitiesField === "object" && hireCapabilitiesField !== null
+      ? hireCapabilitiesField as AgentCapabilities
+      : undefined;
+    if (!hireCapabilityRequest && hireCapabilitiesField !== undefined) hireInput.capabilities = hireCapabilitiesField;
+    // Switches and profile are stored in metadata; the grants follow at activation.
+    hireInput.metadata = capabilityMetadataForCreate(hireInput.metadata, hireCapabilityRequest, hireProfile);
 
     const hiredAgentId = randomUUID();
     const requestedHireConfig = (hireInput.adapterConfig ?? {}) as Record<string, unknown>;
@@ -4268,6 +4283,7 @@ export function agentRoutes(
     }
     if (inheritRuntimeFrom === "caller" && hireRunner !== undefined) throw unprocessable("inheritRuntimeFrom=caller cannot be combined with runner");
     Object.assign(hireInput, await resolveNewAgentRunnerForCompany(db, companyId, { ...hireInput, runner: hireRunner }));
+    applyAgentCodeAccess(hireInput.metadata, hireInput.adapterType ?? "process", { ...(hireInput.adapterConfig ?? {}) });
     hireInput.adapterType = await assertSelectableAdapterType(hireInput.adapterType, hireInput.adapterConfig);
     const rawHireAdapterConfig = (hireInput.adapterConfig ?? {}) as Record<string, unknown>;
     assertProviderTraceSettingTransition(req, hireInput.runtimeConfig);
@@ -4355,7 +4371,12 @@ export function agentRoutes(
     // lock per company + run, so two overlapping retries cannot both miss.
     const requestFingerprint = hireFingerprint(req.body);
     const runId = req.actor.runId && isUuidLike(req.actor.runId) ? req.actor.runId : null;
+    const headerKey=req.get("idempotency-key")?.trim();
+    if(headerKey&&headerKey.length>255) throw unprocessable("Idempotency-Key must be at most 255 characters");
+    const hireKey=runId?`agent-hire:${companyId}:run:${runId}:${requestFingerprint}`:`agent-hire:${companyId}:user:${req.actor.userId??(req.actor.agentId?`agent:${req.actor.agentId}`:"local-board")}:key:${headerKey||requestFingerprint}`;
     const performHire = async (): Promise<{ status: 200 | 201; body: Record<string, unknown> }> => {
+      const [keyedHire]=await db.select({entityId:activityLog.entityId,details:activityLog.details}).from(activityLog).where(and(eq(activityLog.companyId,companyId),eq(activityLog.action,"agent.hire_created"),sql`${activityLog.details}->>'hireEntitlementKey' = ${hireKey}`)).limit(1);
+      if(keyedHire){const existingAgent=await svc.getById(keyedHire.entityId);if(existingAgent&&existingAgent.status!=="terminated"){const priorApprovalId=(keyedHire.details as Record<string,unknown>|null)?.approvalId;const existingApproval=typeof priorApprovalId==="string"?await approvalsSvc.getById(priorApprovalId):null;return {status:200,body:{agent:existingAgent,approval:existingApproval,idempotent:true}};}}
       if (runId) {
         const priorHires = await db
           .select({ entityId: activityLog.entityId, details: activityLog.details })
@@ -4386,7 +4407,10 @@ export function agentRoutes(
       const status = requiresApproval ? "pending_approval" : "idle";
       const managedHireBinding = normalizedHireInput.runtimeConfig?.aiConnection ? aiRuntimeConnectionBindingSchema.parse(normalizedHireInput.runtimeConfig.aiConnection) : undefined;
       const managedHireConnection = managedHireBinding ? await validateManagedAgentBinding(req, companyId, hiredAgentId, normalizedHireInput.adapterType, normalizedHireInput.adapterConfig, managedHireBinding, normalizedHireInput.defaultEnvironmentId, false, true) : undefined;
-      const createdAgent = await svcLifecycle.requestHire(
+      const hireReservation=await entitlements.reserveForCompany({companyId,metric:"agents",quantity:1,idempotencyKey:hireKey,requestFingerprint});
+      if(hireReservation.duplicate) throw conflict("This agent hire already has an unresolved or completed entitlement reservation.",{code:"agent_hire_entitlement_duplicate"});
+      let createdAgent: Awaited<ReturnType<typeof svcLifecycle.requestHire>>;
+      try { createdAgent = await svcLifecycle.requestHire(
         companyId,
         {
           id: hiredAgentId,
@@ -4418,7 +4442,22 @@ export function agentRoutes(
                 : null,
           },
         },
-      );
+      ); } catch (error) {
+        // The lifecycle write may have committed before an acknowledgement failed.
+        // Retain the reservation; retry reconciliation can safely inspect runId/agent.
+        await entitlements.markUncertain(hireReservation);
+        throw error;
+      }
+      await entitlements.commit(hireReservation);
+      if (hireCapabilityRequest && !requiresApproval) {
+        // Active hires already received the default grants at creation; align them with the switches.
+        await capabilitiesSvc.syncGrants(
+          companyId,
+          createdAgent.id,
+          hireCapabilityRequest,
+          req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+        );
+      }
       const onboardingFirstAgentBundle = await resolveOnboardingFirstAgentBundle({
         onboardingFirstAgent: hireOnboardingFirstAgent,
         actorType: req.actor.type,
@@ -4510,6 +4549,7 @@ export function agentRoutes(
           issueIds: sourceIssueIds,
           desiredSkills: desiredSkillAssignment.desiredSkills,
           hireFingerprint: requestFingerprint,
+          hireEntitlementKey: hireKey,
           ...(managedHireConnection?.memberConnectionIds ? { aiConnectionPoolId: managedHireConnection.connectionId, aiConnectionMemberInstallIds: managedHireConnection.memberConnectionIds } : {}),
         },
       });
@@ -4581,8 +4621,16 @@ export function agentRoutes(
       // seed the chief-of-staff persona; it never reaches the insert values.
       onboardingFirstAgent: createOnboardingFirstAgent,
       runner: createRunner,
+      // `capabilities` is either the legacy free-text column or the structured switches.
+      capabilities: createCapabilitiesField,
+      profile: createProfile,
       ...createInput
     } = req.body;
+    const createCapabilityRequest = typeof createCapabilitiesField === "object" && createCapabilitiesField !== null
+      ? createCapabilitiesField as AgentCapabilities
+      : undefined;
+    if (!createCapabilityRequest && createCapabilitiesField !== undefined) createInput.capabilities = createCapabilitiesField;
+    createInput.metadata = capabilityMetadataForCreate(createInput.metadata, createCapabilityRequest, createProfile);
     const agentId = randomUUID();
     const requestedCreateConfig = (createInput.adapterConfig ?? {}) as Record<string, unknown>;
     assertProviderTraceSettingTransition(req, createInput.runtimeConfig);
@@ -4591,6 +4639,7 @@ export function agentRoutes(
     assertNoAgentProcessAdapterMutation(req, createInput.adapterType ?? "process", Object.keys(requestedCreateConfig).length > 0);
     assertExternalInstructionsAdmin(req, { id: agentId, companyId, name: createInput.name, adapterConfig: requestedCreateConfig });
     Object.assign(createInput, await resolveNewAgentRunnerForCompany(db, companyId, { ...createInput, runner: createRunner }));
+    applyAgentCodeAccess(createInput.metadata, createInput.adapterType ?? "process", { ...(createInput.adapterConfig ?? {}) });
     createInput.adapterType = await assertSelectableAdapterType(createInput.adapterType, createInput.adapterConfig);
     const rawCreateAdapterConfig = (createInput.adapterConfig ?? {}) as Record<string, unknown>;
     assertProviderTraceSettingTransition(req, createInput.runtimeConfig);
@@ -4650,7 +4699,10 @@ export function agentRoutes(
 
     const managedBinding = normalizedRuntimeConfig.aiConnection ? aiRuntimeConnectionBindingSchema.parse(normalizedRuntimeConfig.aiConnection) : undefined;
     const managedConnection = managedBinding ? await validateManagedAgentBinding(req, companyId, agentId, createInput.adapterType, normalizedAdapterConfig, managedBinding, createInput.defaultEnvironmentId, false, true) : undefined;
-    const createdAgent = await svcLifecycle.requestHire(
+    const createFingerprint=sha256Digest(req.body);
+    const createReservation=await entitlements.reserveForCompany({companyId,metric:"agents",quantity:1,idempotencyKey:`agent-create:${companyId}:${agentId}`,requestFingerprint:createFingerprint});
+    let createdAgent: Awaited<ReturnType<typeof svcLifecycle.requestHire>>;
+    try { createdAgent = await svcLifecycle.requestHire(
       companyId,
       {
         id: agentId,
@@ -4675,7 +4727,19 @@ export function agentRoutes(
             req.actor.type !== "agent" && createApplyStoredClaudeLogin === true,
         },
       },
-    );
+    ); } catch (error) {
+      await entitlements.markUncertain(createReservation);
+      throw error;
+    }
+    await entitlements.commit(createReservation);
+    if (createCapabilityRequest) {
+      await capabilitiesSvc.syncGrants(
+        companyId,
+        createdAgent.id,
+        createCapabilityRequest,
+        req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+      );
+    }
     const onboardingFirstAgentBundle = await resolveOnboardingFirstAgentBundle({
       onboardingFirstAgent: createOnboardingFirstAgent,
       actorType: req.actor.type,
@@ -4731,6 +4795,41 @@ export function agentRoutes(
     }
 
     res.status(201).json(redactAgentRowForResponse(agent));
+  });
+
+  // Capabilities (messages / calls / video grants, profile, code flag) and their approval levels.
+  router.get("/agents/:id/capabilities", async (req, res) => {
+    const id = req.params.id as string;
+    const agent = await getAccessibleResource(req, res, svc.getById(id), "Agent not found");
+    if (!agent) return;
+    if (!(await assertAgentReadAllowed(req, res, agent))) return;
+    res.json(await capabilitiesSvc.get(agent.companyId, agent.id));
+  });
+
+  // Board only: an agent must not be able to widen its own messaging, calling or video rights.
+  router.put("/agents/:id/capabilities", validate(updateAgentCapabilitiesSchema), async (req, res) => {
+    const id = req.params.id as string;
+    const existing = await getAccessibleResource(req, res, svc.getById(id), "Agent not found");
+    if (!existing) return;
+    assertBoard(req);
+    await assertBoardCanManageAgentsForCompany(req, existing.companyId);
+
+    const actor = getActorInfo(req);
+    const view = await capabilitiesSvc.apply(
+      existing.companyId,
+      existing.id,
+      req.body.capabilities,
+      req.body.profile,
+      {
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        agentApiKeyId: actor.agentApiKeyId,
+        userId: req.actor.type === "board" ? (req.actor.userId ?? null) : null,
+      },
+    );
+    res.json(view);
   });
 
   router.patch("/agents/:id/permissions", validate(updateAgentPermissionsSchema), async (req, res) => {

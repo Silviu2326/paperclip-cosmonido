@@ -45,7 +45,7 @@ export const SecretRefHintsContext = createContext<SecretRefHintsContextValue | 
 
 interface SecretBindingPickerProps {
   value: SecretBindingValue | null;
-  onChange: (next: SecretBindingValue | null) => void;
+  onChange: (next: SecretBindingValue | null, secret?: CompanySecret | null) => void;
   label?: string;
   placeholder?: string;
   allowVersionSelector?: boolean;
@@ -141,7 +141,7 @@ export function SecretBindingPicker({
       }),
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.secrets.list(selectedCompanyId!) });
-      onChange({ secretId: created.id, version: VERSION_LATEST });
+      onChange({ secretId: created.id, version: VERSION_LATEST }, created);
       setCreateOpen(false);
       setCreateName("");
       setCreateValue("");
@@ -190,7 +190,7 @@ export function SecretBindingPicker({
                 onChange(null);
                 return;
               }
-              onChange({ secretId: next, version: value?.version ?? VERSION_LATEST });
+              onChange({ secretId: next, version: value?.version ?? VERSION_LATEST }, filteredSecrets.find((secret) => secret.id === next));
             }}
             disabled={disabled || secretsQuery.isPending}
           >

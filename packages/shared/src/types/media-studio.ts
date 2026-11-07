@@ -1,0 +1,28 @@
+export type MediaJobKind = "transcribe" | "render" | "dub" | "stop_motion" | "dub_multivoice" | "voiceover" | "motor_video_render";
+export type MediaJobStatus = "queued" | "running" | "cancel_requested" | "finalizing" | "done" | "failed" | "cancelled";
+export type MediaQueueCursor = { priority: number; createdAt: string; id: string };
+export type MediaQueueJob = {
+  id: string;
+  companyId: string;
+  projectId: string;
+  kind: MediaJobKind;
+  status: "queued" | "running" | "cancel_requested" | "finalizing";
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  startedAt: string | null;
+};
+export type MediaQueuePage = { running: MediaQueueJob[]; jobs: MediaQueueJob[]; nextCursor: string | null };
+export type MediaProjectStatus = "draft" | "processing" | "ready" | "failed" | "cancelled";
+export type MediaCameraMotion = "pan" | "zoom" | "none";
+export type MediaOperation =
+  | { type: "cut_ranges"; ranges: Array<{ start: number; end: number }> }
+  | { type: "remove_silences"; thresholdDb: number; minDurationMs: number }
+  | { type: "remove_fillers"; words: string[] }
+  | { type: "burn_subtitles"; style: { font?: string; size: number; color: string; highlightColor?: string; position: "top" | "center" | "bottom" } }
+  | { type: "export"; aspect: "9:16" | "16:9"; cropMode: "center" }
+  | { type: "replace_audio"; assetId: string }
+  // Job-only operations: they run as their own media jobs and are rejected when a project's operations are rendered.
+  | { type: "stop_motion"; frameDurationSeconds: number; cameraMotion: MediaCameraMotion }
+  | { type: "voiceover"; assetId: string; duckingDb: number }
+  | { type: "dub_multivoice"; language: string };

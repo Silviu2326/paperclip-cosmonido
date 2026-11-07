@@ -45,7 +45,12 @@ export function AgentConversationsSidebar() {
     .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
   const previews = Object.fromEntries((chats.data ?? []).filter(chat => chat.conversationState === "active")
     .map(chat => [chat.conversationAgentId!, t("agentConversationsSidebar.working")]));
+  const activeChats = (chats.data ?? []).filter(chat => chat.conversationAgentId);
+  const workingIds = new Set(activeChats.filter(chat => chat.conversationState === "active").map(chat => chat.conversationAgentId!));
+  const activity = Object.fromEntries(activeChats.map(chat => [chat.conversationAgentId!, chat.updatedAt]));
+  const starredIds = memberships.data?.starredAgentIds ?? [];
   return <AgentConversationSidebar key={`${companyId}:${userId}`} agents={[...conversations, ...teammates]} availableAgents={roster}
+    starredIds={starredIds} workingIds={workingIds} activity={activity}
     existingChatAgentIds={conversations.map(agent => agent.id)}
     activeId={active?.id} previews={previews}
     loading={agents.isPending || chats.isPending || session.isPending}

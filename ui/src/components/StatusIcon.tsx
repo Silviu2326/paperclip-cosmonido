@@ -8,7 +8,7 @@ import { t } from "@/i18n";
 
 const allStatuses = ["backlog", "todo", "in_progress", "in_review", "done", "cancelled", "blocked"];
 
-function statusLabel(status: string): string {
+export function statusLabel(status: string): string {
   return t(`statusIcon.labels.${status}`, {
     defaultValue: status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
   });

@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { t } from "@/i18n";
+import { operationLabel, statusLabel } from "./protocol-labels";
 import {
   clearDraft,
   loadStructuredDraft,
@@ -160,7 +162,7 @@ function CardShell({
           )}
         >
           <StatusIcon status={status} className="h-3.5 w-3.5" />
-          {status.replaceAll("_", " ")}
+          {statusLabel(status)}
         </span>
       ) : null}
     </div>
@@ -214,7 +216,7 @@ function CardShell({
                 )}
               >
                 <StatusIcon status={status} className="h-3.5 w-3.5" />
-                {status.replaceAll("_", " ")}
+                {statusLabel(status)}
               </span>
             ) : null}
           </div>
@@ -233,7 +235,7 @@ function CardShell({
 function PlanSteps({ steps }: { steps: TaskChatProtocolStep[] }) {
   if (steps.length === 0) return null;
   return (
-    <ol className="flex flex-col gap-1.5" aria-label="Plan steps">
+    <ol className="flex flex-col gap-1.5" aria-label={t("chatUiWork.planSteps", { defaultValue: "Plan steps" })}>
       {steps.map((step) => (
         <li key={step.id} className="flex items-start gap-2 text-sm">
           <StatusIcon status={step.status} className="mt-0.5 shrink-0" />
@@ -273,7 +275,7 @@ function ProviderActivityCard({
     >
       {item.steps.length > 0 ? <PlanSteps steps={item.steps} /> : null}
       {item.children.length > 0 ? (
-        <ul className="flex flex-col gap-2" aria-label="Delegated agents">
+        <ul className="flex flex-col gap-2" aria-label={t("chatUiWork.delegatedAgents", { defaultValue: "Delegated agents" })}>
           {item.children.map((child) => (
             <li
               key={child.id}
@@ -288,7 +290,7 @@ function ProviderActivityCard({
                     statusTone(child.status),
                   )}
                 >
-                  {child.status}
+                  {statusLabel(child.status)}
                 </span>
               </div>
               {child.metadata ? (
@@ -306,7 +308,7 @@ function ProviderActivityCard({
         </ul>
       ) : null}
       {item.links.length > 0 ? (
-        <ul className="flex flex-col gap-2" aria-label="Research sources">
+        <ul className="flex flex-col gap-2" aria-label={t("chatUiWork.researchSources", { defaultValue: "Research sources" })}>
           {item.links.map((link) => (
             <li key={link.href}>
               <a
@@ -337,7 +339,7 @@ function ProviderActivityCard({
           )}
         >
           <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-muted-foreground">
-            <ChevronDown aria-hidden className="h-3.5 w-3.5" /> Details
+            <ChevronDown aria-hidden className="h-3.5 w-3.5" /> {t("chatUiWork.details", { defaultValue: "Details" })}
           </summary>
           {item.details.length > 0 ? (
             <dl className="mt-2 flex min-w-0 flex-col gap-1.5 text-xs">
@@ -366,7 +368,7 @@ function ProviderActivityCard({
           ) : null}
           {item.outputTruncated ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              Output truncated to 8 KiB.
+              {t("chatUiWork.outputTruncated", { defaultValue: "Output truncated to 8 KiB." })}
             </p>
           ) : null}
         </details>
@@ -392,19 +394,21 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
     item.files.find((file) => file.path === selectedPath) ?? null;
   const visibleFiles = expanded ? item.files : item.files.slice(0, 3);
   const fileCount = item.totals.files || item.files.length;
-  const fileLabel = `${fileCount} ${fileCount === 1 ? "file" : "files"}`;
+  const changedLabel = fileCount === 1
+    ? t("chatUiWork.fileChangedOne", { n: fileCount, defaultValue: "{{n}} file changed" })
+    : t("chatUiWork.fileChangedOther", { n: fileCount, defaultValue: "{{n}} files changed" });
   const stats = [
     item.totals.additions == null ? null : `+${item.totals.additions}`,
     item.totals.deletions == null ? null : `−${item.totals.deletions}`,
   ].filter(Boolean).join(" ");
   const summary = item.complete
-    ? `${fileLabel} changed${stats ? ` · ${stats}` : ""}`
-    : "Workspace changes in progress";
+    ? `${changedLabel}${stats ? ` · ${stats}` : ""}`
+    : t("chatUiWork.workspaceChangesInProgress", { defaultValue: "Workspace changes in progress" });
   return (
     <>
       <CardShell
         icon={GitBranch}
-        title="Workspace changes"
+        title={t("chatUiWork.workspaceChanges", { defaultValue: "Workspace changes" })}
         status={item.complete ? "completed" : "running"}
         summary={summary}
         testId="task-chat-workspace-change"
@@ -424,8 +428,8 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
                     : file.path}
                 </span>
                 <span className="text-xs capitalize text-muted-foreground">
-                  {file.binary ? "binary · " : ""}
-                  {file.operation.replaceAll("_", " ")}
+                  {file.binary ? `${t("chatUiWork.binary", { defaultValue: "binary" })} · ` : ""}
+                  {operationLabel(file.operation)}
                 </span>
               </span>
               {diffStats(file)}
@@ -441,8 +445,10 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
               onClick={() => setExpanded((value) => !value)}
             >
               {expanded
-                ? "Show fewer files"
-                : `Show ${item.files.length - 3} more files`}
+                ? t("chatUiWork.showFewerFiles", { defaultValue: "Show fewer files" })
+                : item.files.length - 3 === 1
+                  ? t("chatUiWork.showMoreFilesOne", { n: item.files.length - 3, defaultValue: "Show {{n}} more file" })
+                  : t("chatUiWork.showMoreFilesOther", { n: item.files.length - 3, defaultValue: "Show {{n}} more files" })}
             </Button>
           ) : null}
           {item.files.length > 0 ? (
@@ -452,7 +458,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
               variant="outline"
               onClick={() => setSelectedPath(item.files[0].path)}
             >
-              Review diff
+              {t("chatUiWork.reviewDiff", { defaultValue: "Review diff" })}
             </Button>
           ) : null}
         </div>
@@ -466,13 +472,13 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
         <DialogContent className="w-full max-w-(--pct-90) overflow-hidden">
           <DialogHeader>
             <DialogTitle className="font-mono text-sm">
-              {selected?.path ?? "Workspace diff"}
+              {selected?.path ?? t("chatUiWork.workspaceDiff", { defaultValue: "Workspace diff" })}
             </DialogTitle>
           </DialogHeader>
           {item.files.length > 1 ? (
             <div
               className="flex max-w-full gap-1 overflow-x-auto pb-1"
-              aria-label="Changed files"
+              aria-label={t("chatUiWork.changedFiles", { defaultValue: "Changed files" })}
             >
               {item.files.map((file) => (
                 <Button
@@ -489,7 +495,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
           ) : null}
           {selected?.binary ? (
             <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              Binary file; text diff is unavailable.
+              {t("chatUiWork.binaryFileNoDiff", { defaultValue: "Binary file; text diff is unavailable." })}
             </p>
           ) : selected?.diff ? (
             <pre className="max-h-(--sz-70vh) overflow-auto whitespace-pre rounded-sm bg-muted/50 p-3 font-mono text-xs">
@@ -497,7 +503,7 @@ function WorkspaceChangeCard({ item }: { item: TaskChatWorkspaceChangeItem }) {
             </pre>
           ) : (
             <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              No inline patch was recorded for this file.
+              {t("chatUiWork.noInlinePatch", { defaultValue: "No inline patch was recorded for this file." })}
             </p>
           )}
         </DialogContent>
@@ -511,8 +517,9 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
   const extension = item.displayName.includes(".")
     ? item.displayName.split(".").at(-1)?.toUpperCase()
     : "FILE";
-  const label =
-    item.presentation === "generic" ? "File" : titleCaseKey(item.presentation);
+  const label = t(`chatUiWork.presentation_${item.presentation}`, {
+    defaultValue: item.presentation === "generic" ? "File" : titleCaseKey(item.presentation),
+  });
   const workspaceFileRef = useMemo(
     () => ({
       path: item.path,
@@ -531,7 +538,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
         status={
           item.source === "runner_verified" ? "completed" : "informational"
         }
-        summary={`${label} · ${extension}${item.line ? ` · line ${item.line}` : ""}`}
+        summary={`${label} · ${extension}${item.line ? ` · ${t("chatUiWork.lineNumber", { n: item.line, defaultValue: "line {{n}}" })}` : ""}`}
         testId="task-chat-workspace-file"
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -546,7 +553,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
             variant="outline"
             onClick={() => setOpen(true)}
           >
-            Preview
+            {t("chatUiWork.preview", { defaultValue: "Preview" })}
           </Button>
         </div>
       </CardShell>
@@ -558,8 +565,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
           <p className="font-mono text-xs text-muted-foreground">{item.path}</p>
           {item.preview == null ? (
             <p className="rounded-sm bg-muted/50 p-3 text-sm text-muted-foreground">
-              Preview unavailable. The verified workspace reference is still
-              available above.
+              {t("chatUiWork.previewUnavailableVerified", { defaultValue: "Preview unavailable. The verified workspace reference is still available above." })}
             </p>
           ) : item.presentation === "document" ? (
             <div className="max-h-(--sz-70vh) overflow-auto rounded-sm bg-muted/30 p-3">
@@ -580,7 +586,7 @@ function WorkspaceFileCard({ item }: { item: TaskChatWorkspaceFileItem }) {
           )}
           {item.previewTruncated ? (
             <p className="text-xs text-muted-foreground">
-              Preview truncated by the runner.
+              {t("chatUiWork.previewTruncated", { defaultValue: "Preview truncated by the runner." })}
             </p>
           ) : null}
         </DialogContent>
@@ -626,8 +632,11 @@ function RuntimeQuestionHistory({
           ))}
           <p className="text-xs text-muted-foreground">
             {item.status === "resolved"
-              ? "Answer details were not recorded by this older runtime."
-              : `No answers were submitted; this request was ${item.status}.`}
+              ? t("chatUiWork.answerDetailsNotRecorded", { defaultValue: "Answer details were not recorded by this older runtime." })
+              : t(`chatUiWork.noAnswers_${item.status}`, {
+                  status: item.status,
+                  defaultValue: "No answers were submitted; this request was {{status}}.",
+                })}
           </p>
         </div>
       )}
@@ -642,12 +651,12 @@ function RuntimeQuestionReceipt({
 }) {
   const label =
     item.status === "resolved"
-      ? "Questions answered"
+      ? t("chatUiWork.questionsAnswered", { defaultValue: "Questions answered" })
       : item.status === "cancelled"
-        ? "Questions cancelled"
+        ? t("chatUiWork.questionsCancelled", { defaultValue: "Questions cancelled" })
         : item.status === "expired"
-          ? "Questions expired"
-          : "Questions resolved";
+          ? t("chatUiWork.questionsExpired", { defaultValue: "Questions expired" })
+          : t("chatUiWork.questionsResolved", { defaultValue: "Questions resolved" });
   return (
     <details className="group" data-testid="task-chat-runtime-request">
       <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 rounded-sm px-1 py-1.5 text-sm leading-5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -671,7 +680,7 @@ function RuntimeQuestionReceipt({
       <div className="pb-3 pl-7 pr-1">
         <div className="mb-3">
           <p className="text-sm font-medium text-foreground">
-            {item.questionSet?.title ?? "Runtime input"}
+            {item.questionSet?.title ?? t("chatUiWork.runtimeInput", { defaultValue: "Runtime input" })}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{item.prompt}</p>
         </div>
@@ -699,12 +708,12 @@ function RuntimeRequestCard({
   const title =
     item.questionSet?.title ??
     (item.requestType === "permission"
-      ? "Runtime permission"
-      : "Runtime input");
+      ? t("chatUiWork.runtimePermission", { defaultValue: "Runtime permission" })
+      : t("chatUiWork.runtimeInput", { defaultValue: "Runtime input" }));
   const fields =
     item.fields.length > 0
       ? item.fields
-      : [{ name: "answer", label: "Response", placeholder: null }];
+      : [{ name: "answer", label: t("chatUiWork.response", { defaultValue: "Response" }), placeholder: null }];
   const [values, setValues] = useState<Record<string, string>>(() =>
     draftKey ? loadStructuredDraft(draftKey, {}) : {},
   );
@@ -740,7 +749,7 @@ function RuntimeRequestCard({
       setError(
         cause instanceof Error
           ? cause.message
-          : "The runtime request could not be resolved.",
+          : t("chatUiWork.runtimeRequestNotResolved", { defaultValue: "The runtime request could not be resolved." }),
       );
     }
   };
@@ -839,7 +848,7 @@ function RuntimeRequestCard({
               size="sm"
               disabled={!onDecision || submitting || !canSubmitInput}
             >
-              {submitting ? "Submitting…" : "Submit response"}
+              {submitting ? t("chatUiWork.submitting", { defaultValue: "Submitting…" }) : t("chatUiWork.submitResponse", { defaultValue: "Submit response" })}
             </Button>
             {item.choices.some((choice) => choice.key === "decline") ? (
               <Button
@@ -849,7 +858,7 @@ function RuntimeRequestCard({
                 disabled={!onDecision || submitting}
                 onClick={() => void submit({ action: "decline" })}
               >
-                Deny
+                {t("chatUiWork.deny", { defaultValue: "Deny" })}
               </Button>
             ) : null}
             {presentation === "timeline" ? (
@@ -860,7 +869,7 @@ function RuntimeRequestCard({
                 disabled={!onDecision || submitting}
                 onClick={() => void submit({ action: "cancel" })}
               >
-                Cancel
+                {t("chatUiWork.cancel", { defaultValue: "Cancel" })}
               </Button>
             ) : null}
           </div>
@@ -892,14 +901,14 @@ function RuntimeRequestCard({
                   }
                 }}
               >
-                {submitting ? "Submitting…" : choice.label}
+                {submitting ? t("chatUiWork.submitting", { defaultValue: "Submitting…" }) : choice.label}
               </Button>
             ))}
         </div>
       ) : null}
       {item.status === "pending" && !onDecision ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          Resolve this request in the active runtime session.
+          {t("chatUiWork.resolveInActiveRuntime", { defaultValue: "Resolve this request in the active runtime session." })}
         </p>
       ) : null}
       {error ? (
@@ -924,7 +933,7 @@ function ResultCard({
   return (
     <CardShell
       icon={PackageCheck}
-      title="Run result"
+      title={t("chatUiWork.runResult", { defaultValue: "Run result" })}
       status={item.disposition}
       summary={item.summary}
       testId="task-chat-run-result"
@@ -933,7 +942,7 @@ function ResultCard({
         <div className="flex flex-col gap-3 text-sm">
           {item.blocker ? (
             <div className="rounded-sm bg-muted/50 p-2">
-              <strong>Blocked: {item.blocker.reasonCode}</strong>
+              <strong>{t("chatUiWork.blockedReason", { reason: item.blocker.reasonCode, defaultValue: "Blocked: {{reason}}" })}</strong>
               <p className="mt-1 text-muted-foreground">
                 {item.blocker.unblockAction}
               </p>
@@ -942,7 +951,7 @@ function ResultCard({
           {item.verification.length > 0 ? (
             <ul
               className="flex flex-col gap-1"
-              aria-label="Verification results"
+              aria-label={t("chatUiWork.verificationResults", { defaultValue: "Verification results" })}
             >
               {item.verification.map((check, index) => (
                 <li
@@ -972,7 +981,7 @@ function ResultCard({
               {item.remainingWork.map((work, index) => (
                 <li key={`${work.description}:${index}`}>
                   {work.description}
-                  {work.blocksCompletion ? " · blocks completion" : ""}
+                  {work.blocksCompletion ? ` · ${t("chatUiWork.blocksCompletion", { defaultValue: "blocks completion" })}` : ""}
                 </li>
               ))}
             </ul>
@@ -1003,9 +1012,9 @@ function TerminalCard({
   return (
     <CardShell
       icon={TerminalSquare}
-      title="Run ended"
+      title={t("chatUiWork.runEnded", { defaultValue: "Run ended" })}
       status={item.runState}
-      summary={[item.disposition.replaceAll("_", " "), item.stopReason]
+      summary={[statusLabel(item.disposition), item.stopReason]
         .filter(Boolean)
         .join(" · ")}
       testId="task-chat-run-terminal"

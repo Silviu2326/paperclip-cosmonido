@@ -1,10 +1,11 @@
-import i18n, { type InitOptions, type TOptions } from "i18next";
+import i18n, { type BackendModule, type InitOptions, type TOptions } from "i18next";
 import { initReactI18next, useTranslation as useReactI18nextTranslation } from "react-i18next";
 
-import { DEFAULT_LOCALE, i18nextResources, supportedLocales } from "./locales";
+import { DEFAULT_LOCALE, i18nextResources, isSupportedLocale, loadLocaleMessages, supportedLocales } from "./locales";
 
 const i18nextOptions: InitOptions = {
   resources: i18nextResources,
+  partialBundledLanguages: true,
   lng: DEFAULT_LOCALE,
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: supportedLocales,
@@ -14,7 +15,22 @@ const i18nextOptions: InitOptions = {
   initAsync: false,
 };
 
-void i18n.use(initReactI18next).init(i18nextOptions).catch((error: unknown) => {
+const localeBackend: BackendModule = {
+  type: "backend",
+  init() {},
+  read(language, _namespace, callback) {
+    if (!isSupportedLocale(language)) {
+      callback(new Error("Unsupported locale: " + language), false);
+      return;
+    }
+    void loadLocaleMessages(language).then(
+      (messages) => callback(null, messages),
+      (error: unknown) => callback(error instanceof Error ? error : new Error(String(error)), false),
+    );
+  },
+};
+
+void i18n.use(localeBackend).use(initReactI18next).init(i18nextOptions).catch((error: unknown) => {
   console.error("Failed to initialize i18next", error);
 });
 

@@ -15,6 +15,16 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
+// Identity/language synchronization and notifications were added to App after
+// these route-only fixtures. Keep their existing authentication isolation:
+// these tests drive redirects and page selection, not account queries or push.
+vi.mock("./api/companies-query", () => ({
+  useAccountIdentity: () => ({ userId: null, settled: true }),
+}));
+vi.mock("./features/productization/notifications/ProductNotificationBridge", () => ({
+  ProductNotificationBridge: () => null,
+}));
+
 // jsdom's CSS parser rejects the custom-property marker rule stitches inserts
 // (`--sxs{--sxs:N}`), pulled into <App>'s eager import graph transitively via
 // @codesandbox/sandpack-react. Substitute a benign, valid rule on parse failure

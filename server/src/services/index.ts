@@ -1,5 +1,6 @@
 export { companyService } from "./companies.js";
 export { companyArtifactsService } from "./company-artifacts.js";
+export { companyFilesService } from "./company-files.js";
 export { companySearchService } from "./company-search.js";
 export { companySearchExtractService } from "./company-search-extract.js";
 export { feedbackService } from "./feedback.js";
@@ -219,3 +220,28 @@ export {
 } from "./remote-agent-profiles.js";
 
 export { decisionModelService, defineDecisionFeature } from "./decision-models.js";
+export { assignmentService } from "./assignments.js";
+export { dailyBriefService } from "./daily-brief.js";
+export { agentExplainService } from "./agent-explain.js";
+export { playbookService } from "./playbooks.js";
+export { autonomyService } from "./autonomy.js";
+export { autonomyBench } from "./autonomy-bench.js";
+export * from "./commercial-decisions.js";
+export * from "./commercial-decision-tools.js";
+export { proposalService } from "./proposals.js";
+export { renderProposalMarkdown } from "./proposal-render.js";
+export { createPaymentLink, verifyStripeSignature } from "./stripe-payment-links.js";
+export { PROPOSAL_TOOL_NAMES, proposalToolDefinitions, callProposalTool } from "./proposal-tools.js";
+export { handoffService } from "./handoff.js";
+export { serviceAgreementService } from "./service-agreements.js";
+export { leadQualificationService } from "./lead-qualification.js";
+export { enrichmentService } from "./enrichment.js";
+export { commitmentService } from "./commitment-extractor.js";
+export { commercialTriggers, COMMERCIAL_ROUTINE_ORIGIN_KINDS } from "./commercial-triggers.js";
+export { deliverableReviewService } from "./deliverable-reviews.js";
+export { assignmentCostService } from "./assignment-costs.js";
+
+export { mediaStudioService } from "./media-studio.js";
+export { contextService } from "./context.js";
+// Sprint 2: external action gate (every outbound action goes through it).
+export { gateExternalAction, approveExternalAction, rejectExternalAction, resolveAutonomyLevel } from "./external-action-gate.js";

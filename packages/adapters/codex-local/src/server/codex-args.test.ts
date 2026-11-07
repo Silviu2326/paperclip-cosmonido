@@ -294,3 +294,15 @@ describe("buildCodexExecArgs", () => {
   });
 
 });
+
+describe("operator code filesystem policy", () => {
+  it.each(["read_only", "workspace_write"])("enforces %s despite bypass flags and extra arguments", (access) => {
+    const { args } = buildCodexExecArgs({ paperclipCodeAccess: access, dangerouslyBypassApprovalsAndSandbox: true, extraArgs: ["--sandbox", "danger-full-access", "--profile", "unsafe", "-c", "approval_policy=on-request"] }, { resumeSessionId: "saved-session" });
+    expect(args).toContain(access === "read_only" ? "read-only" : "workspace-write");
+    expect(args).toContain('approval_policy="never"');
+    expect(args).not.toContain("--dangerously-bypass-approvals-and-sandbox");
+    expect(args).not.toContain("danger-full-access");
+    expect(args).not.toContain("unsafe");
+    expect(args.slice(-3)).toEqual(["resume", "saved-session", "-"]);
+  });
+});

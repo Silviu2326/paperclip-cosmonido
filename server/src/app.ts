@@ -1,3 +1,4 @@
+import { agentWorkPermissionsMiddleware } from "./middleware/agent-work-permissions.js";
 import { voiceSessionRoutes, voiceWebhookRoutes } from "./routes/voice-sessions.js";
 import { eq } from "drizzle-orm";
 import { chatEndpoints } from "@paperclipai/db";
@@ -21,6 +22,7 @@ import { slackToolRoutes } from "./routes/slack-tools.js";
 import { createPublicMcpOAuth, publicMcpConfig } from "./services/public-mcp/oauth.js";
 import { createDotRunnerMcpTools, dotRunnerBroker } from "./services/dot-runner-broker.js";
 import { agentProfileAvatarRoutes } from "./routes/agent-profile-avatar.js";
+import { officeRoutes } from "./routes/office.js";
 import { grokBotRoutes } from "./routes/grok-bot.js";
 import { createGrokRoutineDispatcher } from "./services/grok-bot/dispatcher.js";
 import { dotRunnerRoutes } from "./routes/dot-runner.js";
@@ -33,6 +35,45 @@ import { decisionModelRoutes } from "./routes/decision-models.js";
 import { aiConnectionRoutes } from "./routes/ai-connections.js";
 import { taskWorkspaceRoutes } from "./routes/task-workspaces.js";
 import { projectToolRoutes } from "./routes/project-tools.js";
+import { mediaStudioRoutes } from "./routes/media-studio.js";
+import { assignmentRoutes } from "./routes/assignments.js";
+import { productizationCatalogRoutes } from "./routes/productization-catalog.js";
+import { productizationOnboardingRoutes } from "./routes/productization-onboarding.js";
+import { productizationAccountRoutes } from "./routes/productization-accounts.js";
+import { productizationBuilderRoutes } from "./routes/productization-builder.js";
+import { productizationMetricsRoutes } from "./routes/productization-metrics.js";
+import { productizationMediaPresetRoutes } from "./routes/productization-media-presets.js";
+import { customerPortalRoutes } from "./routes/productization-customer-portal.js";
+import { productizationPublicCatalogReadRoutes, productizationPublicCatalogRoutes } from "./routes/productization-public-catalog.js";
+import { productizationAgencyPublicRoutes, productizationAgencyRoutes } from "./routes/productization-agency.js";
+import { createCompanyFileRetentionAdapter } from "./services/productization/retention-files.js";
+import { createRetentionWorker } from "./services/productization/retention-worker.js";
+import { createAccountDeletionWorker } from "./services/productization/account-deletion.js";
+import { createAccountDeletionStripeProvider } from "./services/productization/account-deletion-stripe.js";
+import { conversationAgentDispatchService } from "./services/conversations/agent-dispatch.js";
+import { leadFormRoutes } from "./routes/lead-forms.js";
+import { productizationSecurityRoutes } from "./routes/productization-security.js";
+import { productizationContactImportRoutes } from "./routes/productization-contact-import.js";
+import { productNotificationRoutes } from "./routes/productization-notifications.js";
+import { productizationPublicApiV1Routes, productizationPublicApiManagementRoutes } from "./routes/productization-public-api.js";
+import { businessWebhooksService } from "./services/productization/business-webhooks.js";
+import { productNotificationsService } from "./services/productization/notifications.js";
+import { dailyBriefRoutes } from "./routes/daily-brief.js";
+import { agentExplainRoutes } from "./routes/agent-explain.js";
+import { playbookRoutes } from "./routes/playbooks.js";
+import { autonomyRoutes } from "./routes/autonomy.js";
+import { commercialDecisionRoutes, publicDecisionRoutes } from "./routes/commercial-decisions.js";
+import { proposalRoutes, publicProposalRoutes } from "./routes/proposals.js";
+import { handoffRoutes } from "./routes/handoff.js";
+import { serviceAgreementRoutes } from "./routes/service-agreements.js";
+import { leadQualificationRoutes } from "./routes/lead-qualification.js";
+import { commitmentRoutes, commercialTriggerRoutes } from "./routes/commitments.js";
+import { detectedCommitmentsPersist } from "./services/crm/commitments.js";
+import { autonomyService } from "./services/autonomy.js";
+import { playbookService } from "./services/playbooks.js";
+import type { CommercialDecisionDeps } from "./services/commercial-decisions.js";
+import type { AutonomyActionType } from "@paperclipai/shared";
+import { deliverableReviewRoutes } from "./routes/deliverable-reviews.js";
 import { emailChannelService } from "./services/email-channels.js";
 import { emailRoutes, emailWebhookRoutes } from "./routes/email.js";
 import { toolActionDeliveryService } from "./services/tool-action-delivery.js";
@@ -97,6 +138,8 @@ import {
 } from "./services/setup-token-transport-binding.js";
 import { environmentService } from "./services/environments.js";
 import { environmentRuntimeService } from "./services/environment-runtime.js";
+import { projectAutopilotRoutes } from "./routes/project-autopilot.js";
+import { startProjectAutopilotScheduler } from "./services/project-autopilot-scheduler.js";
 import { projectRoutes } from "./routes/projects.js";
 import { issueRoutes } from "./routes/issues.js";
 import { issueTreeControlRoutes } from "./routes/issue-tree-control.js";
@@ -107,6 +150,27 @@ import { pipelineRoutes } from "./routes/pipelines.js";
 import { environmentRoutes } from "./routes/environments.js";
 import { executionWorkspaceRoutes } from "./routes/execution-workspaces.js";
 import { goalRoutes } from "./routes/goals.js";
+import { crmRoutes } from "./routes/crm.js";
+import { crmMemoryRoutes } from "./routes/crm-memory.js";
+import { customerChannelRoutes } from "./routes/customer-channels.js";
+import { webchatRoutes } from "./routes/webchat.js";
+import { registerChannelTransports } from "./services/conversations/transports/register.js";
+import { registerWebchatTransport } from "./services/conversations/transports/register-webchat.js";
+import { leadRoutes } from "./routes/leads.js";
+import { conversationRoutes } from "./routes/conversations.js";
+import { channelInboundRoutes } from "./routes/channels-inbound.js";
+import { calendarRoutes } from "./routes/calendar.js";
+import { crmPhoneRoutes } from "./routes/crm-phone.js";
+import { crmPhoneService } from "./services/crm-phone.js";
+import { googleCalendarService } from "./services/calendar/google-calendar.js";
+import { createAuthorizedCalendarInvoker } from "./services/calendar/authorized-executor.js";
+import { externalActionRecoveryRoutes } from "./routes/external-action-recovery.js";
+import { publicSurfaceRoutes } from "./routes/public-surface.js";
+import { reviewLinkRoutes } from "./routes/public/review.js";
+import { crmSyncRoutes } from "./routes/crm-sync.js";
+import { crmSyncService, createCrmSyncInvoker } from "./services/crm-sync/index.js";
+import { createProductMaintenanceLane } from "./services/productization/maintenance-lane.js";
+import { s95SignupRoutes } from "./routes/s95-signup.js";
 import { onboardingSeedRoutes } from "./routes/onboarding-seed.js";
 import { boardChatRoutes } from "./routes/board-chat.js";
 import { approvalRoutes } from "./routes/approvals.js";
@@ -133,6 +197,7 @@ import { announcementRoutes } from "./routes/announcements.js";
 import { serverVersion } from "./version.js";
 import { primaryAgentRoutes } from "./routes/primary-agent.js";
 import { resourceMembershipRoutes } from "./routes/resource-memberships.js";
+import { companyFileRoutes } from "./routes/company-files.js";
 import { inboxDismissalRoutes } from "./routes/inbox-dismissals.js";
 import { instanceSettingsRoutes } from "./routes/instance-settings.js";
 import { instanceSettingsService } from "./services/instance-settings.js";
@@ -529,6 +594,8 @@ export async function createApp(
     pluginMigrationDb?: Db;
     pluginWorkerManager?: PluginWorkerManager;
     decisionServiceOptions: DecisionServiceOptions;
+    /** Sprint 3: effect handlers and shadow recording for commercial decisions. */
+    commercialDecisionDeps?: Omit<CommercialDecisionDeps, "decisions">;
     betterAuthHandler?: express.RequestHandler;
     resolveSession?: (
       req: ExpressRequest,
@@ -585,6 +652,12 @@ export async function createApp(
     createChatWebhookDiagnostics(),
     chatWebhookBodyParser,
   );
+  // Public surface (/api/p: chat, leads, booking, proposals). Anonymous bodies get a 4 kB cap
+  // before the global 10 MB parser runs; body-parser marks a request it parsed, so the global
+  // parser then skips it and the public router still receives req.body.
+  app.use("/api/p", express.json({ limit: "4kb" }), express.urlencoded({ extended: false, limit: "4kb" }));
+  app.use("/api/public/customer-portals", express.json({ limit: "4kb" }));
+  app.use("/api/public/productization/stripe/webhook", express.json({ limit: "256kb", verify: captureRawBody }));
   const jsonBodyParser = express.json({ limit: DEFAULT_JSON_BODY_LIMIT, verify: captureRawBody });
   // File tickets authenticate before parsing bytes; JSON attachments must remain bytes too.
   app.use((req, res, next) => ["/mcp/files/upload", "/mcp/runner/files/upload"].includes(req.path) ? next() : jsonBodyParser(req, res, next));
@@ -620,6 +693,22 @@ export async function createApp(
   app.use(cloudWarmStandbyMiddleware(isWarmStandby, health, staticUi));
   app.use("/api/customer-success/v1", customerSuccessRoutes(db, opts.storageService));
   app.use(publicMcpIngress);
+  // Sprint 3 public surfaces: proposal view/accept + Stripe webhook (needs rawBody) and remote decision links.
+  app.use(publicProposalRoutes(db));
+  app.use(publicDecisionRoutes(db, opts.decisionServiceOptions, opts.commercialDecisionDeps));
+  const productAccountsRouter = productizationAccountRoutes(db);
+  app.use("/api/v1", productizationPublicApiV1Routes(db));
+  const customerPortalsRouter = customerPortalRoutes(db, opts.storageService);
+  app.use("/api", productizationPublicCatalogReadRoutes(db));
+  app.use("/api", productizationAgencyPublicRoutes(db, opts.storageService));
+  const retentionFiles = opts.storageService ? createCompanyFileRetentionAdapter(db, opts.storageService) : undefined;
+  // Public endpoints authenticate their own provider signature or scoped portal
+  // token. Their operator endpoints must still pass actor resolution and CSRF.
+  app.use("/api", (req, res, next) => {
+    if (req.path === "/public/productization/stripe/webhook") return productAccountsRouter(req, res, next);
+    if (/^\/public\/customer-portals(?:\/|$)/.test(req.path)) return customerPortalsRouter(req, res, next);
+    next();
+  });
   // Connection-intent tools carry their own short-lived, run-bound bearer and
   // must be reachable by remote adapters that intentionally do not receive an
   // agent API key. Every request revalidates the active heartbeat row.
@@ -631,7 +720,9 @@ export async function createApp(
   const connectionIntentHeartbeat = heartbeatService(db, {
     pluginWorkerManager: workerManager,
   });
+  const crmPhone = crmPhoneService(db);
   const chatChannels = chatChannelService(db, {
+    beginCrmCallback: input => crmPhone.beginDial(input).then(() => undefined),
     allowLocalVoiceBoard: opts.deploymentMode === "local_trusted",
     deferWebhookProcessing: true,
     heartbeat: connectionIntentHeartbeat,
@@ -643,6 +734,8 @@ export async function createApp(
     webhookPublicBaseUrl: opts.chatWebhookPublicBaseUrl,
     resolveNativeQuestion: (interaction) =>
       deliverNativeQuestionResponse(db, interaction),
+    onCallReport: ({ companyId, sessionId }) =>
+      crmPhone.projectSession(companyId, sessionId).then(() => undefined),
     storage: opts.storageService,
   });
   // Voice capabilities are verified by the signed callback route, not by
@@ -743,6 +836,7 @@ export async function createApp(
   const agentAvatars = agentAvatarRoutes();
   api.use(agentAvatars.router);
   api.use(boardMutationGuard());
+  api.use(agentWorkPermissionsMiddleware(db));
   api.use("/health", health);
   api.use(openApiRoutes());
   api.use("/cloud", cloudRoutes());
@@ -842,9 +936,11 @@ export async function createApp(
   );
   api.use(assetRoutes(db, opts.storageService));
   api.use(agentProfileAvatarRoutes(db, opts.storageService));
+  api.use(officeRoutes(db));
   api.use(projectToolRoutes(db));
   api.use(taskWorkspaceRoutes(db));
   api.use(projectRoutes(db));
+  api.use(projectAutopilotRoutes(db));
   api.use(caseRoutes(db, opts.storageService));
   api.use(issueTreeControlRoutes(db, { pluginWorkerManager: workerManager }));
   api.use(fileResourceRoutes(db));
@@ -864,6 +960,65 @@ export async function createApp(
   api.use(executionWorkspaceRoutes(db, { pluginWorkerManager: workerManager }));
   api.use(emailRoutes(db, emailChannels));
   api.use(goalRoutes(db));
+  api.use(assignmentRoutes(db));
+  api.use(productizationCatalogRoutes(db));
+  api.use(productizationOnboardingRoutes(db));
+  api.use(productAccountsRouter);
+  api.use(customerPortalsRouter);
+  api.use(productizationBuilderRoutes(db, { budgetHooks: { cancelWorkForScope: connectionIntentHeartbeat.cancelBudgetScopeWork } }));
+  api.use(productizationPublicCatalogRoutes(db));
+  api.use(productizationMetricsRoutes(db));
+  api.use(productizationMediaPresetRoutes(db));
+  api.use(productizationSecurityRoutes(db, { fileAdapter: retentionFiles }));
+  api.use(productizationAgencyRoutes(db));
+  api.use(productizationContactImportRoutes(db));
+  api.use(productNotificationRoutes(db));
+  api.use(productizationPublicApiManagementRoutes(db));
+  api.use(leadFormRoutes(db, { publicBaseUrl: opts.authPublicBaseUrl }));
+  // Sprint 3: autonomous sales and delivery
+  api.use(dailyBriefRoutes(db));
+  api.use(agentExplainRoutes(db));
+  const sprint3Autonomy = autonomyService(db);
+  // Effective autonomy of a playbook step is min(step, agent grant): the playbook never raises what was granted.
+  const resolveAgentAutonomy = async (companyId: string, agentId: string | null, actionType: string) =>
+    (await sprint3Autonomy.effectiveLevel(companyId, agentId, actionType as AutonomyActionType)).level;
+  const sprint3Playbooks = playbookService(db, { resolveAgentAutonomy });
+  api.use(playbookRoutes(db, { resolveAgentAutonomy }));
+  api.use(autonomyRoutes(db, { budgetHooks: { cancelWorkForScope: connectionIntentHeartbeat.cancelBudgetScopeWork } }));
+  api.use(commercialDecisionRoutes(db, opts.decisionServiceOptions, opts.commercialDecisionDeps));
+  api.use(proposalRoutes(db));
+  api.use(handoffRoutes(db));
+  api.use(serviceAgreementRoutes(db));
+  api.use(leadQualificationRoutes(db));
+  api.use(commitmentRoutes(db, { persist: detectedCommitmentsPersist(db) }));
+  api.use(commercialTriggerRoutes(db, {
+    findWaitingRuns: async (companyId, subjectKind, subjectId) => {
+      const runs = await sprint3Playbooks.listRuns(companyId, { status: "waiting", subjectKind, subjectId });
+      const out: Array<{ id: string; currentStepKind: string; nextActionAt: string | null }> = [];
+      for (const run of runs) {
+        const playbook = await sprint3Playbooks.getById(run.playbookId);
+        const step = playbook?.steps[run.currentStepIndex];
+        out.push({ id: run.id, currentStepKind: step?.kind ?? "unknown", nextActionAt: run.nextActionAt ? new Date(run.nextActionAt).toISOString() : null });
+      }
+      return out;
+    },
+    advanceRun: async (runId, reason) => { await sprint3Playbooks.advance(runId, { outcome: "done", note: reason }, {}); },
+    stopSequence: async (runId) => { await sprint3Playbooks.cancel(runId, {}); },
+  }));
+  api.use(mediaStudioRoutes(db));
+  api.use(deliverableReviewRoutes(db));
+  registerChannelTransports(db);
+  registerWebchatTransport();
+  api.use(crmRoutes(db));
+  api.use(reviewLinkRoutes(db));
+  api.use(s95SignupRoutes(db));
+  api.use(crmPhoneRoutes(db));
+  api.use(customerChannelRoutes(db));
+  api.use(webchatRoutes(db));
+  api.use(crmMemoryRoutes(db));
+  api.use(leadRoutes(db));
+  api.use(conversationRoutes(db, emailChannels));
+  api.use(channelInboundRoutes(db));
   api.use(onboardingSeedRoutes(db));
   api.use(boardChatRoutes(db, { deploymentMode: opts.deploymentMode }));
   api.use(voiceSessionRoutes(db, chatChannels.voice));
@@ -895,6 +1050,7 @@ export async function createApp(
   api.use(sidebarPreferenceRoutes(db));
   api.use(announcementRoutes(db, { ...opts.announcements, version: opts.hostVersion ?? serverVersion }));
   api.use(resourceMembershipRoutes(db));
+  api.use(companyFileRoutes(db, opts.storageService));
   api.use(primaryAgentRoutes(db));
   api.use(inboxDismissalRoutes(db));
   api.use(instanceSettingsRoutes(db, workerManager, opts.prepareIdleDatabaseBackup));
@@ -932,6 +1088,13 @@ export async function createApp(
     oauthGrantRefresher: (input) =>
       gatewayOAuthAccess.refreshOAuthGrantCredentials(input),
   });
+  const calendar = googleCalendarService(db, { invoke: createAuthorizedCalendarInvoker(db, toolGateway) });
+  const crmSyncInvoke = createCrmSyncInvoker(toolGateway);
+  const crmSync = crmSyncService(db, { invoke: crmSyncInvoke });
+  api.use(crmSyncRoutes(db, { invoke: crmSyncInvoke, service: crmSync }));
+  api.use(calendarRoutes(db, { calendar }));
+  api.use("/p", publicSurfaceRoutes(db, { calendar }));
+  api.use(externalActionRecoveryRoutes(db, { calendar }));
   // Issue routes are intentionally mounted after the gateway is constructed because
   // issue approval endpoints delegate to it. The intervening routers use distinct
   // route prefixes, so this dependency does not change issue-route precedence.
@@ -1314,6 +1477,60 @@ export async function createApp(
   );
   chatPublicationTimer.unref?.();
   if (!isWarmStandby() && !isIdleTaskDrainActive()) chatReconciliation.reconcile();
+  // Durable product outboxes share a bounded, non-overlapping maintenance tick.
+  // Provider delivery happens here, never inside an activity transaction.
+  const businessWebhooks = businessWebhooksService(db);
+  const productNotifications = productNotificationsService(db);
+  let productMaintenanceStopping = false;
+  let productMaintenanceInFlight: Promise<void> | null = null;
+  const reconcileProductOutboxes = () => {
+    if (productMaintenanceStopping || productMaintenanceInFlight || isWarmStandby() || isIdleTaskDrainActive()) return;
+    productMaintenanceInFlight = (async () => {
+      const results = await Promise.allSettled([
+        businessWebhooks.deliverDue(),
+        (async () => { await productNotifications.drainSignals(); await productNotifications.deliverOutbox(); })(),
+      ]);
+      if (results.some(result => result.status === "rejected")) {
+        // Never log recipient endpoints, encrypted subscriptions or provider errors.
+        logger.warn("Product outbox maintenance failed; durable rows remain available for retry");
+      }
+    })().finally(() => { productMaintenanceInFlight = null; });
+  };
+  let productMaintenanceTimer: ReturnType<typeof setInterval> | null = setInterval(reconcileProductOutboxes, 15_000);
+  productMaintenanceTimer.unref?.();
+  const crmSyncMaintenance = createProductMaintenanceLane({
+    intervalMs: 15_000,
+    enabled: () => !productMaintenanceStopping && !isWarmStandby() && !isIdleTaskDrainActive(),
+    run: () => crmSync.tick(1),
+    onError: () => logger.warn("CRM synchronization maintenance failed; durable job remains retryable"),
+  });
+  const conversationDispatch = conversationAgentDispatchService(db);
+  const retentionWorker = createRetentionWorker(db, { fileAdapter: retentionFiles });
+  const accountDeletionWorker = createAccountDeletionWorker(db, { provider: createAccountDeletionStripeProvider(db) });
+  const retentionMaintenance = createProductMaintenanceLane({
+    intervalMs: 30_000,
+    enabled: () => !productMaintenanceStopping && !isWarmStandby() && !isIdleTaskDrainActive(),
+    run: () => retentionWorker.tick(),
+    onError: () => logger.warn("Retention maintenance failed; durable sweep remains available for reconciliation"),
+  });
+  const accountDeletionMaintenance = createProductMaintenanceLane({
+    intervalMs: 30_000,
+    enabled: () => !productMaintenanceStopping && !isWarmStandby() && !isIdleTaskDrainActive(),
+    run: () => accountDeletionWorker.tick(),
+    onError: () => logger.warn("Commercial account deletion failed; durable receipt remains available for reconciliation"),
+  });
+  const crmPhoneMaintenance = createProductMaintenanceLane({
+    intervalMs: 5_000,
+    enabled: () => !productMaintenanceStopping && !isWarmStandby() && !isIdleTaskDrainActive(),
+    run: () => crmPhone.processNext(`crm-phone:${process.pid}`, chatChannels.voice.startCrmCallback),
+    onError: () => logger.warn("CRM callback maintenance failed; uncertain outcomes require reconciliation"),
+  });
+  const conversationDispatchMaintenance = createProductMaintenanceLane({
+    intervalMs: 5_000,
+    enabled: () => !productMaintenanceStopping && !isWarmStandby() && !isIdleTaskDrainActive(),
+    run: async () => { await conversationDispatch.processNext(`conversation-dispatch:${process.pid}`, connectionIntentHeartbeat.wakeup); },
+    onError: () => logger.warn("Conversation agent dispatch failed; durable message remains available for reconciliation"),
+  });
   // Abandoned chunked-import spool sweep: hourly (plus once at startup),
   // deleting spool dirs whose transfer saw no activity for 24h and cancelling
   // their still-open ledger runs. Same setInterval + unref + shutdown-clear
@@ -1428,13 +1645,21 @@ export async function createApp(
   // The shutdown hook runs at most once. It caches the in-flight promise, so a
   // second caller (for example the `exit` handler) awaits the same completion
   // instead of starting a second teardown.
+  const projectAutopilotScheduler = startProjectAutopilotScheduler(db, () => lifecyclePluginsReady && !isWarmStandby() && !isIdleTaskDrainActive());
   let appServicesShutdown: Promise<void> | null = null;
   const shutdownAppServices = (): Promise<void> => {
     if (appServicesShutdown) return appServicesShutdown;
     appServicesShutdown = (async () => {
+      productMaintenanceStopping = true;
+      if (productMaintenanceTimer) { clearInterval(productMaintenanceTimer); productMaintenanceTimer = null; }
+      await productMaintenanceInFlight;
+      await crmSyncMaintenance.stop();
+      await conversationDispatchMaintenance.stop();
+      await Promise.all([retentionMaintenance.stop(), accountDeletionMaintenance.stop(), crmPhoneMaintenance.stop()]);
       // The scheduler tick queries the database. Stop it here, inside the
       // awaited teardown, so no tick runs after the caller ends the pool.
       scheduler.stop();
+      await projectAutopilotScheduler.stop();
       await agentLifecycle.stop();
       await publicMcpEvents?.stop();
       await dotMcpEvents?.stop(); grokDispatcher.stop();

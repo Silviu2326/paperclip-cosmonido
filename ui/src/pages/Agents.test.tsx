@@ -9,6 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../context/ToastContext";
 import type { BuiltInAgentState } from "../api/builtInAgents";
 import { Agents } from "./Agents";
+import { i18n } from "../i18n";
+import { DEFAULT_LOCALE } from "../i18n/locales";
 import { Agents as ProductionAgents } from "./Agents.production";
 import type { AgentOrgChainHealth } from "@paperclipai/shared";
 
@@ -309,7 +311,9 @@ describe("Agents", () => {
   let root: ReturnType<typeof createRoot> | null;
   let queryClient: QueryClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // These English copy assertions do not depend on the app default language.
+    await i18n.changeLanguage("en");
     mockRouterState.pathname = "/agents/all";
     mockRouterState.navigate.mockClear();
     container = document.createElement("div");
@@ -357,6 +361,7 @@ describe("Agents", () => {
   });
 
   afterEach(async () => {
+    await i18n.changeLanguage(DEFAULT_LOCALE);
     const currentRoot = root;
     if (currentRoot) {
       await act(async () => {
@@ -797,7 +802,7 @@ describe("Agents", () => {
     await flushReact();
 
     expect(mockBuiltInAgentsApi.list).not.toHaveBeenCalled();
-    expect(container.textContent).not.toContain("Integrados");
+    expect(container.textContent).not.toContain("Built-in");
     expect(mockRouterState.navigate).toHaveBeenCalledWith("/agents/all", { replace: true });
   });
 
@@ -844,7 +849,7 @@ describe("Agents", () => {
 
     expect(container.textContent).toContain("1 agent");
     expect(mockBuiltInAgentsApi.list).toHaveBeenCalledWith("company-1");
-    expect(container.textContent).toContain("Integrados");
+    expect(container.textContent).toContain("Built-in");
     expect(container.textContent).toContain("Briefs Agent");
     expect(container.textContent).not.toContain("Regular Agent");
     expect(container.querySelector('[title="Ships with Paperclip"]')).toBeNull();

@@ -6,6 +6,7 @@ import { isCodexLocalKnownModel, codexLocalReasoningEffortsForModel } from "@pap
 import { models as claudeModels, claudeLocalReasoningEffortsForModel } from "@paperclipai/adapter-claude-local";
 import { models as grokModels, grokLocalReasoningEffortsForModel } from "@paperclipai/adapter-grok-local";
 import { aiConnectionService } from "./ai-connections.js";
+import { productizationEntitlementsService } from "./productization/entitlements.js";
 import { instanceSettingsService } from "./instance-settings.js";
 import { logActivity } from "./activity-log.js";
 import { forbidden, notFound, conflict, unprocessable } from "../errors.js";
@@ -68,6 +69,7 @@ export function poolMemberRuntimeConfig(member: AiConnectionPoolMember, adapterT
 }
 
 export function aiConnectionRouterService(db: Db, workerManager?: PluginWorkerManager) {
+  const entitlements=productizationEntitlementsService(db);
   async function owner(pluginKey: string) {
     const [plugin] = await db.select().from(plugins).where(eq(plugins.pluginKey, pluginKey));
     if (!plugin || plugin.status !== "ready" || !plugin.manifestJson.capabilities.includes("ai.connections.route")) throw unprocessable("Enable a compatible AI connection router plugin");
@@ -128,7 +130,8 @@ export function aiConnectionRouterService(db: Db, workerManager?: PluginWorkerMa
       poolMemberRuntimeConfig(member, "paperclip_runner");
     }
     const id = input.id ?? randomUUID();
-    await db.transaction(async (tx) => {
+    const reservation=input.id?null:await entitlements.reserveForCompany({companyId:input.companyId,metric:"connections",quantity:1,idempotencyKey:`ai-router:${input.companyId}:${pluginKey}:${id}`,requestFingerprint:`${input.companyId}:${pluginKey}:${id}`});
+    try { await db.transaction(async (tx) => {
       if (input.id) {
         const [row] = await tx.select().from(aiConnectionPools).where(and(eq(aiConnectionPools.id, id), eq(aiConnectionPools.companyId, input.companyId), eq(aiConnectionPools.pluginKey, pluginKey))).for("update");
         if (!row) throw notFound("Connection pool not found");
@@ -148,7 +151,11 @@ export function aiConnectionRouterService(db: Db, workerManager?: PluginWorkerMa
         await tx.insert(toolConnectionInstalls).values({ companyId: input.companyId, connectionId: id, targetType: "company", targetId: input.companyId, createdByUserId: userId });
       }
       await logActivity(tx as unknown as Db, { companyId: input.companyId, actorType: "user", actorId: userId, action: "ai_connection.pool_saved", entityType: "tool_connection", entityId: id, details: { enabled: config.enabled, memberCount: config.members.length, mode: config.mode } });
-    });
+    }); } catch(error) {
+      if(reservation) await entitlements.releaseAfterConfirmedRollback(reservation);
+      throw error;
+    }
+    if(reservation) await entitlements.commit(reservation);
     return (await list(input.companyId)).find((p) => p.id === id)!;
   }
   async function remove(companyId: string, poolId: string, expectedRevision: number, userId: string) {

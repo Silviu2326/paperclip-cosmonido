@@ -45,6 +45,49 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Web Push payloads contain only a category, a same-origin company-prefixed
+// route and an opaque dedupe tag. No API data or customer text is stored here.
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let payload;
+  try { payload = event.data.json(); } catch { return; }
+  const routes = {
+    decisions: /^\/[A-Za-z0-9_-]+\/(?:decisions|notifications\/decision\/[0-9a-f-]{36})$/i,
+    reviews: /^\/[A-Za-z0-9_-]+\/(?:issues\/[^/?#]+|goals\/[^/?#]+|notifications\/deliverable_review\/[0-9a-f-]{36})$/i,
+    tasks: /^\/[A-Za-z0-9_-]+\/issues\/[^/?#]+$/,
+  };
+  if (!payload || typeof payload.category !== "string" || !Object.prototype.hasOwnProperty.call(routes, payload.category) || typeof payload.href !== "string" || !routes[payload.category].test(payload.href) || typeof payload.tag !== "string" || !/^[A-Za-z0-9_-]{20,32}$/.test(payload.tag)) return;
+  const bodies = {
+    decisions: "A decision needs your attention.",
+    reviews: "A deliverable review is waiting for you.",
+    tasks: "An assigned task was updated.",
+  };
+  event.waitUntil(self.registration.showNotification("Paperclip update", {
+    body: bodies[payload.category],
+    tag: `paperclip-${payload.tag}`,
+    data: { url: payload.href },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const rawPath = event.notification.data?.url;
+  if (typeof rawPath !== "string") return;
+  let target;
+  try { target = new URL(rawPath, self.location.origin); } catch { return; }
+  if (target.origin !== self.location.origin || target.search || target.hash || !/^\/[A-Za-z0-9_-]+\/(?:issues\/[^/]+|goals\/[^/]+|decisions|notifications\/(?:decision|deliverable_review)\/[0-9a-f-]{36})$/i.test(target.pathname)) return;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const client = windows[0];
+    if (client) {
+      if ("navigate" in client && typeof client.navigate === "function") await client.navigate(`${target.pathname}${target.search}`);
+      await client.focus();
+      return;
+    }
+    await self.clients.openWindow(`${target.pathname}${target.search}`);
+  })());
+});
+
 self.addEventListener("fetch", (event) => {
   // Vite owns development module revalidation and HMR. Passing that graph
   // through an offline worker can forward bodyless 304 responses on reload.

@@ -1,6 +1,7 @@
 import { usdToUnits, unitsToCents } from "@paperclipai/shared";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
-import { accountingRuntimeBaselines, budgetReservations, agentRuntimeState, agents, costEvents, heartbeatRuns, nativeRunFinalizations, issues, projects, type Db } from "@paperclipai/db";
+import { accountingRuntimeBaselines, budgetReservations, agentRuntimeState, agents, costEvents, heartbeatRuns, nativeRunFinalizations, issues, projects, goals, type Db } from "@paperclipai/db";
+import { resolveGoalIdForIssue } from "./assignment-costs.js";
 import { withAccountingTransaction } from "./accounting-transaction.js";
 import { conflict } from "../errors.js";
 import { createCostEventInTransaction } from "./costs.js";
@@ -81,6 +82,16 @@ export async function accountRunCost(db: Db, runId: string, hooks: BudgetService
         if (!linked) scope[key] = null;
       }
     }
+    // Stamp the receipt with the assignment (or goal) owning the run's task tree.
+    // Receipts stay immutable: only new receipts get this, and reports derive the
+    // same attribution for earlier ones. A deleted goal never blocks recording spend.
+    let goalId = text(scope.goalId);
+    if (goalId) {
+      const [linked] = await tx.select({ id: goals.id }).from(goals).where(and(eq(goals.id, goalId), eq(goals.companyId, run.companyId)));
+      if (!linked) goalId = null;
+    }
+    const scopedIssueId = text(scope.issueId);
+    if (!goalId && scopedIssueId) goalId = await resolveGoalIdForIssue(tx, run.companyId, scopedIssueId);
     const costUsd = amount(usage.cacheAdjustedCostUsd) ?? text(usage.costUsdExact) ?? amount(usage.costUsd);
     const billingType = text(usage.billingType) ?? "unknown";
     const costUnits = billingType === "subscription_included" ? 0n : usdToUnits(costUsd ?? 0);
@@ -92,7 +103,7 @@ export async function accountRunCost(db: Db, runId: string, hooks: BudgetService
     const receipt = {
       idempotencyKey: `heartbeat:${run.id}:final`,
       agentId: run.agentId, heartbeatRunId: run.id,
-      issueId: text(scope.issueId), projectId: text(scope.projectId), billingCode: text(scope.billingCode),
+      issueId: text(scope.issueId), projectId: text(scope.projectId), goalId, billingCode: text(scope.billingCode),
       provider: text(usage.provider) ?? "unknown", biller: text(usage.biller) ?? text(usage.provider) ?? "unknown",
       providerRequestId: text(usage.providerRequestId),
       pricingProvenance: object(usage.pricingProvenance),

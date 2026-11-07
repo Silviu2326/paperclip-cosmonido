@@ -11531,6 +11531,8 @@ async function createRunnerdBackendWithinSessionClaim(
     runtimeContext: "runtimeContext" in input.execution ? input.execution.runtimeContext : undefined,
     workspaceBridge: input.execution.schema === "paperclip.native-execution-input.v6" && !!input.dotWorkspaceRoot,
     taskAttachmentRead: dotAttachmentActor?.config.dotAttachmentAccess === true,
+    // Entrada files are uploaded for agents to use, so native runs read them by default (not gated by dotAttachmentAccess).
+    companyFilesRead: true,
     dotRuntime: input.execution.schema === "paperclip.native-execution-input.v6",
     firstPartyOnly: input.execution.provider.kind === "grok_bot",
     assertBridgeAuthority: input.execution.schema === "paperclip.native-execution-input.v6" ? () => dotRunnerBroker(input.db).assertRunAuthority(input.execution as import("../../vendor/paperclip-runner/index.js").NativeExecutionInputV6) : undefined,

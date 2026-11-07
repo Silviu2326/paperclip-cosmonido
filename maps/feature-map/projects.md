@@ -6,6 +6,8 @@ navigation: {"section":"Projects and execution","sectionOrder":40,"order":10}
 
 People group tasks into projects, attach goals and repositories, and configure the context and defaults used by project work.
 
+UX integration note: Client context on a project is optional, so internal projects remain a supported path. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Implementation: [project list](../../ui/src/pages/Projects.tsx), [project detail](../../ui/src/pages/ProjectDetail.tsx).
 
 Agent access: [companion](../agent-access-map/projects.md).
@@ -21,7 +23,7 @@ Agent access: [companion](../agent-access-map/projects.md).
 
 ### `project-list`
 
-Open `/projects`, create a project, and enter its overview or Issues view.
+Open Proyectos (`/projects`), create a project, and enter its overview or Issues view.
 
 ### `repository-settings`
 

@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type {
   FeedbackDataSharingPreference,
   FeedbackVoteValue,
@@ -36,7 +37,7 @@ export function TaskChatBubbleActions({
   feedback?: TaskChatBubbleFeedback | null;
 }) {
   const { copied, failed, copy } = useCopyAction(2000);
-  const label = failed ? "Couldn’t copy message" : "Copy message";
+  const label = failed ? t("chatUiComposer.couldntCopyMessage", { defaultValue: "Couldn’t copy message" }) : t("chatUiComposer.copyMessage", { defaultValue: "Copy message" });
 
   return (
     <div className="flex items-center gap-0.5" data-testid="task-chat-bubble-actions">
@@ -57,7 +58,7 @@ export function TaskChatBubbleActions({
           <Copy className="h-3.5 w-3.5" />
         )}
       </button>
-      {fastResponse && <Popover><PopoverTrigger asChild><button type="button" aria-label="Message details" title="Message details" className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><Info className="h-3.5 w-3.5" /></button></PopoverTrigger><PopoverContent className="text-xs">Platform-generated acknowledgement. The agent’s substantive response follows separately.</PopoverContent></Popover>}
+      {fastResponse && <Popover><PopoverTrigger asChild><button type="button" aria-label={t("chatUi.messageDetails", { defaultValue: "Message details" })} title={t("chatUi.messageDetails", { defaultValue: "Message details" })} className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"><Info className="h-3.5 w-3.5" /></button></PopoverTrigger><PopoverContent className="text-xs">{t("chatUiComposer.platformAck", { defaultValue: "Platform-generated acknowledgement. The agent’s substantive response follows separately." })}</PopoverContent></Popover>}
       {feedback ? (
         <IssueChatFeedbackButtons
           activeVote={feedback.activeVote}

@@ -1,0 +1,10 @@
+﻿import { z } from "zod";
+import { planGateInputSchema } from "./plan-gate.js";
+export const productAccountCreateSchema = z.object({ name: z.string().trim().min(1).max(120) }).strict();
+export const productAccountCompanyGrantSchema = z.object({ companyId: z.string().uuid() }).strict();
+export const productAccountMemberSchema = z.object({ userId: z.string().min(1), role: z.enum(["admin", "member"]) }).strict();
+export const productUsageRecordSchema = z.object({ metric: z.enum(["jobs_per_month", "messages", "video_minutes"]), periodKey: z.string().regex(/^\d{4}-\d{2}$/), idempotencyKey: z.string().min(1).max(200), quantity: z.number().finite().positive(), source: z.string().min(1).max(80) }).strict();
+export const productPlanSchema = z.object({ id: z.string().trim().min(1).max(80), name: z.string().trim().min(1).max(120), limits: z.object({ companies: z.number().int().nonnegative().nullable(), agents: z.number().int().nonnegative().nullable(), jobs_per_month: z.number().int().nonnegative().nullable(), video_minutes: z.number().finite().nonnegative().nullable(), messages: z.number().int().nonnegative().nullable(), connections: z.number().int().nonnegative().nullable() }).strict(), stripePriceId: z.string().trim().min(1).max(200).nullable(), enabled: z.boolean() }).strict();
+export const productGateRequestSchema = planGateInputSchema;
+export type ProductPlan = z.infer<typeof productPlanSchema>;
+export type ProductUsageRecord = z.infer<typeof productUsageRecordSchema>;

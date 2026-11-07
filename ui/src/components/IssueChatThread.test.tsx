@@ -577,9 +577,9 @@ describe("IssueChatThread", () => {
     });
 
     expect(container.textContent).toContain(
-      "interrupted by board after 1 minute",
+      "interrumpida por el equipo tras 1 minuto",
     );
-    expect(container.textContent).toContain("cancelled after 1 minute");
+    expect(container.textContent).toContain("cancelada tras 1 minuto");
     expect(container.textContent).not.toContain("run interrupted");
 
     act(() => {
@@ -726,7 +726,7 @@ describe("IssueChatThread", () => {
     );
     expect(chip).not.toBeNull();
     expect(chip?.getAttribute("data-pending-work-mode")).toBe("planning");
-    expect(chip?.textContent).toContain("Plan mode");
+    expect(chip?.textContent).toContain("Modo plan");
 
     act(() => {
       root.unmount();
@@ -762,7 +762,7 @@ describe("IssueChatThread", () => {
       '[data-testid="composer-add-plan"]',
     ) as HTMLButtonElement | null;
     expect(menuItem).not.toBeNull();
-    expect(menuItem?.textContent).toContain("Plan mode");
+    expect(menuItem?.textContent).toContain("Modo plan");
 
     act(() => {
       menuItem?.click();
@@ -773,7 +773,7 @@ describe("IssueChatThread", () => {
     expect(composer?.getAttribute("data-pending-work-mode")).toBe("planning");
     expect(composer?.className).toContain("amber");
     const chip = container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]') as HTMLButtonElement;
-    expect(chip?.textContent).toContain("Plan mode");
+    expect(chip?.textContent).toContain("Modo plan");
     act(() => chip.click());
     expect(composer?.getAttribute("data-pending-work-mode")).toBe("standard");
     expect(container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]')).toBeNull();
@@ -809,7 +809,7 @@ describe("IssueChatThread", () => {
       '[data-testid="composer-add-ask"]',
     ) as HTMLButtonElement | null;
     expect(askMenuItem).not.toBeNull();
-    expect(askMenuItem?.textContent).toContain("Ask mode");
+    expect(askMenuItem?.textContent).toContain("Modo pregunta");
 
     act(() => {
       askMenuItem?.click();
@@ -818,7 +818,7 @@ describe("IssueChatThread", () => {
     expect(onWorkModeChange).not.toHaveBeenCalled();
     expect(composer?.getAttribute("data-pending-work-mode")).toBe("ask");
     expect(composer?.className).toContain("sky");
-    expect(container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]')?.textContent).toContain("Ask mode");
+    expect(container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]')?.textContent).toContain("Modo pregunta");
 
     act(() => {
       composer?.dispatchEvent(
@@ -3248,7 +3248,7 @@ describe("IssueChatThread", () => {
     const plan = document.querySelector('[data-testid="composer-add-plan"]') as HTMLButtonElement;
     act(() => plan.click());
     const chip = container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]') as HTMLButtonElement;
-    expect(chip?.textContent).toContain("Plan mode");
+    expect(chip?.textContent).toContain("Modo plan");
     expect(chip.disabled).toBe(false);
     act(() => chip.click());
     expect(container.querySelector('[data-testid="issue-chat-composer-work-mode-chip"]')).toBeNull();
@@ -4161,11 +4161,11 @@ describe("IssueChatThread", () => {
     });
 
     const header = Array.from(container.querySelectorAll("button")).find((button) =>
-      button.textContent?.includes("worked for 4 minutes"),
+      button.textContent?.includes("trabajó durante 4 minutos"),
     );
     expect(header).toBeDefined();
     const label = Array.from(header!.children).find((child) =>
-      child.textContent?.includes("worked for 4 minutes"),
+      child.textContent?.includes("trabajó durante 4 minutos"),
     );
     const caret = label?.nextElementSibling;
     expect(caret?.tagName.toLowerCase()).toBe("svg");

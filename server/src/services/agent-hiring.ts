@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { unprocessable } from "../errors.js";
 import { agentRecordQueries, isPlainRecord, configPatchFromApprovalPayload, normalizeRuntimeConfigForNewAgent,
   deduplicateAgentName, type CreateAgentData, type CreateAgentOptions, type AgentConfigurationPatch, type AgentHireRecord } from "../lib/agent-records.js";
-import { normalizeAgentPermissions, permissionsImplyLowTrust, NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS,
+import { normalizeAgentPermissions, permissionsImplyLowTrust, standardAgentGrantKeysFor,
   newStandardAgentGrantScope } from "../lib/agent-permissions.js";
 import { readBuiltInAgentMarker } from "../lib/built-in-agent-metadata.js";
 import { secretService, assertClaudeOAuthBindingInvariant } from "./secrets.js";
@@ -63,7 +63,7 @@ export async function initializeAgentHire(txDb: Db, created: AgentHireRecord, op
   if (created.status !== "pending_approval" && !permissionsImplyLowTrust(created.permissions) &&
       !readBuiltInAgentMarker(created.metadata)) {
     await tx.insert(principalPermissionGrants).values(
-      NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS.map((permissionKey) => ({
+      standardAgentGrantKeysFor(created.metadata).map((permissionKey) => ({
         companyId,
         principalType: "agent" as const,
         principalId: created.id,
@@ -132,7 +132,7 @@ export async function completeAgentHireApproval(txDb: Db, updated: AgentHireReco
   await agentCredentialService(txDb).syncAgentSecretBindings(updated, txDb, existing.adapterConfig);
   if (!permissionsImplyLowTrust(updated.permissions) && !readBuiltInAgentMarker(updated.metadata)) {
     await tx.insert(principalPermissionGrants).values(
-      NEW_STANDARD_AGENT_DEFAULT_GRANT_KEYS.map((permissionKey) => ({
+      standardAgentGrantKeysFor(updated.metadata).map((permissionKey) => ({
         companyId: updated.companyId,
         principalType: "agent" as const,
         principalId: updated.id,

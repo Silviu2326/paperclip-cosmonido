@@ -47,6 +47,12 @@ import type {
 
 export type { IssueWorkMode };
 
+/** Limits the task collection to tasks whose result contract requires review. */
+export type IssueReviewFilter = "required" | "pending";
+export interface IssueListParams {
+  review?: IssueReviewFilter;
+}
+
 export type IssueVisibility = "open" | "private";
 /** Management hints for this task; never includes protected project/parent identity. */
 export interface IssuePrivacyConstraints {

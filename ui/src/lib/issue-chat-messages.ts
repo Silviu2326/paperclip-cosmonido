@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import type { ExecutionProjection } from "@paperclipai/shared";
 import type {
   ReasoningMessagePart,
@@ -781,18 +782,18 @@ export function formatDurationWords(ms: number | null) {
   if (ms === null || !Number.isFinite(ms) || ms <= 0) return null;
   const totalSeconds = Math.max(1, Math.round(ms / 1000));
   if (totalSeconds < 60) {
-    return `${totalSeconds} second${totalSeconds === 1 ? "" : "s"}`;
+    return t("chatUiLib.durationSeconds", { count: totalSeconds, defaultValue_one: "{{count}} second", defaultValue_other: "{{count}} seconds" });
   }
   const totalMinutes = Math.round(totalSeconds / 60);
   if (totalMinutes < 60) {
-    return `${totalMinutes} minute${totalMinutes === 1 ? "" : "s"}`;
+    return t("chatUiLib.durationMinutes", { count: totalMinutes, defaultValue_one: "{{count}} minute", defaultValue_other: "{{count}} minutes" });
   }
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  if (minutes === 0) {
-    return `${hours} hour${hours === 1 ? "" : "s"}`;
-  }
-  return `${hours} hour${hours === 1 ? "" : "s"} ${minutes} minute${minutes === 1 ? "" : "s"}`;
+  const hoursText = t("chatUiLib.durationHours", { count: hours, defaultValue_one: "{{count}} hour", defaultValue_other: "{{count}} hours" });
+  if (minutes === 0) return hoursText;
+  const minutesText = t("chatUiLib.durationMinutes", { count: minutes, defaultValue_one: "{{count}} minute", defaultValue_other: "{{count}} minutes" });
+  return t("chatUiLib.durationJoin", { hours: hoursText, minutes: minutesText, defaultValue: "{{hours}} {{minutes}}" });
 }
 
 function runDurationLabel(run: {
@@ -810,24 +811,24 @@ function runDurationLabel(run: {
   const stopReason = typeof run.resultJson?.stopReason === "string" ? run.resultJson.stopReason : null;
   switch (run.status) {
     case "succeeded":
-      return durationText ? `Worked for ${durationText}` : "Finished work";
+      return durationText ? t("chatUiLib.workedFor", { time: durationText, defaultValue: "Worked for {{time}}" }) : t("chatUiLib.finishedWork", { defaultValue: "Finished work" });
     case "failed":
     case "error":
-      return durationText ? `Failed after ${durationText}` : "Run failed";
+      return durationText ? t("chatUiLib.failedAfter", { time: durationText, defaultValue: "Failed after {{time}}" }) : t("chatUiLib.runFailed", { defaultValue: "Run failed" });
     case "timed_out":
-      return durationText ? `Timed out after ${durationText}` : "Run timed out";
+      return durationText ? t("chatUiLib.timedOutAfter", { time: durationText, defaultValue: "Timed out after {{time}}" }) : t("chatUiLib.runTimedOut", { defaultValue: "Run timed out" });
     case "cancelled":
       if (isOperatorInterruptedRun(run.resultJson, run.errorCode)) {
-        return durationText ? `Interrupted by board after ${durationText}` : "Interrupted by board";
+        return durationText ? t("chatUiLib.interruptedByBoardAfter", { time: durationText, defaultValue: "Interrupted by board after {{time}}" }) : t("chatUiLib.interruptedByBoard", { defaultValue: "Interrupted by board" });
       }
       if (stopReason === "paused") {
-        return durationText ? `Paused by board after ${durationText}` : "Paused by board";
+        return durationText ? t("chatUiLib.pausedByBoardAfter", { time: durationText, defaultValue: "Paused by board after {{time}}" }) : t("chatUiLib.pausedByBoard", { defaultValue: "Paused by board" });
       }
-      return durationText ? `Cancelled after ${durationText}` : "Run cancelled";
+      return durationText ? t("chatUiLib.cancelledAfter", { time: durationText, defaultValue: "Cancelled after {{time}}" }) : t("chatUiLib.runCancelled", { defaultValue: "Run cancelled" });
     case "queued":
-      return "Queued";
+      return t("chatUiLib.queued", { defaultValue: "Queued" });
     case "running":
-      return "Working...";
+      return t("chatUiLib.workingEllipsis", { defaultValue: "Working..." });
     default:
       return formatStatusLabel(run.status);
   }

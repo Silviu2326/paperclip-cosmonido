@@ -467,7 +467,7 @@ export function renderOperationGroupsDocument(input: OperationGroupsInput): stri
     "",
     "The machine-readable authority for this document's decisions is `spec/operation-groups/source.json`. The generator joins that source to these independently versioned authorities and rejects disagreement:",
     "",
-    "- the package-exported `CAPABILITY_CANONICAL_CATALOG` in `src/catalog/` — the 41-operation authority, including enriched mock/redaction and divergence facts.",
+    "- the package-exported `CAPABILITY_CANONICAL_CATALOG` in `src/catalog/` — the canonical operation authority, including enriched mock/redaction and divergence facts; live-only tools do not imply scenario coverage.",
     "- `src/tools/capability-semantic-tool-types.ts` — 10 control-plane-owned operation IDs.",
     "- `protocol/schemas/event.schema.json` and `command.schema.json` — PRP event/command members and families.",
     "- `spec/capability/eval-traceability.yaml` — all 16 groups and 106 scenario identities/source anchors.",

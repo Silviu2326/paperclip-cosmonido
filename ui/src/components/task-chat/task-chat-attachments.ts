@@ -5,6 +5,7 @@
  * ("[name](/api/attachments/<id>/content)") so posted bubbles can render them
  * as the same chips instead of bare links.
  */
+import { t } from "@/i18n";
 import {
   FileArchive,
   FileAudio,
@@ -114,12 +115,12 @@ export function isImageAttachment(ref: AttachmentRef): boolean {
 }
 
 /** Kind icon + short label for a filename; unknown extensions get File/"File". */
-export function fileKindForName(name: string): FileKind {
+function rawFileKindForName(name: string): FileKind {
   return KIND_BY_EXTENSION[extensionOf(name)] ?? { icon: FileIcon, label: "File" };
 }
 
-export function fileKindForAttachment(ref: AttachmentRef): FileKind {
-  const byName = fileKindForName(ref.name);
+function rawFileKindForAttachment(ref: AttachmentRef): FileKind {
+  const byName = rawFileKindForName(ref.name);
   if (byName.label !== "File") return byName;
 
   const contentType = normalizedContentType(ref.contentType);
@@ -137,6 +138,22 @@ export function fileKindForAttachment(ref: AttachmentRef): FileKind {
     return { icon: FileArchive, label: "Archive" };
   }
   return byName;
+}
+
+const LOCALIZED_KIND_LABELS = new Set(["Doc", "Text", "Sheet", "Archive", "Video", "Code", "Log", "Patch", "File"]);
+
+/** Kind labels are matched in English internally; the chip shows them in the viewer's language. */
+function localizeKind(kind: FileKind): FileKind {
+  if (!LOCALIZED_KIND_LABELS.has(kind.label)) return kind;
+  return { ...kind, label: t(`chatUiLib.kind${kind.label}`, { defaultValue: kind.label }) };
+}
+
+export function fileKindForName(name: string): FileKind {
+  return localizeKind(rawFileKindForName(name));
+}
+
+export function fileKindForAttachment(ref: AttachmentRef): FileKind {
+  return localizeKind(rawFileKindForAttachment(ref));
 }
 
 /** "2.4 MB"-style size for chip descriptions (same tiers as IssueChatThread). */

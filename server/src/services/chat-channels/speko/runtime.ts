@@ -9,7 +9,7 @@ import type { ChatSdkStatePersistence } from "../../chat-sdk-state.js";
 import type { createChatCredentials } from "../credentials.js";
 import type { EndpointRow, EndpointRecord } from "../runtime-types.js";
 
-type SpekoChannelOptions = Pick<Parameters<typeof voiceSessionService>[1], "allowLocalBoard" | "onQuestionAnswered"> & {
+type SpekoChannelOptions = Pick<Parameters<typeof voiceSessionService>[1], "allowLocalBoard" | "onQuestionAnswered" | "onCallReport" | "beginCrmCallback"> & {
   endpointRecord: (endpointId: string) => Promise<EndpointRecord | null>;
   resolveCredentialRefs: ReturnType<typeof createChatCredentials>["resolveCredentialRefs"];
   fetchImpl: typeof globalThis.fetch;
@@ -26,6 +26,8 @@ export function createSpekoChannelService(db: Db, options: SpekoChannelOptions) 
     },
     provider: (apiKey) => createSpekoProvider(apiKey, fetchImpl),
     onQuestionAnswered: options.onQuestionAnswered,
+    onCallReport: options.onCallReport,
+    beginCrmCallback: options.beginCrmCallback,
   });
 }
 

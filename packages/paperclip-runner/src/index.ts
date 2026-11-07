@@ -75,6 +75,7 @@ export {
   type RunnerdCodexTransportOptions,
 } from "./live/runnerd-codex-transport.js";
 export * from "./live/workspace-file-reference.js";
+export * from "./live/autonomy-replay.js";
 export { readLinuxProcessStartedAt, type LinuxProcessStartOptions } from "./live/linux-process-start.js";
 export * from "./protocol/replay-contract.js";
 export * from "./protocol/replay-loader.js";

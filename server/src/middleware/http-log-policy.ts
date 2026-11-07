@@ -38,6 +38,13 @@ function normalizePath(url: string): string {
 }
 
 const SECRET_SENSITIVE_HTTP_PATHS = [
+  /^\/api\/(?:companies\/[^/]+\/review-links|review-links|p\/[^/]+\/review)(?:\/|$)/i,
+  /^\/api\/companies\/[^/]+\/crm-phone(?:\/|$)/i,
+  /^\/api\/companies\/[^/]+\/productization\/imports(?:\/|$)/i,
+  /^\/api\/auth(?:\/|$)/i,
+  /^\/api\/productization\/public-api(?:\/|$)/i,
+  /^\/api\/companies\/[^/]+\/product-notifications\/push(?:\/|$)/i,
+  /^\/api\/companies\/[^/]+\/customer-portals(?:\/|$)/i,
   /^\/api\/companies\/[^/]+\/voice-sessions(?:\/|$)/,
   /^\/mcp\/(?:oauth|paperclip)(?:\/|$)/,
   /^\/api\/mcp(?:\/|$)/,
@@ -64,7 +71,7 @@ export function isPrivateWebhookHttpRequest(
     // Do not let URL dot-segment normalization erase an explicitly supplied
     // ingress namespace on a malformed absolute-form callback.
     const rawPath = pathname.replace(/^https?:\/\/[^/]*/i, "");
-    if (/^\/api\/(?:chat-webhooks|voice-webhooks|routine-triggers\/public)(?:\/|$)/i.test(rawPath)) return true;
+    if (/^\/api\/(?:chat-webhooks|voice-webhooks|routine-triggers\/public|public\/productization\/stripe\/webhook|public\/customer-portals)(?:\/|$)/i.test(rawPath)) return true;
     try {
       pathname = new URL(url).pathname;
     } catch {
@@ -73,7 +80,7 @@ export function isPrivateWebhookHttpRequest(
   }
   // This namespace is reserved for provider ingress, including malformed or
   // unknown callback paths. Rejecting a route must not make its payload public.
-  return /^\/api\/(?:chat-webhooks|voice-webhooks|routine-triggers\/public)(?:\/|$)/i.test(pathname);
+  return /^\/api\/(?:chat-webhooks|voice-webhooks|routine-triggers\/public|public\/productization\/stripe\/webhook|public\/customer-portals)(?:\/|$)/i.test(pathname);
 }
 
 /**
@@ -96,7 +103,7 @@ export function isSecretSensitiveHttpRequest(
   if (/^\/api\/chat-slack\/(?:managed\/)?oauth(?:\/|$)/i.test(normalizePath(url).replace(/^https?:\/\/[^/]*/i, ""))) return true;
   if (/^\/api\/chat-endpoints\/[^/]+\/slack(?:\/|$)/i.test(normalizePath(url).replace(/^https?:\/\/[^/]*/i, ""))) return true;
   if (!SECRET_SENSITIVE_HTTP_METHODS.has(method.toUpperCase())) return false;
-  const pathname = normalizePath(url);
+  const pathname = normalizePath(url).replace(/^https?:\/\/[^/]*/i, "");
   return SECRET_SENSITIVE_HTTP_PATHS.some((pattern) => pattern.test(pathname));
 }
 

@@ -61,7 +61,7 @@ function makeState(options: PrimaryScenario): StoryState {
   const first = { ...primaryAgent, name: options.primaryName || primaryAgent.name, status: options.paused ? "paused" : options.error ? "error" : options.activePrimary ? "running" : "idle" } as Agent;
   return {
     agents: options.firstCreated ? [first] : [...(options.unavailable ? [] : [first]), { ...specialist, status: options.active ? "running" : "idle" }, designer],
-    memberships: { projectMemberships: {}, agentMemberships: options.leftPrimary ? { [first.id]: "left" } : {}, starredAgentIds: options.firstCreated ? [] : [specialist.id], starredProjectIds: [], starredDocumentIds: [], agentStarredAt: {}, projectStarredAt: {}, documentStarredAt: {}, updatedAt: null },
+    memberships: { projectMemberships: {}, agentMemberships: options.leftPrimary ? { [first.id]: "left" } : {}, starredAgentIds: options.firstCreated ? [] : [specialist.id], starredProjectIds: [], starredDocumentIds: [], agentStarredAt: {}, projectStarredAt: {}, documentStarredAt: {}, starredCompanyFileIds: [], companyFileStarredAt: {}, starredArtifactRefs: [], artifactStarredAt: {}, updatedAt: null },
     chats: options.recentChat ? [{ ...agentChatDraft(specialist), id: "primary-story-recent-chat", conversationUserId: "user-board", createdAt: new Date("2026-10-07T13:00:00Z"), updatedAt: new Date("2026-10-07T13:05:00Z") }] : [],
     primaryId: options.unavailable || options.leftPrimary ? null : options.primaryId === undefined ? first.id : options.primaryId,
     options,

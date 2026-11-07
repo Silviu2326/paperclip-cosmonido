@@ -3,7 +3,7 @@ import { environmentService } from "../environments.js";
 import { logger } from "../../middleware/logger.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { and, asc, desc, eq, gte, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
-import { activityLog, chatVoicePhoneLines, chatVoiceInboundCalls, chatVoiceCallbacks, chatEndpoints, chatConversations, chatDeliveries, chatPublications, chatVoiceSessions, chatVoiceToolCalls, chatVoiceReplies, companyMemberships, companySecrets, connectionGrants, connectionGrantMembers, toolConnectionInstalls, instanceUserRoles, issueThreadInteractions, issues, heartbeatRuns, toolConnections, type Db } from "@paperclipai/db";
+import { activityLog, chatVoicePhoneLines, chatVoiceInboundCalls, chatVoiceCallbacks, crmPhoneCallbacks, chatEndpoints, chatConversations, chatDeliveries, chatPublications, chatVoiceSessions, chatVoiceToolCalls, chatVoiceReplies, companyMemberships, companySecrets, connectionGrants, connectionGrantMembers, toolConnectionInstalls, instanceUserRoles, issueThreadInteractions, issues, heartbeatRuns, toolConnections, type Db } from "@paperclipai/db";
 import { LOW_TRUST_REVIEW_PRESET } from "@paperclipai/shared";
 import type { ToolCredentialSecretRef, VoiceSession } from "@paperclipai/shared";
 import { conflict, forbidden, notFound, HttpError } from "../../errors.js";
@@ -15,7 +15,13 @@ import type { SpekoToolEnvelope } from "./speko-protocol.js";
 
 export type VoiceTransaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
 export type VoiceSessionRow = typeof chatVoiceSessions.$inferSelect;
-export interface VoiceCaller { id: string; authority: "member" | "instance_admin" | "local_board" }
+export interface VoiceCaller {
+  id: string;
+  authority: "member" | "instance_admin" | "local_board" | "crm_callback";
+  /** Present only for the internal CRM dispatcher; never accepted from HTTP. */
+  callbackId?: string;
+  claimToken?: string;
+}
 export function voiceCredentialFingerprint(refs: ToolCredentialSecretRef[]) {
   const stable = refs.map((ref) => ({ configPath: ref.configPath, secretId: ref.secretId, versionSelector: ref.versionSelector ?? "latest" }))
     .sort((a, b) => `${a.configPath}:${a.secretId}:${a.versionSelector}`.localeCompare(`${b.configPath}:${b.secretId}:${b.versionSelector}`));
@@ -40,6 +46,16 @@ export function serializeVoiceSession(row: VoiceSessionRow): VoiceSession {
 /** Server-owned bindings, not model-selected company/task IDs. */
 export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; nonblockingAuthority?: boolean }) {
   async function authorizeCaller(tx: VoiceTransaction, companyId: string, caller: VoiceCaller) {
+    if (caller.authority === "crm_callback") {
+      const callbackId = caller.callbackId;
+      if (!callbackId || caller.id !== `crm_callback:${callbackId}` || !caller.claimToken) throw forbidden("CRM callback voice authority is invalid");
+      const [callback] = await tx.select({ id: crmPhoneCallbacks.id }).from(crmPhoneCallbacks).where(and(
+        eq(crmPhoneCallbacks.id, callbackId), eq(crmPhoneCallbacks.companyId, companyId), eq(crmPhoneCallbacks.status, "dialing"),
+        eq(crmPhoneCallbacks.claimToken, caller.claimToken), sql`${crmPhoneCallbacks.claimExpiresAt} > now()`,
+      )).for("share", options.nonblockingAuthority ? { noWait: true } : undefined);
+      if (!callback) throw forbidden("CRM callback lease is no longer current");
+      return;
+    }
     if (caller.authority === "local_board") {
       if (options.allowLocalBoard && caller.id === "local-board") return;
       throw forbidden("Local voice authority is unavailable");
@@ -50,6 +66,18 @@ export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; n
     if (!permitted.length) throw forbidden("Voice access is no longer available");
   }
   async function authorizeTask(tx: VoiceTransaction, companyId: string, issueId: string, caller: VoiceCaller, work = true) {
+    if (caller.authority === "crm_callback") {
+      await authorizeCaller(tx, companyId, caller);
+      const [callback] = await tx.select({ issueId: crmPhoneCallbacks.issueId, agentId: crmPhoneCallbacks.assigneeAgentId }).from(crmPhoneCallbacks).where(and(
+        eq(crmPhoneCallbacks.id, caller.callbackId!), eq(crmPhoneCallbacks.companyId, companyId), eq(crmPhoneCallbacks.status, "dialing"),
+        eq(crmPhoneCallbacks.claimToken, caller.claimToken!),
+      ));
+      const [task] = await tx.select().from(issues).where(and(eq(issues.id, issueId), eq(issues.companyId, companyId)));
+      if (!callback || callback.issueId !== issueId || !task || task.assigneeAgentId !== callback.agentId || task.status === "cancelled" || task.hiddenAt) {
+        throw forbidden("CRM callback task binding is no longer current");
+      }
+      return task;
+    }
     await authorizeCaller(tx, companyId, caller);
     const [task] = await tx.select().from(issues).where(and(eq(issues.id, issueId), eq(issues.companyId, companyId))).for("share", options.nonblockingAuthority ? { noWait: true } : undefined);
     if (!task) throw notFound("Voice task not found");
@@ -84,11 +112,18 @@ export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; n
     // its durable row; only the dedicated legacy channel has neither.
     const grants = await tx.select().from(connectionGrants).where(and(eq(connectionGrants.companyId, endpoint.companyId), eq(connectionGrants.connectionId, connection.id)));
     const members = grants.length ? await tx.select().from(connectionGrantMembers).where(and(eq(connectionGrantMembers.companyId, endpoint.companyId), inArray(connectionGrantMembers.grantId, grants.map(g => g.id)))) : [];
+    const callbackAgentId = caller.authority === "crm_callback"
+      ? await tx.select({ agentId: crmPhoneCallbacks.assigneeAgentId }).from(crmPhoneCallbacks).where(and(
+        eq(crmPhoneCallbacks.id, caller.callbackId!), eq(crmPhoneCallbacks.companyId, endpoint.companyId), eq(crmPhoneCallbacks.status, "dialing"), eq(crmPhoneCallbacks.claimToken, caller.claimToken!), eq(crmPhoneCallbacks.endpointId, endpoint.id),
+      )).then(rows => rows[0]?.agentId)
+      : null;
+    if (caller.authority === "crm_callback" && (!callbackAgentId || callbackAgentId !== endpoint.assignedAgentId)) throw forbidden("CRM callback is not assigned to this voice line");
     if (grants.length && !grants.some(grant => {
       if (grant.status !== "active") return false;
       // The channel runtime uses connection refs; an unrelated identity's
       // grant cannot authorize that credential.
       if (voiceCredentialFingerprint(grant.credentialSecretRefs) !== voiceCredentialFingerprint(connection.credentialSecretRefs)) return false;
+      if (caller.authority === "crm_callback") return grant.kind === "organization" && (members.filter(member => member.grantId === grant.id).length === 0 || members.some(member => member.grantId === grant.id && member.subjectId === callbackAgentId));
       if (grant.kind === "user") return grant.subjectUserId === caller.id;
       if (grant.kind !== "organization" || ["per_user", "per_agent"].includes(connection.credentialPolicy)) return false;
       const audience = members.filter(member => member.grantId === grant.id);
@@ -155,6 +190,20 @@ export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; n
     if (!task || !conversation || !["active", "waiting"].includes(conversation.state) || task.assigneeAgentId !== session.assignedAgentId || context.endpoint.assignedAgentId !== session.assignedAgentId) throw forbidden("The voice task binding changed");
     return { ...context, session, conversation, task };
   }
+  /** Internal CRM dispatcher only. CRM callback sessions never receive a board/member principal. */
+  async function authorizeCrmCallbackSession(tx: VoiceTransaction, companyId: string, sessionId: string, caller: VoiceCaller, allowedStates: readonly string[] = ["creating", "connecting", "active"]) {
+    if (caller.authority !== "crm_callback" || !caller.callbackId || !caller.claimToken || caller.id !== `crm_callback:${caller.callbackId}`) throw forbidden("CRM callback voice authority is invalid");
+    const [session] = await tx.select().from(chatVoiceSessions).where(and(eq(chatVoiceSessions.companyId, companyId), eq(chatVoiceSessions.id, sessionId)));
+    if (!session || session.callerAuthority !== "crm_callback" || session.callerId !== caller.id || session.mode !== "outbound_phone" || !allowedStates.includes(session.state) || session.expiresAt.getTime() <= Date.now()) throw forbidden("CRM callback voice session is unavailable");
+    const context = await endpointContext(tx, companyId, session.endpointId);
+    if (session.generation !== context.generation || session.credentialFingerprint !== context.fingerprint || session.assignedAgentId !== context.endpoint.assignedAgentId) throw forbidden("CRM callback voice connection changed");
+    await authorizeCaller(tx, companyId, caller);
+    await authorizeConnection(tx, context, caller);
+    const task = await authorizeTask(tx, companyId, session.issueId, caller);
+    const [line] = await tx.select({ endpointId: chatVoicePhoneLines.endpointId }).from(chatVoicePhoneLines).where(and(eq(chatVoicePhoneLines.companyId, companyId), eq(chatVoicePhoneLines.endpointId, session.endpointId), eq(chatVoicePhoneLines.enabled, true))).limit(1);
+    if (!line || !context.endpoint.allowDirectMessages) throw forbidden("CRM callback telephone line is no longer active");
+    return { session, context, task };
+  }
   async function reserve(input: {
     companyId: string; endpointId: string; caller: VoiceCaller; idempotencyKey: string; requestFingerprint: string; maxDurationSeconds: number; mode?: "browser" | "outbound_phone" | "inbound_phone"; providerSessionId?: string; toolToken?: string;
     /** Runs only for a NEW request and in the same transaction as the session. */
@@ -201,7 +250,7 @@ export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; n
       const [session] = await tx.insert(chatVoiceSessions).values({ id: randomUUID(), companyId: input.companyId, endpointId: input.endpointId, ...binding, assignedAgentId: context.endpoint.assignedAgentId,
         callerId: input.caller.id, callerAuthority: input.caller.authority, mode: input.mode ?? "browser", state: input.providerSessionId ? "connecting" : "reserved", providerSessionId: input.providerSessionId ?? null, approvedByUserId: input.mode === "inbound_phone" ? input.caller.id : null, generation: context.generation, credentialFingerprint: context.fingerprint,
         toolTokenHash: voiceTokenHash(token), idempotencyKey: input.idempotencyKey, requestFingerprint: input.requestFingerprint, createdAt, expiresAt: new Date(createdAt.getTime() + input.maxDurationSeconds * 1000) }).returning();
-      await tx.insert(activityLog).values({ companyId: input.companyId, actorType: "user", actorId: input.caller.id, action: "voice.session.requested", entityType: "voice_session", entityId: session.id, details: { endpointId: input.endpointId, issueId: session.issueId, mode: input.mode ?? "browser" } });
+      await tx.insert(activityLog).values({ companyId: input.companyId, actorType: input.caller.authority === "crm_callback" ? "system" : "user", actorId: input.caller.authority === "crm_callback" ? "crm-phone-executor" : input.caller.id, action: "voice.session.requested", entityType: "voice_session", entityId: session.id, details: { endpointId: input.endpointId, issueId: session.issueId, mode: input.mode ?? "browser", ...(input.caller.authority === "crm_callback" ? { callbackId: input.caller.callbackId } : {}) } });
       return { session, created: true as const, token };
     });
   }
@@ -484,5 +533,5 @@ export function voiceSessionStore(db: Db, options: { allowLocalBoard: boolean; n
       return next ? { sessionId, generation: session.generation, publicationId: next.publicationId, attempt: Math.max(0, Math.floor((Date.now() - next.createdAt.getTime()) / 10_000)) } : null;
     });
   }
-  return { endpointContext, authorizeConnection, reserve, stageDelivery, runTool, authorizeSession, authorizeCaller, authorizeTask, authorizePrincipal, enqueuePublication, notification, collectMissedReplies };
+  return { endpointContext, authorizeConnection, reserve, stageDelivery, runTool, authorizeSession, authorizeCrmCallbackSession, authorizeCaller, authorizeTask, authorizePrincipal, enqueuePublication, notification, collectMissedReplies };
 }

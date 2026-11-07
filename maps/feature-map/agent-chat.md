@@ -14,6 +14,11 @@ Agent access: [companion](../agent-access-map/agent-chat.md).
 
 - `discovery`: find an agent and reopen an accessible recent conversation.
 - `history`: send messages, inspect replies/files, and return to the same conversation.
+  The thread includes a collapsible description of the agent's capabilities and
+  work mode, with a reminder of the `/new` replay boundary when one exists.
+  Agent work panels filter tasks by open/blocked/finished state and search loaded
+  deliverables by title, task identifier or media type. These lists cover the
+  agent's company work, not just work delegated from the current conversation.
 - `handoff`: create or identify a project/task from chat and follow the resulting work.
 - `conference-room`: use the separately gated board chat without assuming parity with agent chat.
 
@@ -21,7 +26,7 @@ Agent access: [companion](../agent-access-map/agent-chat.md).
 
 ### `agent-conversation`
 
-Open `/chats`, choose an agent, or use `/chats/:agentRef` and its conversation sidebar.
+Open `/chats`, choose an agent, or use `/chats/:agentRef` and its conversation sidebar. The sidebar lists starred agents first, shows each agent's status dot, last activity and preview, and filters between everyone and those answering now. An empty conversation greets with the agent's name and role; a failed load offers Retry in place, and a 403 shows a no-access notice.
 
 ### `project-handoff`
 

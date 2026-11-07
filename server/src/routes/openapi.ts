@@ -1,7 +1,10 @@
+import { autopilotConfigSchema, autopilotPlansSchema, autopilotReportSchema } from "@paperclipai/shared";
 import { createGrokInvitationSchema, configureGrokRoutineSchema, verifyGrokRoutineSchema, recoverGrokRoutineSchema, pairGrokBindingSchema, stopGrokWorkSchema, retryGrokDeliverySchema } from "@paperclipai/shared";
 import { updateFastResponseSchema } from "@paperclipai/shared";
+import { putOfficeLayoutSchema, officeDesignChatSchema, officeLayoutResponseSchema, officeDesignChatResponseSchema } from "@paperclipai/shared";
 import { slackTestMessageSchema, slackTestMessageResultSchema, slackManagerAuthorizationSchema, slackSetupOptionsSchema, slackManagedProvisionSchema, slackManagedResultSchema, slackRegistrationSchema, slackSetupActionSchema, slackInstallAuthorizationSchema, slackRegistrationStateSchema, slackAppConfigurationSchema, slackAvatarStateSchema, slackAccountStateSchema } from "@paperclipai/shared";
 import { experimentalApiMetadata } from "./experimental-api-metadata.js";
+import { productizationOpenApiAuthByOperation, productizationOpenApiRoutes } from "./productization-openapi.js";
 import {
   experimentalApiPaths,
   experimentalApiQueries,
@@ -91,6 +94,8 @@ import {
   updateCompanyBrandingSchema,
   companyArtifactsQuerySchema,
   companyArtifactsResponseSchema,
+  companyArtifactsTreeQuerySchema,
+  companyArtifactTreeResponseSchema,
   // Decisions
   addDecisionQueueItemSchema,
   createDecisionQueueSchema,
@@ -234,6 +239,8 @@ import {
   patchInstanceSettingsSchema,
   startTaskDrainRequestSchema,
   // Resource memberships
+  updateArtifactResourceMembershipSchema,
+  updateCompanyFileResourceMembershipSchema,
   updateDocumentResourceMembershipSchema,
   updateResourceMembershipSchema,
   // Document annotations
@@ -330,6 +337,13 @@ import {
   updateChatEndpointSchema,
 } from "@paperclipai/shared";
 import { aggregatorAppsSyncSchema, aggregatorAppsRefreshSchema, arcadeDiscoverySetupSchema } from "@paperclipai/shared/aggregator-apps";
+import {
+  createCompanyFileFolderSchema,
+  createCompanyFileFromArtifactSchema,
+  listCompanyFilesQuerySchema,
+  updateCompanyFileFolderSchema,
+  updateCompanyFileSchema,
+} from "@paperclipai/shared/validators/company-file";
 import { composioAppsSyncSchema, composioAppsRefreshSchema, composioAppSetupSchema, composioAppAccountSchema } from "@paperclipai/shared/composio-app-setup";
 import {
   COMPANY_IMPORT_TRANSFERS_API_PATH,
@@ -499,10 +513,17 @@ function zodToOpenApiSchema(schema: z.ZodTypeAny): JsonSchema {
   }
 
   if (typeName === "array") {
-    return {
+    const jsonSchema: JsonSchema = {
       type: "array",
       items: zodToOpenApiSchema(def.element as z.ZodTypeAny),
     };
+    for (const check of (def.checks as unknown[]) ?? []) {
+      const constraint = checkDef(check);
+      if (constraint?.check === "min_length") jsonSchema.minItems = constraint.minimum;
+      if (constraint?.check === "max_length") jsonSchema.maxItems = constraint.maximum;
+      if (constraint?.check === "length_equals") jsonSchema.minItems = jsonSchema.maxItems = constraint.length;
+    }
+    return jsonSchema;
   }
 
   if (typeName === "record") {
@@ -1264,8 +1285,13 @@ function registerCurrentRoute(input: {
   path: string;
   tags: string[];
   summary: string;
+  description?: string;
   query?: z.ZodTypeAny;
   body?: z.ZodTypeAny;
+  bodyContentTypes?: string[];
+  response?: z.ZodTypeAny;
+  status?: number;
+  noContent?: boolean;
   responses?: Record<string, OpenApiResponse>;
 }) {
   const params = paramsSchemaFromPath(input.path);
@@ -1274,7 +1300,10 @@ function registerCurrentRoute(input: {
       ? {
           ...(params ? { params } : {}),
           ...(input.query ? { query: input.query } : {}),
-          ...(input.body ? { body: jsonBody(input.body) } : {}),
+          ...(input.body ? { body: input.bodyContentTypes?.length ? {
+            required: true as const,
+            content: Object.fromEntries(input.bodyContentTypes.map((contentType) => [contentType, { schema: input.body! }])),
+          } : jsonBody(input.body) } : {}),
         }
       : undefined;
   registry.registerPath({
@@ -1282,18 +1311,26 @@ function registerCurrentRoute(input: {
     path: input.path,
     tags: input.tags,
     summary: input.summary,
+    ...(input.description ? { description: input.description } : {}),
     ...(request ? { request } : {}),
     responses: input.responses ?? {
-      200: r.ok(),
+      [input.status ?? 200]: input.noContent ? r.noContent : r.ok(input.response),
       400: r.badRequest,
       401: r.unauthorized,
+      403: r.forbidden,
       404: r.notFound,
+      409: r.conflict,
+      422: r.unprocessable,
     },
   });
 }
 
 type OpenApiAuthLevel =
   | "public"
+  | "customer_portal"
+  | "external_review"
+  | "scoped_api"
+  | "stripe_webhook"
   | "agent_run"
   | "agent_heartbeat"
   | "runtime_tools"
@@ -1334,7 +1371,7 @@ const RUNTIME_TOOLS_OPERATIONS = new Set([
 ]);
 
 const PUBLIC_OPERATIONS = new Set([
-  "GET /api/agent-avatars/{version}/{palette}/{file}",
+  "GET /api/agent-avatars/{version}/{preset}/{file}",
   "GET /api/health",
   "GET /api/liveness",
   "HEAD /api/liveness",
@@ -1359,6 +1396,12 @@ const PUBLIC_OPERATIONS = new Set([
 ]);
 
 const BOARD_ONLY_PREFIXES = [
+  "/api/companies/{companyId}/productization/onboarding",
+  "/api/companies/{companyId}/productization/",
+  "/api/companies/{companyId}/product-notifications",
+  "/api/productization/accounts",
+  "/api/productization/public-api/keys",
+  "/api/productization/public-api/webhooks",
   "/api/companies/{companyId}/accounting/",
   "/api/announcements/",
   "/api/auth/",
@@ -1380,6 +1423,10 @@ const browserUseOperations = [
 ] as const;
 
 const BOARD_ONLY_OPERATIONS = new Set([
+  "PUT /api/projects/{projectId}/autopilot",
+  "POST /api/projects/{projectId}/autopilot/discover",
+  "POST /api/projects/{projectId}/autopilot/select",
+  "POST /api/projects/{projectId}/autopilot/feedback",
   "GET /api/companies/{companyId}/fast-response",
   "PUT /api/companies/{companyId}/fast-response",
   "GET /api/companies/{companyId}/fast-response/models",
@@ -1742,6 +1789,8 @@ function resolveOperationAuthLevel(
   path: string,
 ): OpenApiAuthLevel {
   const key = operationKey(method, path);
+  const productizationAuth = productizationOpenApiAuthByOperation.get(key);
+  if (productizationAuth) return productizationAuth;
   if (key === "GET /api/mcp/requests/{id}" || key === "GET /api/mcp/device"
       || key === "POST /api/mcp/requests/{id}/dot-pairing"
       || key === "POST /api/mcp/requests/{id}/dot-pairing/preview"
@@ -1753,6 +1802,7 @@ function resolveOperationAuthLevel(
   if (path === "/api/companies/{companyId}/dot-invitations" || path === "/api/companies/{companyId}/grok-invitations"
       || /^\/api\/companies\/\{companyId\}\/agents\/\{agentId\}\/grok-binding(?:\/(?:routine|verify|retry|stop|recover))?$/.test(path)) return "board";
   if (PUBLIC_OPERATIONS.has(key)) return "public";
+  if (/^POST \/api\/projects\/\{projectId\}\/autopilot\/(plans|reports)$/.test(key)) return "agent_run";
   if (key === "POST /api/companies/{companyId}/agent-commentary") return "agent_heartbeat";
   if (key === "POST /api/mcp/project-tools" || key === "POST /api/companies/{companyId}/slack/tasks/{issueId}/tools") return "agent_run";
   if (RUNTIME_TOOLS_OPERATIONS.has(key)) return "runtime_tools";
@@ -1813,6 +1863,28 @@ function applyDocumentFixups(document: any): any {
       bearerFormat: "Task-bound agent JWT",
       description: "Paperclip-issued JWT bound to an active task run. Agent API keys, board sessions, and connection-only tokens are rejected.",
     },
+    CustomerPortalToken: {
+      type: "apiKey",
+      in: "header",
+      name: "X-Paperclip-Customer-Portal",
+      description: "Expiring and revocable customer portal token. Send only over HTTPS; it is not a board, agent, or Public API key.",
+    },
+    ExternalReviewToken: {
+      type: "apiKey", in: "header", name: "X-Paperclip-Review-Token",
+      description: "Expiring, revocable signed token for one deliverable version. Never a board or agent identity; never send it in a path or query.",
+    },
+    ScopedPublicApiBearer: {
+      type: "http",
+      scheme: "bearer",
+      bearerFormat: "Scoped pcp_public_ key",
+      description: "Read-only Public API key scoped to one company and explicit resource scopes; does not use ambient board or agent authentication.",
+    },
+    StripeWebhookSignature: {
+      type: "apiKey",
+      in: "header",
+      name: "stripe-signature",
+      description: "Stripe-signed webhook header verified against the raw request body.",
+    },
   };
   document.security = AUTHENTICATED_SECURITY;
 
@@ -1829,6 +1901,14 @@ function applyDocumentFixups(document: any): any {
         operation.security = [securityRequirement(AGENT_BEARER_AUTH_SCHEME)];
       } else if (authLevel === "runtime_tools") {
         operation.security = RUNTIME_TOOLS_SECURITY;
+      } else if (authLevel === "customer_portal") {
+        operation.security = [securityRequirement("CustomerPortalToken")];
+      } else if (authLevel === "external_review") {
+        operation.security = [securityRequirement("ExternalReviewToken")];
+      } else if (authLevel === "scoped_api") {
+        operation.security = [securityRequirement("ScopedPublicApiBearer")];
+      } else if (authLevel === "stripe_webhook") {
+        operation.security = [securityRequirement("StripeWebhookSignature")];
       } else if (authLevel === "authenticated") {
         operation.security = AUTHENTICATED_SECURITY;
       } else {
@@ -1846,6 +1926,14 @@ function applyDocumentFixups(document: any): any {
               ? { actor: "agent", heartbeatBound: true }
             : authLevel === "runtime_tools"
               ? { actor: "runtime_tools", heartbeatBound: true }
+            : authLevel === "customer_portal"
+              ? { actor: "portal_token_holder", tokenHeader: "X-Paperclip-Customer-Portal" }
+            : authLevel === "external_review"
+              ? { actor: "review_token_holder", tokenHeader: "X-Paperclip-Review-Token", versionBound: true }
+            : authLevel === "scoped_api"
+              ? { actor: "scoped_public_api_key", companyBound: true, scopesRequired: true, readOnly: true }
+            : authLevel === "stripe_webhook"
+              ? { actor: "stripe_webhook", signatureRequired: true, rawBodyRequired: true }
               : authLevel === "authenticated"
                 ? { actor: "board_or_agent" }
                 : { actor: "public" };
@@ -2151,6 +2239,42 @@ registry.registerPath({
         },
       },
     },
+    401: r.unauthorized,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/artifacts/archive",
+  tags: ["companies"],
+  summary: "Download every artifact of one task (node=issue:<id>) or project (node=project:<id>) as a ZIP (board only). Attachments and attachment-backed work products are stored bytes at <identifier>/<filename>; documents are <identifier>/<key>.md. 422 when empty; 413 above 500 MB.",
+  request: {
+    params: z.object({ companyId: z.string() }),
+    query: z.object({ node: z.string().regex(/^(issue|project):[0-9a-fA-F-]{36}$/) }),
+  },
+  responses: {
+    200: { description: "application/zip attachment" },
+    400: r.badRequest,
+    401: r.unauthorized,
+    403: r.forbidden,
+    404: r.notFound,
+    413: { description: "Archive exceeds the 500 MB limit" },
+    422: r.unprocessable,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/artifacts/tree",
+  tags: ["companies"],
+  summary: "Get the company artifacts folder tree (Salida explorer)",
+  request: {
+    params: z.object({ companyId: z.string() }),
+    query: companyArtifactsTreeQuerySchema,
+  },
+  responses: {
+    200: r.ok(companyArtifactTreeResponseSchema),
+    400: r.badRequest,
     401: r.unauthorized,
   },
 });
@@ -3159,20 +3283,21 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
-  path: "/api/agent-avatars/{version}/{palette}/{file}",
+  path: "/api/agent-avatars/{version}/{preset}/{file}",
   tags: ["agents"],
   summary: "Render or retrieve a public preset agent portrait",
-  description: "On-demand PNG artwork; no agent or company lookup. Logical size determines face detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion.",
+  description: "On-demand PNG artwork; no agent or company lookup. cap-v1 presets are palette ids (or muted-dream); lpc-v1 presets are the encoded pixel-art layer spec (bodyType.skin.eyes.hair.hairColor.torso.torsoColor.legs.legsColor.feet.feetColor) and additionally accept muted=1 the file sheet.png, the native 64px animation sheet (one row per character state), and world.png, the 9x8 office world sheet (directional idle/walk rows and sit rows). Logical size determines detail independently of density. Background defaults to transparent; paperclip-dark supplies the opaque Paperclip dark-mode background for Slack exports. Successful URLs are immutable for one year and return a content-derived ETag. Cache entries regenerate after deletion. GET /api/agent-avatars/lpc-v1/credits serves the Liberated Pixel Cup attribution CSV.",
   request: {
     params: z.object({
-      version: z.literal("cap-v1"),
-      palette: z.enum([...AGENT_PALETTE_IDS, "muted-dream"]),
-      file: z.enum(CHARACTER_STATES.map(pose => `${pose}.png`)),
+      version: z.enum(["cap-v1", "lpc-v1"]),
+      preset: z.string().describe("cap-v1: " + [...AGENT_PALETTE_IDS, "muted-dream"].join(" | ") + "; lpc-v1: encoded layer spec"),
+      file: z.enum([...CHARACTER_STATES.map(pose => `${pose}.png`), "sheet.png", "world.png"]),
     }),
     query: z.object({
       size: z.enum(AGENT_AVATAR_SIZES.map(String)).optional().default("512"),
       scale: z.enum(["1", "2"]).optional().default("1"),
       background: z.enum(["transparent", "paperclip-dark"]).optional().default("transparent"),
+      muted: z.enum(["0", "1"]).optional().describe("lpc-v1 only: greyscale presentation"),
     }).strict(),
   },
   responses: {
@@ -4971,6 +5096,31 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "get", path: "/api/projects/{projectId}/autopilot", tags: ["projects"],
+  summary: "Read project autonomy plans, progress and evidence",
+  request: { params: z.object({ projectId: z.string().uuid() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+registry.registerPath({
+  method: "put", path: "/api/projects/{projectId}/autopilot", tags: ["projects"],
+  summary: "Configure project autonomy (board with task assignment authority)",
+  request: { params: z.object({ projectId: z.string().uuid() }), body: jsonBody(z.object({ config: autopilotConfigSchema, expectedRevision: z.number().int().positive().optional() }).strict()) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+for (const [suffix, summary, schema] of [
+  ["plans", "Submit the three project autonomy plans from the assigned discovery run", autopilotPlansSchema],
+  ["reports", "Submit implementation, independent review or deployment evidence from the assigned run", autopilotReportSchema],
+  ["discover", "Request a new project autonomy discovery cycle", z.object({}).strict()],
+  ["select", "Select a prepared project autonomy plan", z.object({ planId: z.enum(["essential", "balanced", "ambitious"]) }).strict()],
+  ["feedback", "Save product direction for future autonomy cycles", z.object({ text: z.string().trim().min(1).max(4000) }).strict()],
+] as const) registry.registerPath({
+  method: "post", path: `/api/projects/{projectId}/autopilot/${suffix}`, tags: ["projects"], summary,
+  description: "Company and project access are enforced. Result submissions require the active task-bound assigned agent run. Board actions do not accept agent credentials.",
+  request: { params: z.object({ projectId: z.string().uuid() }), body: jsonBody(schema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
   method: "get",
   path: "/api/projects/{id}",
   tags: ["projects"],
@@ -5219,6 +5369,54 @@ registry.registerPath({
   responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
 });
 
+// ─── Pixel-art office ────────────────────────────────────────────────────────
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Get the caller's office layout",
+  description: "Board users only. Returns the saved layout for this user and company, or the default layout built from the company's non-terminated agents (source default, not persisted).",
+  request: { params: z.object({ companyId: z.string().uuid() }) },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "put",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Save the caller's office layout",
+  description: "Board users only. Validates the layout and upserts it for (company, user). Records activity office.layout_updated.",
+  request: {
+    params: z.object({ companyId: z.string().uuid() }),
+    body: jsonBody(putOfficeLayoutSchema),
+  },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/companies/{companyId}/office/layout",
+  tags: ["office"],
+  summary: "Reset the caller's office layout",
+  description: "Board users only. Deletes the saved layout and returns the default layout (source default).",
+  request: { params: z.object({ companyId: z.string().uuid() }) },
+  responses: { 200: r.ok(officeLayoutResponseSchema), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/office/design-chat",
+  tags: ["office"],
+  summary: "Design the office from a chat message",
+  description: "Board users only. Uses the caller's default Anthropic connection with forced tool use (apply_office_patch). Returns a reply and the accepted patch; the client applies and saves it. Responds 409 with error no_ai_connection when no usable Anthropic key is available.",
+  request: {
+    params: z.object({ companyId: z.string().uuid() }),
+    body: jsonBody(officeDesignChatSchema),
+  },
+  responses: { 200: r.ok(officeDesignChatResponseSchema), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 502: { description: "The AI provider failed or returned no patch" } },
+});
+
 // ─── Goals ───────────────────────────────────────────────────────────────────
 
 registry.registerPath({
@@ -5270,6 +5468,163 @@ registry.registerPath({
   summary: "Delete a goal",
   request: { params: z.object({ id: z.string() }) },
   responses: { 200: r.ok(), 401: r.unauthorized },
+});
+
+// ─── Company files (Entrada) ─────────────────────────────────────────────────
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/files",
+  tags: ["company-files"],
+  summary: "List company files in a folder, or search them with q. scope=all lists every folder (folderPath on each file). createdByMe and starred filter by the current board user.",
+  request: { params: z.object({ companyId: z.string() }), query: listCompanyFilesQuerySchema },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/companies/{companyId}/files/tree",
+  tags: ["company-files"],
+  summary: "Company files folder tree with recursive counts",
+  request: { params: z.object({ companyId: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files",
+  tags: ["company-files"],
+  summary: "Upload a company file (multipart field file, optional folderId)",
+  request: { params: z.object({ companyId: z.string() }) },
+  responses: { 201: r.ok(), 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/company-files/{id}/versions",
+  tags: ["company-files"],
+  summary: "Add a new version to a company file (multipart field file)",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 201: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/versions",
+  tags: ["company-files"],
+  summary: "List versions of a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/usage",
+  tags: ["company-files"],
+  summary: "List issues that read a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/company-files/{id}",
+  tags: ["company-files"],
+  summary: "Rename or move a company file",
+  request: { params: z.object({ id: z.string() }), body: jsonBody(updateCompanyFileSchema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/company-files/{id}",
+  tags: ["company-files"],
+  summary: "Soft-delete a company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/company-files/{id}/restore",
+  tags: ["company-files"],
+  summary: "Restore a soft-deleted company file",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 409: r.conflict },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/content",
+  tags: ["company-files"],
+  summary: "Read company file content (?version=, ?download=1). Agent reads are recorded. Agents get 404 for files under an agent-hidden folder.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 206: r.ok(), 401: r.unauthorized, 404: r.notFound, 416: r.ok() },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/{id}/thumbnail",
+  tags: ["company-files"],
+  summary: "320px WebP thumbnail of the current version of an image file (cached per asset). 404 for non-image files and undecodable images. Same access rules as the content route.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: { description: "image/webp thumbnail (Cache-Control: private, max-age=3600)" },
+    401: r.unauthorized,
+    404: r.notFound,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/api/company-files/folders/{id}/archive",
+  tags: ["company-files"],
+  summary: "Download a company files folder as a ZIP (board only). Recursive, current version of each live file, paths relative to the folder. 422 when the folder has no files; 413 above 500 MB.",
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: { description: "application/zip attachment named <folder-name>.zip" },
+    401: r.unauthorized,
+    403: r.forbidden,
+    404: r.notFound,
+    413: { description: "Archive exceeds the 500 MB limit" },
+    422: r.unprocessable,
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files/folders",
+  tags: ["company-files"],
+  summary: "Create a company files folder",
+  request: { params: z.object({ companyId: z.string() }), body: jsonBody(createCompanyFileFolderSchema) },
+  responses: { 201: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 409: r.conflict },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/api/company-files/folders/{id}",
+  tags: ["company-files"],
+  summary: "Rename, move, reorder or set agentVisible on a company files folder. agentVisible=false hides the folder and its descendants from agents (folder.updated is logged with the change).",
+  request: { params: z.object({ id: z.string() }), body: jsonBody(updateCompanyFileFolderSchema) },
+  responses: { 200: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 409: r.conflict, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/api/company-files/folders/{id}",
+  tags: ["company-files"],
+  summary: "Delete an empty company files folder",
+  request: { params: z.object({ id: z.string() }) },
+  responses: { 200: r.ok(), 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/api/companies/{companyId}/files/from-artifact",
+  tags: ["company-files"],
+  summary: "Copy an attachment, work product or markdown document into company files",
+  request: { params: z.object({ companyId: z.string() }), body: jsonBody(createCompanyFileFromArtifactSchema) },
+  responses: { 201: r.ok(), 400: r.badRequest, 401: r.unauthorized, 403: r.forbidden, 404: r.notFound, 422: r.unprocessable },
 });
 
 // ─── Secrets ─────────────────────────────────────────────────────────────────
@@ -8178,6 +8533,19 @@ registry.registerPath({
 });
 
 registry.registerPath({
+  method: "get",
+  path: "/api/attachments/{attachmentId}/thumbnail",
+  tags: ["assets"],
+  summary: "320px WebP thumbnail of an image attachment (cached per asset). 404 for non-image and undecodable attachments.",
+  request: { params: z.object({ attachmentId: z.string() }) },
+  responses: {
+    200: { description: "image/webp thumbnail (Cache-Control: private, max-age=3600)" },
+    401: r.unauthorized,
+    404: r.notFound,
+  },
+});
+
+registry.registerPath({
   method: "delete",
   path: "/api/attachments/{attachmentId}",
   tags: ["assets"],
@@ -10251,6 +10619,22 @@ registerCurrentRoute({
   body: updateDocumentResourceMembershipSchema,
 });
 
+registerCurrentRoute({
+  method: "put",
+  path: "/api/companies/{companyId}/resource-memberships/me/company-files/{companyFileId}",
+  tags: ["resource-memberships"],
+  summary: "Star or unstar a company file (Entrada) for the current board user",
+  body: updateCompanyFileResourceMembershipSchema,
+});
+
+registerCurrentRoute({
+  method: "put",
+  path: "/api/companies/{companyId}/resource-memberships/me/artifacts/{source}/{artifactId}",
+  tags: ["resource-memberships"],
+  summary: "Star or unstar a Salida attachment or work product (source is attachment or work_product) for the current board user",
+  body: updateArtifactResourceMembershipSchema,
+});
+
 for (const route of [
   [
     "get",
@@ -12322,6 +12706,17 @@ registerCurrentRoute({
     cursor: z.string().optional(),
   }),
 });
+
+// Productization routes are documented in a separate declarative inventory. The
+// runtime routes remain the authority; actor labels below are reconciled to their
+// board, scoped-key, portal-token and Stripe-signature checks.
+for (const route of productizationOpenApiRoutes) {
+  registerCurrentRoute({
+    method: route.method, path: route.path, summary: route.summary, description: route.description,
+    body: route.body, bodyContentTypes: route.bodyContentTypes, query: route.query, response: route.response, status: route.status, noContent: route.noContent,
+    tags: ["Productization"],
+  });
+}
 
 // Every experimental REST route remains discoverable while its runtime feature
 // flag and actor checks stay authoritative. Shared validators prevent drift.

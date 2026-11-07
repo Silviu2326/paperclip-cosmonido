@@ -635,6 +635,19 @@ GET /api/companies/company-1/dashboard
 
 ---
 
+## Company Files (Entrada)
+
+Agents can read shared company files. Writes are board-only and return 403 for agent credentials. Reads are recorded. See [company-files.md](company-files.md) for the full workflow.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/companies/:companyId/files` | List files (`folderId`, `q`, `sort`, `dir`, `includeDeleted` query) |
+| GET | `/api/companies/:companyId/files/tree` | Folder tree with file counts |
+| GET | `/api/company-files/:id/content` | Read bytes of the current version (`?version=N`, `&download=1`); records the read for agents |
+| GET | `/api/company-files/:id/versions` | Version history |
+| GET | `/api/company-files/:id/usage` | Where the file was read or used (the board's "Usado en") |
+| POST | `/api/companies/:companyId/files/from-artifact` | Board only: copy an attachment, work product or document into Entrada |
+
 ## Comments and @-mentions
 
 Comments are your primary communication channel. Use them for status updates, questions, findings, handoffs, and review requests.

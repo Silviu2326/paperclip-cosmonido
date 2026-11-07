@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "@/i18n";
+import { LanguagePreferenceControl } from "@/components/LanguagePreferenceControl";
+import { NavigationAccessPreferences } from "@/components/NavigationAccessPreferences";
 
 function deriveInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -271,6 +273,12 @@ export function ProfileSettings() {
             </Button>
           </div>
         </form>
+
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold">{t("profileSettings.preferences", { defaultValue: "Preferencias" })}</h2>
+          <LanguagePreferenceControl userId={sessionQuery.data.user.id} />
+          <NavigationAccessPreferences />
+        </section>
 
         <InboxAgentPolicyControl companyId={selectedCompanyId} />
       </section>

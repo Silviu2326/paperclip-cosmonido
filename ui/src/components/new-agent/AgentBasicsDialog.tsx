@@ -2,9 +2,12 @@ import { useCompany } from "@/context/CompanyContext";
 import { useAgentAppearanceDraft } from "@/hooks/useAgentAppearanceDraft";
 import { AdapterMark } from "../AdapterMark";
 import { AgentCharacter } from "../AgentCharacter";
+import { LpcDraftEditorDialog } from "../LpcCharacterEditor";
+import { isLpcAppearance } from "@paperclipai/shared";
+import { useTranslation } from "@/i18n";
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, Check, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Dices, Wand2 } from "lucide-react";
 import { adaptersApi } from "@/api/adapters";
 import { instanceSettingsApi } from "@/api/instanceSettings";
 import { useCloudInstance } from "@/hooks/useCloudInstance";
@@ -31,8 +34,28 @@ export { AdapterMark } from "../AdapterMark";
 
 function AgentBasicsCharacter() {
   const { selectedCompanyId } = useCompany();
-  const { appearance } = useAgentAppearanceDraft(`${selectedCompanyId}:new-agent`);
-  return <AgentCharacter appearance={appearance} state="sleepy" muted size={256} className="size-48" trackingScope="page" />;
+  const { t } = useTranslation();
+  const draft = useAgentAppearanceDraft(`${selectedCompanyId}:new-agent`);
+  const [customizing, setCustomizing] = useState(false);
+  const pixelArt = isLpcAppearance(draft.appearance);
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <AgentCharacter appearance={draft.appearance} state={pixelArt ? "idle" : "sleepy"} muted={!pixelArt} size={256} className="size-48" trackingScope="page" />
+      {pixelArt && (
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => draft.reroll()}>
+            <Dices className="size-4" />{t("lpcCharacterEditor.reroll")}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setCustomizing(true)}>
+            <Wand2 className="size-4" />{t("lpcCharacterEditor.customize")}
+          </Button>
+          {customizing && (
+            <LpcDraftEditorDialog open={customizing} onOpenChange={setCustomizing} value={draft.appearance} onApply={next => { draft.set(next); setCustomizing(false); }} />
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function AgentBasicsDialog({

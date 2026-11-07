@@ -6,6 +6,8 @@ navigation: {"section":"Tasks and conversations","sectionOrder":20,"order":30}
 
 People find work that needs their attention, distinguish unread activity from required decisions, archive handled items, and search across the company.
 
+UX integration note: the combined Inbox/Tareas destination remains controlled by its existing flag, and navigation consolidation must preserve participation rules. See the [implementation status](../../doc/plans/2026-10-22-implementacion-ux-simplificada.md).
+
 Implementation: [inbox](../../ui/src/pages/Inbox.tsx), [decisions](../../ui/src/pages/WhatNeedsMe.tsx), [search](../../ui/src/pages/Search.tsx).
 
 Agent access: [companion](../agent-access-map/inbox-search.md).

@@ -4,8 +4,8 @@ import { pushVoiceReplies } from "./voice-reply-push.js";
 import { voiceInboundService } from "./voice-inbound-service.js";
 import { createHash, randomUUID } from "node:crypto";
 import { and, asc, desc, eq, inArray, lte, notInArray, or, sql } from "drizzle-orm";
-import { chatVoiceReports, chatVoiceCallbacks, chatConversations, chatEndpointResources, chatEndpoints, chatVoiceSessions, issues, toolConnections, activityLog, type Db } from "@paperclipai/db";
-import { VOICE_RESULT_NOTIFICATION, VOICE_REPEAT_NOTIFICATION, type VoiceSession, type VoiceSessionMedia, type VoiceCallHistoryEntry, type VoiceCallReport } from "@paperclipai/shared";
+import { chatVoiceReports, chatVoiceCallbacks, chatConversations, chatEndpointResources, chatEndpoints, chatVoiceSessions, crmPhoneCallbacks, contacts, contactIdentities, issues, toolConnections, activityLog, type Db } from "@paperclipai/db";
+import { CRM_CALLBACK_CALLER_AUTHORITY, CRM_CALLBACK_CALLER_PREFIX, VOICE_RESULT_NOTIFICATION, VOICE_REPEAT_NOTIFICATION, type VoiceSession, type VoiceSessionMedia, type VoiceCallHistoryEntry, type VoiceCallReport } from "@paperclipai/shared";
 import { conflict, forbidden, notFound, HttpError } from "../../errors.js";
 import { instanceSettingsService } from "../instance-settings.js";
 import { buildChatCommunicationGuidance } from "../chat-communication-guidance.js";
@@ -16,6 +16,7 @@ import { serializeVoiceSession, voiceSessionStore, type VoiceCaller, type VoiceS
 import { registerSpekoVoiceRuntime } from "./speko-agent-tools.js";
 import { verifySpekoToolRequest } from "./speko-protocol.js";
 import { VOICE_PROMPT, PHONE_VOICE_PROMPT, LOW_TRUST_PHONE_VOICE_PROMPT } from "./voice-prompts.js";
+import { normalizePhoneE164 } from "../crm/identity.js";
 
 const liveStates = ["reserved", "creating", "creation_unknown", "connecting", "active", "ending"] as const;
 const terminalStates = ["ended", "failed", "expired"] as const;
@@ -27,6 +28,13 @@ export function voiceSessionService(db: Db, options: {
   provider?: typeof createSpekoProvider;
   /** Queue the canonical response delivery after its durable receipt commits. */
   onQuestionAnswered(interactionId: string): void;
+  /**
+   * Optional CRM projection after a provider report is stored. Failures never affect
+   * report reconciliation; the CRM bridge re-syncs idempotently by provider session.
+   */
+  onCallReport?(input: { companyId: string; sessionId: string; providerSessionId: string; complete: boolean }): Promise<void>;
+  /** CRM owns current consent/gate/budget policy and atomically starts its fenced network attempt. */
+  beginCrmCallback?(input: { companyId: string; callbackId: string; claimToken: string; sessionId: string; endpointId: string; assigneeAgentId: string; phoneE164: string }): Promise<void>;
 }) {
   const store = voiceSessionStore(db, options), issueSvc = issueService(db);
   const provider = options.provider ?? createSpekoProvider;
@@ -95,18 +103,27 @@ export function voiceSessionService(db: Db, options: {
     const [claim] = await db.update(chatVoiceSessions).set({ state: "creating", updatedAt: new Date() }).where(and(eq(chatVoiceSessions.id, session.id), eq(chatVoiceSessions.state, "reserved"))).returning({ id: chatVoiceSessions.id });
     if (!claim) throw conflict("The call was ended before Speko connected");
     let client: ReturnType<typeof createSpekoProvider> | undefined;
+    let providerRequestStarted = false;
     let created: { sessionId: string; transportToken?: string; transportUrl?: string };
     try {
       const credentials = await options.credentials(endpoint, session.credentialFingerprint);
       if (!credentials.agentId || !credentials.apiKey) throw new SpekoProviderError("credentials_rejected", false);
-      await db.transaction((tx) => store.authorizeSession(tx, input.companyId, session.id, ["creating"]));
+      if (input.caller.authority === "crm_callback") {
+        const callbackId = input.caller.callbackId!, claimToken = input.caller.claimToken!;
+        await db.transaction((tx) => store.authorizeCrmCallbackSession(tx, input.companyId, session.id, input.caller, ["creating"]));
+        if (!options.beginCrmCallback || input.mode !== "outbound_phone" || !input.phoneNumber) throw forbidden("CRM callback dispatch is not configured");
+        await options.beginCrmCallback({ companyId: input.companyId, callbackId, claimToken, sessionId: session.id, endpointId: input.endpointId, assigneeAgentId: endpoint.assignedAgentId, phoneE164: input.phoneNumber });
+      } else {
+        await db.transaction((tx) => store.authorizeSession(tx, input.companyId, session.id, ["creating"]));
+      }
       client = provider(credentials.apiKey);
       const shared = { agentId: credentials.agentId, bindingId: session.id, toolToken: reserved.token, maxDurationSeconds: input.maxDurationSeconds };
+      providerRequestStarted = true;
       created = input.mode === "outbound_phone"
         ? await client.createPhoneSession({ ...shared, to: input.phoneNumber!, systemPrompt: PHONE_VOICE_PROMPT })
         : await client.createBrowserSession({ ...shared, systemPrompt: VOICE_PROMPT });
     } catch (error) {
-      const known = error instanceof SpekoProviderError && !error.outcomeUnknown || error instanceof HttpError && [403, 404].includes(error.status);
+      const known = !providerRequestStarted || error instanceof SpekoProviderError && !error.outcomeUnknown;
       await db.update(chatVoiceSessions).set({ state: known ? "failed" : "creation_unknown", errorCode: error instanceof SpekoProviderError ? error.code : "provider_unavailable", updatedAt: new Date() }).where(and(eq(chatVoiceSessions.id, session.id), eq(chatVoiceSessions.state, "creating")));
       if (error instanceof SpekoProviderError && error.code === "insufficient_credits") throw conflict("Speko needs credits before starting a call. Add credits in Speko, then try again.", {code: "voice_credits_required", sessionId: session.id});
       throw conflict(known ? "Speko could not start the call. Check connection status before trying again." : "Speko may have started this call. Inspect this attempt before starting another.", { code: known ? "voice_creation_failed" : "voice_creation_unknown", sessionId: session.id });
@@ -126,7 +143,15 @@ export function voiceSessionService(db: Db, options: {
       await closeProvider({ ...session, providerSessionId: created.sessionId, state: "ending" });
       throw conflict("The call was ended while Speko was connecting");
     }
-    try { await db.transaction((tx) => store.authorizeSession(tx, input.companyId, session.id)); }
+    try {
+      await db.transaction(async (tx) => {
+        if (input.caller.authority === "crm_callback") {
+          await store.authorizeCrmCallbackSession(tx, input.companyId, session.id, input.caller, ["connecting", "active"]);
+          return;
+        }
+        await store.authorizeSession(tx, input.companyId, session.id);
+      });
+    }
     catch (error) { await closeProvider(bound).catch(() => undefined); throw error; }
     return { session: serializeVoiceSession(bound), ...(created.transportToken && created.transportUrl ? { media: { sessionId: session.id, generation: session.generation, transportToken: created.transportToken, transportUrl: created.transportUrl } } : {}) };
   }
@@ -306,6 +331,11 @@ export function voiceSessionService(db: Db, options: {
         }).where(and(eq(chatVoiceReports.sessionId, session.id), eq(chatVoiceReports.companyId, session.companyId),
           // A stale report must never replace a newer completed report.
           result.providerUpdatedAt ? or(sql`${chatVoiceReports.providerUpdatedAt} is null`, lte(chatVoiceReports.providerUpdatedAt, result.providerUpdatedAt)) : sql`${chatVoiceReports.providerUpdatedAt} is null`));
+        if (options.onCallReport) {
+          await options.onCallReport({ companyId: session.companyId, sessionId: session.id, providerSessionId: session.providerSessionId!, complete: result.complete })
+            .catch(error => logger.warn({event: "voice.call.crm_projection_failed", companyId: session.companyId, sessionId: session.id,
+              errorMessage: error instanceof Error ? error.message : "unknown"}, "CRM phone projection deferred"));
+        }
         // Keep both actual spoken sides on this public call's own task. This
         // does not publish a document or grant access to any other task.
         if (session.callerAuthority === "guest_intake") await db.transaction(async tx => {
@@ -348,6 +378,30 @@ export function voiceSessionService(db: Db, options: {
     });
     return preference;
   }
+  /** Internal scheduler entrypoint. The caller supplies only callback id and its lease token; number is loaded here. */
+  async function startCrmCallback(callbackId: string, claimToken: string) {
+    const [callback] = await db.select().from(crmPhoneCallbacks).where(and(
+      eq(crmPhoneCallbacks.id, callbackId), eq(crmPhoneCallbacks.status, "dialing"), eq(crmPhoneCallbacks.claimToken, claimToken), sql`${crmPhoneCallbacks.claimExpiresAt} > now()`,
+    ));
+    if (!callback?.issueId) throw forbidden("CRM callback is not currently leased to an executable task");
+    const [contact] = await db.select({ id: contacts.id, primaryPhone: contacts.primaryPhone, archivedAt: contacts.archivedAt }).from(contacts)
+      .where(and(eq(contacts.id, callback.contactId), eq(contacts.companyId, callback.companyId)));
+    if (!contact || contact.archivedAt) throw forbidden("CRM callback contact is unavailable");
+    let phoneE164 = normalizePhoneE164(contact.primaryPhone);
+    if (!phoneE164) {
+      const [identity] = await db.select({ identifier: contactIdentities.identifier }).from(contactIdentities).where(and(
+        eq(contactIdentities.companyId, callback.companyId), eq(contactIdentities.contactId, callback.contactId), eq(contactIdentities.channel, "phone"),
+      )).orderBy(contactIdentities.identifier).limit(1);
+      phoneE164 = normalizePhoneE164(identity?.identifier);
+    }
+    if (!phoneE164 || phoneE164 !== callback.phoneE164) throw forbidden("CRM callback contact phone changed after approval");
+    const caller: VoiceCaller = { id: `${CRM_CALLBACK_CALLER_PREFIX}${callback.id}`, authority: CRM_CALLBACK_CALLER_AUTHORITY, callbackId: callback.id, claimToken };
+    const result = await start({
+      companyId: callback.companyId, endpointId: callback.endpointId, issueId: callback.issueId, caller,
+      idempotencyKey: `crm-callback:${callback.id}:${callback.revision}:${claimToken}`, maxDurationSeconds: 600, mode: "outbound_phone", phoneNumber: phoneE164,
+    });
+    return result.session;
+  }
   const inbound = voiceInboundService(db, { ...options, start, voicePrompt: PHONE_VOICE_PROMPT, lowTrustVoicePrompt: LOW_TRUST_PHONE_VOICE_PROMPT });
   const unregisterAgentTools = registerSpekoVoiceRuntime(db, async (binding, invocationId) => {
     const preference = await callbackPreference(binding.companyId, binding.endpointId, binding.caller);
@@ -355,7 +409,7 @@ export function voiceSessionService(db: Db, options: {
     const result = await start({ ...binding, mode: "outbound_phone", phoneNumber: preference.phoneNumber, idempotencyKey: invocationId, maxDurationSeconds: 600 });
     return { session: result.session };
   });
-  return { start, inspect, end, tool, reconcile, pushReplies, inbound, notification: store.notification, callbackPreference, saveCallbackPreference, history, callDetail, unregisterAgentTools };
+  return { start, startCrmCallback, inspect, end, tool, reconcile, pushReplies, inbound, notification: store.notification, callbackPreference, saveCallbackPreference, history, callDetail, unregisterAgentTools };
 
 }
 export type VoiceSessionService = ReturnType<typeof voiceSessionService>;
